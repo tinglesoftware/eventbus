@@ -88,7 +88,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                     if (!sc.IsClosedOrClosing)
                     {
                         await sc.CloseAsync().ConfigureAwait(false);
-                        clients.Remove(key);
+                        subscriptionClientsCache.Remove(key);
                     }
 
                     logger.LogDebug("Closed subscription client for: {Subscription}", key);
@@ -100,39 +100,35 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             }
         }
 
-        public override async Task PublishAsync<TEvent>(EventContext<TEvent> @event, CancellationToken cancellationToken = default)
+        /// <inheritdoc/>
+        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled = null, CancellationToken cancellationToken = default)
         {
+            @event.Headers ??= new EventHeaders();
+            @event.Headers.MessageId ??= Guid.NewGuid().ToString();
+
             using var ms = await eventSerializer.ToStreamAsync(@event, Encoding.UTF8, cancellationToken);
 
             var message = new Message
             {
-                MessageId = Guid.NewGuid().ToString(),
-                // TODO: populate the CorrelationId
-                //CorrelationId=,
+                MessageId = @event.Headers.MessageId,
+                CorrelationId = @event.Headers.CorrelationId,
                 Body = ms.ToArray(),
             };
 
-            // get the topic client and send the message
+            // get the topic client
             var topicClient = await GetTopicClientAsync(typeof(TEvent), cancellationToken);
-            await topicClient.SendAsync(message);
-        }
 
-        public override async Task<string> SchedulePublishAsync<TEvent>(DateTimeOffset time, EventContext<TEvent> @event, CancellationToken cancellationToken = default)
-        {
-            using var ms = await eventSerializer.ToStreamAsync(@event, Encoding.UTF8, cancellationToken);
-
-            var message = new Message
+            // send the message depending on whether scheduled or not
+            if (scheduled != null)
             {
-                MessageId = Guid.NewGuid().ToString(),
-                // TODO: populate the CorrelationId
-                //CorrelationId=,
-                Body = ms.ToArray(),
-            };
-
-            // get the topic client and send the message
-            var topicClient = await GetTopicClientAsync(typeof(TEvent), cancellationToken);
-            var seqNumber = await topicClient.ScheduleMessageAsync(message, time);
-            return Convert.ToString(seqNumber);
+                var seqNumber = await topicClient.ScheduleMessageAsync(message, scheduled.Value);
+                return Convert.ToString(seqNumber);
+            }
+            else
+            {
+                await topicClient.SendAsync(message);
+                return null;
+            }
         }
 
         private async Task<TopicClient> GetTopicClientAsync(Type eventType, CancellationToken cancellationToken)

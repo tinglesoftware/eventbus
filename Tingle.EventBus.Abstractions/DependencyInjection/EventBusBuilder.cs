@@ -109,7 +109,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     if (options.EventRegistrations.TryGetValue(et, out var ct)
                         && ct != consumerType)
                     {
-                        throw new InvalidOperationException($"{et.FullName} cannot be mapped to {consumerType.FullName} as it is already mapped to {ct.ConsumerType.FullName}");
+                        throw new InvalidOperationException($"{et.FullName} cannot be mapped to {consumerType.FullName} as it is already mapped to {ct.FullName}");
                     }
 
                     options.EventRegistrations[et] = consumerType;

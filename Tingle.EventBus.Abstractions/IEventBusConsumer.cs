@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Abstractions
 {
     public interface IEventBusConsumer
     {
+        // Intentionally left blank
     }
 
     public interface IEventBusConsumer<T> : IEventBusConsumer
     {
-
+        Task ConsumeAsync(EventContext<T> context, CancellationToken cancellationToken = default);
     }
 }

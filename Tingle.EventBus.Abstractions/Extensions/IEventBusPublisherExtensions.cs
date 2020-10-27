@@ -15,10 +15,10 @@ namespace Tingle.EventBus.Abstractions
         /// <param name="event">THe event to publish.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static Task<string> SchedulePublishAsync<TEvent>(this IEventBusPublisher publisher, TimeSpan delay, TEvent @event, CancellationToken cancellationToken = default)
+        public static Task<string> PublishAsync<TEvent>(this IEventBusPublisher publisher, TimeSpan delay, TEvent @event, CancellationToken cancellationToken = default)
         {
-            var time = DateTimeOffset.UtcNow + delay;
-            return publisher.SchedulePublishAsync<TEvent>(time: time, @event: @event, cancellationToken: cancellationToken);
+            var scheduled = DateTimeOffset.UtcNow + delay;
+            return publisher.PublishAsync<TEvent>(@event: @event, scheduled: scheduled, cancellationToken: cancellationToken);
         }
     }
 }

@@ -240,6 +240,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             {
                 var ms = new MemoryStream(message.Body);
                 var eventContext = await eventSerializer.FromStreamAsync(ms, registration.EventType, Encoding.UTF8, cancellationToken);
+                ((EventContext)eventContext).SetBus(this);
                 var tsk = (Task)mi.Invoke(consumer, new[] { eventContext, cancellationToken, });
                 await tsk.ConfigureAwait(false);
 

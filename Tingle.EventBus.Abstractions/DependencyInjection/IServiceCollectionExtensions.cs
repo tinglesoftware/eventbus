@@ -26,7 +26,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // register services that can resolve each other
             services.AddHostedService(p => p.GetRequiredService<IEventBus>());
-            services.AddTransient<IEventBusPublisher>(p => p.GetRequiredService<IEventBus>());
+            services.AddTransient<IEventBusPublisher, EventBusPublisher>();
 
             setupAction?.Invoke(builder);
 

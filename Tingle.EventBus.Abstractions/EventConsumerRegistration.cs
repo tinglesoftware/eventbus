@@ -1,7 +1,7 @@
 ﻿using System;
 namespace Tingle.EventBus.Abstractions
 {
-    internal class EventConsumerRegistration
+    public class EventConsumerRegistration
     {
         public EventConsumerRegistration(Type eventType, Type consumerType)
         {

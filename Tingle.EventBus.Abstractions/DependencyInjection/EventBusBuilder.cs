@@ -63,20 +63,33 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public EventBusBuilder Subscribe<TConsumer>() where TConsumer : class, IEventBusConsumer
         {
-            // register resolution for this type
+            // register the consumer to resolution
+            // transient types are better here because we would rather create an instance for each tyime we need than have leakage of depenencies.
             Services.AddTransient<TConsumer>();
 
             var genericConsumerType = typeof(IEventBusConsumer<>);
             var eventTypes = new List<Type>();
 
-            // get events from each implementation of IEventConsumer<TEvent>
             var consumerType = typeof(TConsumer);
+            if (consumerType.IsAbstract)
+            {
+                throw new InvalidOperationException($"Abstract consumer types are not allowed.");
+            }
+
+            // get events from each implementation of IEventConsumer<TEvent>
             var interfaces = consumerType.GetInterfaces();
             foreach (var ifType in interfaces)
             {
                 if (ifType.IsGenericType && ifType.GetGenericTypeDefinition() == genericConsumerType)
                 {
                     var et = ifType.GenericTypeArguments[0];
+                    if (et.IsAbstract)
+                    {
+                        throw new InvalidOperationException($"Invalid event type '{et.FullName}'. Abstract types are not allowed.");
+                    }
+
+                    // TODO: check/ensure there is an empty constructor
+
                     eventTypes.Add(et);
                 }
             }
@@ -93,13 +106,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 foreach (var et in eventTypes)
                 {
                     // if the type is already mapped to another consumer, throw meaningful exception
-                    if (options.EventRegistrations.TryGetValue(et, out var registration)
-                        && registration.ConsumerType != consumerType)
+                    if (options.EventRegistrations.TryGetValue(et, out var ct)
+                        && ct != consumerType)
                     {
-                        throw new InvalidOperationException($"{et.FullName} cannot be mapped to {consumerType.FullName} as it is already mapped to {registration.ConsumerType.FullName}");
+                        throw new InvalidOperationException($"{et.FullName} cannot be mapped to {consumerType.FullName} as it is already mapped to {ct.ConsumerType.FullName}");
                     }
 
-                    options.EventRegistrations[et] = new EventConsumerRegistration(et, consumerType);
+                    options.EventRegistrations[et] = consumerType;
                 }
             });
         }
@@ -113,12 +126,12 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             return Configure(options =>
             {
-                var registrations = options.EventRegistrations.Where(kvp => kvp.Value.ConsumerType == typeof(TConsumer))
-                                                              .Select(kvp => kvp.Value)
-                                                              .ToList();
-                foreach (var r in registrations)
+                var types = options.EventRegistrations.Where(kvp => kvp.Value == typeof(TConsumer))
+                                                      .Select(kvp => kvp.Value)
+                                                      .ToList();
+                foreach (var r in types)
                 {
-                    options.EventRegistrations.Remove(r.EventType);
+                    options.EventRegistrations.Remove(r);
                 }
             });
         }

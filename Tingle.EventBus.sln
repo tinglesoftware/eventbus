@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Abstraction
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Health", "Tingle.EventBus.Health\Tingle.EventBus.Health.csproj", "{5B305D89-BB50-4456-9D96-479CC655A71C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Transports.AzureServiceBus", "Tingle.EventBus.Transports.AzureServiceBus\Tingle.EventBus.Transports.AzureServiceBus.csproj", "{F01773E0-0A54-4CDB-A2EA-F5937DBA2E02}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{5B305D89-BB50-4456-9D96-479CC655A71C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B305D89-BB50-4456-9D96-479CC655A71C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B305D89-BB50-4456-9D96-479CC655A71C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F01773E0-0A54-4CDB-A2EA-F5937DBA2E02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F01773E0-0A54-4CDB-A2EA-F5937DBA2E02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F01773E0-0A54-4CDB-A2EA-F5937DBA2E02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F01773E0-0A54-4CDB-A2EA-F5937DBA2E02}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

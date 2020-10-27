@@ -26,7 +26,7 @@ namespace Tingle.EventBus.Abstractions.Serialization
             serializer = JsonSerializer.Create(settings);
         }
 
-        public Task<TEvent> FromStreamAsync<TEvent>(Stream stream, Encoding encoding, CancellationToken cancellationToken = default)
+        public Task<TEvent> FromStreamAsync<TEvent>(MemoryStream stream, Encoding encoding, CancellationToken cancellationToken = default)
         {
             using (stream)
             {
@@ -39,14 +39,27 @@ namespace Tingle.EventBus.Abstractions.Serialization
             }
         }
 
-        public Task<Stream> ToStreamAsync<TEvent>(TEvent @event, Encoding encoding, CancellationToken cancellationToken = default)
+        public Task<object> FromStreamAsync(MemoryStream stream, Type type, Encoding encoding, CancellationToken cancellationToken = default)
+        {
+            using (stream)
+            {
+                if (typeof(Stream).IsAssignableFrom(type)) return Task.FromResult((object)stream);
+
+                using var sr = new StreamReader(stream, encoding);
+                using var jr = new JsonTextReader(sr);
+                var result = serializer.Deserialize(jr, type);
+                return Task.FromResult(result);
+            }
+        }
+
+        public Task<MemoryStream> ToStreamAsync<TEvent>(TEvent @event, Encoding encoding, CancellationToken cancellationToken = default)
         {
             // !!!!!! --------------- WARNING --------------- !!!!!!
             // using the StreamWriter with the JsonTextWriter results in a byte array that cannot be used
             // with Newtonsoft.Json.JsonConvert.Deserialize(...)
             var json = JsonConvert.SerializeObject(@event, settings);
             var bytes = encoding.GetBytes(json);
-            return Task.FromResult((Stream)new MemoryStream(bytes));
+            return Task.FromResult(new MemoryStream(bytes));
         }
     }
 }

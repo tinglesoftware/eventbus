@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Transports.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Transports.RabbitMQ", "Tingle.EventBus.Transports.RabbitMQ\Tingle.EventBus.Transports.RabbitMQ.csproj", "{1BCD0C98-D061-4143-B00F-0031FBCD5E5E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Transports.InMemory", "Tingle.EventBus.Transports.InMemory\Tingle.EventBus.Transports.InMemory.csproj", "{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{1BCD0C98-D061-4143-B00F-0031FBCD5E5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1BCD0C98-D061-4143-B00F-0031FBCD5E5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1BCD0C98-D061-4143-B00F-0031FBCD5E5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +12,8 @@ namespace Tingle.EventBus.Abstractions
 {
     public abstract class EventBusBase : IEventBus
     {
+        protected const string ConsumeMethodName = nameof(IEventBusConsumer<int>.ConsumeAsync);
+
         protected static readonly DiagnosticListener DiagnosticListener = new DiagnosticListener("Tingle-EventBus");
 
         private static readonly Regex namePattern = new Regex("(?<=[a-z0-9])[A-Z]", RegexOptions.Compiled);

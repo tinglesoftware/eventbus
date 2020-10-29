@@ -6,7 +6,7 @@ using Tingle.EventBus.Transports.RabbitMQ;
 namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
-    /// Extension methods on <see cref="EventBusBuilder"/> for Rabbit MQ.
+    /// Extension methods on <see cref="EventBusBuilder"/> for RabbitMQ.
     /// </summary>
     public static class EventBusBuilderExtensions
     {

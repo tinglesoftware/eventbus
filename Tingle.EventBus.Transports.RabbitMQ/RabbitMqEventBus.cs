@@ -170,11 +170,10 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             // get the method to invoke
             var consumerType = registration.ConsumerType;
-            var methodName = nameof(IEventBusConsumer<int>.ConsumeAsync);
-            var mi = consumerType.GetMethod(methodName);
-            mi = mi.MakeGenericMethod(registration.EventType);
+            var contextType = typeof(EventContext<>).MakeGenericType(registration.EventType);
+            var method = consumerType.GetMethod(ConsumeMethodName);
 
-            // resolve the conumer
+            // resolve the consumer
             using var scope = serviceScopeFactory.CreateScope();
             var provider = scope.ServiceProvider;
             var consumer = provider.GetRequiredService(consumerType);
@@ -184,7 +183,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 var ms = new MemoryStream(args.Body.ToArray());
                 var eventContext = await eventSerializer.FromStreamAsync(ms, registration.EventType, Encoding.UTF8, cancellationToken);
                 ((EventContext)eventContext).SetBus(this);
-                var tsk = (Task)mi.Invoke(consumer, new[] { eventContext, cancellationToken, });
+                var tsk = (Task)method.Invoke(consumer, new[] { eventContext, cancellationToken, });
                 await tsk.ConfigureAwait(false);
 
                 channel.BasicAck(deliveryTag: args.DeliveryTag, multiple: false);

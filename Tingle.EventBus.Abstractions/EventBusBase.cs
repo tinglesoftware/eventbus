@@ -67,14 +67,19 @@ namespace Tingle.EventBus.Abstractions
         /// Get's the consumer name for a given type.
         /// </summary>
         /// <param name="type"></param>
-        protected virtual string GetConsumerName(Type type) => typeNamesCache.GetOrAdd(type, CreateConsumerName(type));
+        protected virtual string GetConsumerName(Type type, bool forceConsumerName)
+        {
+            return typeNamesCache.GetOrAdd(type, CreateConsumerName(type, forceConsumerName));
+        }
 
-        private string CreateConsumerName(Type type)
+        private string CreateConsumerName(Type type, bool forceConsumerName)
         {
             if (type is null) throw new ArgumentNullException(nameof(type));
 
             // for consumers, we always enforce the full type name
-            var name = Options.UseApplicationNameInsteadOfConsumerName ? Environment.ApplicationName : type.FullName;
+            var name = (Options.UseApplicationNameInsteadOfConsumerName && !forceConsumerName)
+                        ? Environment.ApplicationName
+                        : type.FullName;
             return ApplyNamingConvention(name, Options.NamingConvention);
         }
 

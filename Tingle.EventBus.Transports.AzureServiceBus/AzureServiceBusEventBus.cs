@@ -91,11 +91,11 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                         subscriptionClientsCache.Remove(key);
                     }
 
-                    logger.LogDebug("Closed subscription client for: {Subscription}", key);
+                    logger.LogDebug("Closed subscription client for {Subscription}", key);
                 }
                 catch (Exception exception)
                 {
-                    logger.LogWarning(exception, "Close client faulted: {Subscription}", key);
+                    logger.LogWarning(exception, "Close client faulted for {Subscription}", key);
                 }
             }
         }
@@ -165,7 +165,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             try
             {
                 var topicName = GetEventName(eventType);
-                var subscriptionName = GetConsumerName(consumerType);
+                var subscriptionName = GetConsumerName(consumerType, forceConsumerName: false);
 
                 var key = $"{topicName}/{subscriptionName}";
                 if (!subscriptionClientsCache.TryGetValue(key, out var subscriptionClient))

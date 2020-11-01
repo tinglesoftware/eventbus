@@ -1,6 +1,9 @@
 ﻿namespace Tingle.EventBus.Abstractions.Serialization
 {
-    public class EventBusSerializerOptions
+    /// <summary>
+    /// Default configuration options for an implementation of <see cref="IEventSerializer"/>
+    /// </summary>
+    public class EventSerializerOptions
     {
         /// <summary>
         /// Gets or sets if the serializer should ignore null properties

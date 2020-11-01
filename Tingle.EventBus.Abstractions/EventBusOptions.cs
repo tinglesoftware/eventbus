@@ -10,7 +10,7 @@ namespace Tingle.EventBus.Abstractions
         /// <summary>
         /// The options to use for serializations.
         /// </summary>
-        public EventBusSerializerOptions SerializerOptions { get; } = new EventBusSerializerOptions();
+        public EventSerializerOptions SerializerOptions { get; } = new EventSerializerOptions();
 
         /// <summary>
         /// The naming convention to use when generating names for types and entities on the sepected transport.

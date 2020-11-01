@@ -8,11 +8,18 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Abstractions.Serialization
 {
+    /// <summary>
+    /// The default implementation of <see cref="IEventSerializer"/> that uses <c>Newtonsoft.Json</c>.
+    /// </summary>
     public class NewtonsoftJsonEventSerializer : IEventSerializer
     {
         private readonly JsonSerializer serializer;
         private readonly JsonSerializerSettings settings;
 
+        /// <summary>
+        /// Creates an instance of <see cref="NewtonsoftJsonEventSerializer"/>.
+        /// </summary>
+        /// <param name="optionsAccessor">The options for configuring the serializer.</param>
         public NewtonsoftJsonEventSerializer(IOptions<EventBusOptions> optionsAccessor)
         {
             var options = optionsAccessor?.Value?.SerializerOptions ?? throw new ArgumentNullException(nameof(optionsAccessor));
@@ -26,6 +33,7 @@ namespace Tingle.EventBus.Abstractions.Serialization
             serializer = JsonSerializer.Create(settings);
         }
 
+        /// <inheritdoc/>
         public Task<TEvent> FromStreamAsync<TEvent>(MemoryStream stream, Encoding encoding, CancellationToken cancellationToken = default)
         {
             using (stream)
@@ -39,6 +47,7 @@ namespace Tingle.EventBus.Abstractions.Serialization
             }
         }
 
+        /// <inheritdoc/>
         public Task<object> FromStreamAsync(MemoryStream stream, Type type, Encoding encoding, CancellationToken cancellationToken = default)
         {
             using (stream)

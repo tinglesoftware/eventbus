@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Abstractions
 {
+    /// <summary>
+    /// A message serializer is responsible for serializing and deserializing an event.
+    /// </summary>
     public interface IEventSerializer
     {
         /// <summary>

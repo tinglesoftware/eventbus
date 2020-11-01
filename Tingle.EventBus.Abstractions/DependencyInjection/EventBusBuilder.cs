@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Hosting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tingle.EventBus.Abstractions;
@@ -18,6 +19,22 @@ namespace Microsoft.Extensions.DependencyInjection
         public EventBusBuilder(IServiceCollection services)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
+
+            // Register resolution for HostInfo
+            Services.AddSingleton(p =>
+            {
+                var env = p.GetRequiredService<IHostEnvironment>();
+                var entry = System.Reflection.Assembly.GetEntryAssembly() ?? System.Reflection.Assembly.GetCallingAssembly();
+                return new HostInfo
+                {
+                    ApplicationName = env.ApplicationName,
+                    ApplicationVersion = entry.GetName().Version.ToString(),
+                    EnvironmentName = env.EnvironmentName,
+                    LibraryVersion = typeof(IEventBus).Assembly.GetName().Version.ToString(),
+                    MachineName = Environment.MachineName,
+                    OperatingSystem = Environment.OSVersion.ToString(),
+                };
+            });
         }
 
         /// <summary>

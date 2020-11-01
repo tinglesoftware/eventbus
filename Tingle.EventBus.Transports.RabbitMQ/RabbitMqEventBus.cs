@@ -98,8 +98,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
         public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled = null, CancellationToken cancellationToken = default)
         {
-            @event.Headers ??= new EventHeaders();
-            @event.Headers.MessageId ??= Guid.NewGuid().ToString();
+            @event.EventId ??= Guid.NewGuid().ToString();
 
             if (!IsConnected)
             {
@@ -107,7 +106,8 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             }
 
             // serialize the event
-            using var ms = await eventSerializer.ToStreamAsync(@event, Encoding.UTF8, cancellationToken);
+            using var ms = new MemoryStream();
+            await eventSerializer.SerializeAsync(ms, @event, cancellationToken);
 
             // create channel, declare a fanout exchange
             using var channel = connection.CreateModel();
@@ -120,8 +120,8 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             {
                 // setup properties
                 var properties = channel.CreateBasicProperties();
-                properties.MessageId = @event.Headers.MessageId;
-                properties.CorrelationId = @event.Headers.CorrelationId;
+                properties.MessageId = @event.EventId;
+                properties.CorrelationId = @event.CorrelationId;
                 properties.ContentEncoding = "utf-8";
                 properties.ContentType = "application/json";
 

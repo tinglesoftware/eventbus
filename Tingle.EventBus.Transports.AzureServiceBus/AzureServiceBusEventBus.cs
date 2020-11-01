@@ -103,15 +103,15 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
         /// <inheritdoc/>
         public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled = null, CancellationToken cancellationToken = default)
         {
-            @event.Headers ??= new EventHeaders();
-            @event.Headers.MessageId ??= Guid.NewGuid().ToString();
+            @event.EventId ??= Guid.NewGuid().ToString();
 
-            using var ms = await eventSerializer.ToStreamAsync(@event, Encoding.UTF8, cancellationToken);
+            using var ms = new MemoryStream();
+            await eventSerializer.SerializeAsync(ms, @event, cancellationToken);
 
             var message = new Message
             {
-                MessageId = @event.Headers.MessageId,
-                CorrelationId = @event.Headers.CorrelationId,
+                MessageId = @event.EventId,
+                CorrelationId = @event.CorrelationId,
                 Body = ms.ToArray(),
             };
 

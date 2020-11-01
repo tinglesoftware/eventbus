@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Tingle.EventBus.Abstractions;
 
 namespace Tingle.EventBus.Transports.InMemory
@@ -41,8 +41,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
         public override Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled = null, CancellationToken cancellationToken = default)
         {
-            @event.Headers ??= new EventHeaders();
-            @event.Headers.MessageId ??= Guid.NewGuid().ToString();
+            @event.EventId ??= Guid.NewGuid().ToString();
 
             var scheduledId = scheduled?.ToUnixTimeMilliseconds().ToString();
             published.Add(@event);
@@ -89,11 +88,8 @@ namespace Tingle.EventBus.Transports.InMemory
 
             var context = new EventContext<TEvent>
             {
-                Headers = new EventHeaders
-                {
-                    CorrelationId = @event.Headers.CorrelationId,
-                    MessageId = Guid.NewGuid().ToString(),
-                },
+                EventId = Guid.NewGuid().ToString(),
+                CorrelationId = @event.CorrelationId,
                 Event = @event.Event,
             };
             context.SetBus(this);

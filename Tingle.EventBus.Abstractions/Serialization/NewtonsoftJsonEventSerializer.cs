@@ -13,6 +13,8 @@ namespace Tingle.EventBus.Abstractions.Serialization
     /// </summary>
     public class NewtonsoftJsonEventSerializer : IEventSerializer
     {
+        private readonly Encoding encoding = Encoding.UTF8;
+        private readonly HostInfo hostInfo;
         private readonly JsonSerializer serializer;
         private readonly JsonSerializerSettings settings;
 
@@ -20,8 +22,9 @@ namespace Tingle.EventBus.Abstractions.Serialization
         /// Creates an instance of <see cref="NewtonsoftJsonEventSerializer"/>.
         /// </summary>
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
-        public NewtonsoftJsonEventSerializer(IOptions<EventBusOptions> optionsAccessor)
+        public NewtonsoftJsonEventSerializer(HostInfo hostInfo, IOptions<EventBusOptions> optionsAccessor)
         {
+            this.hostInfo = hostInfo ?? throw new ArgumentNullException(nameof(hostInfo));
             var options = optionsAccessor?.Value?.SerializerOptions ?? throw new ArgumentNullException(nameof(optionsAccessor));
 
             settings = new JsonSerializerSettings()
@@ -31,20 +34,6 @@ namespace Tingle.EventBus.Abstractions.Serialization
             };
 
             serializer = JsonSerializer.Create(settings);
-        }
-
-        /// <inheritdoc/>
-        public Task<TEvent> FromStreamAsync<TEvent>(MemoryStream stream, Encoding encoding, CancellationToken cancellationToken = default)
-        {
-            using (stream)
-            {
-                if (typeof(Stream).IsAssignableFrom(typeof(TEvent))) return Task.FromResult((TEvent)(object)stream);
-
-                using var sr = new StreamReader(stream, encoding);
-                using var jr = new JsonTextReader(sr);
-                var result = serializer.Deserialize<TEvent>(jr);
-                return Task.FromResult(result);
-            }
         }
 
         /// <inheritdoc/>
@@ -61,14 +50,28 @@ namespace Tingle.EventBus.Abstractions.Serialization
             }
         }
 
-        public Task<MemoryStream> ToStreamAsync<TEvent>(TEvent @event, Encoding encoding, CancellationToken cancellationToken = default)
+        /// <inheritdoc/>
+        public async Task SerializeAsync<TEvent>(Stream stream, EventContext<TEvent> context, CancellationToken cancellationToken = default)
         {
-            // !!!!!! --------------- WARNING --------------- !!!!!!
-            // using the StreamWriter with the JsonTextWriter results in a byte array that cannot be used
-            // with Newtonsoft.Json.JsonConvert.Deserialize(...)
-            var json = JsonConvert.SerializeObject(@event, settings);
-            var bytes = encoding.GetBytes(json);
-            return Task.FromResult(new MemoryStream(bytes));
+            var envelope = new MessageEnvelope
+            {
+                EventId = context.EventId,
+                RequestId = context.RequestId,
+                ConversationId = context.ConversationId,
+                CorrelationId = context.CorrelationId,
+                InitiatorId = context.InitiatorId,
+                Event = context.Event,
+                Expires = context.Expires,
+                Sent = context.Sent,
+                Headers = context.Headers,
+                Host = hostInfo,
+            };
+
+            using var sw = new StreamWriter(stream: stream, encoding: encoding, bufferSize: 1024, leaveOpen: true);
+            using var jw = new JsonTextWriter(textWriter: sw);
+            serializer.Serialize(jsonWriter: jw, value: envelope, objectType: typeof(MessageEnvelope));
+            await jw.FlushAsync(cancellationToken: cancellationToken);
+            await sw.FlushAsync();
         }
     }
 }

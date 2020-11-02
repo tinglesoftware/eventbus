@@ -124,6 +124,16 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 properties.ContentEncoding = "utf-8";
                 properties.ContentType = "application/json";
 
+                // set the delay
+                if (scheduled != null)
+                {
+                    var delay = Math.Max(0, (scheduled.Value - DateTimeOffset.UtcNow).TotalMilliseconds);
+                    if (delay > 0)
+                    {
+                        properties.Headers["x-delay"] = (long)delay;
+                    }
+                }
+
                 // do actual publish
                 channel.BasicPublish(exchange: name,
                                      routingKey: "",

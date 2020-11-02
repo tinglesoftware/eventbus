@@ -13,7 +13,7 @@ namespace Tingle.EventBus.Abstractions
         /// <summary>
         /// Serialize an event into a stream of bytes.
         /// </summary>
-        /// <typeparam name="TEvent">The event type to be serialized.</typeparam>
+        /// <typeparam name="T">The event type to be serialized.</typeparam>
         /// <param name="stream">
         /// The stream to serialize to.
         /// (It must be writeable, i.e. <see cref="Stream.CanWrite"/> must be true).
@@ -21,7 +21,7 @@ namespace Tingle.EventBus.Abstractions
         /// <param name="context">The context of the event to be serialized.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task SerializeAsync<TEvent>(Stream stream, EventContext<TEvent> context, CancellationToken cancellationToken = default);
+        Task SerializeAsync<T>(Stream stream, EventContext<T> context, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deserialize an event from a stream of bytes.

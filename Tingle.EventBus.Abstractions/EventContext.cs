@@ -46,7 +46,7 @@ namespace Tingle.EventBus.Abstractions
 
         }
 
-        internal EventContext(T @event) : this()
+        internal EventContext(T @event) : this() // called via reflection
         {
             Event = @event;
         }

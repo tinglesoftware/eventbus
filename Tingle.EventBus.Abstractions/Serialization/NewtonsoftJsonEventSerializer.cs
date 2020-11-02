@@ -76,7 +76,7 @@ namespace Tingle.EventBus.Abstractions.Serialization
         }
 
         /// <inheritdoc/>
-        public async Task SerializeAsync<TEvent>(Stream stream, EventContext<TEvent> context, CancellationToken cancellationToken = default)
+        public async Task SerializeAsync<T>(Stream stream, EventContext<T> context, CancellationToken cancellationToken = default)
         {
             var envelope = new MessageEnvelope
             {

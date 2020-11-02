@@ -17,12 +17,11 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
     public class AzureServiceBusEventBus : EventBusBase<AzureServiceBusOptions>
     {
         private readonly ManagementClient managementClient;
-        private readonly ILogger logger;
-
         private readonly Dictionary<Type, TopicClient> topicClientsCache = new Dictionary<Type, TopicClient>();
         private readonly SemaphoreSlim topicClientsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
         private readonly Dictionary<string, SubscriptionClient> subscriptionClientsCache = new Dictionary<string, SubscriptionClient>();
         private readonly SemaphoreSlim subscriptionClientsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
+        private readonly ILogger logger;
 
         public AzureServiceBusEventBus(IHostEnvironment environment,
                                        IServiceScopeFactory serviceScopeFactory,
@@ -39,11 +38,14 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
         /// <inheritdoc/>
         public override async Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default)
         {
-            _ = await managementClient.GetQueuesRuntimeInfoAsync();
-            var topics = await managementClient.GetTopicsRuntimeInfoAsync();
+            _ = await managementClient.GetQueuesRuntimeInfoAsync(cancellationToken: cancellationToken);
+            var topics = await managementClient.GetTopicsRuntimeInfoAsync(cancellationToken: cancellationToken);
             foreach (var t in topics)
             {
-                _ = await managementClient.GetSubscriptionsRuntimeInfoAsync(t.Path);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                _ = await managementClient.GetSubscriptionsRuntimeInfoAsync(topicPath: t.Path,
+                                                                            cancellationToken: cancellationToken);
             }
 
             return true;

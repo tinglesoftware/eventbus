@@ -1,17 +1,16 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Azure.ServiceBus;
+﻿using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Management;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Tingle.EventBus.Abstractions;
-using System.Text;
-using Microsoft.Extensions.Hosting;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Tingle.EventBus.Abstractions;
 
 namespace Tingle.EventBus.Transports.AzureServiceBus
 {
@@ -238,9 +237,9 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             try
             {
                 var ms = new MemoryStream(message.Body);
-                var eventContext = await eventSerializer.FromStreamAsync(ms, registration.EventType, Encoding.UTF8, cancellationToken);
-                ((EventContext)eventContext).SetBus(this);
-                var tsk = (Task)method.Invoke(consumer, new[] { eventContext, cancellationToken, });
+                var eventContext = await eventSerializer.DeserializeAsync(ms, registration.EventType, cancellationToken);
+                eventContext.SetBus(this);
+                var tsk = (Task)method.Invoke(consumer, new object[] { eventContext, cancellationToken, });
                 await tsk.ConfigureAwait(false);
 
                 await subscriptionClient.CompleteAsync(message.SystemProperties.LockToken);

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Text;
@@ -37,17 +38,41 @@ namespace Tingle.EventBus.Abstractions.Serialization
         }
 
         /// <inheritdoc/>
-        public Task<object> FromStreamAsync(MemoryStream stream, Type type, Encoding encoding, CancellationToken cancellationToken = default)
+        public Task<EventContext> DeserializeAsync(Stream stream, Type eventType, CancellationToken cancellationToken = default)
         {
-            using (stream)
+            using var sr = new StreamReader(stream, encoding);
+            using var jr = new JsonTextReader(sr);
+            var envelope = serializer.Deserialize<MessageEnvelope>(jr);
+            // ensure we have a JToken for the event
+            if (!(envelope.Event is JToken eventToken) || eventToken.Type == JTokenType.Null)
             {
-                if (typeof(Stream).IsAssignableFrom(type)) return Task.FromResult((object)stream);
-
-                using var sr = new StreamReader(stream, encoding);
-                using var jr = new JsonTextReader(sr);
-                var result = serializer.Deserialize(jr, type);
-                return Task.FromResult(result);
+                eventToken = new JObject();
             }
+
+            // get the event from the token
+            object @event = null;
+            if (eventType == typeof(JToken)) @event = eventToken;
+            else
+            {
+                using var jr_evt = eventToken.CreateReader();
+                @event = serializer.Deserialize(jr_evt, eventType);
+            }
+
+            // create the context and pass the event
+            var contextType = typeof(EventContext<>).MakeGenericType(eventType);
+            var context = (EventContext)Activator.CreateInstance(contextType, @event);
+
+            // popuate common properties
+            context.EventId = envelope.EventId;
+            context.RequestId = envelope.RequestId;
+            context.ConversationId = envelope.ConversationId;
+            context.CorrelationId = envelope.CorrelationId;
+            context.InitiatorId = envelope.InitiatorId;
+            context.Expires = envelope.Expires;
+            context.Sent = envelope.Sent;
+            context.Headers = envelope.Headers;
+
+            return Task.FromResult(context);
         }
 
         /// <inheritdoc/>

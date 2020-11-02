@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Tingle.EventBus.Abstractions.Serialization
 {
-    internal class MessageEnvelope
+    public class MessageEnvelope
     {
         public string EventId { get; set; }
         public string RequestId { get; set; }

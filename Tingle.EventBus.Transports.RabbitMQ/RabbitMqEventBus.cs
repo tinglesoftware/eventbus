@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -15,6 +7,13 @@ using Polly.Retry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
 using Tingle.EventBus.Abstractions;
 
 namespace Tingle.EventBus.Transports.RabbitMQ
@@ -181,9 +180,9 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             try
             {
                 var ms = new MemoryStream(args.Body.ToArray());
-                var eventContext = await eventSerializer.FromStreamAsync(ms, registration.EventType, Encoding.UTF8, cancellationToken);
-                ((EventContext)eventContext).SetBus(this);
-                var tsk = (Task)method.Invoke(consumer, new[] { eventContext, cancellationToken, });
+                var eventContext = await eventSerializer.DeserializeAsync(ms, registration.EventType, cancellationToken);
+                eventContext.SetBus(this);
+                var tsk = (Task)method.Invoke(consumer, new object[] { eventContext, cancellationToken, });
                 await tsk.ConfigureAwait(false);
 
                 channel.BasicAck(deliveryTag: args.DeliveryTag, multiple: false);

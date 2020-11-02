@@ -16,11 +16,11 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
 {
     public class AzureServiceBusEventBus : EventBusBase<AzureServiceBusOptions>
     {
-        private readonly ManagementClient managementClient;
         private readonly Dictionary<Type, TopicClient> topicClientsCache = new Dictionary<Type, TopicClient>();
         private readonly SemaphoreSlim topicClientsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
         private readonly Dictionary<string, SubscriptionClient> subscriptionClientsCache = new Dictionary<string, SubscriptionClient>();
         private readonly SemaphoreSlim subscriptionClientsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
+        private readonly ManagementClient managementClient;
         private readonly ILogger logger;
 
         public AzureServiceBusEventBus(IHostEnvironment environment,
@@ -132,7 +132,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             var topicClient = await GetTopicClientAsync(BusOptions.GetRegistration<TEvent>(), cancellationToken);
             await topicClient.SendAsync(message);
 
-            // send the message depending on whether scheduled or not
+            // return the sequence number
             return scheduled != null ? message.SystemProperties.SequenceNumber.ToString() : null;
         }
 
@@ -175,6 +175,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             var topicClient = await GetTopicClientAsync(BusOptions.GetRegistration<TEvent>(), cancellationToken);
             await topicClient.SendAsync(messages);
 
+            // return the sequence numbers
             var sequenceNumbers = messages.Select(m => m.SystemProperties.SequenceNumber.ToString());
             return scheduled != null ? sequenceNumbers.ToList() : (IList<string>)Array.Empty<string>();
         }
@@ -218,7 +219,6 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                 var key = $"{topicName}/{subscriptionName}";
                 if (!subscriptionClientsCache.TryGetValue(key, out var subscriptionClient))
                 {
-
                     // if the subscription does not exist, create it
                     if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionName, cancellationToken))
                     {

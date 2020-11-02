@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.InMemory", "Tingle.EventBus.Transports.InMemory\Tingle.EventBus.Transports.InMemory.csproj", "{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Transports.AmazonSqs", "Tingle.EventBus.Transports.AmazonSqs\Tingle.EventBus.Transports.AmazonSqs.csproj", "{9D2FB610-EBAB-434C-A7C3-6FB20C3D0C3E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D2FB610-EBAB-434C-A7C3-6FB20C3D0C3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D2FB610-EBAB-434C-A7C3-6FB20C3D0C3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D2FB610-EBAB-434C-A7C3-6FB20C3D0C3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D2FB610-EBAB-434C-A7C3-6FB20C3D0C3E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

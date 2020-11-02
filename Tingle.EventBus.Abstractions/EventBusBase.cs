@@ -21,19 +21,16 @@ namespace Tingle.EventBus.Abstractions
         private static readonly Regex namePattern = new Regex("(?<=[a-z0-9])[A-Z]", RegexOptions.Compiled);
 
         private readonly IServiceScopeFactory serviceScopeFactory;
-        private readonly IEventSerializer eventSerializer;
         private readonly ConcurrentDictionary<Type, string> typeNamesCache = new ConcurrentDictionary<Type, string>();
         private readonly ILogger logger;
 
         public EventBusBase(IHostEnvironment environment,
                             IServiceScopeFactory serviceScopeFactory,
-                            IEventSerializer eventSerializer,
                             IOptions<EventBusOptions> optionsAccessor,
                             ILoggerFactory loggerFactory)
         {
             Environment = environment ?? throw new ArgumentNullException(nameof(environment));
             this.serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
-            this.eventSerializer = eventSerializer ?? throw new ArgumentNullException(nameof(eventSerializer));
             Options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
             logger = loggerFactory?.CreateLogger("EventBus") ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -116,9 +113,11 @@ namespace Tingle.EventBus.Abstractions
         protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(Stream body, ContentType contentType, CancellationToken cancellationToken)
             where TEvent : class
         {
-            // Should we find a serializer based on the content type?
+            // Get the serializer. Should we find a serializer based on the content type?
+            using var scope = serviceScopeFactory.CreateScope();
+            var eventSerializer = scope.ServiceProvider.GetRequiredService<IEventSerializer>();
 
-            // deserialize the content into a context
+            // Deserialize the content into a context
             return await eventSerializer.DeserializeAsync<TEvent>(body, cancellationToken);
         }
 
@@ -128,6 +127,10 @@ namespace Tingle.EventBus.Abstractions
             // set properties that may be missing
             @event.EventId ??= Guid.NewGuid().ToString();
             @event.Sent ??= DateTimeOffset.UtcNow;
+
+            // Get the serializer. Should we find a serializer based on the content type?
+            using var scope = serviceScopeFactory.CreateScope();
+            var eventSerializer = scope.ServiceProvider.GetRequiredService<IEventSerializer>();
 
             // do actual serialization
             await eventSerializer.SerializeAsync<TEvent>(body, @event, cancellationToken);

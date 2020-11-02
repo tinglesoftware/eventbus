@@ -21,10 +21,9 @@ namespace Tingle.EventBus.Transports.InMemory
 
         public InMemoryEventBus(IHostEnvironment environment,
                                 IServiceScopeFactory serviceScopeFactory,
-                                IEventSerializer eventSerializer,
                                 IOptions<EventBusOptions> optionsAccessor,
                                 ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, eventSerializer, optionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, optionsAccessor, loggerFactory)
         {
             logger = loggerFactory?.CreateLogger<InMemoryEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }

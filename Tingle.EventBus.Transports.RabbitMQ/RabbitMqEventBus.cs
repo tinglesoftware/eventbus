@@ -35,11 +35,10 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
         public RabbitMqEventBus(IHostEnvironment environment,
                                 IServiceScopeFactory serviceScopeFactory,
-                                IEventSerializer eventSerializer,
                                 IOptions<EventBusOptions> optionsAccessor,
                                 IOptions<RabbitMqOptions> rabbitMqOptionsAccessor,
                                 ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, eventSerializer, optionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, optionsAccessor, loggerFactory)
         {
             rabbitMqOptions = rabbitMqOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(rabbitMqOptionsAccessor));
             logger = loggerFactory?.CreateLogger<RabbitMqEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));

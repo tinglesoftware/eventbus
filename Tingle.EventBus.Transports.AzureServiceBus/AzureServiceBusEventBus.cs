@@ -28,12 +28,11 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
 
         public AzureServiceBusEventBus(IHostEnvironment environment,
                                        IServiceScopeFactory serviceScopeFactory,
-                                       IEventSerializer eventSerializer,
                                        ManagementClient managementClient,
                                        IOptions<EventBusOptions> optionsAccessor,
                                        IOptions<AzureServiceBusOptions> serviceBusOptionsAccessor,
                                        ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, eventSerializer, optionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, optionsAccessor, loggerFactory)
         {
             this.managementClient = managementClient ?? throw new ArgumentNullException(nameof(managementClient));
             serviceBusOptions = serviceBusOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(serviceBusOptionsAccessor));

@@ -129,6 +129,13 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                 message.ScheduledEnqueueTimeUtc = scheduled.Value.DateTime;
             }
 
+            // if expiry is set in the future, set the ttl in the message
+            if (@event.Expires != null && @event.Expires > DateTimeOffset.UtcNow)
+            {
+                var ttl = @event.Expires.Value - DateTimeOffset.UtcNow;
+                message.TimeToLive = ttl;
+            }
+
             // get the topic client and send the message
             var topicClient = await GetTopicClientAsync(typeof(TEvent), cancellationToken);
             await topicClient.SendAsync(message);
@@ -163,6 +170,13 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                 if (scheduled != null && scheduled > DateTimeOffset.UtcNow)
                 {
                     message.ScheduledEnqueueTimeUtc = scheduled.Value.DateTime;
+                }
+
+                // if expiry is set in the future, set the ttl in the message
+                if (@event.Expires != null && @event.Expires > DateTimeOffset.UtcNow)
+                {
+                    var ttl = @event.Expires.Value - DateTimeOffset.UtcNow;
+                    message.TimeToLive = ttl;
                 }
 
                 messages.Add(message);

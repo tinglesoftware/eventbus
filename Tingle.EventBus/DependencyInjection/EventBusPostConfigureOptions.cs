@@ -63,13 +63,13 @@ namespace Microsoft.Extensions.DependencyInjection
             }
         }
 
-        private static string ApplyNamingConvention(string name, EventBusNamingConvention convention)
+        private static string ApplyNamingConvention(string raw, EventBusNamingConvention convention)
         {
             return convention switch
             {
-                EventBusNamingConvention.KebabCase => namePattern.Replace(name, m => "-" + m.Value).ToLowerInvariant(),
-                EventBusNamingConvention.SnakeCase => namePattern.Replace(name, m => "_" + m.Value).ToLowerInvariant(),
-                _ => name,
+                EventBusNamingConvention.KebabCase => namePattern.Replace(raw, m => "-" + m.Value).ToLowerInvariant(),
+                EventBusNamingConvention.SnakeCase => namePattern.Replace(raw, m => "_" + m.Value).ToLowerInvariant(),
+                _ => raw,
             };
         }
     }

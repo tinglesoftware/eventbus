@@ -9,6 +9,6 @@
 </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Tingle.EventBus.Abstractions\Tingle.EventBus.Abstractions.csproj" />
+    <ProjectReference Include="..\Tingle.EventBus\Tingle.EventBus.csproj" />
   </ItemGroup>
 </Project>

@@ -142,6 +142,13 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     }
                 }
 
+                // if expiry is set in the future, set the ttl in the message
+                if (@event.Expires != null && @event.Expires > DateTimeOffset.UtcNow)
+                {
+                    var ttl = @event.Expires.Value - DateTimeOffset.UtcNow;
+                    properties.Expiration = ((long)ttl.TotalMilliseconds).ToString();
+                }
+
                 // do actual publish
                 channel.BasicPublish(exchange: name,
                                      routingKey: "",
@@ -196,6 +203,13 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                         {
                             properties.Headers["x-delay"] = (long)delay;
                         }
+                    }
+
+                    // if expiry is set in the future, set the ttl in the message
+                    if (@event.Expires != null && @event.Expires > DateTimeOffset.UtcNow)
+                    {
+                        var ttl = @event.Expires.Value - DateTimeOffset.UtcNow;
+                        properties.Expiration = ((long)ttl.TotalMilliseconds).ToString();
                     }
 
                     // add to batch

@@ -57,6 +57,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                                               });
         }
 
+        /// <inheritdoc/>
         public override async Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default)
         {
             if (!IsConnected)
@@ -68,8 +69,10 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             return channel.IsOpen;
         }
 
+        /// <inheritdoc/>
         public override async Task StartAsync(CancellationToken cancellationToken) => await ConnectConsumersAsync(cancellationToken);
 
+        /// <inheritdoc/>
         public override Task StopAsync(CancellationToken cancellationToken)
         {
             var channels = subscriptionChannelsCache.Select(kvp => (key: kvp.Key, sc: kvp.Value)).ToList();
@@ -95,23 +98,27 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             return Task.CompletedTask;
         }
 
-        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled = null, CancellationToken cancellationToken = default)
+        /// <inheritdoc/>
+        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                DateTimeOffset? scheduled = null,
+                                                                CancellationToken cancellationToken = default)
         {
-            @event.EventId ??= Guid.NewGuid().ToString();
-
             if (!IsConnected)
             {
                 await TryConnectAsync(cancellationToken);
             }
 
-            // serialize the event
-            using var ms = new MemoryStream();
-            await eventSerializer.SerializeAsync(ms, @event, cancellationToken);
-
             // create channel, declare a fanout exchange
             using var channel = connection.CreateModel();
             var name = GetEventName(typeof(TEvent));
             channel.ExchangeDeclare(exchange: name, type: "fanout");
+
+            // set properties that may be missing
+            @event.EventId ??= Guid.NewGuid().ToString();
+
+            // serialize the event
+            using var ms = new MemoryStream();
+            await eventSerializer.SerializeAsync(ms, @event, cancellationToken);
 
             // publish message
             string scheduledId = null;
@@ -124,13 +131,14 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 properties.ContentEncoding = "utf-8";
                 properties.ContentType = "application/json";
 
-                // set the delay
+                // if scheduled for later, set the delay in the message
                 if (scheduled != null)
                 {
                     var delay = Math.Max(0, (scheduled.Value - DateTimeOffset.UtcNow).TotalMilliseconds);
                     if (delay > 0)
                     {
                         properties.Headers["x-delay"] = (long)delay;
+                        scheduledId = @event.EventId;
                     }
                 }
 
@@ -142,6 +150,64 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             });
 
             return scheduledId;
+        }
+
+        /// <inheritdoc/>
+        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events, DateTimeOffset? scheduled = null, CancellationToken cancellationToken = default)
+        {
+            if (!IsConnected)
+            {
+                await TryConnectAsync(cancellationToken);
+            }
+
+            // create channel, declare a fanout exchange
+            using var channel = connection.CreateModel();
+            var name = GetEventName(typeof(TEvent));
+            channel.ExchangeDeclare(exchange: name, type: "fanout");
+
+            var serializedEvents = new List<(EventContext<TEvent>, ReadOnlyMemory<byte>)>();
+            foreach (var @event in events)
+            {
+                // set properties that may be missing
+                @event.EventId ??= Guid.NewGuid().ToString();
+
+                using var ms = new MemoryStream();
+                await eventSerializer.SerializeAsync(ms, @event, cancellationToken);
+                serializedEvents.Add((@event, ms.ToArray()));
+            }
+
+            retryPolicy.Execute(() =>
+            {
+                var batch = channel.CreateBasicPublishBatch();
+                foreach (var (@event, body) in serializedEvents)
+                {
+                    // setup properties
+                    var properties = channel.CreateBasicProperties();
+                    properties.MessageId = @event.EventId;
+                    properties.CorrelationId = @event.CorrelationId;
+                    properties.ContentEncoding = "utf-8";
+                    properties.ContentType = "application/json";
+
+                    // if scheduled for later, set the delay in the message
+                    if (scheduled != null)
+                    {
+                        var delay = Math.Max(0, (scheduled.Value - DateTimeOffset.UtcNow).TotalMilliseconds);
+                        if (delay > 0)
+                        {
+                            properties.Headers["x-delay"] = (long)delay;
+                        }
+                    }
+
+                    // add to batch
+                    batch.Add(exchange: name, routingKey: "", mandatory: false, properties: properties, body: body);
+                }
+
+                // do actual publish
+                batch.Publish();
+            });
+
+            var messageIds = events.Select(m => m.EventId);
+            return scheduled != null ? messageIds.ToList() : (IList<string>)Array.Empty<string>();
         }
 
         private async Task ConnectConsumersAsync(CancellationToken cancellationToken)

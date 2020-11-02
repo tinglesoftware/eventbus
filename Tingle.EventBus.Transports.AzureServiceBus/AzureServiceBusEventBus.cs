@@ -43,6 +43,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             logger = loggerFactory?.CreateLogger<AzureServiceBusEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
+        /// <inheritdoc/>
         public override async Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default)
         {
             _ = await managementClient.GetQueuesRuntimeInfoAsync();
@@ -104,9 +105,11 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
         }
 
         /// <inheritdoc/>
-        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled = null, CancellationToken cancellationToken = default)
-             where TEvent : class
+        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                DateTimeOffset? scheduled = null,
+                                                                CancellationToken cancellationToken = default)
         {
+            // set properties that may be missing
             @event.EventId ??= Guid.NewGuid().ToString();
 
             using var ms = new MemoryStream();
@@ -119,20 +122,56 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                 Body = ms.ToArray(),
             };
 
-            // get the topic client
+            // if scheduled for later, set the value in the message
+            if (scheduled != null && scheduled > DateTimeOffset.UtcNow)
+            {
+                message.ScheduledEnqueueTimeUtc = scheduled.Value.DateTime;
+            }
+
+            // get the topic client and send the message
             var topicClient = await GetTopicClientAsync(typeof(TEvent), cancellationToken);
+            await topicClient.SendAsync(message);
 
             // send the message depending on whether scheduled or not
-            if (scheduled != null)
+            return scheduled != null ? message.SystemProperties.SequenceNumber.ToString() : null;
+        }
+
+        /// <inheritdoc/>
+        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       DateTimeOffset? scheduled = null,
+                                                                       CancellationToken cancellationToken = default)
+        {
+            var messages = new List<Message>();
+            foreach (var @event in events)
             {
-                var seqNumber = await topicClient.ScheduleMessageAsync(message, scheduled.Value);
-                return Convert.ToString(seqNumber);
+                // set properties that may be missing
+                @event.EventId ??= Guid.NewGuid().ToString();
+
+                using var ms = new MemoryStream();
+                await eventSerializer.SerializeAsync(ms, @event, cancellationToken);
+
+                var message = new Message
+                {
+                    MessageId = @event.EventId,
+                    CorrelationId = @event.CorrelationId,
+                    Body = ms.ToArray(),
+                };
+
+                // if scheduled for later, set the value in the message
+                if (scheduled != null && scheduled > DateTimeOffset.UtcNow)
+                {
+                    message.ScheduledEnqueueTimeUtc = scheduled.Value.DateTime;
+                }
+
+                messages.Add(message);
             }
-            else
-            {
-                await topicClient.SendAsync(message);
-                return null;
-            }
+
+            // get the topic client and send the messages
+            var topicClient = await GetTopicClientAsync(typeof(TEvent), cancellationToken);
+            await topicClient.SendAsync(messages);
+
+            var sequenceNumbers = messages.Select(m => m.SystemProperties.SequenceNumber.ToString());
+            return scheduled != null ? sequenceNumbers.ToList() : (IList<string>)Array.Empty<string>();
         }
 
         private async Task<TopicClient> GetTopicClientAsync(Type eventType, CancellationToken cancellationToken)

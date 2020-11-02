@@ -34,13 +34,18 @@ namespace Tingle.EventBus.Transports.InMemory
         public IEnumerable<object> Consumed => consumed;
         public IEnumerable<object> Failed => failed;
 
+        /// <inheritdoc/>
         public override Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default)
         {
             return Task.FromResult(true);
         }
 
-        public override Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled = null, CancellationToken cancellationToken = default)
+        /// <inheritdoc/>
+        public override Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                          DateTimeOffset? scheduled = null,
+                                                          CancellationToken cancellationToken = default)
         {
+            // set properties that may be missing
             @event.EventId ??= Guid.NewGuid().ToString();
 
             var scheduledId = scheduled?.ToUnixTimeMilliseconds().ToString();
@@ -49,8 +54,33 @@ namespace Tingle.EventBus.Transports.InMemory
             return Task.FromResult(scheduledId);
         }
 
+        /// <inheritdoc/>
+        public override Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                 DateTimeOffset? scheduled = null,
+                                                                 CancellationToken cancellationToken = default)
+        {
+            foreach (var @event in events)
+            {
+                // set properties that may be missing
+                @event.EventId ??= Guid.NewGuid().ToString();
+
+                var _ = SendToConsumersAsync(@event, scheduled);
+            }
+
+            var random = new Random();
+            var scheduledIds = Enumerable.Range(0, events.Count).Select(_ =>
+            {
+                var bys = new byte[8];
+                random.NextBytes(bys);
+                return Convert.ToString(BitConverter.ToInt64(bys));
+            });
+            return Task.FromResult(scheduled != null ? scheduledIds.ToList() : (IList<string>)Array.Empty<string>());
+        }
+
+        /// <inheritdoc/>
         public override Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
+        /// <inheritdoc/>
         public override Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
         private async Task SendToConsumersAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled)
@@ -75,7 +105,7 @@ namespace Tingle.EventBus.Transports.InMemory
             // send the message to each consumer in parallel
             var tasks = registered.Select(reg =>
             {
-                var method =GetType().GetMethod(nameof(DispatchToConsumerAsync)).MakeGenericMethod(typeof(TEvent), reg.ConsumerType);
+                var method = GetType().GetMethod(nameof(DispatchToConsumerAsync)).MakeGenericMethod(typeof(TEvent), reg.ConsumerType);
                 return (Task)method.Invoke(this, new object[] { @event, cancellationToken, });
             }).ToList();
             await Task.WhenAll(tasks);

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -38,6 +39,12 @@ namespace Tingle.EventBus.Abstractions
         public abstract Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
                                                           DateTimeOffset? scheduled = null,
                                                           CancellationToken cancellationToken = default)
+            where TEvent : class;
+
+        /// <inheritdoc/>
+        public abstract Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                 DateTimeOffset? scheduled = null,
+                                                                 CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <inheritdoc/>

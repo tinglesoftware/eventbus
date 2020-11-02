@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Microsoft.Extensions.Hosting;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
 
 namespace Tingle.EventBus.Abstractions
 {
@@ -16,7 +17,7 @@ namespace Tingle.EventBus.Abstractions
         Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Publish an event to be consumed immediately or sometime in the future.
+        /// Publish an event.
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
         /// <param name="event">The event to publish.</param>
@@ -29,6 +30,22 @@ namespace Tingle.EventBus.Abstractions
         Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
                                           DateTimeOffset? scheduled = null,
                                           CancellationToken cancellationToken = default)
+            where TEvent : class;
+
+        /// <summary>
+        /// Publish a batch of events.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type.</typeparam>
+        /// <param name="event">The events to publish.</param>
+        /// <param name="scheduled">
+        /// The time at which the event should be availed for consumption.
+        /// Set null for immediate availability.
+        /// </param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                 DateTimeOffset? scheduled = null,
+                                                 CancellationToken cancellationToken = default)
             where TEvent : class;
     }
 }

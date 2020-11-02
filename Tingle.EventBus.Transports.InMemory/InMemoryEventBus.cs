@@ -14,7 +14,6 @@ namespace Tingle.EventBus.Transports.InMemory
 {
     public class InMemoryEventBus : EventBusBase
     {
-        private readonly IServiceScopeFactory serviceScopeFactory;
         private readonly ConcurrentBag<object> published = new ConcurrentBag<object>();
         private readonly ConcurrentBag<object> consumed = new ConcurrentBag<object>();
         private readonly ConcurrentBag<object> failed = new ConcurrentBag<object>();
@@ -24,9 +23,8 @@ namespace Tingle.EventBus.Transports.InMemory
                                 IServiceScopeFactory serviceScopeFactory,
                                 IOptions<EventBusOptions> optionsAccessor,
                                 ILoggerFactory loggerFactory)
-            : base(environment, optionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, optionsAccessor, loggerFactory)
         {
-            this.serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             logger = loggerFactory?.CreateLogger<InMemoryEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
@@ -116,7 +114,7 @@ namespace Tingle.EventBus.Transports.InMemory
             where TConsumer : IEventBusConsumer<TEvent>
         {
             // resolve the consumer
-            using var scope = serviceScopeFactory.CreateScope();
+            using var scope = ServiceScopeFactory.CreateScope();
             var provider = scope.ServiceProvider;
             var consumer = provider.GetRequiredService<TConsumer>();
 

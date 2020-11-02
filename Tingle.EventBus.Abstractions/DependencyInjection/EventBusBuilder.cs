@@ -102,8 +102,6 @@ namespace Microsoft.Extensions.DependencyInjection
                         throw new InvalidOperationException($"Invalid event type '{et.FullName}'. Abstract types are not allowed.");
                     }
 
-                    // TODO: check/ensure there is an empty constructor
-
                     eventTypes.Add(et);
                 }
             }

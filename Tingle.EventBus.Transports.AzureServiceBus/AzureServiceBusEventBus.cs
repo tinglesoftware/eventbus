@@ -16,7 +16,6 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
 {
     public class AzureServiceBusEventBus : EventBusBase
     {
-        private readonly IServiceScopeFactory serviceScopeFactory;
         private readonly ManagementClient managementClient;
         private readonly IEventSerializer eventSerializer;
         private readonly AzureServiceBusOptions serviceBusOptions;
@@ -34,9 +33,8 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                                        IOptions<EventBusOptions> optionsAccessor,
                                        IOptions<AzureServiceBusOptions> serviceBusOptionsAccessor,
                                        ILoggerFactory loggerFactory)
-            : base(environment, optionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, optionsAccessor, loggerFactory)
         {
-            this.serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             this.managementClient = managementClient ?? throw new ArgumentNullException(nameof(managementClient));
             this.eventSerializer = eventSerializer ?? throw new ArgumentNullException(nameof(eventSerializer));
             serviceBusOptions = serviceBusOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(serviceBusOptionsAccessor));
@@ -287,7 +285,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             });
 
             // resolve the consumer
-            using var scope = serviceScopeFactory.CreateScope();
+            using var scope = ServiceScopeFactory.CreateScope();
             var provider = scope.ServiceProvider;
             var consumer = provider.GetRequiredService<TConsumer>();
 

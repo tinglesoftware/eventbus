@@ -20,7 +20,6 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 {
     public class RabbitMqEventBus : EventBusBase, IDisposable
     {
-        private readonly IServiceScopeFactory serviceScopeFactory;
         private readonly IEventSerializer eventSerializer;
         private readonly RabbitMqOptions rabbitMqOptions;
         private readonly ILogger logger;
@@ -40,9 +39,8 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                                 IOptions<EventBusOptions> optionsAccessor,
                                 IOptions<RabbitMqOptions> rabbitMqOptionsAccessor,
                                 ILoggerFactory loggerFactory)
-            : base(environment, optionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, optionsAccessor, loggerFactory)
         {
-            this.serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             this.eventSerializer = eventSerializer ?? throw new ArgumentNullException(nameof(eventSerializer));
             rabbitMqOptions = rabbitMqOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(rabbitMqOptionsAccessor));
             logger = loggerFactory?.CreateLogger<RabbitMqEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
@@ -261,7 +259,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             });
 
             // resolve the consumer
-            using var scope = serviceScopeFactory.CreateScope();
+            using var scope = ServiceScopeFactory.CreateScope();
             var provider = scope.ServiceProvider;
             var consumer = provider.GetRequiredService<TConsumer>();
 

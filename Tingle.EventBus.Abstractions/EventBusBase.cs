@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -13,8 +14,6 @@ namespace Tingle.EventBus.Abstractions
 {
     public abstract class EventBusBase : IEventBus
     {
-        protected const string ConsumeMethodName = nameof(IEventBusConsumer<int>.ConsumeAsync);
-
         protected static readonly DiagnosticListener DiagnosticListener = new DiagnosticListener("Tingle-EventBus");
 
         private static readonly Regex namePattern = new Regex("(?<=[a-z0-9])[A-Z]", RegexOptions.Compiled);
@@ -22,14 +21,19 @@ namespace Tingle.EventBus.Abstractions
         private readonly ConcurrentDictionary<Type, string> typeNamesCache = new ConcurrentDictionary<Type, string>();
         private readonly ILogger logger;
 
-        public EventBusBase(IHostEnvironment environment, IOptions<EventBusOptions> optionsAccessor, ILoggerFactory loggerFactory)
+        public EventBusBase(IHostEnvironment environment,
+                            IServiceScopeFactory serviceScopeFactory,
+                            IOptions<EventBusOptions> optionsAccessor,
+                            ILoggerFactory loggerFactory)
         {
+            Environment = environment ?? throw new ArgumentNullException(nameof(environment));
+            this.ServiceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             Options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
             logger = loggerFactory?.CreateLogger("EventBus") ?? throw new ArgumentNullException(nameof(logger));
-            Environment = environment ?? throw new ArgumentNullException(nameof(environment));
         }
 
         protected IHostEnvironment Environment { get; }
+        protected IServiceScopeFactory ServiceScopeFactory { get; } // TODO: make private after moving resolution to this base
         protected EventBusOptions Options { get; }
 
         /// <inheritdoc/>

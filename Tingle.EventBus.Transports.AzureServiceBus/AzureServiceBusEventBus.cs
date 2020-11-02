@@ -107,13 +107,13 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                                                                 CancellationToken cancellationToken = default)
         {
             using var ms = new MemoryStream();
-            await SerializeAsync(ms, @event, cancellationToken);
+            var contentType = await SerializeAsync(ms, @event, cancellationToken);
 
             var message = new Message
             {
                 MessageId = @event.EventId,
                 CorrelationId = @event.CorrelationId,
-                ContentType = eventSerializer.ContentType.ToString(),
+                ContentType = contentType.ToString(),
                 Body = ms.ToArray(),
             };
 
@@ -147,13 +147,13 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                await SerializeAsync(ms, @event, cancellationToken);
+                var contentType = await SerializeAsync(ms, @event, cancellationToken);
 
                 var message = new Message
                 {
                     MessageId = @event.EventId,
                     CorrelationId = @event.CorrelationId,
-                    ContentType = eventSerializer.ContentType.ToString(),
+                    ContentType = contentType.ToString(),
                     Body = ms.ToArray(),
                 };
 

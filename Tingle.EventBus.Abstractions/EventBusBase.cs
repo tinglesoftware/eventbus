@@ -21,7 +21,7 @@ namespace Tingle.EventBus.Abstractions
         private static readonly Regex namePattern = new Regex("(?<=[a-z0-9])[A-Z]", RegexOptions.Compiled);
 
         private readonly IServiceScopeFactory serviceScopeFactory;
-        protected readonly IEventSerializer eventSerializer;
+        private readonly IEventSerializer eventSerializer;
         private readonly ConcurrentDictionary<Type, string> typeNamesCache = new ConcurrentDictionary<Type, string>();
         private readonly ILogger logger;
 
@@ -116,19 +116,24 @@ namespace Tingle.EventBus.Abstractions
         protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(Stream body, ContentType contentType, CancellationToken cancellationToken)
             where TEvent : class
         {
-            // should we find a serializer that supports the content type?
-            var context = await eventSerializer.DeserializeAsync<TEvent>(body, cancellationToken);
-            return context;
+            // Should we find a serializer based on the content type?
+
+            // deserialize the content into a context
+            return await eventSerializer.DeserializeAsync<TEvent>(body, cancellationToken);
         }
 
-        protected async Task SerializeAsync<TEvent>(Stream body, EventContext<TEvent> @event, CancellationToken cancellationToken)
+        protected async Task<ContentType> SerializeAsync<TEvent>(Stream body, EventContext<TEvent> @event, CancellationToken cancellationToken)
             where TEvent : class
         {
             // set properties that may be missing
             @event.EventId ??= Guid.NewGuid().ToString();
             @event.Sent ??= DateTimeOffset.UtcNow;
 
+            // do actual serialization
             await eventSerializer.SerializeAsync<TEvent>(body, @event, cancellationToken);
+
+            // return the content type written
+            return eventSerializer.ContentType;
         }
 
         protected async Task PushToConsumerAsync<TEvent, TConsumer>(EventContext<TEvent> eventContext, CancellationToken cancellationToken)

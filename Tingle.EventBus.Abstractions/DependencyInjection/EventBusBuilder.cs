@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +21,8 @@ namespace Microsoft.Extensions.DependencyInjection
         public EventBusBuilder(IServiceCollection services)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
+
+            Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<EventBusOptions>, EventBusPostConfigureOptions>());
 
             // Register resolution for HostInfo
             Services.AddSingleton(p =>

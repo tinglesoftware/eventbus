@@ -31,6 +31,7 @@ namespace Tingle.EventBus
             var context = new EventContext<TEvent>
             {
                 CorrelationId = EventId,
+                Event = @event,
             };
 
             return bus.PublishAsync(@event: context, scheduled: scheduled, cancellationToken: cancellationToken);
@@ -41,14 +42,11 @@ namespace Tingle.EventBus
                                                                     DateTimeOffset? scheduled,
                                                                     CancellationToken cancellationToken)
         {
-            var contexts = events.Select(e =>
+            var contexts = events.Select(e => new EventContext<TEvent>
             {
-                return new EventContext<TEvent>
-                {
-                    CorrelationId = EventId,
-                };
+                CorrelationId = EventId,
+                Event = e,
             }).ToList();
-
             return bus.PublishAsync(events: contexts, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 

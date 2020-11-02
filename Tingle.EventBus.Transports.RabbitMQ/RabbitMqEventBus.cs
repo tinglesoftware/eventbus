@@ -106,7 +106,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             // create channel, declare a fanout exchange
             using var channel = connection.CreateModel();
-            var name = GetEventName(typeof(TEvent));
+            var name = Options.GetRegistration<TEvent>().EventName;
             channel.ExchangeDeclare(exchange: name, type: "fanout");
 
             // serialize the event
@@ -162,7 +162,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             // create channel, declare a fanout exchange
             using var channel = connection.CreateModel();
-            var name = GetEventName(typeof(TEvent));
+            var name = Options.GetRegistration<TEvent>().EventName;
             channel.ExchangeDeclare(exchange: name, type: "fanout");
 
             var serializedEvents = new List<(EventContext<TEvent>, ContentType, ReadOnlyMemory<byte>)>();
@@ -224,8 +224,8 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             var registrations = Options.GetRegistrations();
             foreach (var reg in registrations)
             {
-                var exchangeName = GetEventName(reg.EventType);
-                var queueName = GetConsumerName(reg.ConsumerType, forceConsumerName: true);
+                var exchangeName = reg.EventName;
+                var queueName = reg.ConsumerName;
 
                 var channel = await GetSubscriptionChannelAsync(exchangeName: exchangeName, queueName: queueName, cancellationToken);
                 var consumer = new AsyncEventingBasicConsumer(channel);

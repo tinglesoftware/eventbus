@@ -57,7 +57,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             var registrations = Options.GetRegistrations();
             foreach (var reg in registrations)
             {
-                var sc = await GetSubscriptionClientAsync(eventType: reg.EventType, consumerType: reg.ConsumerType, cancellationToken);
+                var sc = await GetSubscriptionClientAsync(reg: reg, cancellationToken);
                 var options = new MessageHandlerOptions(OnMessageFaultedAsync)
                 {
                     // Maximum number of concurrent calls to the callback ProcessMessagesAsync(), set to 1 for simplicity.
@@ -130,7 +130,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             }
 
             // get the topic client and send the message
-            var topicClient = await GetTopicClientAsync(typeof(TEvent), cancellationToken);
+            var topicClient = await GetTopicClientAsync(Options.GetRegistration<TEvent>(), cancellationToken);
             await topicClient.SendAsync(message);
 
             // send the message depending on whether scheduled or not
@@ -173,22 +173,22 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             }
 
             // get the topic client and send the messages
-            var topicClient = await GetTopicClientAsync(typeof(TEvent), cancellationToken);
+            var topicClient = await GetTopicClientAsync(Options.GetRegistration<TEvent>(), cancellationToken);
             await topicClient.SendAsync(messages);
 
             var sequenceNumbers = messages.Select(m => m.SystemProperties.SequenceNumber.ToString());
             return scheduled != null ? sequenceNumbers.ToList() : (IList<string>)Array.Empty<string>();
         }
 
-        private async Task<TopicClient> GetTopicClientAsync(Type eventType, CancellationToken cancellationToken)
+        private async Task<TopicClient> GetTopicClientAsync(EventConsumerRegistration reg, CancellationToken cancellationToken)
         {
             await topicClientsCacheLock.WaitAsync(cancellationToken);
 
             try
             {
-                if (!topicClientsCache.TryGetValue(eventType, out var topicClient))
+                if (!topicClientsCache.TryGetValue(reg.EventType, out var topicClient))
                 {
-                    var name = GetEventName(eventType);
+                    var name = reg.EventName;
 
                     // ensure topic is created
                     await CreateTopicIfNotExistsAsync(topicName: name, cancellationToken: cancellationToken);
@@ -196,7 +196,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                     // create the topic client
                     var cs = serviceBusOptions.ConnectionStringBuilder.ToString();
                     topicClient = new TopicClient(connectionString: cs, entityPath: name);
-                    topicClientsCache[eventType] = topicClient;
+                    topicClientsCache[reg.EventType] = topicClient;
                 };
 
                 return topicClient;
@@ -207,14 +207,14 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             }
         }
 
-        private async Task<SubscriptionClient> GetSubscriptionClientAsync(Type eventType, Type consumerType, CancellationToken cancellationToken)
+        private async Task<SubscriptionClient> GetSubscriptionClientAsync(EventConsumerRegistration reg, CancellationToken cancellationToken)
         {
             await subscriptionClientsCacheLock.WaitAsync(cancellationToken);
 
             try
             {
-                var topicName = GetEventName(eventType);
-                var subscriptionName = GetConsumerName(consumerType, forceConsumerName: false);
+                var topicName = reg.EventName;
+                var subscriptionName = reg.ConsumerName;
 
                 var key = $"{topicName}/{subscriptionName}";
                 if (!subscriptionClientsCache.TryGetValue(key, out var subscriptionClient))

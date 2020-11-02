@@ -107,12 +107,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     // if the type is already mapped to another consumer, throw meaningful exception
                     if (options.EventRegistrations.TryGetValue(et, out var ct)
-                        && ct != consumerType)
+                        && ct.ConsumerType != consumerType)
                     {
-                        throw new InvalidOperationException($"{et.FullName} cannot be mapped to {consumerType.FullName} as it is already mapped to {ct.FullName}");
+                        throw new InvalidOperationException($"{et.FullName} cannot be mapped to {consumerType.FullName} as it is already mapped to {ct.ConsumerType.FullName}");
                     }
 
-                    options.EventRegistrations[et] = consumerType;
+                    options.EventRegistrations[et] = new EventConsumerRegistration(eventType: et, consumerType: consumerType);
                 }
             });
         }
@@ -126,8 +126,8 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             return Configure(options =>
             {
-                var types = options.EventRegistrations.Where(kvp => kvp.Value == typeof(TConsumer))
-                                                      .Select(kvp => kvp.Value)
+                var types = options.EventRegistrations.Where(kvp => kvp.Value.ConsumerType == typeof(TConsumer))
+                                                      .Select(kvp => kvp.Key)
                                                       .ToList();
                 foreach (var r in types)
                 {

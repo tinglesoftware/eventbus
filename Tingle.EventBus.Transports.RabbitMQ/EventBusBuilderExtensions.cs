@@ -58,6 +58,9 @@ namespace Microsoft.Extensions.DependencyInjection
             // register the event bus
             services.AddSingleton<IEventBus, RabbitMqEventBus>();
 
+            // The consumer names must be forced in RabbitMQ
+            builder.Configure(options => options.ForceConsumerName = true);
+
             return builder;
         }
     }

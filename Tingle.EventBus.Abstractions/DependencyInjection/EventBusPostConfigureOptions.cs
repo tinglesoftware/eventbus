@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Tingle.EventBus.Abstractions;
+using Tingle.EventBus.Abstractions.Serialization;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -11,9 +11,29 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     internal class EventBusPostConfigureOptions : IPostConfigureOptions<EventBusOptions>
     {
+        private readonly IHostEnvironment environment;
+
+        public EventBusPostConfigureOptions(IHostEnvironment environment)
+        {
+            this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
+        }
+
         public void PostConfigure(string name, EventBusOptions options)
         {
-            
+            // setup HostInfo
+            if (options.HostInfo == null)
+            {
+                var entry = System.Reflection.Assembly.GetEntryAssembly() ?? System.Reflection.Assembly.GetCallingAssembly();
+                options.HostInfo = new HostInfo
+                {
+                    ApplicationName = environment.ApplicationName,
+                    ApplicationVersion = entry.GetName().Version.ToString(),
+                    EnvironmentName = environment.EnvironmentName,
+                    LibraryVersion = typeof(IEventBus).Assembly.GetName().Version.ToString(),
+                    MachineName = Environment.MachineName,
+                    OperatingSystem = Environment.OSVersion.ToString(),
+                };
+            }
         }
     }
 }

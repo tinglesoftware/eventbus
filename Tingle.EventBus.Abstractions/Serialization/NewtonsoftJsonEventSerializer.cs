@@ -16,7 +16,6 @@ namespace Tingle.EventBus.Abstractions.Serialization
     public class NewtonsoftJsonEventSerializer : IEventSerializer
     {
         private readonly Encoding encoding = Encoding.UTF8;
-        private readonly HostInfo hostInfo;
         private readonly JsonSerializer serializer;
         private readonly JsonSerializerSettings settings;
 
@@ -24,9 +23,8 @@ namespace Tingle.EventBus.Abstractions.Serialization
         /// Creates an instance of <see cref="NewtonsoftJsonEventSerializer"/>.
         /// </summary>
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
-        public NewtonsoftJsonEventSerializer(HostInfo hostInfo, IOptions<EventBusOptions> optionsAccessor)
+        public NewtonsoftJsonEventSerializer(IOptions<EventBusOptions> optionsAccessor)
         {
-            this.hostInfo = hostInfo ?? throw new ArgumentNullException(nameof(hostInfo));
             var options = optionsAccessor?.Value?.SerializerOptions ?? throw new ArgumentNullException(nameof(optionsAccessor));
 
             settings = new JsonSerializerSettings()
@@ -42,7 +40,10 @@ namespace Tingle.EventBus.Abstractions.Serialization
         public ContentType ContentType => new ContentType("application/json; charset=utf-8");
 
         /// <inheritdoc/>
-        public async Task SerializeAsync<T>(Stream stream, EventContext<T> context, CancellationToken cancellationToken = default)
+        public async Task SerializeAsync<T>(Stream stream,
+                                            EventContext<T> context,
+                                            HostInfo hostInfo,
+                                            CancellationToken cancellationToken = default)
              where T : class
         {
             var envelope = new MessageEnvelope

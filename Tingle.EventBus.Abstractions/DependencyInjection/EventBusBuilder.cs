@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -22,23 +21,8 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
 
-            Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<EventBusOptions>, EventBusPostConfigureOptions>());
-
-            // Register resolution for HostInfo
-            Services.AddSingleton(p =>
-            {
-                var env = p.GetRequiredService<IHostEnvironment>();
-                var entry = System.Reflection.Assembly.GetEntryAssembly() ?? System.Reflection.Assembly.GetCallingAssembly();
-                return new HostInfo
-                {
-                    ApplicationName = env.ApplicationName,
-                    ApplicationVersion = entry.GetName().Version.ToString(),
-                    EnvironmentName = env.EnvironmentName,
-                    LibraryVersion = typeof(IEventBus).Assembly.GetName().Version.ToString(),
-                    MachineName = Environment.MachineName,
-                    OperatingSystem = Environment.OSVersion.ToString(),
-                };
-            });
+            Services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<IPostConfigureOptions<EventBusOptions>, EventBusPostConfigureOptions>());
         }
 
         /// <summary>

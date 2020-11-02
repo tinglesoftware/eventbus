@@ -115,10 +115,10 @@ namespace Tingle.EventBus.Abstractions
         {
             // Get the serializer. Should we find a serializer based on the content type?
             using var scope = serviceScopeFactory.CreateScope();
-            var eventSerializer = scope.ServiceProvider.GetRequiredService<IEventSerializer>();
+            var serializer = scope.ServiceProvider.GetRequiredService<IEventSerializer>();
 
             // Deserialize the content into a context
-            return await eventSerializer.DeserializeAsync<TEvent>(body, cancellationToken);
+            return await serializer.DeserializeAsync<TEvent>(body, cancellationToken);
         }
 
         protected async Task<ContentType> SerializeAsync<TEvent>(Stream body, EventContext<TEvent> @event, CancellationToken cancellationToken)
@@ -130,13 +130,13 @@ namespace Tingle.EventBus.Abstractions
 
             // Get the serializer. Should we find a serializer based on the content type?
             using var scope = serviceScopeFactory.CreateScope();
-            var eventSerializer = scope.ServiceProvider.GetRequiredService<IEventSerializer>();
+            var serializer = scope.ServiceProvider.GetRequiredService<IEventSerializer>();
 
             // do actual serialization
-            await eventSerializer.SerializeAsync<TEvent>(body, @event, cancellationToken);
+            await serializer.SerializeAsync<TEvent>(body, @event, Options.HostInfo, cancellationToken);
 
             // return the content type written
-            return eventSerializer.ContentType;
+            return serializer.ContentType;
         }
 
         protected async Task PushToConsumerAsync<TEvent, TConsumer>(EventContext<TEvent> eventContext, CancellationToken cancellationToken)

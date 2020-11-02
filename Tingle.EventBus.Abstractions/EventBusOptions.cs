@@ -44,6 +44,11 @@ namespace Tingle.EventBus.Abstractions
         /// </summary>
         public bool UseApplicationNameInsteadOfConsumerName { get; set; } = false;
 
+        /// <summary>
+        /// The information about the host where the EventBus is running.
+        /// </summary>
+        internal HostInfo HostInfo { get; set; }
+
         internal Dictionary<Type, Type> EventRegistrations { get; } = new Dictionary<Type, Type>();
 
         public ICollection<EventConsumerRegistration> GetRegistrations()

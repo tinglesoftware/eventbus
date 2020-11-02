@@ -2,6 +2,7 @@
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Abstractions.Serialization;
 
 namespace Tingle.EventBus.Abstractions
 {
@@ -24,9 +25,13 @@ namespace Tingle.EventBus.Abstractions
         /// (It must be writeable, i.e. <see cref="Stream.CanWrite"/> must be true).
         /// </param>
         /// <param name="context">The context of the event to be serialized.</param>
+        /// <param name="hostInfo">The information about the host of the Event Bus.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task SerializeAsync<T>(Stream stream, EventContext<T> context, CancellationToken cancellationToken = default) where T : class;
+        Task SerializeAsync<T>(Stream stream,
+                               EventContext<T> context,
+                               HostInfo hostInfo,
+                               CancellationToken cancellationToken = default) where T : class;
 
         /// <summary>
         /// Deserialize an event from a stream of bytes.

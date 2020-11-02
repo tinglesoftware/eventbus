@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Tingle.EventBus.Abstractions.Serialization;
+using Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus.Abstractions
+namespace Tingle.EventBus
 {
     public class EventBusOptions
     {

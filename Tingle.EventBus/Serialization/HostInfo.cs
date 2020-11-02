@@ -1,4 +1,4 @@
-﻿namespace Tingle.EventBus.Abstractions.Serialization
+﻿namespace Tingle.EventBus.Serialization
 {
     public class HostInfo
     {

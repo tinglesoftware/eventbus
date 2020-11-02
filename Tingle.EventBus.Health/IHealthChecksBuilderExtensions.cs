@@ -1,4 +1,4 @@
-﻿using Tingle.EventBus.Abstractions;
+﻿using Tingle.EventBus;
 using Tingle.EventBus.Health;
 
 namespace Microsoft.Extensions.DependencyInjection

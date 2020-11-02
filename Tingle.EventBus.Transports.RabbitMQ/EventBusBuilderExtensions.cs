@@ -1,6 +1,6 @@
 ﻿using RabbitMQ.Client;
 using System;
-using Tingle.EventBus.Abstractions;
+using Tingle.EventBus;
 using Tingle.EventBus.Transports.RabbitMQ;
 
 namespace Microsoft.Extensions.DependencyInjection

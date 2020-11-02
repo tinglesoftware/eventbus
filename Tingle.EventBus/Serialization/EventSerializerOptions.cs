@@ -1,4 +1,4 @@
-﻿namespace Tingle.EventBus.Abstractions.Serialization
+﻿namespace Tingle.EventBus.Serialization
 {
     /// <summary>
     /// Default configuration options for an implementation of <see cref="IEventSerializer"/>

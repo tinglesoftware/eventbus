@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Tingle.EventBus.Abstractions
+namespace Tingle.EventBus
 {
     public interface IEventBus : IHostedService
     {

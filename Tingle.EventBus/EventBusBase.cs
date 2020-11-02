@@ -9,9 +9,9 @@ using System.IO;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
-using Tingle.EventBus.Abstractions.Serialization;
+using Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus.Abstractions
+namespace Tingle.EventBus
 {
     public abstract class EventBusBase : IEventBus
     {
@@ -78,7 +78,7 @@ namespace Tingle.EventBus.Abstractions
             var serializer = scope.ServiceProvider.GetRequiredService<IEventSerializer>();
 
             // do actual serialization
-            await serializer.SerializeAsync<TEvent>(body, @event, Options.HostInfo, cancellationToken);
+            await serializer.SerializeAsync(body, @event, Options.HostInfo, cancellationToken);
 
             // return the content type written
             return serializer.ContentType;

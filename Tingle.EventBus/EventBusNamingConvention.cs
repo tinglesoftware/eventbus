@@ -1,4 +1,4 @@
-﻿namespace Tingle.EventBus.Abstractions
+﻿namespace Tingle.EventBus
 {
     public enum EventBusNamingConvention
     {

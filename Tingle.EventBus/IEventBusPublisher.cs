@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Tingle.EventBus.Abstractions
+namespace Tingle.EventBus
 {
     public interface IEventBusPublisher
     {
@@ -32,7 +32,7 @@ namespace Tingle.EventBus.Abstractions
             where TEvent : class
         {
             var scheduled = DateTimeOffset.UtcNow + delay;
-            return PublishAsync<TEvent>(@event: @event, scheduled: scheduled, cancellationToken: cancellationToken);
+            return PublishAsync(@event: @event, scheduled: scheduled, cancellationToken: cancellationToken);
         }
     }
 }

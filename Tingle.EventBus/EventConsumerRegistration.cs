@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Tingle.EventBus.Abstractions
+namespace Tingle.EventBus
 {
     public class EventConsumerRegistration
     {

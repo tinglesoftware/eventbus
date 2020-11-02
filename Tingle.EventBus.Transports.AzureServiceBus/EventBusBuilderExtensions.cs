@@ -2,7 +2,7 @@
 using Microsoft.Azure.ServiceBus.Management;
 using Microsoft.Extensions.Options;
 using System;
-using Tingle.EventBus.Abstractions;
+using Tingle.EventBus;
 using Tingle.EventBus.Transports.AzureServiceBus;
 
 namespace Microsoft.Extensions.DependencyInjection

@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Tingle.EventBus.Abstractions;
 
 namespace Tingle.EventBus.Health
 {

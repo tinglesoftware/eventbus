@@ -1,5 +1,5 @@
 ﻿using System;
-using Tingle.EventBus.Abstractions;
+using Tingle.EventBus;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

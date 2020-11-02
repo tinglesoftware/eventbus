@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Tingle.EventBus.Abstractions.Serialization
+namespace Tingle.EventBus.Serialization
 {
     /// <summary>
     /// The default implementation of <see cref="IEventSerializer"/> that uses <c>Newtonsoft.Json</c>.

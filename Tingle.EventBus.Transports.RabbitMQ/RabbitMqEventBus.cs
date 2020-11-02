@@ -15,7 +15,6 @@ using System.Net.Mime;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Tingle.EventBus.Abstractions;
 
 namespace Tingle.EventBus.Transports.RabbitMQ
 {

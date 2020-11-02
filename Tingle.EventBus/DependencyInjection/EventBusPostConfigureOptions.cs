@@ -2,8 +2,8 @@
 using Microsoft.Extensions.Options;
 using System;
 using System.Text.RegularExpressions;
-using Tingle.EventBus.Abstractions;
-using Tingle.EventBus.Abstractions.Serialization;
+using Tingle.EventBus;
+using Tingle.EventBus.Serialization;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

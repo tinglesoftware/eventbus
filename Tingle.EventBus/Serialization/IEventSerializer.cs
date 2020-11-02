@@ -3,7 +3,7 @@ using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Tingle.EventBus.Abstractions.Serialization
+namespace Tingle.EventBus.Serialization
 {
     /// <summary>
     /// A message serializer is responsible for serializing and deserializing an event.

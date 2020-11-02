@@ -11,7 +11,6 @@ using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
-using Tingle.EventBus.Abstractions;
 
 namespace Tingle.EventBus.Transports.AzureServiceBus
 {

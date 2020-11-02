@@ -105,9 +105,6 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
-            // set properties that may be missing
-            @event.EventId ??= Guid.NewGuid().ToString();
-
             using var ms = new MemoryStream();
             await SerializeAsync(ms, @event, cancellationToken);
 
@@ -148,9 +145,6 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             var messages = new List<Message>();
             foreach (var @event in events)
             {
-                // set properties that may be missing
-                @event.EventId ??= Guid.NewGuid().ToString();
-
                 using var ms = new MemoryStream();
                 await SerializeAsync(ms, @event, cancellationToken);
 

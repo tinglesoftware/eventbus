@@ -122,6 +122,10 @@ namespace Tingle.EventBus.Abstractions
         protected async Task SerializeAsync<TEvent>(Stream body, EventContext<TEvent> @event, CancellationToken cancellationToken)
             where TEvent : class
         {
+            // set properties that may be missing
+            @event.EventId ??= Guid.NewGuid().ToString();
+            @event.Sent ??= DateTimeOffset.UtcNow;
+
             await eventSerializer.SerializeAsync<TEvent>(body, @event, cancellationToken);
         }
 

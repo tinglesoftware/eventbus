@@ -109,9 +109,6 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             var name = GetEventName(typeof(TEvent));
             channel.ExchangeDeclare(exchange: name, type: "fanout");
 
-            // set properties that may be missing
-            @event.EventId ??= Guid.NewGuid().ToString();
-
             // serialize the event
             using var ms = new MemoryStream();
             await SerializeAsync(ms, @event, cancellationToken);
@@ -171,9 +168,6 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             var serializedEvents = new List<(EventContext<TEvent>, ReadOnlyMemory<byte>)>();
             foreach (var @event in events)
             {
-                // set properties that may be missing
-                @event.EventId ??= Guid.NewGuid().ToString();
-
                 using var ms = new MemoryStream();
                 await SerializeAsync(ms, @event, cancellationToken);
                 serializedEvents.Add((@event, ms.ToArray()));

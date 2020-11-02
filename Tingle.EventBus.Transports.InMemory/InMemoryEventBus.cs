@@ -44,9 +44,6 @@ namespace Tingle.EventBus.Transports.InMemory
                                                           DateTimeOffset? scheduled = null,
                                                           CancellationToken cancellationToken = default)
         {
-            // set properties that may be missing
-            @event.EventId ??= Guid.NewGuid().ToString();
-
             var scheduledId = scheduled?.ToUnixTimeMilliseconds().ToString();
             published.Add(@event);
             var _ = SendToConsumersAsync(@event, scheduled);
@@ -60,9 +57,6 @@ namespace Tingle.EventBus.Transports.InMemory
         {
             foreach (var @event in events)
             {
-                // set properties that may be missing
-                @event.EventId ??= Guid.NewGuid().ToString();
-
                 var _ = SendToConsumersAsync(@event, scheduled);
             }
 

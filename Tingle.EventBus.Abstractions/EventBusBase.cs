@@ -35,7 +35,10 @@ namespace Tingle.EventBus.Abstractions
         public abstract Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default);
 
         /// <inheritdoc/>
-        public abstract Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled = null, CancellationToken cancellationToken = default);
+        public abstract Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                          DateTimeOffset? scheduled = null,
+                                                          CancellationToken cancellationToken = default)
+            where TEvent : class;
 
         /// <inheritdoc/>
         public abstract Task StartAsync(CancellationToken cancellationToken);

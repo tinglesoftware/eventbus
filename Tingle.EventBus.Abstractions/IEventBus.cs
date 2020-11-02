@@ -26,6 +26,9 @@ namespace Tingle.EventBus.Abstractions
         /// </param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled = null, CancellationToken cancellationToken = default);
+        Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                          DateTimeOffset? scheduled = null,
+                                          CancellationToken cancellationToken = default)
+            where TEvent : class;
     }
 }

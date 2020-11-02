@@ -161,13 +161,16 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 var consumer = new AsyncEventingBasicConsumer(channel);
                 consumer.Received += delegate (object sender, BasicDeliverEventArgs @event)
                 {
-                    return OnMessageReceivedAsync(reg, channel, @event, CancellationToken.None); // do not chain CancellationToken
+                    var method = GetType().GetMethod(nameof(OnMessageReceivedAsync)).MakeGenericMethod(reg.EventType, reg.ConsumerType);
+                    return (Task)method.Invoke(this, new object[] { channel, @event, CancellationToken.None, }); // do not chain CancellationToken
                 };
                 channel.BasicConsume(queue: queueName, autoAck: false, consumer);
             }
         }
 
-        private async Task OnMessageReceivedAsync(EventConsumerRegistration registration, IModel channel, BasicDeliverEventArgs args, CancellationToken cancellationToken)
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(IModel channel, BasicDeliverEventArgs args, CancellationToken cancellationToken)
+            where TEvent : class
+            where TConsumer : IEventBusConsumer<TEvent>
         {
             using var log_scope = logger.BeginScope(new Dictionary<string, string>
             {
@@ -177,24 +180,19 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 ["DeliveryTag"] = args.DeliveryTag.ToString(),
             });
 
-            // get the method to invoke
-            var consumerType = registration.ConsumerType;
-            var contextType = typeof(EventContext<>).MakeGenericType(registration.EventType);
-            var method = consumerType.GetMethod(ConsumeMethodName);
-
             // resolve the consumer
             using var scope = serviceScopeFactory.CreateScope();
             var provider = scope.ServiceProvider;
-            var consumer = provider.GetRequiredService(consumerType);
+            var consumer = provider.GetRequiredService<TConsumer>();
 
             try
             {
                 var ms = new MemoryStream(args.Body.ToArray());
-                var eventContext = await eventSerializer.DeserializeAsync(ms, registration.EventType, cancellationToken);
+                var eventContext = await eventSerializer.DeserializeAsync<TEvent>(ms, cancellationToken);
                 eventContext.SetBus(this);
-                var tsk = (Task)method.Invoke(consumer, new object[] { eventContext, cancellationToken, });
-                await tsk.ConfigureAwait(false);
+                await consumer.ConsumeAsync(eventContext, cancellationToken).ConfigureAwait(false);
 
+                // acknowlege the message
                 channel.BasicAck(deliveryTag: args.DeliveryTag, multiple: false);
             }
             catch (Exception ex)

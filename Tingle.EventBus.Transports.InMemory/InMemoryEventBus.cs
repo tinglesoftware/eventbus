@@ -45,7 +45,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
             var scheduledId = scheduled?.ToUnixTimeMilliseconds().ToString();
             published.Add(@event);
-            var _ = SendToConsumersAsync(@event, scheduled, CancellationToken.None);
+            var _ = SendToConsumersAsync(@event, scheduled);
             return Task.FromResult(scheduledId);
         }
 
@@ -53,8 +53,11 @@ namespace Tingle.EventBus.Transports.InMemory
 
         public override Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-        private async Task SendToConsumersAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled, CancellationToken cancellationToken)
+        private async Task SendToConsumersAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled)
         {
+            var cts = new CancellationTokenSource();
+            var cancellationToken = cts.Token;
+
             // if the message is scheduled, apply a delay for the duration
             if (scheduled != null)
             {
@@ -70,21 +73,22 @@ namespace Tingle.EventBus.Transports.InMemory
             var registered = Options.GetRegistrations().Where(r => r.EventType == eventType).ToList();
 
             // send the message to each consumer in parallel
-            var tasks = registered.Select(reg => DispatchToConsumerAsync(reg, @event, cancellationToken)).ToList();
+            var tasks = registered.Select(reg =>
+            {
+                var method =GetType().GetMethod(nameof(DispatchToConsumerAsync)).MakeGenericMethod(typeof(TEvent), reg.ConsumerType);
+                return (Task)method.Invoke(this, new object[] { @event, cancellationToken, });
+            }).ToList();
             await Task.WhenAll(tasks);
         }
 
-        private async Task DispatchToConsumerAsync<TEvent>(EventConsumerRegistration reg, EventContext<TEvent> @event, CancellationToken cancellationToken)
+        private async Task DispatchToConsumerAsync<TEvent, TConsumer>(EventContext<TEvent> @event, CancellationToken cancellationToken)
+            where TEvent : class
+            where TConsumer : IEventBusConsumer<TEvent>
         {
-            // get the method to invoke
-            var consumerType = reg.ConsumerType;
-            var contextType = typeof(EventContext<>).MakeGenericType(reg.EventType);
-            var method = consumerType.GetMethod(ConsumeMethodName);
-
             // resolve the consumer
             using var scope = serviceScopeFactory.CreateScope();
             var provider = scope.ServiceProvider;
-            var consumer = provider.GetRequiredService(consumerType);
+            var consumer = provider.GetRequiredService<TConsumer>();
 
             var context = new EventContext<TEvent>
             {
@@ -96,15 +100,13 @@ namespace Tingle.EventBus.Transports.InMemory
 
             try
             {
-                var tsk = (Task)method.Invoke(consumer, new object[] { @event, cancellationToken, });
-                await tsk.ConfigureAwait(false);
-
+                await consumer.ConsumeAsync(context, cancellationToken).ConfigureAwait(false);
                 consumed.Add(context);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Event processing failed. Moving to deadletter.");
-                failed.Add(contextType);
+                failed.Add(context);
             }
         }
     }

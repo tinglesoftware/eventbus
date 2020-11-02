@@ -15,6 +15,7 @@ namespace Tingle.EventBus.Abstractions
 
         /// <inheritdoc/>
         public async Task<string> PublishAsync<TEvent>(TEvent @event, DateTimeOffset? scheduled = null, CancellationToken cancellationToken = default)
+            where TEvent : class
         {
             var context = new EventContext<TEvent>
             {

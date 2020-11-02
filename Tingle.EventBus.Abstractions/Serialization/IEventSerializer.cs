@@ -21,11 +21,12 @@ namespace Tingle.EventBus.Abstractions
         /// <param name="context">The context of the event to be serialized.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task SerializeAsync<T>(Stream stream, EventContext<T> context, CancellationToken cancellationToken = default);
+        Task SerializeAsync<T>(Stream stream, EventContext<T> context, CancellationToken cancellationToken = default) where T : class;
 
         /// <summary>
         /// Deserialize an event from a stream of bytes.
         /// </summary>
+        /// <typeparam name="T">The event type to be deserialized.</typeparam>
         /// <param name="stream">
         /// The <see cref="Stream"/> containing the raw data.
         /// (It must be readable, i.e. <see cref="Stream.CanRead"/> must be true).
@@ -33,6 +34,6 @@ namespace Tingle.EventBus.Abstractions
         /// <param name="type">The type to be desserialized</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<EventContext> DeserializeAsync(Stream stream, Type eventType, CancellationToken cancellationToken = default);
+        Task<EventContext<T>> DeserializeAsync<T>(Stream stream, CancellationToken cancellationToken = default) where T : class;
     }
 }

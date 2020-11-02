@@ -38,45 +38,8 @@ namespace Tingle.EventBus.Abstractions.Serialization
         }
 
         /// <inheritdoc/>
-        public Task<EventContext> DeserializeAsync(Stream stream, Type eventType, CancellationToken cancellationToken = default)
-        {
-            using var sr = new StreamReader(stream, encoding);
-            using var jr = new JsonTextReader(sr);
-            var envelope = serializer.Deserialize<MessageEnvelope>(jr);
-            // ensure we have a JToken for the event
-            if (!(envelope.Event is JToken eventToken) || eventToken.Type == JTokenType.Null)
-            {
-                eventToken = new JObject();
-            }
-
-            // get the event from the token
-            object @event = null;
-            if (eventType == typeof(JToken)) @event = eventToken;
-            else
-            {
-                using var jr_evt = eventToken.CreateReader();
-                @event = serializer.Deserialize(jr_evt, eventType);
-            }
-
-            // create the context and pass the event
-            var contextType = typeof(EventContext<>).MakeGenericType(eventType);
-            var context = (EventContext)Activator.CreateInstance(contextType, @event);
-
-            // popuate common properties
-            context.EventId = envelope.EventId;
-            context.RequestId = envelope.RequestId;
-            context.ConversationId = envelope.ConversationId;
-            context.CorrelationId = envelope.CorrelationId;
-            context.InitiatorId = envelope.InitiatorId;
-            context.Expires = envelope.Expires;
-            context.Sent = envelope.Sent;
-            context.Headers = envelope.Headers;
-
-            return Task.FromResult(context);
-        }
-
-        /// <inheritdoc/>
         public async Task SerializeAsync<T>(Stream stream, EventContext<T> context, CancellationToken cancellationToken = default)
+             where T : class
         {
             var envelope = new MessageEnvelope
             {
@@ -97,6 +60,46 @@ namespace Tingle.EventBus.Abstractions.Serialization
             serializer.Serialize(jsonWriter: jw, value: envelope, objectType: typeof(MessageEnvelope));
             await jw.FlushAsync(cancellationToken: cancellationToken);
             await sw.FlushAsync();
+        }
+
+        /// <inheritdoc/>
+        public Task<EventContext<T>> DeserializeAsync<T>(Stream stream, CancellationToken cancellationToken = default)
+            where T : class
+        {
+            using var sr = new StreamReader(stream, encoding);
+            using var jr = new JsonTextReader(sr);
+            var envelope = serializer.Deserialize<MessageEnvelope>(jr);
+
+            // ensure we have a JToken for the event
+            if (!(envelope.Event is JToken eventToken) || eventToken.Type == JTokenType.Null)
+            {
+                eventToken = new JObject();
+            }
+
+            // get the event from the token
+            T @event = default;
+            if (typeof(T) == typeof(JToken)) @event = eventToken as T;
+            else
+            {
+                using var jr_evt = eventToken.CreateReader();
+                @event = serializer.Deserialize<T>(jr_evt);
+            }
+
+            // create the context with the event and popuate common properties
+            var context = new EventContext<T>
+            {
+                EventId = envelope.EventId,
+                RequestId = envelope.RequestId,
+                ConversationId = envelope.ConversationId,
+                CorrelationId = envelope.CorrelationId,
+                InitiatorId = envelope.InitiatorId,
+                Expires = envelope.Expires,
+                Sent = envelope.Sent,
+                Headers = envelope.Headers,
+                Event = @event,
+            };
+
+            return Task.FromResult(context);
         }
     }
 }

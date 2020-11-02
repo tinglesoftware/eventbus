@@ -17,7 +17,8 @@ namespace Tingle.EventBus.Abstractions
         /// </param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<string> PublishAsync<TEvent>(TEvent @event, DateTimeOffset? scheduled = null, CancellationToken cancellationToken = default);
+        Task<string> PublishAsync<TEvent>(TEvent @event, DateTimeOffset? scheduled = null, CancellationToken cancellationToken = default)
+            where TEvent : class;
 
         // <summary>
         /// Publish an event to be consumed (or available for consumption) after a given duration.
@@ -28,6 +29,7 @@ namespace Tingle.EventBus.Abstractions
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public Task<string> PublishAsync<TEvent>(TimeSpan delay, TEvent @event, CancellationToken cancellationToken = default)
+            where TEvent : class
         {
             var scheduled = DateTimeOffset.UtcNow + delay;
             return PublishAsync<TEvent>(@event: @event, scheduled: scheduled, cancellationToken: cancellationToken);

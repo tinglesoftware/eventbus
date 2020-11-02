@@ -71,7 +71,11 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                     // False below indicates the Complete will be handled by the User Callback as in `ProcessMessagesAsync` below.
                     AutoComplete = false,
                 };
-                sc.RegisterMessageHandler(handler: (message, ct) => OnMessageReceivedAsync(reg, sc, message, ct), messageHandlerOptions: options);
+                sc.RegisterMessageHandler(handler: (message, ct) =>
+                {
+                    var method = GetType().GetMethod(nameof(OnMessageReceivedAsync)).MakeGenericMethod(reg.EventType, reg.ConsumerType);
+                    return (Task)method.Invoke(this, new object[] { sc, message, ct, });
+                }, messageHandlerOptions: options);
             }
         }
 
@@ -101,6 +105,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
 
         /// <inheritdoc/>
         public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled = null, CancellationToken cancellationToken = default)
+             where TEvent : class
         {
             @event.EventId ??= Guid.NewGuid().ToString();
 
@@ -214,7 +219,9 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             }
         }
 
-        private async Task OnMessageReceivedAsync(EventConsumerRegistration registration, SubscriptionClient subscriptionClient, Message message, CancellationToken cancellationToken)
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(SubscriptionClient subscriptionClient, Message message, CancellationToken cancellationToken)
+            where TEvent : class
+            where TConsumer : IEventBusConsumer<TEvent>
         {
             using var log_scope = logger.BeginScope(new Dictionary<string, string>
             {
@@ -224,24 +231,19 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                 ["EnqueuedSequenceNumber"] = message.SystemProperties.EnqueuedSequenceNumber.ToString(),
             });
 
-            // get the method to invoke
-            var consumerType = registration.ConsumerType;
-            var contextType = typeof(EventContext<>).MakeGenericType(registration.EventType);
-            var method = consumerType.GetMethod(ConsumeMethodName);
-
             // resolve the consumer
             using var scope = serviceScopeFactory.CreateScope();
             var provider = scope.ServiceProvider;
-            var consumer = provider.GetRequiredService(consumerType);
+            var consumer = provider.GetRequiredService<TConsumer>();
 
             try
             {
                 var ms = new MemoryStream(message.Body);
-                var eventContext = await eventSerializer.DeserializeAsync(ms, registration.EventType, cancellationToken);
+                var eventContext = await eventSerializer.DeserializeAsync<TEvent>(ms, cancellationToken);
                 eventContext.SetBus(this);
-                var tsk = (Task)method.Invoke(consumer, new object[] { eventContext, cancellationToken, });
-                await tsk.ConfigureAwait(false);
+                await consumer.ConsumeAsync(eventContext, cancellationToken).ConfigureAwait(false);
 
+                // complete the message
                 await subscriptionClient.CompleteAsync(message.SystemProperties.LockToken);
             }
             catch (Exception ex)

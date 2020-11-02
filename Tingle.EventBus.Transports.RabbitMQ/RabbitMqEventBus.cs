@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -253,7 +254,8 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             try
             {
                 using var ms = new MemoryStream(args.Body.ToArray());
-                var context = await DeserializeAsync<TEvent>(ms, cancellationToken);
+                var contentType = GetContentType(args.BasicProperties);
+                var context = await DeserializeAsync<TEvent>(ms, contentType, cancellationToken);
                 await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
 
                 // acknowlege the message
@@ -371,6 +373,15 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             logger.LogWarning("RabbitMQ connection shutdown. Trying to re-connect...");
 
             TryConnect();
+        }
+
+        private static ContentType GetContentType(IBasicProperties properties)
+        {
+            var contentType = properties?.ContentType;
+            var contentEncoding = properties?.ContentEncoding ?? "utf-8"; // assume a default
+
+            if (string.IsNullOrWhiteSpace(contentType)) return null;
+            return new ContentType(contentType) { CharSet = contentEncoding };
         }
 
         protected virtual void Dispose(bool disposing)

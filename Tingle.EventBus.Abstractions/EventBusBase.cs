@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Mime;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -112,9 +113,10 @@ namespace Tingle.EventBus.Abstractions
             };
         }
 
-        protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(Stream body, CancellationToken cancellationToken)
+        protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(Stream body, ContentType contentType, CancellationToken cancellationToken)
             where TEvent : class
         {
+            // should we find a serializer that supports the content type?
             var context = await eventSerializer.DeserializeAsync<TEvent>(body, cancellationToken);
             return context;
         }

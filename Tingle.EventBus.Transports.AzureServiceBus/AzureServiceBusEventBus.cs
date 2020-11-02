@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Abstractions;
@@ -279,7 +280,8 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             try
             {
                 using var ms = new MemoryStream(message.Body);
-                var context = await DeserializeAsync<TEvent>(ms, cancellationToken);
+                var contentType = new ContentType(message.ContentType);
+                var context = await DeserializeAsync<TEvent>(ms, contentType, cancellationToken);
                 await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
 
                 // complete the message

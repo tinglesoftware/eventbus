@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,22 +19,25 @@ namespace Tingle.EventBus.Abstractions
 
         private static readonly Regex namePattern = new Regex("(?<=[a-z0-9])[A-Z]", RegexOptions.Compiled);
 
+        private readonly IServiceScopeFactory serviceScopeFactory;
+        protected readonly IEventSerializer eventSerializer;
         private readonly ConcurrentDictionary<Type, string> typeNamesCache = new ConcurrentDictionary<Type, string>();
         private readonly ILogger logger;
 
         public EventBusBase(IHostEnvironment environment,
                             IServiceScopeFactory serviceScopeFactory,
+                            IEventSerializer eventSerializer,
                             IOptions<EventBusOptions> optionsAccessor,
                             ILoggerFactory loggerFactory)
         {
             Environment = environment ?? throw new ArgumentNullException(nameof(environment));
-            this.ServiceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
+            this.serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
+            this.eventSerializer = eventSerializer ?? throw new ArgumentNullException(nameof(eventSerializer));
             Options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
             logger = loggerFactory?.CreateLogger("EventBus") ?? throw new ArgumentNullException(nameof(logger));
         }
 
         protected IHostEnvironment Environment { get; }
-        protected IServiceScopeFactory ServiceScopeFactory { get; } // TODO: make private after moving resolution to this base
         protected EventBusOptions Options { get; }
 
         /// <inheritdoc/>
@@ -106,6 +110,34 @@ namespace Tingle.EventBus.Abstractions
                 EventBusNamingConvention.SnakeCase => namePattern.Replace(name, m => "_" + m.Value).ToLowerInvariant(),
                 _ => name,
             };
+        }
+
+        protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(Stream body, CancellationToken cancellationToken)
+            where TEvent : class
+        {
+            var context = await eventSerializer.DeserializeAsync<TEvent>(body, cancellationToken);
+            return context;
+        }
+
+        protected async Task SerializeAsync<TEvent>(Stream body, EventContext<TEvent> @event, CancellationToken cancellationToken)
+            where TEvent : class
+        {
+            await eventSerializer.SerializeAsync<TEvent>(body, @event, cancellationToken);
+        }
+
+        protected async Task PushToConsumerAsync<TEvent, TConsumer>(EventContext<TEvent> eventContext, CancellationToken cancellationToken)
+            where TConsumer : IEventBusConsumer<TEvent>
+        {
+            // resolve the consumer
+            using var scope = serviceScopeFactory.CreateScope();
+            var provider = scope.ServiceProvider;
+            var consumer = provider.GetRequiredService<TConsumer>();
+
+            // set the bus
+            eventContext.SetBus(this);
+
+            // invoke handler method
+            await consumer.ConsumeAsync(eventContext, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -41,16 +41,6 @@ namespace Tingle.EventBus.Abstractions
 
     public class EventContext<T> : EventContext
     {
-        internal EventContext()
-        {
-
-        }
-
-        internal EventContext(T @event) : this() // called via reflection
-        {
-            Event = @event;
-        }
-
         /// <summary>
         /// The event published
         /// </summary>

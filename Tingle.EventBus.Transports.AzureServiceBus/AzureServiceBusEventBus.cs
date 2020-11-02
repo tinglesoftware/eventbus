@@ -17,7 +17,6 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
     public class AzureServiceBusEventBus : EventBusBase
     {
         private readonly ManagementClient managementClient;
-        private readonly IEventSerializer eventSerializer;
         private readonly AzureServiceBusOptions serviceBusOptions;
         private readonly ILogger logger;
 
@@ -28,15 +27,14 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
 
         public AzureServiceBusEventBus(IHostEnvironment environment,
                                        IServiceScopeFactory serviceScopeFactory,
-                                       ManagementClient managementClient,
                                        IEventSerializer eventSerializer,
+                                       ManagementClient managementClient,
                                        IOptions<EventBusOptions> optionsAccessor,
                                        IOptions<AzureServiceBusOptions> serviceBusOptionsAccessor,
                                        ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, optionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, eventSerializer, optionsAccessor, loggerFactory)
         {
             this.managementClient = managementClient ?? throw new ArgumentNullException(nameof(managementClient));
-            this.eventSerializer = eventSerializer ?? throw new ArgumentNullException(nameof(eventSerializer));
             serviceBusOptions = serviceBusOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(serviceBusOptionsAccessor));
             logger = loggerFactory?.CreateLogger<AzureServiceBusEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
@@ -111,7 +109,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             @event.EventId ??= Guid.NewGuid().ToString();
 
             using var ms = new MemoryStream();
-            await eventSerializer.SerializeAsync(ms, @event, cancellationToken);
+            await SerializeAsync(ms, @event, cancellationToken);
 
             var message = new Message
             {
@@ -154,7 +152,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                 @event.EventId ??= Guid.NewGuid().ToString();
 
                 using var ms = new MemoryStream();
-                await eventSerializer.SerializeAsync(ms, @event, cancellationToken);
+                await SerializeAsync(ms, @event, cancellationToken);
 
                 var message = new Message
                 {
@@ -284,17 +282,11 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                 ["EnqueuedSequenceNumber"] = message.SystemProperties.EnqueuedSequenceNumber.ToString(),
             });
 
-            // resolve the consumer
-            using var scope = ServiceScopeFactory.CreateScope();
-            var provider = scope.ServiceProvider;
-            var consumer = provider.GetRequiredService<TConsumer>();
-
             try
             {
-                var ms = new MemoryStream(message.Body);
-                var eventContext = await eventSerializer.DeserializeAsync<TEvent>(ms, cancellationToken);
-                eventContext.SetBus(this);
-                await consumer.ConsumeAsync(eventContext, cancellationToken).ConfigureAwait(false);
+                using var ms = new MemoryStream(message.Body);
+                var context = await DeserializeAsync<TEvent>(ms, cancellationToken);
+                await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
 
                 // complete the message
                 await subscriptionClient.CompleteAsync(message.SystemProperties.LockToken);

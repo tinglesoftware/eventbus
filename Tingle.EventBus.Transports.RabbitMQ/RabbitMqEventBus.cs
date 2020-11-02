@@ -20,7 +20,6 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 {
     public class RabbitMqEventBus : EventBusBase, IDisposable
     {
-        private readonly IEventSerializer eventSerializer;
         private readonly RabbitMqOptions rabbitMqOptions;
         private readonly ILogger logger;
 
@@ -39,9 +38,8 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                                 IOptions<EventBusOptions> optionsAccessor,
                                 IOptions<RabbitMqOptions> rabbitMqOptionsAccessor,
                                 ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, optionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, eventSerializer, optionsAccessor, loggerFactory)
         {
-            this.eventSerializer = eventSerializer ?? throw new ArgumentNullException(nameof(eventSerializer));
             rabbitMqOptions = rabbitMqOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(rabbitMqOptionsAccessor));
             logger = loggerFactory?.CreateLogger<RabbitMqEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
 
@@ -116,7 +114,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             // serialize the event
             using var ms = new MemoryStream();
-            await eventSerializer.SerializeAsync(ms, @event, cancellationToken);
+            await SerializeAsync(ms, @event, cancellationToken);
 
             // publish message
             string scheduledId = null;
@@ -177,7 +175,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 @event.EventId ??= Guid.NewGuid().ToString();
 
                 using var ms = new MemoryStream();
-                await eventSerializer.SerializeAsync(ms, @event, cancellationToken);
+                await SerializeAsync(ms, @event, cancellationToken);
                 serializedEvents.Add((@event, ms.ToArray()));
             }
 
@@ -258,17 +256,11 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 ["DeliveryTag"] = args.DeliveryTag.ToString(),
             });
 
-            // resolve the consumer
-            using var scope = ServiceScopeFactory.CreateScope();
-            var provider = scope.ServiceProvider;
-            var consumer = provider.GetRequiredService<TConsumer>();
-
             try
             {
-                var ms = new MemoryStream(args.Body.ToArray());
-                var eventContext = await eventSerializer.DeserializeAsync<TEvent>(ms, cancellationToken);
-                eventContext.SetBus(this);
-                await consumer.ConsumeAsync(eventContext, cancellationToken).ConfigureAwait(false);
+                using var ms = new MemoryStream(args.Body.ToArray());
+                var context = await DeserializeAsync<TEvent>(ms, cancellationToken);
+                await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
 
                 // acknowlege the message
                 channel.BasicAck(deliveryTag: args.DeliveryTag, multiple: false);

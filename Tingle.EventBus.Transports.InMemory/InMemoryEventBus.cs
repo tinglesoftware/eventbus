@@ -21,9 +21,10 @@ namespace Tingle.EventBus.Transports.InMemory
 
         public InMemoryEventBus(IHostEnvironment environment,
                                 IServiceScopeFactory serviceScopeFactory,
+                                IEventSerializer eventSerializer,
                                 IOptions<EventBusOptions> optionsAccessor,
                                 ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, optionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, eventSerializer, optionsAccessor, loggerFactory)
         {
             logger = loggerFactory?.CreateLogger<InMemoryEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
@@ -113,22 +114,16 @@ namespace Tingle.EventBus.Transports.InMemory
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
-            // resolve the consumer
-            using var scope = ServiceScopeFactory.CreateScope();
-            var provider = scope.ServiceProvider;
-            var consumer = provider.GetRequiredService<TConsumer>();
-
             var context = new EventContext<TEvent>
             {
                 EventId = Guid.NewGuid().ToString(),
                 CorrelationId = @event.CorrelationId,
                 Event = @event.Event,
             };
-            context.SetBus(this);
 
             try
             {
-                await consumer.ConsumeAsync(context, cancellationToken).ConfigureAwait(false);
+                await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
                 consumed.Add(context);
             }
             catch (Exception ex)

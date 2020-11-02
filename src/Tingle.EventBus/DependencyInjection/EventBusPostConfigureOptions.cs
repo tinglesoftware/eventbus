@@ -47,7 +47,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     var type = reg.EventType;
                     var ename = options.UseFullTypeNames ? type.FullName : type.Name;
-                    reg.EventName = ApplyNamingConvention(ename, options.NamingConvention);
+                    ename = ApplyNamingConvention(ename, options.NamingConvention);
+                    reg.EventName = AppendScope(ename, options);
                 }
 
                 // set the consumer name, if not set
@@ -58,9 +59,23 @@ namespace Microsoft.Extensions.DependencyInjection
                     var cname = (options.UseApplicationNameInsteadOfConsumerName && !options.ForceConsumerName)
                                 ? environment.ApplicationName
                                 : type.FullName;
-                    reg.ConsumerName = ApplyNamingConvention(cname, options.NamingConvention);
+                    cname = AppendScope(ApplyNamingConvention(cname, options.NamingConvention), options);
+                    reg.ConsumerName = AppendScope(cname, options);
                 }
             }
+        }
+
+        private string AppendScope(string unscoped, EventBusOptions options)
+        {
+            var scope = options.Scope;
+            if (string.IsNullOrWhiteSpace(scope)) return unscoped;
+
+            return options.NamingConvention switch
+            {
+                EventBusNamingConvention.KebabCase => string.Join("-", scope, unscoped).ToLowerInvariant(),
+                EventBusNamingConvention.SnakeCase => string.Join("_", scope, unscoped).ToLowerInvariant(),
+                _ => throw new ArgumentOutOfRangeException(nameof(options.NamingConvention), $"'{options.NamingConvention}' does not support scoping"),
+            };
         }
 
         private static string ApplyNamingConvention(string raw, EventBusNamingConvention convention)

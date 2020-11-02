@@ -18,6 +18,12 @@ namespace Tingle.EventBus
         public EventBusNamingConvention NamingConvention { get; set; } = EventBusNamingConvention.KebabCase;
 
         /// <summary>
+        /// The scope to use for queues and subscriptions.
+        /// Set to <see langword="null"/> for non-scoped entities.
+        /// </summary>
+        public string Scope { get; set; }
+
+        /// <summary>
         /// Determines if to use the full name when generating entity names.
         /// This should always be enabled if there are types with the same names.
         /// For example <see cref="string"/> would produce <c>System.String</c>, <c>system-string</c>,

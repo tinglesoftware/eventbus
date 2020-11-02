@@ -1,5 +1,5 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
+using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,6 +10,11 @@ namespace Tingle.EventBus.Abstractions
     /// </summary>
     public interface IEventSerializer
     {
+        /// <summary>
+        /// The content type used by the serializer.
+        /// </summary>
+        ContentType ContentType { get; }
+
         /// <summary>
         /// Serialize an event into a stream of bytes.
         /// </summary>

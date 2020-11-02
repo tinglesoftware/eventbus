@@ -128,8 +128,8 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 var properties = channel.CreateBasicProperties();
                 properties.MessageId = @event.EventId;
                 properties.CorrelationId = @event.CorrelationId;
-                properties.ContentEncoding = "utf-8";
-                properties.ContentType = "application/json";
+                properties.ContentEncoding = eventSerializer.ContentType.CharSet;
+                properties.ContentType = eventSerializer.ContentType.MediaType;
 
                 // if scheduled for later, set the delay in the message
                 if (scheduled != null)
@@ -185,8 +185,8 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     var properties = channel.CreateBasicProperties();
                     properties.MessageId = @event.EventId;
                     properties.CorrelationId = @event.CorrelationId;
-                    properties.ContentEncoding = "utf-8";
-                    properties.ContentType = "application/json";
+                    properties.ContentEncoding = eventSerializer.ContentType.CharSet;
+                    properties.ContentType = eventSerializer.ContentType.MediaType;
 
                     // if scheduled for later, set the delay in the message
                     if (scheduled != null)

@@ -119,6 +119,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             {
                 MessageId = @event.EventId,
                 CorrelationId = @event.CorrelationId,
+                ContentType = eventSerializer.ContentType.ToString(),
                 Body = ms.ToArray(),
             };
 
@@ -154,6 +155,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                 {
                     MessageId = @event.EventId,
                     CorrelationId = @event.CorrelationId,
+                    ContentType = eventSerializer.ContentType.ToString(),
                     Body = ms.ToArray(),
                 };
 

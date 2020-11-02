@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
+using System.Net.Mime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,6 +37,9 @@ namespace Tingle.EventBus.Abstractions.Serialization
 
             serializer = JsonSerializer.Create(settings);
         }
+
+        /// <inheritdoc/>
+        public ContentType ContentType => new ContentType("application/json; charset=utf-8");
 
         /// <inheritdoc/>
         public async Task SerializeAsync<T>(Stream stream, EventContext<T> context, CancellationToken cancellationToken = default)

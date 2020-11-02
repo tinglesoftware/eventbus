@@ -18,9 +18,8 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.RabbitMQ
 {
-    public class RabbitMqEventBus : EventBusBase, IDisposable
+    public class RabbitMqEventBus : EventBusBase<RabbitMqOptions>, IDisposable
     {
-        private readonly RabbitMqOptions rabbitMqOptions;
         private readonly ILogger logger;
 
         private readonly RetryPolicy retryPolicy;
@@ -35,16 +34,15 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         public RabbitMqEventBus(IHostEnvironment environment,
                                 IServiceScopeFactory serviceScopeFactory,
                                 IOptions<EventBusOptions> optionsAccessor,
-                                IOptions<RabbitMqOptions> rabbitMqOptionsAccessor,
+                                IOptions<RabbitMqOptions> transportOptionsAccessor,
                                 ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, optionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, optionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            rabbitMqOptions = rabbitMqOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(rabbitMqOptionsAccessor));
             logger = loggerFactory?.CreateLogger<RabbitMqEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
 
             retryPolicy = Policy.Handle<BrokerUnreachableException>()
                                 .Or<SocketException>()
-                                .WaitAndRetry(retryCount: rabbitMqOptions.RetryCount,
+                                .WaitAndRetry(retryCount: TransportOptions.RetryCount,
                                               sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
                                               onRetry: (ex, time) =>
                                               {
@@ -316,7 +314,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
                 retryPolicy.Execute(() =>
                 {
-                    connection = rabbitMqOptions.ConnectionFactory.CreateConnection();
+                    connection = TransportOptions.ConnectionFactory.CreateConnection();
                 });
 
                 if (IsConnected)

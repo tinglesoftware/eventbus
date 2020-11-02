@@ -14,10 +14,9 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.AzureServiceBus
 {
-    public class AzureServiceBusEventBus : EventBusBase
+    public class AzureServiceBusEventBus : EventBusBase<AzureServiceBusOptions>
     {
         private readonly ManagementClient managementClient;
-        private readonly AzureServiceBusOptions serviceBusOptions;
         private readonly ILogger logger;
 
         private readonly Dictionary<Type, TopicClient> topicClientsCache = new Dictionary<Type, TopicClient>();
@@ -29,12 +28,11 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                                        IServiceScopeFactory serviceScopeFactory,
                                        ManagementClient managementClient,
                                        IOptions<EventBusOptions> optionsAccessor,
-                                       IOptions<AzureServiceBusOptions> serviceBusOptionsAccessor,
+                                       IOptions<AzureServiceBusOptions> transportOptionsAccessor,
                                        ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, optionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, optionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             this.managementClient = managementClient ?? throw new ArgumentNullException(nameof(managementClient));
-            serviceBusOptions = serviceBusOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(serviceBusOptionsAccessor));
             logger = loggerFactory?.CreateLogger<AzureServiceBusEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
@@ -193,7 +191,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                     await CreateTopicIfNotExistsAsync(topicName: name, cancellationToken: cancellationToken);
 
                     // create the topic client
-                    var cs = serviceBusOptions.ConnectionStringBuilder.ToString();
+                    var cs = TransportOptions.ConnectionStringBuilder.ToString();
                     topicClient = new TopicClient(connectionString: cs, entityPath: name);
                     topicClientsCache[reg.EventType] = topicClient;
                 };
@@ -230,12 +228,12 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                         // TODO: set the defaults for a subscription here
 
                         // allow for the defaults to be overriden
-                        serviceBusOptions.SetupSubscriptionDescription?.Invoke(desc);
+                        TransportOptions.SetupSubscriptionDescription?.Invoke(desc);
                         await managementClient.CreateSubscriptionAsync(desc, cancellationToken);
                     }
 
                     // create the subscription client
-                    var cs = serviceBusOptions.ConnectionStringBuilder.ToString();
+                    var cs = TransportOptions.ConnectionStringBuilder.ToString();
                     subscriptionClient = new SubscriptionClient(connectionString: cs, topicPath: topicName, subscriptionName: subscriptionName);
                     subscriptionClientsCache[key] = subscriptionClient;
                 }
@@ -258,7 +256,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                 // TODO: set the defaults for a topic here
 
                 // allow for the defaults to be overriden
-                serviceBusOptions.SetupTopicDescription?.Invoke(desc);
+                TransportOptions.SetupTopicDescription?.Invoke(desc);
                 _ = await managementClient.CreateTopicAsync(topicDescription: desc, cancellationToken: cancellationToken);
             }
         }

@@ -13,7 +13,7 @@ using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus
 {
-    public abstract class EventBusBase : IEventBus
+    public abstract class EventBusBase<TTransportOptions> : IEventBus where TTransportOptions : class, new()
     {
         protected static readonly DiagnosticListener DiagnosticListener = new DiagnosticListener("Tingle-EventBus");
 
@@ -23,16 +23,19 @@ namespace Tingle.EventBus
         public EventBusBase(IHostEnvironment environment,
                             IServiceScopeFactory serviceScopeFactory,
                             IOptions<EventBusOptions> optionsAccessor,
+                            IOptions<TTransportOptions> transportOptionsAccessor,
                             ILoggerFactory loggerFactory)
         {
             Environment = environment ?? throw new ArgumentNullException(nameof(environment));
             this.serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             Options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
+            TransportOptions = transportOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(transportOptionsAccessor));
             logger = loggerFactory?.CreateLogger("EventBus") ?? throw new ArgumentNullException(nameof(logger));
         }
 
         protected IHostEnvironment Environment { get; }
         protected EventBusOptions Options { get; }
+        protected TTransportOptions TransportOptions { get; }
 
         /// <inheritdoc/>
         public abstract Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default);

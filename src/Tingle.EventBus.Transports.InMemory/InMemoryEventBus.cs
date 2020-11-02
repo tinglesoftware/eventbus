@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
-    public class InMemoryEventBus : EventBusBase
+    public class InMemoryEventBus : EventBusBase<InMemoryOptions>
     {
         private readonly ConcurrentBag<object> published = new ConcurrentBag<object>();
         private readonly ConcurrentBag<object> consumed = new ConcurrentBag<object>();
@@ -21,8 +21,9 @@ namespace Tingle.EventBus.Transports.InMemory
         public InMemoryEventBus(IHostEnvironment environment,
                                 IServiceScopeFactory serviceScopeFactory,
                                 IOptions<EventBusOptions> optionsAccessor,
+                                IOptions<InMemoryOptions> transportOptionsAccessor,
                                 ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, optionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, optionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             logger = loggerFactory?.CreateLogger<InMemoryEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }

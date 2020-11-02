@@ -33,10 +33,10 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
         public RabbitMqEventBus(IHostEnvironment environment,
                                 IServiceScopeFactory serviceScopeFactory,
-                                IOptions<EventBusOptions> optionsAccessor,
+                                IOptions<EventBusOptions> busOptionsAccessor,
                                 IOptions<RabbitMqOptions> transportOptionsAccessor,
                                 ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, optionsAccessor, transportOptionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             logger = loggerFactory?.CreateLogger<RabbitMqEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
 
@@ -103,7 +103,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             // create channel, declare a fanout exchange
             using var channel = connection.CreateModel();
-            var name = Options.GetRegistration<TEvent>().EventName;
+            var name = BusOptions.GetRegistration<TEvent>().EventName;
             channel.ExchangeDeclare(exchange: name, type: "fanout");
 
             // serialize the event
@@ -159,7 +159,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             // create channel, declare a fanout exchange
             using var channel = connection.CreateModel();
-            var name = Options.GetRegistration<TEvent>().EventName;
+            var name = BusOptions.GetRegistration<TEvent>().EventName;
             channel.ExchangeDeclare(exchange: name, type: "fanout");
 
             var serializedEvents = new List<(EventContext<TEvent>, ContentType, ReadOnlyMemory<byte>)>();
@@ -218,7 +218,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 await TryConnectAsync(cancellationToken);
             }
 
-            var registrations = Options.GetRegistrations();
+            var registrations = BusOptions.GetRegistrations();
             foreach (var reg in registrations)
             {
                 var exchangeName = reg.EventName;

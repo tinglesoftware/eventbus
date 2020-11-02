@@ -22,19 +22,19 @@ namespace Tingle.EventBus
 
         public EventBusBase(IHostEnvironment environment,
                             IServiceScopeFactory serviceScopeFactory,
-                            IOptions<EventBusOptions> optionsAccessor,
+                            IOptions<EventBusOptions> busOptionsAccessor,
                             IOptions<TTransportOptions> transportOptionsAccessor,
                             ILoggerFactory loggerFactory)
         {
             Environment = environment ?? throw new ArgumentNullException(nameof(environment));
             this.serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
-            Options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
+            BusOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
             TransportOptions = transportOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(transportOptionsAccessor));
             logger = loggerFactory?.CreateLogger("EventBus") ?? throw new ArgumentNullException(nameof(logger));
         }
 
         protected IHostEnvironment Environment { get; }
-        protected EventBusOptions Options { get; }
+        protected EventBusOptions BusOptions { get; }
         protected TTransportOptions TransportOptions { get; }
 
         /// <inheritdoc/>
@@ -81,7 +81,7 @@ namespace Tingle.EventBus
             var serializer = scope.ServiceProvider.GetRequiredService<IEventSerializer>();
 
             // do actual serialization
-            await serializer.SerializeAsync(body, @event, Options.HostInfo, cancellationToken);
+            await serializer.SerializeAsync(body, @event, BusOptions.HostInfo, cancellationToken);
 
             // return the content type written
             return serializer.ContentType;

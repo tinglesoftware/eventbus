@@ -20,10 +20,10 @@ namespace Tingle.EventBus.Transports.InMemory
 
         public InMemoryEventBus(IHostEnvironment environment,
                                 IServiceScopeFactory serviceScopeFactory,
-                                IOptions<EventBusOptions> optionsAccessor,
+                                IOptions<EventBusOptions> busOptionsAccessor,
                                 IOptions<InMemoryOptions> transportOptionsAccessor,
                                 ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, optionsAccessor, transportOptionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             logger = loggerFactory?.CreateLogger<InMemoryEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
@@ -92,7 +92,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
             // find consumers registered for the event
             var eventType = typeof(TEvent);
-            var registered = Options.GetRegistrations().Where(r => r.EventType == eventType).ToList();
+            var registered = BusOptions.GetRegistrations().Where(r => r.EventType == eventType).ToList();
 
             // send the message to each consumer in parallel
             var tasks = registered.Select(reg =>

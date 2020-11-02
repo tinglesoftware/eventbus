@@ -27,10 +27,10 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
         public AzureServiceBusEventBus(IHostEnvironment environment,
                                        IServiceScopeFactory serviceScopeFactory,
                                        ManagementClient managementClient,
-                                       IOptions<EventBusOptions> optionsAccessor,
+                                       IOptions<EventBusOptions> busOptionsAccessor,
                                        IOptions<AzureServiceBusOptions> transportOptionsAccessor,
                                        ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, optionsAccessor, transportOptionsAccessor, loggerFactory)
+            : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             this.managementClient = managementClient ?? throw new ArgumentNullException(nameof(managementClient));
             logger = loggerFactory?.CreateLogger<AzureServiceBusEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
@@ -51,7 +51,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            var registrations = Options.GetRegistrations();
+            var registrations = BusOptions.GetRegistrations();
             foreach (var reg in registrations)
             {
                 var sc = await GetSubscriptionClientAsync(reg: reg, cancellationToken);
@@ -127,7 +127,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             }
 
             // get the topic client and send the message
-            var topicClient = await GetTopicClientAsync(Options.GetRegistration<TEvent>(), cancellationToken);
+            var topicClient = await GetTopicClientAsync(BusOptions.GetRegistration<TEvent>(), cancellationToken);
             await topicClient.SendAsync(message);
 
             // send the message depending on whether scheduled or not
@@ -170,7 +170,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             }
 
             // get the topic client and send the messages
-            var topicClient = await GetTopicClientAsync(Options.GetRegistration<TEvent>(), cancellationToken);
+            var topicClient = await GetTopicClientAsync(BusOptions.GetRegistration<TEvent>(), cancellationToken);
             await topicClient.SendAsync(messages);
 
             var sequenceNumbers = messages.Select(m => m.SystemProperties.SequenceNumber.ToString());

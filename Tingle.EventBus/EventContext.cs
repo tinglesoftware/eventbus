@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,14 +24,32 @@ namespace Tingle.EventBus
         public IDictionary<string, object> Headers { get; set; } = new Dictionary<string, object>();
 
         /// <inheritdoc/>
-        Task<string> IEventBusPublisher.PublishAsync<TEvent>(TEvent @event, DateTimeOffset? scheduled, CancellationToken cancellationToken)
+        Task<string> IEventBusPublisher.PublishAsync<TEvent>(TEvent @event,
+                                                             DateTimeOffset? scheduled,
+                                                             CancellationToken cancellationToken)
         {
-            var ctx = new EventContext<TEvent>
+            var context = new EventContext<TEvent>
             {
                 CorrelationId = EventId,
             };
 
-            return bus.PublishAsync(ctx, scheduled, cancellationToken);
+            return bus.PublishAsync(@event: context, scheduled: scheduled, cancellationToken: cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        Task<IList<string>> IEventBusPublisher.PublishAsync<TEvent>(IList<TEvent> events,
+                                                                    DateTimeOffset? scheduled,
+                                                                    CancellationToken cancellationToken)
+        {
+            var contexts = events.Select(e =>
+            {
+                return new EventContext<TEvent>
+                {
+                    CorrelationId = EventId,
+                };
+            }).ToList();
+
+            return bus.PublishAsync(events: contexts, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 
         internal void SetBus(IEventBus bus)

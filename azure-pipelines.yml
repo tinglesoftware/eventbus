@@ -9,6 +9,7 @@ trigger:
       - LICENSE.md
       - RELEASENOTES.md
       - CHANGELOG.md
+      - doc/**/*
 
 pr:
   branches:
@@ -20,6 +21,7 @@ pr:
       - LICENSE.md
       - RELEASENOTES.md
       - CHANGELOG.md
+      - doc/**/*
 
 stages:
 - stage: Build
@@ -75,24 +77,46 @@ stages:
 
 - stage: Release
   dependsOn: Build
-  condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/pull/')))
   jobs:
-    - deployment: NugetOrg
-      environment: NugetOrg
-      pool:
-        vmImage: 'windows-latest'
+  - deployment: Internal
+    environment: Azure Artifacts (NuGet)
+    pool:
+      vmImage: 'windows-latest'
+    
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
 
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-            - download: current
-              artifact: drop
+          - task: NuGetCommand@2
+            displayName: 'NuGet push'
+            inputs:
+              command: push
+              packagesToPush: '$(Pipeline.Workspace)/drop/**/*.nupkg'
+              publishVstsFeed: 'tingle'
+              allowPackageConflicts: true
 
-            - task: NuGetCommand@2
-              displayName: 'NuGet push'
-              inputs:
-                command: push
-                packagesToPush: '$(Pipeline.Workspace)/drop/**/*.nupkg'
-                nuGetFeedType: 'external'
-                publishFeedCredentials: '$(feedCredentials)'
+
+  - deployment: Public
+    environment: NugetOrg
+    # only release from master branch and skip pull requests
+    condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/pull/')))
+    pool:
+      vmImage: 'windows-latest'
+
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+
+          - task: NuGetCommand@2
+            displayName: 'NuGet push'
+            inputs:
+              command: push
+              packagesToPush: '$(Pipeline.Workspace)/drop/**/*.nupkg'
+              nuGetFeedType: 'external'
+              publishFeedCredentials: '$(feedCredentials)'

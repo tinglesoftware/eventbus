@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30611.23
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus", "Tingle.EventBus\Tingle.EventBus.csproj", "{967CBEC5-4A2D-4635-905D-6AA2DFE1341F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "src\Tingle.EventBus", "Tingle.EventBus\Tingle.EventBus.csproj", "{967CBEC5-4A2D-4635-905D-6AA2DFE1341F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Health", "Tingle.EventBus.Health\Tingle.EventBus.Health.csproj", "{5B305D89-BB50-4456-9D96-479CC655A71C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "src\Tingle.EventBus.Health", "Tingle.EventBus.Health\Tingle.EventBus.Health.csproj", "{5B305D89-BB50-4456-9D96-479CC655A71C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.AzureServiceBus", "Tingle.EventBus.Transports.AzureServiceBus\Tingle.EventBus.Transports.AzureServiceBus.csproj", "{0CD9B9A2-FA9E-49EC-BE7A-3E5E425A2E53}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "src\Tingle.EventBus.Transports.AzureServiceBus", "Tingle.EventBus.Transports.AzureServiceBus\Tingle.EventBus.Transports.AzureServiceBus.csproj", "{0CD9B9A2-FA9E-49EC-BE7A-3E5E425A2E53}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.RabbitMQ", "Tingle.EventBus.Transports.RabbitMQ\Tingle.EventBus.Transports.RabbitMQ.csproj", "{1BCD0C98-D061-4143-B00F-0031FBCD5E5E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "src\Tingle.EventBus.Transports.RabbitMQ", "Tingle.EventBus.Transports.RabbitMQ\Tingle.EventBus.Transports.RabbitMQ.csproj", "{1BCD0C98-D061-4143-B00F-0031FBCD5E5E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.InMemory", "Tingle.EventBus.Transports.InMemory\Tingle.EventBus.Transports.InMemory.csproj", "{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "src\Tingle.EventBus.Transports.InMemory", "Tingle.EventBus.Transports.InMemory\Tingle.EventBus.Transports.InMemory.csproj", "{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Transports.AmazonSqs", "Tingle.EventBus.Transports.AmazonSqs\Tingle.EventBus.Transports.AmazonSqs.csproj", "{9D2FB610-EBAB-434C-A7C3-6FB20C3D0C3E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "src\Tingle.EventBus.Transports.AmazonSqs", "Tingle.EventBus.Transports.AmazonSqs\Tingle.EventBus.Transports.AmazonSqs.csproj", "{9D2FB610-EBAB-434C-A7C3-6FB20C3D0C3E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

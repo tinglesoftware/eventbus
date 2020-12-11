@@ -14,7 +14,7 @@ trigger:
 pr:
   branches:
     include:
-      - master
+      - main
   paths:
     exclude: # no need to rebuild on changes in documentation
       - README.md
@@ -101,7 +101,7 @@ stages:
 
 #  - deployment: Public
 #    environment: NugetOrg
-#    # only release from master branch and skip pull requests
+#    # only release from main branch and skip pull requests
 #    condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/pull/')))
 #    pool:
 #      vmImage: 'windows-latest'

@@ -1,6 +1,5 @@
 <Project>
-  <!-- Chain up to the next file (can be copy-pasted to either Directory.Build.props or Directory.Build.targets) -->
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., '$(MSBuildThisFileName)$(MSBuildThisFileExtension)'))\$(MSBuildThisFileName)$(MSBuildThisFileExtension)" />
+  <!-- There is nothing else to import. -->
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -16,5 +15,5 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2" />
     <PackageReference Include="coverlet.collector" Version="1.3.0" />
   </ItemGroup>
-  
+
 </Project>

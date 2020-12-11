@@ -37,7 +37,9 @@ stages:
 
     steps:
     - task: GitVersion@5
-      displayName: GitVersion
+      displayName: 'GitVersion'
+      inputs:
+        configFilePath: '$(Build.SourcesDirectory)/GitVersion.yml'
 
     - task: NuGetToolInstaller@1
       displayName: 'Install NuGet'

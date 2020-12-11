@@ -6,7 +6,7 @@ trigger:
   paths:
     exclude: # no need to rebuild on changes in documentation
       - README.md
-      - LICENSE.md
+      - LICENSE
       - RELEASENOTES.md
       - CHANGELOG.md
       - doc/**/*
@@ -18,7 +18,7 @@ pr:
   paths:
     exclude: # no need to rebuild on changes in documentation
       - README.md
-      - LICENSE.md
+      - LICENSE
       - RELEASENOTES.md
       - CHANGELOG.md
       - doc/**/*

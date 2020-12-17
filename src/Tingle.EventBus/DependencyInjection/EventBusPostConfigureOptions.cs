@@ -61,13 +61,19 @@ namespace Microsoft.Extensions.DependencyInjection
                 // set the consumer name, if not set
                 if (string.IsNullOrWhiteSpace(reg.ConsumerName))
                 {
-                    // for consumers, we always enforce the full type name
                     var type = reg.ConsumerType;
-                    var cname = (options.UseApplicationNameInsteadOfConsumerName && !options.ForceConsumerName)
+                    // prioritize the attribute if available, otherwise get the type name
+                    var cname = type.CustomAttributes.OfType<ConsumerNameAttribute>().SingleOrDefault()?.ConsumerName;
+                    if (cname == null)
+                    {
+                        // for consumers, we always enforce the full type name
+                        cname = (options.UseApplicationNameInsteadOfConsumerName && !options.ForceConsumerName)
                                 ? environment.ApplicationName
                                 : type.FullName;
-                    cname = AppendScope(ApplyNamingConvention(cname, options.NamingConvention), options);
-                    reg.ConsumerName = AppendScope(cname, options);
+                        cname = ApplyNamingConvention(cname, options.NamingConvention);
+                        cname = AppendScope(cname, options);
+                    }
+                    reg.ConsumerName = cname;
                 }
             }
         }

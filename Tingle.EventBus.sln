@@ -27,10 +27,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BDD324B6
 		tests\Directory.Build.props = tests\Directory.Build.props
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{62F603F3-FF36-4E36-AC0C-08D1883525BE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{62F603F3-FF36-4E36-AC0C-08D1883525BE}"
 	ProjectSection(SolutionItems) = preProject
-		samples\Directory.Build.props = samples\Directory.Build.props
+		examples\Directory.Build.props = examples\Directory.Build.props
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleConsumer", "examples\SimpleConsumer\SimpleConsumer.csproj", "{ED1E8BA4-9538-42AB-9759-4FC4233A36B1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -66,6 +68,10 @@ Global
 		{07C3232C-687A-4C85-9A67-9BEF854BB91F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07C3232C-687A-4C85-9A67-9BEF854BB91F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07C3232C-687A-4C85-9A67-9BEF854BB91F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED1E8BA4-9538-42AB-9759-4FC4233A36B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED1E8BA4-9538-42AB-9759-4FC4233A36B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED1E8BA4-9538-42AB-9759-4FC4233A36B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED1E8BA4-9538-42AB-9759-4FC4233A36B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -78,6 +84,7 @@ Global
 		{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{9D2FB610-EBAB-434C-A7C3-6FB20C3D0C3E} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{07C3232C-687A-4C85-9A67-9BEF854BB91F} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
+		{ED1E8BA4-9538-42AB-9759-4FC4233A36B1} = {62F603F3-FF36-4E36-AC0C-08D1883525BE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9E5CC03E-DDE6-4455-9D5D-03617DE5DBD8}

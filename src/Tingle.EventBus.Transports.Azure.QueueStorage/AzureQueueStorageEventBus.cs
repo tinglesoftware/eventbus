@@ -154,7 +154,15 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                     var name = reg.EventName;
 
                     // create the queue client
-                    queueClient = new QueueClient(connectionString: TransportOptions.ConnectionString, queueName: name);
+                    queueClient = new QueueClient(connectionString: TransportOptions.ConnectionString,
+                                                  queueName: name,
+                                                  options: new QueueClientOptions
+                                                  {
+                                                      // Using base64 encoding allows for complex data like JSON
+                                                      // to be embedded in the generated XML request body
+                                                      // https://github.com/Azure-Samples/storage-queue-dotnet-getting-started/issues/4
+                                                      MessageEncoding = QueueMessageEncoding.Base64,
+                                                  });
 
                     // ensure queue is created
                     await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);

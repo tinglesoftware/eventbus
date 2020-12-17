@@ -13,7 +13,7 @@ namespace Tingle.EventBus.Serialization
     /// <summary>
     /// The default implementation of <see cref="IEventSerializer"/> that uses <c>Newtonsoft.Json</c>.
     /// </summary>
-    public class NewtonsoftJsonEventSerializer : IEventSerializer
+    internal class NewtonsoftJsonEventSerializer : IEventSerializer
     {
         private readonly Encoding encoding = Encoding.UTF8;
         private readonly JsonSerializer serializer;

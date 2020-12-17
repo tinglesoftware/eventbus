@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace Tingle.EventBus.Transports.Azure.ServiceBus
 {
     /// <summary>
-    /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using Amazon Service Bus.
+    /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using Azure Service Bus.
     /// </summary>
     public class AzureServiceBusEventBus : EventBusBase<AzureServiceBusOptions>
     {

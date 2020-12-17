@@ -15,7 +15,22 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.AmazonSqs", "src\Tingle.EventBus.Transports.AmazonSqs\Tingle.EventBus.Transports.AmazonSqs.csproj", "{9D2FB610-EBAB-434C-A7C3-6FB20C3D0C3E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Transports.Azure.QueueStorage", "src\Tingle.EventBus.Transports.Azure.QueueStorage\Tingle.EventBus.Transports.Azure.QueueStorage.csproj", "{07C3232C-687A-4C85-9A67-9BEF854BB91F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Azure.QueueStorage", "src\Tingle.EventBus.Transports.Azure.QueueStorage\Tingle.EventBus.Transports.Azure.QueueStorage.csproj", "{07C3232C-687A-4C85-9A67-9BEF854BB91F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3647730E-193B-45E9-8ECE-DDA7494C9030}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BDD324B6-9EFC-49A3-9CF6-6CE494446C4B}"
+	ProjectSection(SolutionItems) = preProject
+		tests\Directory.Build.props = tests\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{62F603F3-FF36-4E36-AC0C-08D1883525BE}"
+	ProjectSection(SolutionItems) = preProject
+		samples\Directory.Build.props = samples\Directory.Build.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,6 +69,15 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{967CBEC5-4A2D-4635-905D-6AA2DFE1341F} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
+		{5B305D89-BB50-4456-9D96-479CC655A71C} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
+		{0CD9B9A2-FA9E-49EC-BE7A-3E5E425A2E53} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
+		{1BCD0C98-D061-4143-B00F-0031FBCD5E5E} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
+		{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
+		{9D2FB610-EBAB-434C-A7C3-6FB20C3D0C3E} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
+		{07C3232C-687A-4C85-9A67-9BEF854BB91F} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9E5CC03E-DDE6-4455-9D5D-03617DE5DBD8}

@@ -17,6 +17,10 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.AmazonSqs
 {
+    /// <summary>
+    /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using
+    /// Amazon SQS and Amazon SNS as the transport.
+    /// </summary>
     public class AmazonSqsEventBus : EventBusBase<AmazonSqsOptions>
     {
         private readonly Dictionary<Type, string> topicArnsCache = new Dictionary<Type, string>();
@@ -28,6 +32,16 @@ namespace Tingle.EventBus.Transports.AmazonSqs
         private readonly AmazonSQSClient sqsClient;
         private readonly ILogger logger;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="environment"></param>
+        /// <param name="serviceScopeFactory"></param>
+        /// <param name="snsClient"></param>
+        /// <param name="sqsClient"></param>
+        /// <param name="optionsAccessor"></param>
+        /// <param name="transportOptionsAccessor"></param>
+        /// <param name="loggerFactory"></param>
         public AmazonSqsEventBus(IHostEnvironment environment,
                                  IServiceScopeFactory serviceScopeFactory,
                                  AmazonSimpleNotificationServiceClient snsClient,

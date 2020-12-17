@@ -14,6 +14,9 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.AzureServiceBus
 {
+    /// <summary>
+    /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using Amazon Service Bus.
+    /// </summary>
     public class AzureServiceBusEventBus : EventBusBase<AzureServiceBusOptions>
     {
         private readonly Dictionary<Type, TopicClient> topicClientsCache = new Dictionary<Type, TopicClient>();
@@ -23,6 +26,15 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
         private readonly ManagementClient managementClient;
         private readonly ILogger logger;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="environment"></param>
+        /// <param name="serviceScopeFactory"></param>
+        /// <param name="managementClient"></param>
+        /// <param name="busOptionsAccessor"></param>
+        /// <param name="transportOptionsAccessor"></param>
+        /// <param name="loggerFactory"></param>
         public AzureServiceBusEventBus(IHostEnvironment environment,
                                        IServiceScopeFactory serviceScopeFactory,
                                        ManagementClient managementClient,
@@ -51,6 +63,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             return true;
         }
 
+        /// <inheritdoc/>
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetRegistrations();
@@ -75,6 +88,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             }
         }
 
+        /// <inheritdoc/>
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
             var clients = subscriptionClientsCache.Select(kvp => (key: kvp.Key, sc: kvp.Value)).ToList();

@@ -4,6 +4,9 @@ using System;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
+    /// <summary>
+    /// Options for configuring Azure Service Bus based event bus.
+    /// </summary>
     public class AzureServiceBusOptions
     {
         /// <summary>

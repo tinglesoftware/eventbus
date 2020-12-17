@@ -40,7 +40,6 @@ namespace Tingle.EventBus.Serialization
         /// The <see cref="Stream"/> containing the raw data.
         /// (It must be readable, i.e. <see cref="Stream.CanRead"/> must be true).
         /// </param>
-        /// <param name="type">The type to be desserialized</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<EventContext<T>> DeserializeAsync<T>(Stream stream, CancellationToken cancellationToken = default) where T : class;

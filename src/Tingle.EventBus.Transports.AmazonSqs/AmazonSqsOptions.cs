@@ -8,6 +8,9 @@ using System;
 
 namespace Tingle.EventBus.Transports.AmazonSqs
 {
+    /// <summary>
+    /// Options for configuring Amazon SQS based event bus.
+    /// </summary>
     public class AmazonSqsOptions
     {
         /// <summary>

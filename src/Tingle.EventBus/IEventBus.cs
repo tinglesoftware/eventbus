@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus
 {
+    /// <summary>
+    /// Contract for implementing an event bus.
+    /// </summary>
     public interface IEventBus : IHostedService
     {
         /// <summary>
@@ -36,7 +39,7 @@ namespace Tingle.EventBus
         /// Publish a batch of events.
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
-        /// <param name="event">The events to publish.</param>
+        /// <param name="events">The events to publish.</param>
         /// <param name="scheduled">
         /// The time at which the event should be availed for consumption.
         /// Set null for immediate availability.

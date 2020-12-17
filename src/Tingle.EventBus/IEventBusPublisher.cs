@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus
 {
+    /// <summary>
+    /// Contract describing a publisher of events.
+    /// </summary>
     public interface IEventBusPublisher
     {
         /// <summary>
@@ -44,7 +47,7 @@ namespace Tingle.EventBus
         /// Publish a batch of events.
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
-        /// <param name="event">The events to publish.</param>
+        /// <param name="events">The events to publish.</param>
         /// <param name="scheduled">
         /// The time at which the event should be availed for consumption.
         /// Set null for immediate availability.
@@ -60,7 +63,7 @@ namespace Tingle.EventBus
         /// Publish a batch of events.
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
-        /// <param name="event">The events to publish.</param>
+        /// <param name="events">The events to publish.</param>
         /// <param name="delay">The duration of time to wait before the event is available on the bus for consumption.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>

@@ -1,5 +1,8 @@
 ﻿namespace Tingle.EventBus.Serialization
 {
+    /// <summary>
+    /// Information about the host on which the event bus is running.
+    /// </summary>
     public class HostInfo
     {
         /// <summary>

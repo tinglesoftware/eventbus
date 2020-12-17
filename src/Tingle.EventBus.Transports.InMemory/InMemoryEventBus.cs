@@ -11,6 +11,10 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
+    /// <summary>
+    /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using an in-memory transport.
+    /// This implementation should only be used for unit testing or similar scenarios as it does not offer persistence.
+    /// </summary>
     public class InMemoryEventBus : EventBusBase<InMemoryOptions>
     {
         private readonly ConcurrentBag<object> published = new ConcurrentBag<object>();
@@ -18,6 +22,14 @@ namespace Tingle.EventBus.Transports.InMemory
         private readonly ConcurrentBag<object> failed = new ConcurrentBag<object>();
         private readonly ILogger logger;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="environment"></param>
+        /// <param name="serviceScopeFactory"></param>
+        /// <param name="busOptionsAccessor"></param>
+        /// <param name="transportOptionsAccessor"></param>
+        /// <param name="loggerFactory"></param>
         public InMemoryEventBus(IHostEnvironment environment,
                                 IServiceScopeFactory serviceScopeFactory,
                                 IOptions<EventBusOptions> busOptionsAccessor,
@@ -28,8 +40,19 @@ namespace Tingle.EventBus.Transports.InMemory
             logger = loggerFactory?.CreateLogger<InMemoryEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
+        /// <summary>
+        /// The published events.
+        /// </summary>
         public IEnumerable<object> Published => published;
+
+        /// <summary>
+        /// The consumed events.
+        /// </summary>
         public IEnumerable<object> Consumed => consumed;
+
+        /// <summary>
+        /// The failed events.
+        /// </summary>
         public IEnumerable<object> Failed => failed;
 
         /// <inheritdoc/>

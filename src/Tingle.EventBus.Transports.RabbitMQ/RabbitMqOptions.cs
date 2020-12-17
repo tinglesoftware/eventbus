@@ -2,6 +2,9 @@
 
 namespace Tingle.EventBus.Transports.RabbitMQ
 {
+    /// <summary>
+    /// Options for configuring RabbitMQ based event bus.
+    /// </summary>
     public class RabbitMqOptions
     {
         /// <summary>

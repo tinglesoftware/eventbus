@@ -1,5 +1,8 @@
 ﻿namespace Tingle.EventBus
 {
+    /// <summary>
+    /// The naming convention used when generating names from types.
+    /// </summary>
     public enum EventBusNamingConvention
     {
         /// <summary>

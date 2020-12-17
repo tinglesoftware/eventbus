@@ -8,7 +8,6 @@ namespace Tingle.EventBus.Health
     /// <summary>
     /// Implementation of <see cref="IHealthCheck"/> for an <see cref="IEventBus"/>
     /// </summary>
-    /// <typeparam name="TClient"></typeparam>
     public class EventBusHealthCheck : IHealthCheck
     {
         private readonly IEventBus eventBus;

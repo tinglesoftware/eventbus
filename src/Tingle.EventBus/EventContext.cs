@@ -6,16 +6,46 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus
 {
+    /// <summary>
+    /// Generic context for an event.
+    /// </summary>
     public abstract class EventContext : IEventBusPublisher
     {
         private IEventBus bus;
 
+        /// <summary>
+        /// The unique identifier of the event.
+        /// </summary>
         public string EventId { get; set; }
+
+        /// <summary>
+        /// The unique identifier of the request accosiated with the event.
+        /// </summary>
         public string RequestId { get; set; }
+
+        /// <summary>
+        /// A value shared between related events.
+        /// </summary>
         public string CorrelationId { get; set; }
+
+        /// <summary>
+        /// The unique identifier of the conversation.
+        /// </summary>
         public string ConversationId { get; set; }
+
+        /// <summary>
+        /// The unique identifier of the initiator of the event.
+        /// </summary>
         public string InitiatorId { get; set; }
+
+        /// <summary>
+        /// The specific time at which the event expires.
+        /// </summary>
         public DateTimeOffset? Expires { get; set; }
+
+        /// <summary>
+        /// The specific time the event was sent.
+        /// </summary>
         public DateTimeOffset? Sent { get; set; }
 
         /// <summary>
@@ -56,10 +86,14 @@ namespace Tingle.EventBus
         }
     }
 
+    /// <summary>
+    /// The context for a specific event.
+    /// </summary>
+    /// <typeparam name="T">The type of event carried.</typeparam>
     public class EventContext<T> : EventContext
     {
         /// <summary>
-        /// The event published
+        /// The event published or to be published.
         /// </summary>
         public T Event { get; set; }
     }

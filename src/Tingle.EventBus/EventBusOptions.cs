@@ -4,6 +4,9 @@ using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus
 {
+    /// <summary>
+    /// Options for configuring the event bus irrespective of transport.
+    /// </summary>
     public class EventBusOptions
     {
         /// <summary>

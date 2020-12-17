@@ -18,6 +18,9 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.RabbitMQ
 {
+    /// <summary>
+    /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using RabbitMQ.
+    /// </summary>
     public class RabbitMqEventBus : EventBusBase<RabbitMqOptions>, IDisposable
     {
         private readonly ILogger logger;
@@ -31,6 +34,14 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         private IConnection connection;
         private bool disposed;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="environment"></param>
+        /// <param name="serviceScopeFactory"></param>
+        /// <param name="busOptionsAccessor"></param>
+        /// <param name="transportOptionsAccessor"></param>
+        /// <param name="loggerFactory"></param>
         public RabbitMqEventBus(IHostEnvironment environment,
                                 IServiceScopeFactory serviceScopeFactory,
                                 IOptions<EventBusOptions> busOptionsAccessor,
@@ -392,6 +403,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             return new ContentType(contentType) { CharSet = contentEncoding };
         }
 
+        /// 
         protected virtual void Dispose(bool disposing)
         {
             if (!disposed)
@@ -412,6 +424,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             }
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

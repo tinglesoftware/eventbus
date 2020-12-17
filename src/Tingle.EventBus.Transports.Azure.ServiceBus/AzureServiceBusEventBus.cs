@@ -12,7 +12,7 @@ using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Tingle.EventBus.Transports.AzureServiceBus
+namespace Tingle.EventBus.Transports.Azure.ServiceBus
 {
     /// <summary>
     /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using Amazon Service Bus.

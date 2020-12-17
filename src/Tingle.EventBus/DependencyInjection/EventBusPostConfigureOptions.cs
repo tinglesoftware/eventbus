@@ -76,6 +76,9 @@ namespace Microsoft.Extensions.DependencyInjection
                     reg.ConsumerName = cname;
                 }
 
+                // if the event serializer has not been specified, attempt to get from the attribute
+                reg.EventSerializerType ??= reg.EventType.CustomAttributes.OfType<EventSerializerAttribute>().SingleOrDefault()?.SerializerType;
+
                 // ensure the serializer is either default or it implements IEventSerializer
                 if (reg.EventSerializerType == null
                     || (reg.EventSerializerType != typeof(IEventSerializer)

@@ -54,6 +54,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         ename = options.UseFullTypeNames ? type.FullName : type.Name;
                         ename = ApplyNamingConvention(ename, options.NamingConvention);
                         ename = AppendScope(ename, options);
+                        ename = ReplaceInvalidCharacters(ename, options.NamingConvention);
                     }
                     reg.EventName = ename;
                 }
@@ -72,6 +73,7 @@ namespace Microsoft.Extensions.DependencyInjection
                                 : type.FullName;
                         cname = ApplyNamingConvention(cname, options.NamingConvention);
                         cname = AppendScope(cname, options);
+                        cname = ReplaceInvalidCharacters(cname, options.NamingConvention);
                     }
                     reg.ConsumerName = cname;
                 }
@@ -110,6 +112,16 @@ namespace Microsoft.Extensions.DependencyInjection
                 EventBusNamingConvention.KebabCase => namePattern.Replace(raw, m => "-" + m.Value).ToLowerInvariant(),
                 EventBusNamingConvention.SnakeCase => namePattern.Replace(raw, m => "_" + m.Value).ToLowerInvariant(),
                 _ => raw,
+            };
+        }
+
+        private static string ReplaceInvalidCharacters(string raw, EventBusNamingConvention convention)
+        {
+            return convention switch
+            {
+                EventBusNamingConvention.KebabCase => Regex.Replace(raw, "[^a-z0-9-]", "-"),
+                EventBusNamingConvention.SnakeCase => Regex.Replace(raw, "[^a-z0-9-]", "_"),
+                _ => Regex.Replace(raw, "[^a-zA-Z0-9-]", ""),
             };
         }
     }

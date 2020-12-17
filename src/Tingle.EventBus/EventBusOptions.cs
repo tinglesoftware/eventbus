@@ -30,7 +30,7 @@ namespace Tingle.EventBus
         /// Determines if to use the full name when generating entity names.
         /// This should always be enabled if there are types with the same names.
         /// For example <see cref="string"/> would produce <c>System.String</c>, <c>system-string</c>,
-        /// or <c>system_string</c>; when enabled otherwise just <c>String</c>.
+        /// or <c>system_string</c>; when enabled otherwise just <c>string</c>.
         /// Defaults to <see langword="true"/>
         /// </summary>
         public bool UseFullTypeNames { get; set; } = true;

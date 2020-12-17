@@ -121,7 +121,7 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 EventBusNamingConvention.KebabCase => Regex.Replace(raw, "[^a-z0-9-]", "-"),
                 EventBusNamingConvention.SnakeCase => Regex.Replace(raw, "[^a-z0-9-]", "_"),
-                _ => Regex.Replace(raw, "[^a-zA-Z0-9-]", ""),
+                _ => Regex.Replace(raw, "[^a-zA-Z0-9-_]", ""),
             };
         }
     }

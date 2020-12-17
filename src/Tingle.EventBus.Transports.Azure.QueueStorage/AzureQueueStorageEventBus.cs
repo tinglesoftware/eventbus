@@ -172,7 +172,9 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
         private async Task ReceiveAsync(EventConsumerRegistration reg)
         {
-            var method = GetType().GetMethod(nameof(OnMessageReceivedAsync)).MakeGenericMethod(reg.EventType, reg.ConsumerType);
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
+            var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
             var cancellationToken = receiveCancellationTokenSource.Token;
 
             var queueClient = await GetQueueClientAsync(reg, cancellationToken);

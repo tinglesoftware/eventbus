@@ -120,7 +120,9 @@ namespace Tingle.EventBus.Transports.InMemory
             // send the message to each consumer in parallel
             var tasks = registered.Select(reg =>
             {
-                var method = GetType().GetMethod(nameof(DispatchToConsumerAsync)).MakeGenericMethod(typeof(TEvent), reg.ConsumerType);
+                var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+                var mt = GetType().GetMethod(nameof(DispatchToConsumerAsync), flags);
+                var method = mt.MakeGenericMethod(typeof(TEvent), reg.ConsumerType);
                 return (Task)method.Invoke(this, new object[] { @event, cancellationToken, });
             }).ToList();
             await Task.WhenAll(tasks);

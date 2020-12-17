@@ -249,7 +249,9 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 var consumer = new AsyncEventingBasicConsumer(channel);
                 consumer.Received += delegate (object sender, BasicDeliverEventArgs @event)
                 {
-                    var method = GetType().GetMethod(nameof(OnMessageReceivedAsync)).MakeGenericMethod(reg.EventType, reg.ConsumerType);
+                    var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+                    var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
+                    var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
                     return (Task)method.Invoke(this, new object[] { channel, @event, CancellationToken.None, }); // do not chain CancellationToken
                 };
                 channel.BasicConsume(queue: queueName, autoAck: false, consumer);

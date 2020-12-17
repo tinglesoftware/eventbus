@@ -80,7 +80,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 };
                 sc.RegisterMessageHandler(handler: (message, ct) =>
                 {
-                    var method = GetType().GetMethod(nameof(OnMessageReceivedAsync)).MakeGenericMethod(reg.EventType, reg.ConsumerType);
+                    var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+                    var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
+                    var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
                     return (Task)method.Invoke(this, new object[] { sc, message, ct, });
                 }, messageHandlerOptions: options);
             }

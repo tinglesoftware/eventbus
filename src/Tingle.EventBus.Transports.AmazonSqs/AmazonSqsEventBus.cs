@@ -278,7 +278,9 @@ namespace Tingle.EventBus.Transports.AmazonSqs
 
         private async Task ReceiveAsync(EventConsumerRegistration reg, string queueUrl)
         {
-            var method = GetType().GetMethod(nameof(OnMessageReceivedAsync)).MakeGenericMethod(reg.EventType, reg.ConsumerType);
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
+            var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
             var cancellationToken = receiveCancellationTokenSource.Token;
 
             while (!cancellationToken.IsCancellationRequested)

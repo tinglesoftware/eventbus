@@ -6,9 +6,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.ServiceBus" Version="5.1.0" />
-</ItemGroup>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Tingle.EventBus\Tingle.EventBus.csproj" />
   </ItemGroup>
+
 </Project>

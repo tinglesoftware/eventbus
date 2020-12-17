@@ -7,4 +7,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Tingle.EventBus\Tingle.EventBus.csproj" />
   </ItemGroup>
+
 </Project>

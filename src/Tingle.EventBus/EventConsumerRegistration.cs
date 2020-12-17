@@ -2,6 +2,9 @@
 
 namespace Tingle.EventBus
 {
+    /// <summary>
+    /// Represents a registration for a consumer of an event.
+    /// </summary>
     public class EventConsumerRegistration
     {
         /// <summary>
@@ -34,5 +37,11 @@ namespace Tingle.EventBus
         /// The name generated for the consumer.
         /// </summary>
         public string ConsumerName { get; set; }
+
+        /// <summary>
+        /// The type used for serializing and deserializing events.
+        /// This type must implement <see cref="Serialization.IEventSerializer"/>.
+        /// </summary>
+        public Type EventSerializerType { get; set; } = typeof(Serialization.IEventSerializer);
     }
 }

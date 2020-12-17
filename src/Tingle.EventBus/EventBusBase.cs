@@ -58,18 +58,24 @@ namespace Tingle.EventBus
         /// <inheritdoc/>
         public abstract Task StopAsync(CancellationToken cancellationToken);
 
-        protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(Stream body, ContentType contentType, CancellationToken cancellationToken)
+        protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(Stream body,
+                                                                            ContentType contentType,
+                                                                            Type serializerType,
+                                                                            CancellationToken cancellationToken)
             where TEvent : class
         {
             // Get the serializer. Should we find a serializer based on the content type?
             using var scope = serviceScopeFactory.CreateScope();
-            var serializer = scope.ServiceProvider.GetRequiredService<IEventSerializer>();
+            var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(serializerType);
 
             // Deserialize the content into a context
             return await serializer.DeserializeAsync<TEvent>(body, cancellationToken);
         }
 
-        protected async Task<ContentType> SerializeAsync<TEvent>(Stream body, EventContext<TEvent> @event, CancellationToken cancellationToken)
+        protected async Task<ContentType> SerializeAsync<TEvent>(Stream body,
+                                                                 EventContext<TEvent> @event,
+                                                                 Type serializerType,
+                                                                 CancellationToken cancellationToken)
             where TEvent : class
         {
             // set properties that may be missing
@@ -78,7 +84,7 @@ namespace Tingle.EventBus
 
             // Get the serializer. Should we find a serializer based on the content type?
             using var scope = serviceScopeFactory.CreateScope();
-            var serializer = scope.ServiceProvider.GetRequiredService<IEventSerializer>();
+            var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(serializerType);
 
             // do actual serialization
             await serializer.SerializeAsync(body, @event, BusOptions.HostInfo, cancellationToken);

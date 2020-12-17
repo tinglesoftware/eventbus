@@ -81,11 +81,15 @@ namespace Tingle.EventBus.Transports.AmazonSqs
                 logger.LogWarning("Amazon SNS does not support delay or scheduled publish");
             }
 
+            var reg = BusOptions.GetRegistration<TEvent>();
             using var ms = new MemoryStream();
-            var contentType = await SerializeAsync(ms, @event, cancellationToken);
+            var contentType = await SerializeAsync(body: ms,
+                                                   @event: @event,
+                                                   serializerType: reg.EventSerializerType,
+                                                   cancellationToken: cancellationToken);
 
             // get the topic arn and send the message
-            var topicArn = await GetTopicArnAsync(BusOptions.GetRegistration<TEvent>(), cancellationToken);
+            var topicArn = await GetTopicArnAsync(reg, cancellationToken);
             var message = Encoding.UTF8.GetString(ms.ToArray());
             var request = new PublishRequest(topicArn: topicArn, message: message);
             SetAttribute(request, "Content-Type", contentType.ToString());
@@ -112,14 +116,18 @@ namespace Tingle.EventBus.Transports.AmazonSqs
             }
 
             // work on each event
+            var reg = BusOptions.GetRegistration<TEvent>();
             var sequenceNumbers = new List<string>();
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                var contentType = await SerializeAsync(ms, @event, cancellationToken);
+                var contentType = await SerializeAsync(body: ms,
+                                                       @event: @event,
+                                                       serializerType: reg.EventSerializerType,
+                                                       cancellationToken: cancellationToken);
 
                 // get the topic arn and send the message
-                var topicArn = await GetTopicArnAsync(BusOptions.GetRegistration<TEvent>(), cancellationToken);
+                var topicArn = await GetTopicArnAsync(reg, cancellationToken);
                 var message = Encoding.UTF8.GetString(ms.ToArray());
                 var request = new PublishRequest(topicArn: topicArn, message: message);
                 SetAttribute(request, "Content-Type", contentType.ToString());
@@ -287,11 +295,15 @@ namespace Tingle.EventBus.Transports.AmazonSqs
 
             try
             {
+                var reg = BusOptions.GetRegistration<TEvent>();
                 using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.Body));
                 TryGetAttribute(message, "Content-Type", out var contentType_str);
                 var contentType = new ContentType(contentType_str ?? "text/plain");
 
-                var context = await DeserializeAsync<TEvent>(ms, contentType, cancellationToken);
+                var context = await DeserializeAsync<TEvent>(body: ms,
+                                                             contentType: contentType,
+                                                             serializerType: reg.EventSerializerType,
+                                                             cancellationToken: cancellationToken);
                 await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
 
                 // delete the message from the queue

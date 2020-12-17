@@ -46,7 +46,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <typeparam name="TEventSerializer"></typeparam>
         /// <returns></returns>
-        public EventBusBuilder UseSerializer<TEventSerializer>() where TEventSerializer : class, IEventSerializer
+        public EventBusBuilder UseDefaultSerializer<TEventSerializer>() where TEventSerializer : class, IEventSerializer
         {
             Services.AddSingleton<IEventSerializer, TEventSerializer>();
             return this;
@@ -56,7 +56,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Use serializer powered by <see href="https://www.nuget.org/packages/Newtonsoft.Json/">Newtonsoft.Json</see>.
         /// </summary>
         /// <returns></returns>
-        public EventBusBuilder UseNewtonsoftJsonSerializer() => UseSerializer<NewtonsoftJsonEventSerializer>();
+        public EventBusBuilder UseDefaultNewtonsoftJsonSerializer() => UseDefaultSerializer<NewtonsoftJsonEventSerializer>();
 
         /// <summary>
         /// Subscribe to events that a consumer can listen to.

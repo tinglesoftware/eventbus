@@ -104,8 +104,12 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
+            var reg = BusOptions.GetRegistration<TEvent>();
             using var ms = new MemoryStream();
-            var contentType = await SerializeAsync(ms, @event, cancellationToken);
+            var contentType = await SerializeAsync(body: ms,
+                                                   @event: @event,
+                                                   serializerType: reg.EventSerializerType,
+                                                   cancellationToken: cancellationToken);
 
             var message = new Message
             {
@@ -129,7 +133,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             }
 
             // get the topic client and send the message
-            var topicClient = await GetTopicClientAsync(BusOptions.GetRegistration<TEvent>(), cancellationToken);
+            var topicClient = await GetTopicClientAsync(reg, cancellationToken);
             await topicClient.SendAsync(message);
 
             // return the sequence number
@@ -142,10 +146,14 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
                                                                        CancellationToken cancellationToken = default)
         {
             var messages = new List<Message>();
+            var reg = BusOptions.GetRegistration<TEvent>();
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                var contentType = await SerializeAsync(ms, @event, cancellationToken);
+                var contentType = await SerializeAsync(body: ms,
+                                                       @event: @event,
+                                                       serializerType: reg.EventSerializerType,
+                                                       cancellationToken: cancellationToken);
 
                 var message = new Message
                 {
@@ -172,7 +180,7 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
             }
 
             // get the topic client and send the messages
-            var topicClient = await GetTopicClientAsync(BusOptions.GetRegistration<TEvent>(), cancellationToken);
+            var topicClient = await GetTopicClientAsync(reg, cancellationToken);
             await topicClient.SendAsync(messages);
 
             // return the sequence numbers
@@ -236,7 +244,9 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
 
                     // create the subscription client
                     var cs = TransportOptions.ConnectionStringBuilder.ToString();
-                    subscriptionClient = new SubscriptionClient(connectionString: cs, topicPath: topicName, subscriptionName: subscriptionName);
+                    subscriptionClient = new SubscriptionClient(connectionString: cs,
+                                                                topicPath: topicName,
+                                                                subscriptionName: subscriptionName);
                     subscriptionClientsCache[key] = subscriptionClient;
                 }
 
@@ -277,9 +287,13 @@ namespace Tingle.EventBus.Transports.AzureServiceBus
 
             try
             {
+                var reg = BusOptions.GetRegistration<TEvent>();
                 using var ms = new MemoryStream(message.Body);
                 var contentType = new ContentType(message.ContentType);
-                var context = await DeserializeAsync<TEvent>(ms, contentType, cancellationToken);
+                var context = await DeserializeAsync<TEvent>(body: ms,
+                                                             contentType: contentType,
+                                                             serializerType: reg.EventSerializerType,
+                                                             cancellationToken: cancellationToken);
                 await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
 
                 // complete the message

@@ -54,9 +54,10 @@ namespace Tingle.EventBus
         public IDictionary<string, object> Headers { get; set; } = new Dictionary<string, object>();
 
         /// <inheritdoc/>
-        Task<string> IEventBusPublisher.PublishAsync<TEvent>(TEvent @event,
-                                                             DateTimeOffset? scheduled,
-                                                             CancellationToken cancellationToken)
+        public Task<string> PublishAsync<TEvent>(TEvent @event,
+                                                 DateTimeOffset? scheduled,
+                                                 CancellationToken cancellationToken)
+            where TEvent : class
         {
             var context = new EventContext<TEvent>
             {
@@ -68,9 +69,10 @@ namespace Tingle.EventBus
         }
 
         /// <inheritdoc/>
-        Task<IList<string>> IEventBusPublisher.PublishAsync<TEvent>(IList<TEvent> events,
-                                                                    DateTimeOffset? scheduled,
-                                                                    CancellationToken cancellationToken)
+        public Task<IList<string>> PublishAsync<TEvent>(IList<TEvent> events,
+                                                        DateTimeOffset? scheduled,
+                                                        CancellationToken cancellationToken)
+            where TEvent : class
         {
             var contexts = events.Select(e => new EventContext<TEvent>
             {

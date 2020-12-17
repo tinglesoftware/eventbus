@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Tingle.EventBus;
 using Tingle.EventBus.Serialization;
@@ -46,9 +47,15 @@ namespace Microsoft.Extensions.DependencyInjection
                 if (string.IsNullOrWhiteSpace(reg.EventName))
                 {
                     var type = reg.EventType;
-                    var ename = options.UseFullTypeNames ? type.FullName : type.Name;
-                    ename = ApplyNamingConvention(ename, options.NamingConvention);
-                    reg.EventName = AppendScope(ename, options);
+                    // prioritize the attribute if available, otherwise get the type name
+                    var ename = type.CustomAttributes.OfType<EventNameAttribute>().SingleOrDefault()?.EventName;
+                    if (ename == null)
+                    {
+                        ename = options.UseFullTypeNames ? type.FullName : type.Name;
+                        ename = ApplyNamingConvention(ename, options.NamingConvention);
+                        ename = AppendScope(ename, options);
+                    }
+                    reg.EventName = ename;
                 }
 
                 // set the consumer name, if not set

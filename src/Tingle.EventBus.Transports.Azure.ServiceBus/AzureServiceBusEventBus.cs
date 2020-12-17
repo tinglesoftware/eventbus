@@ -31,19 +31,17 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         /// </summary>
         /// <param name="environment"></param>
         /// <param name="serviceScopeFactory"></param>
-        /// <param name="managementClient"></param>
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
         public AzureServiceBusEventBus(IHostEnvironment environment,
                                        IServiceScopeFactory serviceScopeFactory,
-                                       ManagementClient managementClient,
                                        IOptions<EventBusOptions> busOptionsAccessor,
                                        IOptions<AzureServiceBusOptions> transportOptionsAccessor,
                                        ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            this.managementClient = managementClient ?? throw new ArgumentNullException(nameof(managementClient));
+            managementClient = new ManagementClient(TransportOptions.ConnectionStringBuilder);
             logger = loggerFactory?.CreateLogger<AzureServiceBusEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 

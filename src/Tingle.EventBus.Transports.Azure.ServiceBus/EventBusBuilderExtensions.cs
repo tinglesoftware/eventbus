@@ -1,6 +1,4 @@
 ﻿using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Management;
-using Microsoft.Extensions.Options;
 using System;
 using Tingle.EventBus;
 using Tingle.EventBus.Transports.Azure.ServiceBus;
@@ -40,14 +38,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     options.ConnectionStringBuilder = new ServiceBusConnectionStringBuilder(options.ConnectionString);
                     options.ConnectionStringBuilder.TransportType = options.TransportType;
                 }
-            });
-
-            // register the ManagementClient
-            services.AddSingleton(p =>
-            {
-                var options = p.GetRequiredService<IOptions<AzureServiceBusOptions>>().Value;
-                var csb = options.ConnectionStringBuilder;
-                return new ManagementClient(csb);
             });
 
             // register the event bus

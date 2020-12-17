@@ -42,6 +42,6 @@ namespace Tingle.EventBus
         /// The type used for serializing and deserializing events.
         /// This type must implement <see cref="Serialization.IEventSerializer"/>.
         /// </summary>
-        public Type EventSerializerType { get; set; } = typeof(Serialization.IEventSerializer);
+        public Type EventSerializerType { get; set; }
     }
 }

@@ -80,11 +80,11 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 // if the event serializer has not been specified, attempt to get from the attribute
                 reg.EventSerializerType ??= reg.EventType.CustomAttributes.OfType<EventSerializerAttribute>().SingleOrDefault()?.SerializerType;
+                reg.EventSerializerType ??= typeof(IEventSerializer); // use the default when not provided
 
                 // ensure the serializer is either default or it implements IEventSerializer
-                if (reg.EventSerializerType == null
-                    || (reg.EventSerializerType != typeof(IEventSerializer)
-                        && !typeof(IEventSerializer).IsAssignableFrom(reg.EventSerializerType)))
+                if (reg.EventSerializerType != typeof(IEventSerializer)
+                    && !typeof(IEventSerializer).IsAssignableFrom(reg.EventSerializerType))
                 {
                     throw new InvalidOperationException($"The type '{reg.EventSerializerType.FullName}' is used as a serializer "
                                                       + $"but does not implement '{typeof(IEventSerializer).FullName}'");

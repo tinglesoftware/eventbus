@@ -181,10 +181,12 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                var response = await queueClient.ReceiveMessageAsync();
-                var message = response.Value;
+                var response = await queueClient.ReceiveMessagesAsync();
 
-                await (Task)method.Invoke(this, new object[] { queueClient, message, cancellationToken, });
+                foreach (var message in response.Value)
+                {
+                    await (Task)method.Invoke(this, new object[] { queueClient, message, cancellationToken, });
+                }
             }
         }
 

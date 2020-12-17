@@ -1,7 +1,6 @@
 ﻿using Amazon;
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
-using Microsoft.Extensions.Options;
 using System;
 using Tingle.EventBus;
 using Tingle.EventBus.Transports.AmazonSqs;
@@ -55,20 +54,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.SqsConfig.RegionEndpoint ??= options.Region;
                 options.SnsConfig ??= new AmazonSimpleNotificationServiceConfig();
                 options.SnsConfig.RegionEndpoint ??= options.Region;
-            });
-
-            // register the AmazonSQSClient
-            services.AddSingleton(p =>
-            {
-                var options = p.GetRequiredService<IOptions<AmazonSqsOptions>>().Value;
-                return new AmazonSQSClient(credentials: options.Credentials, clientConfig: options.SqsConfig);
-            });
-
-            // register the AmazonSimpleNotificationServiceClient
-            services.AddSingleton(p =>
-            {
-                var options = p.GetRequiredService<IOptions<AmazonSqsOptions>>().Value;
-                return new AmazonSimpleNotificationServiceClient(credentials: options.Credentials, clientConfig: options.SnsConfig);
             });
 
             // register the event bus

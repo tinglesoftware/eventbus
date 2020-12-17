@@ -37,22 +37,22 @@ namespace Tingle.EventBus.Transports.AmazonSqs
         /// </summary>
         /// <param name="environment"></param>
         /// <param name="serviceScopeFactory"></param>
-        /// <param name="snsClient"></param>
-        /// <param name="sqsClient"></param>
         /// <param name="optionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
         public AmazonSqsEventBus(IHostEnvironment environment,
                                  IServiceScopeFactory serviceScopeFactory,
-                                 AmazonSimpleNotificationServiceClient snsClient,
-                                 AmazonSQSClient sqsClient,
                                  IOptions<EventBusOptions> optionsAccessor,
                                  IOptions<AmazonSqsOptions> transportOptionsAccessor,
                                  ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, optionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            this.snsClient = snsClient ?? throw new ArgumentNullException(nameof(snsClient));
-            this.sqsClient = sqsClient ?? throw new ArgumentNullException(nameof(sqsClient));
+            snsClient = new AmazonSimpleNotificationServiceClient(credentials: TransportOptions.Credentials,
+                                                                  clientConfig: TransportOptions.SnsConfig);
+
+            sqsClient = new AmazonSQSClient(credentials: TransportOptions.Credentials,
+                                            clientConfig: TransportOptions.SqsConfig);
+
             logger = loggerFactory?.CreateLogger<AmazonSqsEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 

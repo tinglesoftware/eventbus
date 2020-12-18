@@ -80,7 +80,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
         public override Task StopAsync(CancellationToken cancellationToken)
         {
             receiveCancellationTokenSource.Cancel();
-            // TODO: fiure out a way to wait for notification of termination in all receivers
+            // TODO: figure out a way to wait for notification of termination in all receivers
             return Task.CompletedTask;
         }
 
@@ -169,7 +169,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
                     var name = reg.EventName;
                     topicArn = await CreateTopicIfNotExistsAsync(topicName: name, cancellationToken: cancellationToken);
                     topicArnsCache[reg.EventType] = topicArn;
-                };
+                }
 
                 return topicArn;
             }

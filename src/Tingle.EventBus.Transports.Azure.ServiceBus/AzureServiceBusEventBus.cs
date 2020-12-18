@@ -219,7 +219,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     var cs = TransportOptions.ConnectionStringBuilder.ToString();
                     topicClient = new TopicClient(connectionString: cs, entityPath: name);
                     topicClientsCache[reg.EventType] = topicClient;
-                };
+                }
 
                 return topicClient;
             }

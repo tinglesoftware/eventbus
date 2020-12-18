@@ -190,10 +190,19 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             while (!cancellationToken.IsCancellationRequested)
             {
                 var response = await queueClient.ReceiveMessagesAsync();
+                var messages = response.Value;
 
-                foreach (var message in response.Value)
+                // if the response is empty, introduce a delay
+                if (messages.Length == 0)
                 {
-                    await (Task)method.Invoke(this, new object[] { queueClient, message, cancellationToken, });
+                    await Task.Delay(TransportOptions.EmptyResultsDelay, cancellationToken);
+                }
+                else
+                {
+                    foreach (var message in messages)
+                    {
+                        await (Task)method.Invoke(this, new object[] { queueClient, message, cancellationToken, });
+                    }
                 }
             }
         }

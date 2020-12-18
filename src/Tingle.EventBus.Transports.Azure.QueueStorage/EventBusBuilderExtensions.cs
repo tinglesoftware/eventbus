@@ -31,6 +31,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     throw new InvalidOperationException($"The '{nameof(options.ConnectionString)}' must be provided");
                 }
+
+                // ensure delay is within 30sec and 10min bounds
+                if (options.EmptyResultsDelay < TimeSpan.FromSeconds(30) || options.EmptyResultsDelay > TimeSpan.FromMinutes(10))
+                {
+                    throw new InvalidOperationException($"The '{nameof(options.EmptyResultsDelay)}' must be between 30 seconds and 10 minutes.");
+                }
             });
 
             // register the event bus

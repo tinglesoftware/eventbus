@@ -5,12 +5,12 @@ using Tingle.EventBus.Transports.Azure.EventHubs;
 namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
-    /// Extension methods on <see cref="EventBusBuilder"/> for Azure Queue Storage.
+    /// Extension methods on <see cref="EventBusBuilder"/> for Azure EventHubs
     /// </summary>
     public static class EventBusBuilderExtensions
     {
         /// <summary>
-        /// Add Azure Queue Storage as the underlying transport for the Event Bus.
+        /// Add Azure EventHubs as the underlying transport for the Event Bus.
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="configure"></param>
@@ -26,7 +26,11 @@ namespace Microsoft.Extensions.DependencyInjection
             services.Configure(configure);
             services.PostConfigure<AzureEventHubsOptions>(options =>
             {
-
+                // ensure the connection string
+                if (string.IsNullOrWhiteSpace(options.ConnectionString))
+                {
+                    throw new InvalidOperationException($"The '{nameof(options.ConnectionString)}' must be provided");
+                }
             });
 
             // register the event bus

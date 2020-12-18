@@ -144,7 +144,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 message.TimeToLive = ttl;
             }
 
-            // get the topic client and send the message accordingly
+            // get the sender and send the message accordingly
             var sender = await GetSenderAsync(reg, cancellationToken);
             if (scheduled != null)
             {
@@ -198,7 +198,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 messages.Add(message);
             }
 
-            // get the topic client and send the messages accordingly
+            // get the sender and send the messages accordingly
             var sender = await GetSenderAsync(reg, cancellationToken);
             if (scheduled != null)
             {

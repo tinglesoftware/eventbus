@@ -32,7 +32,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{62
 		examples\Directory.Build.props = examples\Directory.Build.props
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleConsumer", "examples\SimpleConsumer\SimpleConsumer.csproj", "{ED1E8BA4-9538-42AB-9759-4FC4233A36B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleConsumer", "examples\SimpleConsumer\SimpleConsumer.csproj", "{ED1E8BA4-9538-42AB-9759-4FC4233A36B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Transports.Azure.EventHubs", "src\Tingle.EventBus.Transports.Azure.EventHubs\Tingle.EventBus.Transports.Azure.EventHubs.csproj", "{96ABC0DF-3007-4FC4-B6B0-FE24A11D7C60}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -72,6 +74,10 @@ Global
 		{ED1E8BA4-9538-42AB-9759-4FC4233A36B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED1E8BA4-9538-42AB-9759-4FC4233A36B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED1E8BA4-9538-42AB-9759-4FC4233A36B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96ABC0DF-3007-4FC4-B6B0-FE24A11D7C60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96ABC0DF-3007-4FC4-B6B0-FE24A11D7C60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96ABC0DF-3007-4FC4-B6B0-FE24A11D7C60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96ABC0DF-3007-4FC4-B6B0-FE24A11D7C60}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -85,6 +91,7 @@ Global
 		{9D2FB610-EBAB-434C-A7C3-6FB20C3D0C3E} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{07C3232C-687A-4C85-9A67-9BEF854BB91F} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{ED1E8BA4-9538-42AB-9759-4FC4233A36B1} = {62F603F3-FF36-4E36-AC0C-08D1883525BE}
+		{96ABC0DF-3007-4FC4-B6B0-FE24A11D7C60} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9E5CC03E-DDE6-4455-9D5D-03617DE5DBD8}

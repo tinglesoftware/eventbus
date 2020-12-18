@@ -46,9 +46,18 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         }
 
         /// <inheritdoc/>
-        public override Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default)
+        public override async Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            // get properties for the producers
+            var producers = producersCache.Values;
+            foreach (var proc in producers)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await proc.GetEventHubPropertiesAsync(cancellationToken);
+            }
+
+            return true;
         }
 
         /// <inheritdoc/>

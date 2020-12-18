@@ -83,7 +83,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
                     var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
                     var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
-                    return (Task)method.Invoke(this, new object[] { sc, message, ct, });
+                    return (Task)method.Invoke(this, new object[] { reg, sc, message, ct, });
                 }, messageHandlerOptions: options);
             }
         }
@@ -287,7 +287,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(SubscriptionClient subscriptionClient, Message message, CancellationToken cancellationToken)
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventConsumerRegistration reg, SubscriptionClient subscriptionClient, Message message, CancellationToken cancellationToken)
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
@@ -301,7 +301,6 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             try
             {
-                var reg = BusOptions.GetRegistration<TEvent>();
                 using var ms = new MemoryStream(message.Body);
                 var contentType = new ContentType(message.ContentType);
                 var context = await DeserializeAsync<TEvent>(body: ms,

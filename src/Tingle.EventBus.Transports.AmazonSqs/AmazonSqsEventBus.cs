@@ -290,12 +290,15 @@ namespace Tingle.EventBus.Transports.AmazonSqs
 
                 foreach (var message in response.Messages)
                 {
-                    await (Task)method.Invoke(this, new object[] { queueUrl, message, cancellationToken, });
+                    await (Task)method.Invoke(this, new object[] { reg, queueUrl, message, cancellationToken, });
                 }
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(string queueUrl, Message message, CancellationToken cancellationToken)
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventConsumerRegistration reg,
+                                                                     string queueUrl,
+                                                                     Message message,
+                                                                     CancellationToken cancellationToken)
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
@@ -311,7 +314,6 @@ namespace Tingle.EventBus.Transports.AmazonSqs
 
             try
             {
-                var reg = BusOptions.GetRegistration<TEvent>();
                 using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.Body));
                 TryGetAttribute(message, "Content-Type", out var contentType_str);
                 var contentType = new ContentType(contentType_str ?? "text/plain");

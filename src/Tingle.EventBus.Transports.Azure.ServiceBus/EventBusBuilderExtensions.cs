@@ -35,8 +35,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 if (options.ConnectionStringBuilder == null)
                 {
-                    options.ConnectionStringBuilder = new ServiceBusConnectionStringBuilder(options.ConnectionString);
-                    options.ConnectionStringBuilder.TransportType = options.TransportType;
+                    options.ConnectionStringBuilder = new ServiceBusConnectionStringBuilder(options.ConnectionString)
+                    {
+                        TransportType = options.TransportType
+                    };
                 }
             });
 

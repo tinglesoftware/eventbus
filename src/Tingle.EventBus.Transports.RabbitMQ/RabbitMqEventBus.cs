@@ -252,13 +252,13 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
                     var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
                     var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
-                    return (Task)method.Invoke(this, new object[] { channel, @event, CancellationToken.None, }); // do not chain CancellationToken
+                    return (Task)method.Invoke(this, new object[] { reg, channel, @event, CancellationToken.None, }); // do not chain CancellationToken
                 };
                 channel.BasicConsume(queue: queueName, autoAck: false, consumer);
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(IModel channel, BasicDeliverEventArgs args, CancellationToken cancellationToken)
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventConsumerRegistration reg, IModel channel, BasicDeliverEventArgs args, CancellationToken cancellationToken)
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
@@ -272,7 +272,6 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             try
             {
-                var reg = BusOptions.GetRegistration<TEvent>();
                 using var ms = new MemoryStream(args.Body.ToArray());
                 var contentType = GetContentType(args.BasicProperties);
                 var context = await DeserializeAsync<TEvent>(body: ms,

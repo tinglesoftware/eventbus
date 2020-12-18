@@ -26,8 +26,8 @@ namespace Tingle.EventBus.Health
         {
             try
             {
-                _ = await eventBus.CheckHealthAsync(cancellationToken);
-                return HealthCheckResult.Healthy();
+                var healthy = await eventBus.CheckHealthAsync(cancellationToken);
+                return healthy ? HealthCheckResult.Healthy() : HealthCheckResult.Unhealthy();
             }
             catch (Exception ex)
             {

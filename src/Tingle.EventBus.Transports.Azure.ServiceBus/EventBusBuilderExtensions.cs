@@ -1,4 +1,4 @@
-﻿using Microsoft.Azure.ServiceBus;
+﻿using Azure.Messaging.ServiceBus;
 using System;
 using Tingle.EventBus;
 using Tingle.EventBus.Transports.Azure.ServiceBus;
@@ -28,17 +28,14 @@ namespace Microsoft.Extensions.DependencyInjection
             services.PostConfigure<AzureServiceBusOptions>(options =>
             {
                 // ensure the connection string is not null
-                if (string.IsNullOrWhiteSpace(options.ConnectionString) && options.ConnectionStringBuilder == null)
+                if (string.IsNullOrWhiteSpace(options.ConnectionString) && options.ConnectionStringProperties == null)
                 {
-                    throw new InvalidOperationException($"Either '{nameof(options.ConnectionString)}' or '{nameof(options.ConnectionStringBuilder)}' must be provided");
+                    throw new InvalidOperationException($"Either '{nameof(options.ConnectionString)}' or '{nameof(options.ConnectionStringProperties)}' must be provided");
                 }
 
-                if (options.ConnectionStringBuilder == null)
+                if (options.ConnectionStringProperties == null)
                 {
-                    options.ConnectionStringBuilder = new ServiceBusConnectionStringBuilder(options.ConnectionString)
-                    {
-                        TransportType = options.TransportType
-                    };
+                    options.ConnectionStringProperties = ServiceBusConnectionStringProperties.Parse(options.ConnectionString);
                 }
             });
 

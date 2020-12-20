@@ -118,7 +118,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 logger.LogWarning("Azure EventHubs does not support delay or scheduled publish");
             }
 
-            var reg = BusOptions.GetConsumerRegistration<TEvent>();
+            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
@@ -162,7 +162,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
 
             var messages = new List<EventData>();
-            var reg = BusOptions.GetConsumerRegistration<TEvent>();
+            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
@@ -186,7 +186,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             return messages.Select(m => m.SequenceNumber.ToString()).ToList();
         }
 
-        private async Task<EventHubProducerClient> GetProducerAsync(ConsumerRegistration reg, bool deadletter, CancellationToken cancellationToken)
+        private async Task<EventHubProducerClient> GetProducerAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
         {
             await producersCacheLock.WaitAsync(cancellationToken);
 

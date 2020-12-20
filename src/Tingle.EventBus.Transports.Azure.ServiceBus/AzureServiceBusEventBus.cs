@@ -117,7 +117,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
-            var reg = BusOptions.GetConsumerRegistration<TEvent>();
+            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
@@ -166,7 +166,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                                        CancellationToken cancellationToken = default)
         {
             var messages = new List<ServiceBusMessage>();
-            var reg = BusOptions.GetConsumerRegistration<TEvent>();
+            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
@@ -214,7 +214,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
-        private async Task<ServiceBusSender> GetSenderAsync(ConsumerRegistration reg, CancellationToken cancellationToken)
+        private async Task<ServiceBusSender> GetSenderAsync(EventRegistration reg, CancellationToken cancellationToken)
         {
             await sendersCacheLock.WaitAsync(cancellationToken);
 

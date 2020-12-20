@@ -95,7 +95,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
                 logger.LogWarning("Amazon SNS does not support delay or scheduled publish");
             }
 
-            var reg = BusOptions.GetConsumerRegistration<TEvent>();
+            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
@@ -130,7 +130,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
             }
 
             // work on each event
-            var reg = BusOptions.GetConsumerRegistration<TEvent>();
+            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             var sequenceNumbers = new List<string>();
             foreach (var @event in events)
             {
@@ -157,7 +157,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
             return scheduled != null ? sequenceNumbers : null;
         }
 
-        private async Task<string> GetTopicArnAsync(ConsumerRegistration reg, CancellationToken cancellationToken)
+        private async Task<string> GetTopicArnAsync(EventRegistration reg, CancellationToken cancellationToken)
         {
             await topicArnsCacheLock.WaitAsync(cancellationToken);
 

@@ -64,6 +64,31 @@ namespace Tingle.EventBus
         /// </summary>
         public bool ForceConsumerName { get; set; }
 
+        internal Dictionary<Type, EventRegistration> EventRegistrations { get; } = new Dictionary<Type, EventRegistration>();
+
+        /// <summary>
+        /// Get or create the event registration for a given event type.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type to retrieve an <see cref="EventRegistration"/> for.</typeparam>
+        /// <returns></returns>
+        /// <exception cref="KeyNotFoundException">The given event type does not have any event registered.</exception>
+        public EventRegistration GetOrCreateEventRegistration<TEvent>()
+        {
+            var key = typeof(TEvent);
+
+            // if there's already a registration for the event return it
+            if (EventRegistrations.TryGetValue(key: key, out var registration)) return registration;
+
+            // if there's a registration for the consumer with the same event, return it
+            if (TryGetConsumerRegistration<TEvent>(out var c_reg)) return c_reg;
+
+            // at this point, the registration does not exist; create it and add to the registrations
+            registration = new EventRegistration(key);
+            registration.SetSerializer() // set serializer
+                        .SetEventName(this); // set event name
+            return EventRegistrations[key] = registration;
+        }
+
         internal Dictionary<Type, ConsumerRegistration> ConsumerRegistrations { get; } = new Dictionary<Type, ConsumerRegistration>();
 
         /// <summary>
@@ -81,7 +106,7 @@ namespace Tingle.EventBus
         public ConsumerRegistration GetConsumerRegistration<TEvent>() => ConsumerRegistrations[typeof(TEvent)];
 
         /// <summary>
-        /// Get the consumer registration for a given event type
+        /// Get the consumer registration for a given event type.
         /// </summary>
         /// <typeparam name="TEvent">The event type to retrieve a <see cref="ConsumerRegistration"/> for.</typeparam>
         /// <param name="registration">

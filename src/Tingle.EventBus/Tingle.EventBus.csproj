@@ -5,6 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Tingle.EventBus.Transports.AzureServiceBus" />
+    <InternalsVisibleTo Include="Tingle.EventBus.Transports.RabbitMQ" />
+    <InternalsVisibleTo Include="Tingle.EventBus.Transports.InMemory" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />

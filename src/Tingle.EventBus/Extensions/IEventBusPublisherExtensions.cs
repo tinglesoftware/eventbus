@@ -29,7 +29,6 @@ namespace Tingle.EventBus
             return publisher.PublishAsync(@event: @event, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 
-
         /// <summary>
         /// Publish a batch of events.
         /// </summary>

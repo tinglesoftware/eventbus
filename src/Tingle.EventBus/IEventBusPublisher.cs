@@ -41,5 +41,25 @@ namespace Tingle.EventBus
                                                  DateTimeOffset? scheduled = null,
                                                  CancellationToken cancellationToken = default)
             where TEvent : class;
+
+        /// <summary>
+        /// Cancel a scheduled event.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type.</typeparam>
+        /// <param name="id">The identifier of the scheduled event.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+            where TEvent : class;
+
+        /// <summary>
+        /// Cancel a batch of scheduled events.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type.</typeparam>
+        /// <param name="ids">The identifiers of the scheduled events.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+            where TEvent : class;
     }
 }

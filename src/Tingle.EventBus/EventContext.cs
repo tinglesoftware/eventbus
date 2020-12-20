@@ -82,6 +82,18 @@ namespace Tingle.EventBus
             return bus.PublishAsync(events: contexts, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 
+        /// <inheritdoc/>
+        public async Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default) where TEvent : class
+        {
+            await bus.CancelAsync<TEvent>(id: id, cancellationToken: cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public async Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default) where TEvent : class
+        {
+            await bus.CancelAsync<TEvent>(ids: ids, cancellationToken: cancellationToken);
+        }
+
         internal void SetBus(IEventBus bus)
         {
             this.bus = bus ?? throw new ArgumentNullException(nameof(bus));

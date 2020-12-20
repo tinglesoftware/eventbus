@@ -142,7 +142,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <typeparam name="TEvent">The event to configure for</typeparam>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public EventBusBuilder ConfigureEvent<TEvent>(Action<ConsumerRegistration> configure)
+        public EventBusBuilder ConfigureConsumer<TEvent>(Action<ConsumerRegistration> configure)
         {
             if (configure is null) throw new ArgumentNullException(nameof(configure));
 
@@ -152,6 +152,23 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     configure(registration);
                 }
+            });
+        }
+
+        /// <summary>
+        /// Configure the <see cref="EventRegistration"/> for <typeparamref name="TEvent"/>.
+        /// </summary>
+        /// <typeparam name="TEvent">The event to configure for</typeparam>
+        /// <param name="configure"></param>
+        /// <returns></returns>
+        public EventBusBuilder ConfigureEvent<TEvent>(Action<EventRegistration> configure)
+        {
+            if (configure is null) throw new ArgumentNullException(nameof(configure));
+
+            return Configure(options =>
+            {
+                var registration = options.GetOrCreateEventRegistration<TEvent>();
+                configure(registration);
             });
         }
     }

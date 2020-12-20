@@ -143,7 +143,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             return scheduled != null ? sequenceNumbers : null;
         }
 
-        private async Task<QueueClient> GetQueueClientAsync(EventConsumerRegistration reg, bool deadletter, CancellationToken cancellationToken)
+        private async Task<QueueClient> GetQueueClientAsync(ConsumerRegistration reg, bool deadletter, CancellationToken cancellationToken)
         {
             await queueClientsCacheLock.WaitAsync(cancellationToken);
 
@@ -179,7 +179,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             }
         }
 
-        private async Task ReceiveAsync(EventConsumerRegistration reg)
+        private async Task ReceiveAsync(ConsumerRegistration reg)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
             var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
@@ -208,7 +208,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventConsumerRegistration reg, QueueClient queueClient, QueueMessage message, CancellationToken cancellationToken)
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, QueueClient queueClient, QueueMessage message, CancellationToken cancellationToken)
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {

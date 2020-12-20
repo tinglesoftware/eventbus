@@ -214,7 +214,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
-        private async Task<ServiceBusSender> GetSenderAsync(EventConsumerRegistration reg, CancellationToken cancellationToken)
+        private async Task<ServiceBusSender> GetSenderAsync(ConsumerRegistration reg, CancellationToken cancellationToken)
         {
             await sendersCacheLock.WaitAsync(cancellationToken);
 
@@ -240,7 +240,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
-        private async Task<ServiceBusProcessor> GetProcessorAsync(EventConsumerRegistration reg, CancellationToken cancellationToken)
+        private async Task<ServiceBusProcessor> GetProcessorAsync(ConsumerRegistration reg, CancellationToken cancellationToken)
         {
             await processorsCacheLock.WaitAsync(cancellationToken);
 
@@ -308,7 +308,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventConsumerRegistration reg, ProcessMessageEventArgs args)
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, ProcessMessageEventArgs args)
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {

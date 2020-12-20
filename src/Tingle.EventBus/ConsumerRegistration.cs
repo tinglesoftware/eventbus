@@ -5,14 +5,14 @@ namespace Tingle.EventBus
     /// <summary>
     /// Represents a registration for a consumer of an event.
     /// </summary>
-    public class EventConsumerRegistration : EventRegistration
+    public class ConsumerRegistration : EventRegistration
     {
         /// <summary>
-        /// Creates an instance of <see cref="EventConsumerRegistration"/>
+        /// Creates an instance of <see cref="ConsumerRegistration"/>
         /// </summary>
         /// <param name="eventType">The type of event handled.</param>
         /// <param name="consumerType">The type of consumer handling the event.</param>
-        public EventConsumerRegistration(Type eventType, Type consumerType) : base(eventType)
+        public ConsumerRegistration(Type eventType, Type consumerType) : base(eventType)
         {
             ConsumerType = consumerType ?? throw new ArgumentNullException(nameof(consumerType));
         }

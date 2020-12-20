@@ -157,7 +157,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
             return scheduled != null ? sequenceNumbers : null;
         }
 
-        private async Task<string> GetTopicArnAsync(EventConsumerRegistration reg, CancellationToken cancellationToken)
+        private async Task<string> GetTopicArnAsync(ConsumerRegistration reg, CancellationToken cancellationToken)
         {
             await topicArnsCacheLock.WaitAsync(cancellationToken);
 
@@ -179,7 +179,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
             }
         }
 
-        private async Task<string> GetQueueUrlAsync(EventConsumerRegistration reg, CancellationToken cancellationToken)
+        private async Task<string> GetQueueUrlAsync(ConsumerRegistration reg, CancellationToken cancellationToken)
         {
             await queueUrlsCacheLock.WaitAsync(cancellationToken);
 
@@ -276,7 +276,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
             return false;
         }
 
-        private async Task ReceiveAsync(EventConsumerRegistration reg, string queueUrl)
+        private async Task ReceiveAsync(ConsumerRegistration reg, string queueUrl)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
             var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
@@ -295,7 +295,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventConsumerRegistration reg,
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg,
                                                                      string queueUrl,
                                                                      Message message,
                                                                      CancellationToken cancellationToken)

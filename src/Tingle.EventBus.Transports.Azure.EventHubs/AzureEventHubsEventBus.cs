@@ -186,7 +186,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             return messages.Select(m => m.SequenceNumber.ToString()).ToList();
         }
 
-        private async Task<EventHubProducerClient> GetProducerAsync(EventConsumerRegistration reg, bool deadletter, CancellationToken cancellationToken)
+        private async Task<EventHubProducerClient> GetProducerAsync(ConsumerRegistration reg, bool deadletter, CancellationToken cancellationToken)
         {
             await producersCacheLock.WaitAsync(cancellationToken);
 
@@ -224,7 +224,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
         }
 
-        private async Task<EventProcessorClient> GetProcessorAsync(EventConsumerRegistration reg, CancellationToken cancellationToken)
+        private async Task<EventProcessorClient> GetProcessorAsync(ConsumerRegistration reg, CancellationToken cancellationToken)
         {
             await processorsCacheLock.WaitAsync(cancellationToken);
 
@@ -280,7 +280,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
         }
 
-        private async Task OnEventReceivedAsync<TEvent, TConsumer>(EventConsumerRegistration reg, ProcessEventArgs args)
+        private async Task OnEventReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, ProcessEventArgs args)
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {

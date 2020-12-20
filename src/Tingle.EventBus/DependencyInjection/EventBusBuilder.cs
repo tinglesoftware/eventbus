@@ -112,7 +112,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         throw new InvalidOperationException($"{et.FullName} cannot be mapped to {consumerType.FullName} as it is already mapped to {ct.ConsumerType.FullName}");
                     }
 
-                    options.EventRegistrations[et] = new EventConsumerRegistration(eventType: et, consumerType: consumerType);
+                    options.EventRegistrations[et] = new ConsumerRegistration(eventType: et, consumerType: consumerType);
                 }
             });
         }
@@ -137,12 +137,12 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Configure the <see cref="EventConsumerRegistration"/> for <typeparamref name="TEvent"/>.
+        /// Configure the <see cref="ConsumerRegistration"/> for <typeparamref name="TEvent"/>.
         /// </summary>
         /// <typeparam name="TEvent">The event to configure for</typeparam>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public EventBusBuilder ConfigureEvent<TEvent>(Action<EventConsumerRegistration> configure)
+        public EventBusBuilder ConfigureEvent<TEvent>(Action<ConsumerRegistration> configure)
         {
             if (configure is null) throw new ArgumentNullException(nameof(configure));
 

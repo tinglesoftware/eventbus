@@ -258,7 +258,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventConsumerRegistration reg, IModel channel, BasicDeliverEventArgs args, CancellationToken cancellationToken)
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, IModel channel, BasicDeliverEventArgs args, CancellationToken cancellationToken)
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {

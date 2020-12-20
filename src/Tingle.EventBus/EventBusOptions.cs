@@ -64,41 +64,41 @@ namespace Tingle.EventBus
         /// </summary>
         public bool ForceConsumerName { get; set; }
 
-        internal Dictionary<Type, EventConsumerRegistration> EventRegistrations { get; } = new Dictionary<Type, EventConsumerRegistration>();
+        internal Dictionary<Type, ConsumerRegistration> EventRegistrations { get; } = new Dictionary<Type, ConsumerRegistration>();
 
         /// <summary>
         /// Gets all the consumer registrations.
         /// </summary>
         /// <returns></returns>
-        public ICollection<EventConsumerRegistration> GetRegistrations() => EventRegistrations.Values;
+        public ICollection<ConsumerRegistration> GetRegistrations() => EventRegistrations.Values;
 
         /// <summary>
         /// Get the consumer registration for a given event type.
         /// </summary>
-        /// <typeparam name="TEvent">The event type to retrieve a <see cref="EventConsumerRegistration"/> for.</typeparam>
+        /// <typeparam name="TEvent">The event type to retrieve a <see cref="ConsumerRegistration"/> for.</typeparam>
         /// <returns></returns>
         /// <exception cref="KeyNotFoundException">The given event type does not have any consumer registered.</exception>
-        public EventConsumerRegistration GetRegistration<TEvent>() => GetRegistration(typeof(TEvent));
+        public ConsumerRegistration GetRegistration<TEvent>() => GetRegistration(typeof(TEvent));
 
         /// <summary>
         /// Get the consumer registration for a given event type
         /// </summary>
-        /// <param name="type">The event type to retrieve a <see cref="EventConsumerRegistration"/> for.</param>
+        /// <param name="type">The event type to retrieve a <see cref="ConsumerRegistration"/> for.</param>
         /// <returns></returns>
         /// <exception cref="KeyNotFoundException">The given event type does not have any consumer registered.</exception>
-        private EventConsumerRegistration GetRegistration(Type type) => EventRegistrations[type];
+        private ConsumerRegistration GetRegistration(Type type) => EventRegistrations[type];
 
         /// <summary>
         /// Get the consumer registration for a given event type
         /// </summary>
-        /// <typeparam name="TEvent">The event type to retrieve a <see cref="EventConsumerRegistration"/> for.</typeparam>
+        /// <typeparam name="TEvent">The event type to retrieve a <see cref="ConsumerRegistration"/> for.</typeparam>
         /// <param name="registration">
         /// When this method returns, contains the consumer registration associated with the specified event type,
         /// if the event type is found; otherwise, <see langword="null"/> is returned.
         /// This parameter is passed uninitialized.
         /// </param>
         /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
-        public bool TryGetRegistration<TEvent>(out EventConsumerRegistration registration)
+        public bool TryGetRegistration<TEvent>(out ConsumerRegistration registration)
         {
             return TryGetRegistration(typeof(TEvent), out registration);
         }
@@ -106,14 +106,14 @@ namespace Tingle.EventBus
         /// <summary>
         /// Get the consumer registration for a given event type
         /// </summary>
-        /// <param name="type">The event type to retrieve a <see cref="EventConsumerRegistration"/> for.</param>
+        /// <param name="type">The event type to retrieve a <see cref="ConsumerRegistration"/> for.</param>
         /// <param name="registration">
         /// When this method returns, contains the consumer registration associated with the specified event type,
         /// if the event type is found; otherwise, <see langword="null"/> is returned.
         /// This parameter is passed uninitialized.
         /// </param>
         /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
-        private bool TryGetRegistration(Type type, out EventConsumerRegistration registration)
+        private bool TryGetRegistration(Type type, out ConsumerRegistration registration)
         {
             return EventRegistrations.TryGetValue(key: type, out registration);
         }

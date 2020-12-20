@@ -62,10 +62,22 @@ namespace Tingle.EventBus.Transports.InMemory
         }
 
         /// <inheritdoc/>
+        public override Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        /// <inheritdoc/>
+        public override Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        /// <inheritdoc/>
         public override Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
                                                           DateTimeOffset? scheduled = null,
                                                           CancellationToken cancellationToken = default)
         {
+            // log warning when trying to publish scheduled message
+            if (scheduled != null)
+            {
+                logger.LogWarning("InMemory EventBus uses a short-lived timer that is not persisted for scheduled publish");
+            }
+
             var scheduledId = scheduled?.ToUnixTimeMilliseconds().ToString();
             published.Add(@event);
             var _ = SendToConsumersAsync(@event, scheduled);
@@ -77,6 +89,12 @@ namespace Tingle.EventBus.Transports.InMemory
                                                                  DateTimeOffset? scheduled = null,
                                                                  CancellationToken cancellationToken = default)
         {
+            // log warning when trying to publish scheduled message
+            if (scheduled != null)
+            {
+                logger.LogWarning("InMemory EventBus uses a short-lived timer that is not persisted for scheduled publish");
+            }
+
             foreach (var @event in events)
             {
                 var _ = SendToConsumersAsync(@event, scheduled);
@@ -93,10 +111,16 @@ namespace Tingle.EventBus.Transports.InMemory
         }
 
         /// <inheritdoc/>
-        public override Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public override Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException("InMemory EventBus does not support canceling published messages.");
+        }
 
         /// <inheritdoc/>
-        public override Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public override Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException("InMemory EventBus does not support canceling published messages.");
+        }
 
         private async Task SendToConsumersAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled)
         {

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Mime;
 using System.Text;
 using System.Threading;
@@ -142,6 +143,49 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
             // return the sequence number
             return scheduled != null ? sequenceNumbers : null;
+        }
+
+        /// <inheritdoc/>
+        public override async Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException($"'{nameof(id)}' cannot be null or whitespace", nameof(id));
+            }
+
+            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
+            var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            var parts = id.Split(SequenceNumberSeparator);
+            await queueClient.DeleteMessageAsync(messageId: parts[0],
+                                                 popReceipt: parts[1],
+                                                 cancellationToken: cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public override async Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        {
+            if (ids is null)
+            {
+                throw new ArgumentNullException(nameof(ids));
+            }
+
+            var splits = ids.Select(i =>
+            {
+                var parts = i.Split(SequenceNumberSeparator);
+                return (messageId: parts[0], popReceipt: parts[1]);
+            }).ToList();
+
+            // log warning when doing batch
+            logger.LogWarning("Azure Queue Storage does not support batching. The events will be canceled one by one");
+
+            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
+            var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            foreach (var (messageId, popReceipt) in splits)
+            {
+                await queueClient.DeleteMessageAsync(messageId: messageId,
+                                                     popReceipt: popReceipt,
+                                                     cancellationToken: cancellationToken);
+            }
         }
 
         private async Task<QueueClient> GetQueueClientAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)

@@ -158,6 +158,19 @@ namespace Tingle.EventBus.Transports.AmazonSqs
             return scheduled != null ? sequenceNumbers : null;
         }
 
+
+        /// <inheritdoc/>
+        public override Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException("Amazon SNS does not support canceling published messages.");
+        }
+
+        /// <inheritdoc/>
+        public override Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException("Amazon SNS does not support canceling published messages.");
+        }
+
         private async Task<string> GetTopicArnAsync(EventRegistration reg, CancellationToken cancellationToken)
         {
             await topicArnsCacheLock.WaitAsync(cancellationToken);
@@ -336,6 +349,5 @@ namespace Tingle.EventBus.Transports.AmazonSqs
                 // TODO: implement dead lettering in SQS
             }
         }
-
     }
 }

@@ -77,6 +77,15 @@ namespace Tingle.EventBus
                                                                  CancellationToken cancellationToken = default)
             where TEvent : class;
 
+
+        /// <inheritdoc/>
+        public abstract Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+            where TEvent : class;
+
+        /// <inheritdoc/>
+        public abstract Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+            where TEvent : class;
+
         /// <inheritdoc/>
         public abstract Task StartAsync(CancellationToken cancellationToken);
 

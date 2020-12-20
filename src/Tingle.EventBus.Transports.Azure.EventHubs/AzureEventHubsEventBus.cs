@@ -187,6 +187,18 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             return messages.Select(m => m.SequenceNumber.ToString()).ToList();
         }
 
+        /// <inheritdoc/>
+        public override Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException("Azure EventHubs does not support canceling published messages.");
+        }
+
+        /// <inheritdoc/>
+        public override Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException("Azure EventHubs does not support canceling published messages.");
+        }
+
         private async Task<EventHubProducerClient> GetProducerAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
         {
             await producersCacheLock.WaitAsync(cancellationToken);

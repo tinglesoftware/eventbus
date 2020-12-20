@@ -233,6 +233,18 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             return scheduled != null ? messageIds.ToList() : (IList<string>)Array.Empty<string>();
         }
 
+        /// <inheritdoc/>
+        public override Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException("RabbitMQ does not support canceling published messages.");
+        }
+
+        /// <inheritdoc/>
+        public override Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException("RabbitMQ does not support canceling published messages.");
+        }
+
         private async Task ConnectConsumersAsync(CancellationToken cancellationToken)
         {
             if (!IsConnected)

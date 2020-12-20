@@ -215,6 +215,48 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
+        /// <inheritdoc/>
+        public override async Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException($"'{nameof(id)}' cannot be null or whitespace", nameof(id));
+            }
+
+            if (!long.TryParse(id, out var seqNum))
+            {
+                throw new ArgumentException($"'{nameof(id)}' is malformed or invalid", nameof(id));
+            }
+
+            // get the sender and cancel the message accordingly
+            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
+            var sender = await GetSenderAsync(reg, cancellationToken);
+            await sender.CancelScheduledMessageAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public override async Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        {
+            if (ids is null)
+            {
+                throw new ArgumentNullException(nameof(ids));
+            }
+
+            var seqNums = ids.Select(i =>
+            {
+                if (!long.TryParse(i, out var seqNum))
+                {
+                    throw new ArgumentException($"'{nameof(i)}' is malformed or invalid", nameof(i));
+                }
+                return seqNum;
+            }).ToList();
+
+            // get the sender and cancel the messages accordingly
+            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
+            var sender = await GetSenderAsync(reg, cancellationToken);
+            await sender.CancelScheduledMessagesAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken);
+        }
+
         private async Task<ServiceBusSender> GetSenderAsync(EventRegistration reg, CancellationToken cancellationToken)
         {
             await sendersCacheLock.WaitAsync(cancellationToken);

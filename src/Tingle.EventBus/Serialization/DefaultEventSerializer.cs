@@ -1,10 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net.Mime;
-using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,9 +16,7 @@ namespace Tingle.EventBus.Serialization
     {
         private static readonly ContentType JsonContentType = new ContentType("application/json; charset=utf-8");
 
-        private readonly Encoding encoding = Encoding.UTF8;
-        private readonly JsonSerializer serializer;
-        private readonly JsonSerializerSettings settings;
+        private readonly JsonSerializerOptions serializerOptions;
 
         /// <summary>
         /// Creates an instance of <see cref="DefaultEventSerializer"/>.
@@ -29,13 +26,21 @@ namespace Tingle.EventBus.Serialization
         {
             var options = optionsAccessor?.Value?.SerializerOptions ?? throw new ArgumentNullException(nameof(optionsAccessor));
 
-            settings = new JsonSerializerSettings()
+            serializerOptions = new JsonSerializerOptions
             {
-                NullValueHandling = options.IgnoreNullValues ? NullValueHandling.Ignore : NullValueHandling.Include,
-                Formatting = options.Indented ? Formatting.Indented : Formatting.None,
+                NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals | JsonNumberHandling.AllowReadingFromString,
+                WriteIndented = options.Indented,
+                DefaultIgnoreCondition = options.IgnoreNullValues
+                                        ? JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull
+                                        : JsonIgnoreCondition.Never,
+
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                PropertyNameCaseInsensitive = true,
+                AllowTrailingCommas = true,
+                ReadCommentHandling = JsonCommentHandling.Skip,
             };
 
-            serializer = JsonSerializer.Create(settings);
+            // TODO: consider support for enums as strings, converter for System.Version, converter for System.TimeSpan
         }
 
         /// <inheritdoc/>
@@ -59,37 +64,32 @@ namespace Tingle.EventBus.Serialization
                 Host = hostInfo,
             };
 
-            using var sw = new StreamWriter(stream: stream, encoding: encoding, bufferSize: 1024, leaveOpen: true);
-            using var jw = new JsonTextWriter(textWriter: sw);
-            serializer.Serialize(jsonWriter: jw, value: envelope, objectType: typeof(MessageEnvelope));
-            await jw.FlushAsync(cancellationToken: cancellationToken);
-            await sw.FlushAsync();
+            await JsonSerializer.SerializeAsync(utf8Json: stream,
+                                                value: envelope,
+                                                options: serializerOptions,
+                                                cancellationToken: cancellationToken);
 
             return JsonContentType;
         }
 
         /// <inheritdoc/>
-        public Task<EventContext<T>> DeserializeAsync<T>(Stream stream, ContentType contentType, CancellationToken cancellationToken = default)
+        public async Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
+                                                               ContentType contentType,
+                                                               CancellationToken cancellationToken = default)
             where T : class
         {
-            using var sr = new StreamReader(stream, encoding);
-            using var jr = new JsonTextReader(sr);
-            var envelope = serializer.Deserialize<MessageEnvelope>(jr);
+            var envelope = await JsonSerializer.DeserializeAsync<MessageEnvelope>(utf8Json: stream,
+                                                                                  options: serializerOptions,
+                                                                                  cancellationToken: cancellationToken);
 
-            // ensure we have a JToken for the event
-            if (!(envelope.Event is JToken eventToken) || eventToken.Type == JTokenType.Null)
+            // ensure we have a JsonElement for the event
+            if (!(envelope.Event is JsonElement eventToken) || eventToken.ValueKind == JsonValueKind.Null)
             {
-                eventToken = new JObject();
+                eventToken = new JsonElement();
             }
 
-            // get the event from the token
-            T @event = default;
-            if (typeof(T) == typeof(JToken)) @event = eventToken as T;
-            else
-            {
-                using var jr_evt = eventToken.CreateReader();
-                @event = serializer.Deserialize<T>(jr_evt);
-            }
+            // get the event from the element
+            T @event = typeof(T) == typeof(JsonElement) ? eventToken as T : ToObject<T>(eventToken, serializerOptions);
 
             // create the context with the event and popuate common properties
             var context = new EventContext<T>
@@ -105,7 +105,18 @@ namespace Tingle.EventBus.Serialization
                 Event = @event,
             };
 
-            return Task.FromResult(context);
+            return context;
+        }
+
+        private static T ToObject<T>(JsonElement element, JsonSerializerOptions options = null)
+        {
+            var bufferWriter = new System.Buffers.ArrayBufferWriter<byte>();
+            using (var writer = new Utf8JsonWriter(bufferWriter))
+            {
+                element.WriteTo(writer);
+            }
+
+            return JsonSerializer.Deserialize<T>(bufferWriter.WrittenSpan, options);
         }
     }
 }

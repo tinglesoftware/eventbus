@@ -13,7 +13,7 @@ namespace Tingle.EventBus.Serialization
     /// <summary>
     /// The default implementation of <see cref="IEventSerializer"/> that uses <c>Newtonsoft.Json</c>.
     /// </summary>
-    internal class NewtonsoftJsonEventSerializer : IEventSerializer
+    internal class DefaultEventSerializer : IEventSerializer
     {
         private static readonly ContentType JsonContentType = new ContentType("application/json; charset=utf-8");
 
@@ -22,10 +22,10 @@ namespace Tingle.EventBus.Serialization
         private readonly JsonSerializerSettings settings;
 
         /// <summary>
-        /// Creates an instance of <see cref="NewtonsoftJsonEventSerializer"/>.
+        /// Creates an instance of <see cref="DefaultEventSerializer"/>.
         /// </summary>
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
-        public NewtonsoftJsonEventSerializer(IOptions<EventBusOptions> optionsAccessor)
+        public DefaultEventSerializer(IOptions<EventBusOptions> optionsAccessor)
         {
             var options = optionsAccessor?.Value?.SerializerOptions ?? throw new ArgumentNullException(nameof(optionsAccessor));
 

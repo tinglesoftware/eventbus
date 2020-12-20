@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             var builder = new EventBusBuilder(services)
-                .UseDefaultNewtonsoftJsonSerializer();
+                .UseDefaultSerializer();
 
             // register services that can resolve each other
             services.AddHostedService(p => p.GetRequiredService<IEventBus>());

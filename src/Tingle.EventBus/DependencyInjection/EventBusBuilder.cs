@@ -54,10 +54,10 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Use serializer powered by <see href="https://www.nuget.org/packages/Newtonsoft.Json/">Newtonsoft.Json</see>.
+        /// Use the included default serializer.
         /// </summary>
         /// <returns></returns>
-        public EventBusBuilder UseDefaultNewtonsoftJsonSerializer() => UseDefaultSerializer<NewtonsoftJsonEventSerializer>();
+        public EventBusBuilder UseDefaultSerializer() => UseDefaultSerializer<DefaultEventSerializer>();
 
         /// <summary>
         /// Subscribe to events that a consumer can listen to.

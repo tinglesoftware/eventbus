@@ -144,11 +144,8 @@ namespace Tingle.EventBus
             using var scope = serviceScopeFactory.CreateScope();
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
 
-            // do actual serialization
-            await serializer.SerializeAsync(body, @event, BusOptions.HostInfo, cancellationToken);
-
-            // return the content type written
-            return serializer.ContentType;
+            // do actual serialization and return the content type
+            return await serializer.SerializeAsync(body, @event, BusOptions.HostInfo, cancellationToken);
         }
 
         /// <summary>

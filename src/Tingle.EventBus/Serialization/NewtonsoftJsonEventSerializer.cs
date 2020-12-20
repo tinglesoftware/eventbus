@@ -15,6 +15,8 @@ namespace Tingle.EventBus.Serialization
     /// </summary>
     internal class NewtonsoftJsonEventSerializer : IEventSerializer
     {
+        private static readonly ContentType JsonContentType = new ContentType("application/json; charset=utf-8");
+
         private readonly Encoding encoding = Encoding.UTF8;
         private readonly JsonSerializer serializer;
         private readonly JsonSerializerSettings settings;
@@ -37,13 +39,10 @@ namespace Tingle.EventBus.Serialization
         }
 
         /// <inheritdoc/>
-        public ContentType ContentType => new ContentType("application/json; charset=utf-8");
-
-        /// <inheritdoc/>
-        public async Task SerializeAsync<T>(Stream stream,
-                                            EventContext<T> context,
-                                            HostInfo hostInfo,
-                                            CancellationToken cancellationToken = default)
+        public async Task<ContentType> SerializeAsync<T>(Stream stream,
+                                                         EventContext<T> context,
+                                                         HostInfo hostInfo,
+                                                         CancellationToken cancellationToken = default)
              where T : class
         {
             var envelope = new MessageEnvelope
@@ -65,6 +64,8 @@ namespace Tingle.EventBus.Serialization
             serializer.Serialize(jsonWriter: jw, value: envelope, objectType: typeof(MessageEnvelope));
             await jw.FlushAsync(cancellationToken: cancellationToken);
             await sw.FlushAsync();
+
+            return JsonContentType;
         }
 
         /// <inheritdoc/>

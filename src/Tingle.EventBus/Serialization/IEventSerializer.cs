@@ -11,11 +11,6 @@ namespace Tingle.EventBus.Serialization
     public interface IEventSerializer
     {
         /// <summary>
-        /// The content type used by the serializer.
-        /// </summary>
-        ContentType ContentType { get; }
-
-        /// <summary>
         /// Serialize an event into a stream of bytes.
         /// </summary>
         /// <typeparam name="T">The event type to be serialized.</typeparam>
@@ -27,10 +22,10 @@ namespace Tingle.EventBus.Serialization
         /// <param name="hostInfo">The information about the host of the Event Bus.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task SerializeAsync<T>(Stream stream,
-                               EventContext<T> context,
-                               HostInfo hostInfo,
-                               CancellationToken cancellationToken = default) where T : class;
+        Task<ContentType> SerializeAsync<T>(Stream stream,
+                                            EventContext<T> context,
+                                            HostInfo hostInfo,
+                                            CancellationToken cancellationToken = default) where T : class;
 
         /// <summary>
         /// Deserialize an event from a stream of bytes.

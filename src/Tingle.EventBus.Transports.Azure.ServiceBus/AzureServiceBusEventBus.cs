@@ -70,7 +70,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         /// <inheritdoc/>
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            var registrations = BusOptions.GetRegistrations();
+            var registrations = BusOptions.GetConsumerRegistrations();
             foreach (var reg in registrations)
             {
                 var processor = await GetProcessorAsync(reg: reg, cancellationToken: cancellationToken);
@@ -117,7 +117,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
-            var reg = BusOptions.GetRegistration<TEvent>();
+            var reg = BusOptions.GetConsumerRegistration<TEvent>();
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
@@ -166,7 +166,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                                        CancellationToken cancellationToken = default)
         {
             var messages = new List<ServiceBusMessage>();
-            var reg = BusOptions.GetRegistration<TEvent>();
+            var reg = BusOptions.GetConsumerRegistration<TEvent>();
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();

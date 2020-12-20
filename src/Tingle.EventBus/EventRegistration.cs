@@ -8,12 +8,25 @@ namespace Tingle.EventBus
     public class EventRegistration
     {
         /// <summary>
-        /// Creates an instance of <see cref="EventRegistration"/>
+        /// Creates an instance of <see cref="EventRegistration"/>.
         /// </summary>
         /// <param name="eventType">The type of event handled.</param>
         public EventRegistration(Type eventType)
         {
             EventType = eventType ?? throw new ArgumentNullException(nameof(eventType));
+        }
+
+        /// <summary>
+        /// Creates an instance of <see cref="EventRegistration"/> by copying from another instance.
+        /// </summary>
+        /// <param name="other"></param>
+        internal EventRegistration(EventRegistration other)
+        {
+            if (other is null) throw new ArgumentNullException(nameof(other));
+
+            EventType = other.EventType;
+            EventName = other.EventName;
+            EventSerializerType = other.EventSerializerType;
         }
 
         /// <summary>

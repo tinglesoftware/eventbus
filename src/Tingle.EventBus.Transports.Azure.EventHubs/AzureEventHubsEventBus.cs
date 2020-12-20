@@ -63,7 +63,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         /// <inheritdoc/>
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            var registrations = BusOptions.GetRegistrations();
+            var registrations = BusOptions.GetConsumerRegistrations();
             foreach (var reg in registrations)
             {
                 var processor = await GetProcessorAsync(reg: reg, cancellationToken: cancellationToken);
@@ -118,7 +118,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 logger.LogWarning("Azure EventHubs does not support delay or scheduled publish");
             }
 
-            var reg = BusOptions.GetRegistration<TEvent>();
+            var reg = BusOptions.GetConsumerRegistration<TEvent>();
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
@@ -162,7 +162,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
 
             var messages = new List<EventData>();
-            var reg = BusOptions.GetRegistration<TEvent>();
+            var reg = BusOptions.GetConsumerRegistration<TEvent>();
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();

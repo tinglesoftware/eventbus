@@ -40,7 +40,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             // for each event registration, ensure we have everything set
-            var registrations = options.GetRegistrations();
+            var registrations = options.GetConsumerRegistrations();
             foreach (var reg in registrations)
             {
                 // set the event name, if not set

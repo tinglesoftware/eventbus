@@ -56,7 +56,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         /// <inheritdoc/>
         public override Task StartAsync(CancellationToken cancellationToken)
         {
-            var registrations = BusOptions.GetRegistrations();
+            var registrations = BusOptions.GetConsumerRegistrations();
             foreach (var reg in registrations)
             {
                 _ = ReceiveAsync(reg);
@@ -78,7 +78,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
-            var reg = BusOptions.GetRegistration<TEvent>();
+            var reg = BusOptions.GetConsumerRegistration<TEvent>();
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
@@ -113,7 +113,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             logger.LogWarning("Azure Queue Storage does not support batching. The events will be looped through one by one");
 
             // work on each event
-            var reg = BusOptions.GetRegistration<TEvent>();
+            var reg = BusOptions.GetConsumerRegistration<TEvent>();
             var sequenceNumbers = new List<string>();
             var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
             foreach (var @event in events)

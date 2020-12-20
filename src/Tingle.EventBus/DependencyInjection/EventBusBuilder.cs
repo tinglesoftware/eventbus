@@ -106,13 +106,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 foreach (var et in eventTypes)
                 {
                     // if the type is already mapped to another consumer, throw meaningful exception
-                    if (options.EventRegistrations.TryGetValue(et, out var ct)
+                    if (options.ConsumerRegistrations.TryGetValue(et, out var ct)
                         && ct.ConsumerType != consumerType)
                     {
                         throw new InvalidOperationException($"{et.FullName} cannot be mapped to {consumerType.FullName} as it is already mapped to {ct.ConsumerType.FullName}");
                     }
 
-                    options.EventRegistrations[et] = new ConsumerRegistration(eventType: et, consumerType: consumerType);
+                    options.ConsumerRegistrations[et] = new ConsumerRegistration(eventType: et, consumerType: consumerType);
                 }
             });
         }
@@ -126,12 +126,12 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             return Configure(options =>
             {
-                var types = options.EventRegistrations.Where(kvp => kvp.Value.ConsumerType == typeof(TConsumer))
+                var types = options.ConsumerRegistrations.Where(kvp => kvp.Value.ConsumerType == typeof(TConsumer))
                                                       .Select(kvp => kvp.Key)
                                                       .ToList();
                 foreach (var r in types)
                 {
-                    options.EventRegistrations.Remove(r);
+                    options.ConsumerRegistrations.Remove(r);
                 }
             });
         }
@@ -148,7 +148,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return Configure(options =>
             {
-                if (options.TryGetRegistration<TEvent>(out var registration))
+                if (options.TryGetConsumerRegistration<TEvent>(out var registration))
                 {
                     configure(registration);
                 }

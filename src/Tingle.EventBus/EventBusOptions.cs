@@ -64,13 +64,13 @@ namespace Tingle.EventBus
         /// </summary>
         public bool ForceConsumerName { get; set; }
 
-        internal Dictionary<Type, ConsumerRegistration> EventRegistrations { get; } = new Dictionary<Type, ConsumerRegistration>();
+        internal Dictionary<Type, ConsumerRegistration> ConsumerRegistrations { get; } = new Dictionary<Type, ConsumerRegistration>();
 
         /// <summary>
         /// Gets all the consumer registrations.
         /// </summary>
         /// <returns></returns>
-        public ICollection<ConsumerRegistration> GetRegistrations() => EventRegistrations.Values;
+        public ICollection<ConsumerRegistration> GetConsumerRegistrations() => ConsumerRegistrations.Values;
 
         /// <summary>
         /// Get the consumer registration for a given event type.
@@ -78,7 +78,7 @@ namespace Tingle.EventBus
         /// <typeparam name="TEvent">The event type to retrieve a <see cref="ConsumerRegistration"/> for.</typeparam>
         /// <returns></returns>
         /// <exception cref="KeyNotFoundException">The given event type does not have any consumer registered.</exception>
-        public ConsumerRegistration GetRegistration<TEvent>() => GetRegistration(typeof(TEvent));
+        public ConsumerRegistration GetConsumerRegistration<TEvent>() => GetConsumerRegistration(typeof(TEvent));
 
         /// <summary>
         /// Get the consumer registration for a given event type
@@ -86,7 +86,7 @@ namespace Tingle.EventBus
         /// <param name="type">The event type to retrieve a <see cref="ConsumerRegistration"/> for.</param>
         /// <returns></returns>
         /// <exception cref="KeyNotFoundException">The given event type does not have any consumer registered.</exception>
-        private ConsumerRegistration GetRegistration(Type type) => EventRegistrations[type];
+        private ConsumerRegistration GetConsumerRegistration(Type type) => ConsumerRegistrations[type];
 
         /// <summary>
         /// Get the consumer registration for a given event type
@@ -98,9 +98,9 @@ namespace Tingle.EventBus
         /// This parameter is passed uninitialized.
         /// </param>
         /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
-        public bool TryGetRegistration<TEvent>(out ConsumerRegistration registration)
+        public bool TryGetConsumerRegistration<TEvent>(out ConsumerRegistration registration)
         {
-            return TryGetRegistration(typeof(TEvent), out registration);
+            return TryGetConsumerRegistration(typeof(TEvent), out registration);
         }
 
         /// <summary>
@@ -113,9 +113,9 @@ namespace Tingle.EventBus
         /// This parameter is passed uninitialized.
         /// </param>
         /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
-        private bool TryGetRegistration(Type type, out ConsumerRegistration registration)
+        private bool TryGetConsumerRegistration(Type type, out ConsumerRegistration registration)
         {
-            return EventRegistrations.TryGetValue(key: type, out registration);
+            return ConsumerRegistrations.TryGetValue(key: type, out registration);
         }
     }
 }

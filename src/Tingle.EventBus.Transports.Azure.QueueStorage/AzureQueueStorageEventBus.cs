@@ -11,6 +11,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Azure.QueueStorage
 {

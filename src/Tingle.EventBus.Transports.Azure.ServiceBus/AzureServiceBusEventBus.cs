@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
+using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Azure.ServiceBus
 {

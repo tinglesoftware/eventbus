@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus
+namespace Tingle.EventBus.Registrations
 {
     internal static class RegistrationExtensions
     {

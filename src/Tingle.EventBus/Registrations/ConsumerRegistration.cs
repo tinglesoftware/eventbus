@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Tingle.EventBus
+namespace Tingle.EventBus.Registrations
 {
     /// <summary>
     /// Represents a registration for a consumer of an event.

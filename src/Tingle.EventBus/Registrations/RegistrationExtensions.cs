@@ -19,7 +19,7 @@ namespace Tingle.EventBus.Registrations
             {
                 var type = reg.ConsumerType;
                 // prioritize the attribute if available, otherwise get the type name
-                var cname = type.CustomAttributes.OfType<ConsumerNameAttribute>().SingleOrDefault()?.ConsumerName;
+                var cname = type.GetCustomAttributes(false).OfType<ConsumerNameAttribute>().SingleOrDefault()?.ConsumerName;
                 if (cname == null)
                 {
                     // for consumers, we always enforce the full type name
@@ -43,7 +43,7 @@ namespace Tingle.EventBus.Registrations
             {
                 var type = reg.EventType;
                 // prioritize the attribute if available, otherwise get the type name
-                var ename = type.CustomAttributes.OfType<EventNameAttribute>().SingleOrDefault()?.EventName;
+                var ename = type.GetCustomAttributes(false).OfType<EventNameAttribute>().SingleOrDefault()?.EventName;
                 if (ename == null)
                 {
                     ename = options.UseFullTypeNames ? type.FullName : type.Name;
@@ -60,7 +60,8 @@ namespace Tingle.EventBus.Registrations
         internal static T SetSerializer<T>(this T reg) where T : EventRegistration
         {
             // if the event serializer has not been specified, attempt to get from the attribute
-            reg.EventSerializerType ??= reg.EventType.CustomAttributes.OfType<EventSerializerAttribute>().SingleOrDefault()?.SerializerType;
+            var attrs = reg.EventType.GetCustomAttributes(false);
+            reg.EventSerializerType ??= attrs.OfType<EventSerializerAttribute>().SingleOrDefault()?.SerializerType;
             reg.EventSerializerType ??= typeof(IEventSerializer); // use the default when not provided
 
             // ensure the serializer is either default or it implements IEventSerializer

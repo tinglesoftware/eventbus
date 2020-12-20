@@ -5,9 +5,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Tingle.EventBus.Transports.AzureServiceBus" />
-    <InternalsVisibleTo Include="Tingle.EventBus.Transports.RabbitMQ" />
+    <InternalsVisibleTo Include="Tingle.EventBus.Health" />
+    <InternalsVisibleTo Include="Tingle.EventBus.Transports.AmazonSqs" />
+    <InternalsVisibleTo Include="Tingle.EventBus.Transports.Azure.EventHubs" />
+    <InternalsVisibleTo Include="Tingle.EventBus.Transports.Azure.QueueStorage" />
+    <InternalsVisibleTo Include="Tingle.EventBus.Transports.Azure.ServiceBus" />
     <InternalsVisibleTo Include="Tingle.EventBus.Transports.InMemory" />
+    <InternalsVisibleTo Include="Tingle.EventBus.Transports.RabbitMQ" />
   </ItemGroup>
   
   <ItemGroup>

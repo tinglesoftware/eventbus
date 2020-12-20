@@ -100,7 +100,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
-                                                   serializerType: reg.EventSerializerType,
+                                                   registration: reg,
                                                    cancellationToken: cancellationToken);
 
             // get the topic arn and send the message
@@ -138,7 +138,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
                 using var ms = new MemoryStream();
                 var contentType = await SerializeAsync(body: ms,
                                                        @event: @event,
-                                                       serializerType: reg.EventSerializerType,
+                                                       registration: reg,
                                                        cancellationToken: cancellationToken);
 
                 // get the topic arn and send the message
@@ -321,7 +321,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
 
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
-                                                             serializerType: reg.EventSerializerType,
+                                                             registration: reg,
                                                              cancellationToken: cancellationToken);
                 await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
 

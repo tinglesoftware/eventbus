@@ -83,7 +83,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
-                                                   serializerType: reg.EventSerializerType,
+                                                   registration: reg,
                                                    cancellationToken: cancellationToken);
 
 
@@ -122,7 +122,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                 using var ms = new MemoryStream();
                 var contentType = await SerializeAsync(body: ms,
                                                        @event: @event,
-                                                       serializerType: reg.EventSerializerType,
+                                                       registration: reg,
                                                        cancellationToken: cancellationToken);
                 // if scheduled for later, calculate the visibility timeout
                 var visibilityTimeout = scheduled - DateTimeOffset.UtcNow;
@@ -227,7 +227,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                 var contentType = new ContentType("*/*");
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
-                                                             serializerType: reg.EventSerializerType,
+                                                             registration: reg,
                                                              cancellationToken: cancellationToken);
                 await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
             }

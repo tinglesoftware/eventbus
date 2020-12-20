@@ -123,7 +123,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
-                                                   serializerType: reg.EventSerializerType,
+                                                   registration: reg,
                                                    cancellationToken: cancellationToken);
 
             // publish message
@@ -187,7 +187,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 using var ms = new MemoryStream();
                 var contentType = await SerializeAsync(body: ms,
                                                        @event: @event,
-                                                       serializerType: reg.EventSerializerType,
+                                                       registration: reg,
                                                        cancellationToken: cancellationToken);
                 serializedEvents.Add((@event, contentType, ms.ToArray()));
             }
@@ -277,7 +277,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 var contentType = GetContentType(args.BasicProperties);
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
-                                                             serializerType: reg.EventSerializerType,
+                                                             registration: reg,
                                                              cancellationToken: cancellationToken);
                 await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
 

@@ -9,6 +9,7 @@ using System.IO;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus
@@ -91,18 +92,18 @@ namespace Tingle.EventBus
         /// (It must be readable, i.e. <see cref="Stream.CanRead"/> must be true).
         /// </param>
         /// <param name="contentType">The type of content contained in the <paramref name="body"/>.</param>
-        /// <param name="serializerType">The type used for deserialiizing this event.</param>
+        /// <param name="registration">The bus registration for this event.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(Stream body,
                                                                             ContentType contentType,
-                                                                            Type serializerType,
+                                                                            EventRegistration registration,
                                                                             CancellationToken cancellationToken)
             where TEvent : class
         {
             // Get the serializer. Should we find a serializer based on the content type?
             using var scope = serviceScopeFactory.CreateScope();
-            var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(serializerType);
+            var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
 
             // Deserialize the content into a context
             return await serializer.DeserializeAsync<TEvent>(body, cancellationToken);
@@ -117,12 +118,12 @@ namespace Tingle.EventBus
         /// (It must be writeable, i.e. <see cref="Stream.CanWrite"/> must be true).
         /// </param>
         /// <param name="event">The context of the event to be serialized.</param>
-        /// <param name="serializerType">The type used for serialiizing this event.</param>
+        /// <param name="registration">The bus registration for this event.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         protected async Task<ContentType> SerializeAsync<TEvent>(Stream body,
                                                                  EventContext<TEvent> @event,
-                                                                 Type serializerType,
+                                                                 EventRegistration registration,
                                                                  CancellationToken cancellationToken)
             where TEvent : class
         {
@@ -132,7 +133,7 @@ namespace Tingle.EventBus
 
             // Get the serializer. Should we find a serializer based on the content type?
             using var scope = serviceScopeFactory.CreateScope();
-            var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(serializerType);
+            var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
 
             // do actual serialization
             await serializer.SerializeAsync(body, @event, BusOptions.HostInfo, cancellationToken);

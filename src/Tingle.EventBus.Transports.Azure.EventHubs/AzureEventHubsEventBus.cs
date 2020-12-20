@@ -123,7 +123,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
-                                                   serializerType: reg.EventSerializerType,
+                                                   registration: reg,
                                                    cancellationToken: cancellationToken);
 
             var message = new EventData(ms.ToArray());
@@ -169,7 +169,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 using var ms = new MemoryStream();
                 var contentType = await SerializeAsync(body: ms,
                                                        @event: @event,
-                                                       serializerType: reg.EventSerializerType,
+                                                       registration: reg,
                                                        cancellationToken: cancellationToken);
 
                 var message = new EventData(ms.ToArray());
@@ -313,7 +313,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 var contentType = new ContentType(contentType_str?.ToString() ?? "*/*");
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
-                                                             serializerType: reg.EventSerializerType,
+                                                             registration: reg,
                                                              cancellationToken: cancellationToken);
                 await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
             }

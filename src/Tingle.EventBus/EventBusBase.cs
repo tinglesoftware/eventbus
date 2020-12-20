@@ -115,7 +115,7 @@ namespace Tingle.EventBus
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
 
             // Deserialize the content into a context
-            return await serializer.DeserializeAsync<TEvent>(body, cancellationToken);
+            return await serializer.DeserializeAsync<TEvent>(body, contentType, cancellationToken);
         }
 
         /// <summary>

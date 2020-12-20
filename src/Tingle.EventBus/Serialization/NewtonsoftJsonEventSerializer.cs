@@ -68,7 +68,7 @@ namespace Tingle.EventBus.Serialization
         }
 
         /// <inheritdoc/>
-        public Task<EventContext<T>> DeserializeAsync<T>(Stream stream, CancellationToken cancellationToken = default)
+        public Task<EventContext<T>> DeserializeAsync<T>(Stream stream, ContentType contentType, CancellationToken cancellationToken = default)
             where T : class
         {
             using var sr = new StreamReader(stream, encoding);

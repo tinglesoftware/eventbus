@@ -27,7 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// It is also used to create a lease per partition hence preventing duplicate events.
         /// Defaults to <c>checkpoints-</c>
         /// </summary>
-        public string BlobContainerPrefix { get; set; }
+        public string BlobContainerPrefix { get; set; } = "checkpoints-";
 
         /// <summary>
         /// The type of transport to use.

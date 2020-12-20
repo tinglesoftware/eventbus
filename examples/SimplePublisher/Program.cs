@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace SimpleConsumer
+namespace SimplePublisher
 {
     public class Program
     {
@@ -19,11 +19,12 @@ namespace SimpleConsumer
                         // Transport agnostic configuration
                         builder.Configure(options => options.Scope = "dev"); // queues will be prefixed by 'dev'
                         builder.Configure(o => o.UseFullTypeNames = false);
-                        builder.Subscribe<SampleEventConsumer>();
 
                         // Transport specific configuration
                         builder.AddAzureQueueStorage(options => options.ConnectionString = "UseDevelopmentStorage=true;");
                     });
+
+                    services.AddHostedService<PublisherService>();
                 });
     }
 }

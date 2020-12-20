@@ -38,6 +38,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplePublisher", "examples\SimplePublisher\SimplePublisher.csproj", "{2FEC41FE-188B-4B02-943B-0FEAB0E1FA39}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Tests", "tests\Tingle.EventBus.Tests\Tingle.EventBus.Tests.csproj", "{108968DB-1C48-4B53-9F23-CE7C5BAA88B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -84,6 +86,10 @@ Global
 		{2FEC41FE-188B-4B02-943B-0FEAB0E1FA39}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FEC41FE-188B-4B02-943B-0FEAB0E1FA39}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2FEC41FE-188B-4B02-943B-0FEAB0E1FA39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{108968DB-1C48-4B53-9F23-CE7C5BAA88B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{108968DB-1C48-4B53-9F23-CE7C5BAA88B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{108968DB-1C48-4B53-9F23-CE7C5BAA88B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{108968DB-1C48-4B53-9F23-CE7C5BAA88B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -99,6 +105,7 @@ Global
 		{ED1E8BA4-9538-42AB-9759-4FC4233A36B1} = {62F603F3-FF36-4E36-AC0C-08D1883525BE}
 		{96ABC0DF-3007-4FC4-B6B0-FE24A11D7C60} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{2FEC41FE-188B-4B02-943B-0FEAB0E1FA39} = {62F603F3-FF36-4E36-AC0C-08D1883525BE}
+		{108968DB-1C48-4B53-9F23-CE7C5BAA88B4} = {BDD324B6-9EFC-49A3-9CF6-6CE494446C4B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9E5CC03E-DDE6-4455-9D5D-03617DE5DBD8}

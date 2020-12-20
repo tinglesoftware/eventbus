@@ -303,7 +303,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 return;
             }
 
-            logger.LogDebug("Processor received eventon PartitionId:{PartitionId}", args.Partition.PartitionId);
+            logger.LogDebug("Processor received event on PartitionId:{PartitionId}", args.Partition.PartitionId);
 
             var data = args.Data;
             var cancellationToken = args.CancellationToken;

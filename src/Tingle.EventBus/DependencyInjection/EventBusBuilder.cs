@@ -66,8 +66,11 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public EventBusBuilder Subscribe<TConsumer>() where TConsumer : class, IEventBusConsumer
         {
-            // register the consumer to resolution
-            // transient types are better here because we would rather create an instance for each tyime we need than have leakage of depenencies.
+            /*
+             * Register the consumer to resolution. Transient scope is better here because
+             * we would rather create an instance for each time we need rather than have
+             * leakage of depenencies.
+            */
             Services.AddTransient<TConsumer>();
 
             var genericConsumerType = typeof(IEventBusConsumer<>);
@@ -125,6 +128,9 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public EventBusBuilder Unsubscribe<TConsumer>() where TConsumer : class, IEventBusConsumer
         {
+            // Deregister from services collection
+            Services.RemoveAll<TConsumer>();
+
             return Configure(options =>
             {
                 var types = options.ConsumerRegistrations.Where(kvp => kvp.Value.ConsumerType == typeof(TConsumer))

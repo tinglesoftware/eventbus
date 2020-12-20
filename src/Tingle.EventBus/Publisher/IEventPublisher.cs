@@ -8,7 +8,7 @@ namespace Tingle.EventBus
     /// <summary>
     /// Contract describing a publisher of events.
     /// </summary>
-    public interface IEventBusPublisher
+    public interface IEventPublisher
     {
         /// <summary>
         /// Publish an event.

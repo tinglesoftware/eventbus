@@ -8,9 +8,9 @@ namespace SimplePublisher
 {
     public class PublisherService : BackgroundService
     {
-        private readonly IEventBusPublisher publisher;
+        private readonly IEventPublisher publisher;
 
-        public PublisherService(IEventBusPublisher publisher)
+        public PublisherService(IEventPublisher publisher)
         {
             this.publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
         }

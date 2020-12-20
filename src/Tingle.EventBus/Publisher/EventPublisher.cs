@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus
 {
-    internal class EventBusPublisher : IEventBusPublisher
+    internal class EventPublisher : IEventPublisher
     {
         private readonly IEventBus bus;
 
-        public EventBusPublisher(IEventBus bus)
+        public EventPublisher(IEventBus bus)
         {
             this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
         }

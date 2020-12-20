@@ -9,7 +9,7 @@ namespace Tingle.EventBus
     /// <summary>
     /// Generic context for an event.
     /// </summary>
-    public abstract class EventContext : IEventBusPublisher
+    public abstract class EventContext : IEventPublisher
     {
         private IEventBus bus;
 

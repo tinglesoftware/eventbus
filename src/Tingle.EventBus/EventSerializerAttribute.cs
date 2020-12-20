@@ -23,7 +23,7 @@ namespace Tingle.EventBus
         }
 
         /// <summary>
-        /// The name of the event mapped
+        /// The type of serializer to be used.
         /// </summary>
         public Type SerializerType { get; }
     }

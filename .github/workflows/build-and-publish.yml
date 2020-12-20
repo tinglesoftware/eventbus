@@ -108,6 +108,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: drop
+        path: drop
 
     - name: Publish to NuGet.org
       run: >

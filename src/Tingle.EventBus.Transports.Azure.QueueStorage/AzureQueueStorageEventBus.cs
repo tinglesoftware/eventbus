@@ -60,6 +60,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         public override Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
+            logger.StartingBus(registrations.Count);
             foreach (var reg in registrations)
             {
                 _ = ReceiveAsync(reg);
@@ -71,6 +72,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         /// <inheritdoc/>
         public override Task StopAsync(CancellationToken cancellationToken)
         {
+            logger.StoppingBus();
             receiveCancellationTokenSource.Cancel();
             // TODO: figure out a way to wait for notification of termination in all receivers
             return Task.CompletedTask;
@@ -98,6 +100,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             // get the queue client and send the message
             var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
             var message = Encoding.UTF8.GetString(ms.ToArray());
+            logger.LogInformation("Sending {EventId} to '{QueueName}'", @event.EventId, queueClient.Name);
             var response = await queueClient.SendMessageAsync(messageText: message,
                                                               visibilityTimeout: visibilityTimeout,
                                                               timeToLive: ttl,
@@ -134,6 +137,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
                 // send the message
                 var message = Encoding.UTF8.GetString(ms.ToArray());
+                logger.LogInformation("Sending {EventId} to '{QueueName}'", @event.EventId, queueClient.Name);
                 var response = await queueClient.SendMessageAsync(messageText: message,
                                                                   visibilityTimeout: visibilityTimeout,
                                                                   timeToLive: ttl,
@@ -157,8 +161,10 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
             var parts = id.Split(SequenceNumberSeparator);
-            await queueClient.DeleteMessageAsync(messageId: parts[0],
-                                                 popReceipt: parts[1],
+            string messageId = parts[0], popReceipt = parts[1];
+            logger.LogInformation("Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'", messageId, popReceipt, queueClient.Name);
+            await queueClient.DeleteMessageAsync(messageId: messageId,
+                                                 popReceipt: popReceipt,
                                                  cancellationToken: cancellationToken);
         }
 
@@ -183,6 +189,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
             foreach (var (messageId, popReceipt) in splits)
             {
+                logger.LogInformation("Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'", messageId, popReceipt, queueClient.Name);
                 await queueClient.DeleteMessageAsync(messageId: messageId,
                                                      popReceipt: popReceipt,
                                                      cancellationToken: cancellationToken);
@@ -211,7 +218,8 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                       MessageEncoding = QueueMessageEncoding.Base64,
                                                   });
 
-                    // ensure queue is created
+                    // ensure queue is created if it does not exist
+                    logger.LogInformation("Ensuring queue '{QueueName}' exists", name);
                     await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
 
                     queueClientsCache[(reg.EventType, deadletter)] = queueClient;
@@ -242,10 +250,13 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                 // if the response is empty, introduce a delay
                 if (messages.Length == 0)
                 {
-                    await Task.Delay(TransportOptions.EmptyResultsDelay, cancellationToken);
+                    var delay = TransportOptions.EmptyResultsDelay;
+                    logger.LogTrace("No messages on '{QueueName}', delaying check for {Delay}", queueClient.Name, delay);
+                    await Task.Delay(delay, cancellationToken);
                 }
                 else
                 {
+                    logger.LogDebug("Received {MessageCount} messages on '{QueueName}'", messages.Length, queueClient.Name);
                     foreach (var message in messages)
                     {
                         await (Task)method.Invoke(this, new object[] { reg, queueClient, message, cancellationToken, });
@@ -268,12 +279,17 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
             try
             {
+                logger.LogDebug("Processing '{MessageId}|{PopReceipt}'", message.MessageId, message.PopReceipt);
                 using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.MessageText));
                 var contentType = new ContentType("*/*");
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
                                                              registration: reg,
                                                              cancellationToken: cancellationToken);
+                logger.LogInformation("Received message: '{MessageId}|{PopReceipt}' containing Event '{EventId}'",
+                                      message.MessageId,
+                                      message.PopReceipt,
+                                      context.EventId);
                 await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
             }
             catch (Exception ex)
@@ -286,6 +302,10 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             }
 
             // always delete the message from the current queue
+            logger.LogTrace("Deleting '{MessageId}|{PopReceipt}' on '{QueueName}'",
+                            message.MessageId,
+                            message.PopReceipt,
+                            queueClient.Name);
             await queueClient.DeleteMessageAsync(messageId: message.MessageId,
                                                  popReceipt: message.PopReceipt,
                                                  cancellationToken: cancellationToken);

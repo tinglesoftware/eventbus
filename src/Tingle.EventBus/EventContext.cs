@@ -94,10 +94,7 @@ namespace Tingle.EventBus
             await bus.CancelAsync<TEvent>(ids: ids, cancellationToken: cancellationToken);
         }
 
-        internal void SetBus(IEventBus bus)
-        {
-            this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
-        }
+        internal void SetBus(IEventBus bus) => this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
     }
 
     /// <summary>

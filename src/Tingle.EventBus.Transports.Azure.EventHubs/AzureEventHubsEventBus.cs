@@ -70,15 +70,24 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 var processor = await GetProcessorAsync(reg: reg, cancellationToken: cancellationToken);
 
                 // register handlers for error and processing
-                processor.PartitionClosingAsync += OnPartitionClosingAsync;
-                processor.PartitionInitializingAsync += OnPartitionInitializingAsync;
-                processor.ProcessErrorAsync += OnProcessErrorAsync;
+                processor.PartitionClosingAsync += delegate (PartitionClosingEventArgs args)
+                {
+                    return OnPartitionClosingAsync(processor, args);
+                };
+                processor.PartitionInitializingAsync += delegate (PartitionInitializingEventArgs args)
+                {
+                    return OnPartitionInitializingAsync(processor, args);
+                };
+                processor.ProcessErrorAsync += delegate (ProcessErrorEventArgs args)
+                {
+                    return OnProcessErrorAsync(processor, args);
+                };
                 processor.ProcessEventAsync += delegate (ProcessEventArgs args)
                 {
                     var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
                     var mt = GetType().GetMethod(nameof(OnEventReceivedAsync), flags);
                     var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
-                    return (Task)method.Invoke(this, new object[] { reg, args, });
+                    return (Task)method.Invoke(this, new object[] { reg, processor, args, });
                 };
 
                 // start processing 
@@ -293,7 +302,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
         }
 
-        private async Task OnEventReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, ProcessEventArgs args)
+        private async Task OnEventReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, EventProcessorClient processor, ProcessEventArgs args)
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
@@ -303,7 +312,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 return;
             }
 
-            logger.LogDebug("Processor received event on PartitionId:{PartitionId}", args.Partition.PartitionId);
+            logger.LogDebug("Processor received event on EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId:{PartitionId}",
+                            processor.EventHubName,
+                            processor.ConsumerGroup,
+                            args.Partition.PartitionId);
 
             var data = args.Data;
             var cancellationToken = args.CancellationToken;
@@ -343,27 +355,33 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             await args.UpdateCheckpointAsync(args.CancellationToken);
         }
 
-        private Task OnPartitionClosingAsync(PartitionClosingEventArgs args)
+        private Task OnPartitionClosingAsync(EventProcessorClient processor, PartitionClosingEventArgs args)
         {
-            logger.LogInformation("Closing processor for PartitionId:{PartitionId} (Reason:{Reason})",
+            logger.LogInformation("Closing processor for EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId:{PartitionId} (Reason:{Reason})",
+                                  processor.EventHubName,
+                                  processor.ConsumerGroup,
                                   args.PartitionId,
                                   args.Reason);
             return Task.CompletedTask;
         }
 
-        private Task OnPartitionInitializingAsync(PartitionInitializingEventArgs args)
+        private Task OnPartitionInitializingAsync(EventProcessorClient processor, PartitionInitializingEventArgs args)
         {
-            logger.LogInformation("Opening processor for PartitionId:{PartitionId}, DefaultStartingPosition:{DefaultStartingPosition}",
+            logger.LogInformation("Opening processor for PartitionId:{PartitionId}, EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, DefaultStartingPosition:{DefaultStartingPosition}",
+                                  processor.EventHubName,
+                                  processor.ConsumerGroup,
                                   args.PartitionId,
                                   args.DefaultStartingPosition.ToString());
             return Task.CompletedTask;
         }
 
-        private Task OnProcessErrorAsync(ProcessErrorEventArgs args)
+        private Task OnProcessErrorAsync(EventProcessorClient processor, ProcessErrorEventArgs args)
         {
             logger.LogError(args.Exception,
-                            "Event processing faulted. Operation:{Operation}, PartitionId: {PartitionId}",
+                            "Event processing faulted. Operation:{Operation}, EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId: {PartitionId}",
                             args.Operation,
+                            processor.EventHubName,
+                            processor.ConsumerGroup,
                             args.PartitionId);
             return Task.CompletedTask;
         }

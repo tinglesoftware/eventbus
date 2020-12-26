@@ -53,7 +53,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         /// <inheritdoc/>
-        public override async Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default)
+        public override async Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,
+                                                          CancellationToken cancellationToken = default)
         {
             var queues = managementClient.GetQueuesRuntimePropertiesAsync(cancellationToken).AsPages();
             await foreach (var _ in queues) ; // there's nothing to do

@@ -15,9 +15,11 @@ namespace Tingle.EventBus
         /// Checks for health of the bus.
         /// This function can be used by the Health Checks framework and may throw and execption during execution.
         /// </summary>
+        /// <param name="extras">The extra information about the health check.</param>
         /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default);
+        /// <returns>A value indicating if the bus is healthly.</returns>
+        Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,
+                                    CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Publish an event.

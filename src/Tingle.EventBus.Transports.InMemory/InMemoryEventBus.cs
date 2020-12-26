@@ -56,7 +56,8 @@ namespace Tingle.EventBus.Transports.InMemory
         public IEnumerable<object> Failed => failed;
 
         /// <inheritdoc/>
-        public override Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default)
+        public override Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,
+                                                    CancellationToken cancellationToken = default)
         {
             return Task.FromResult(true);
         }

@@ -49,7 +49,8 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        public override async Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default)
+        public override async Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,
+                                                          CancellationToken cancellationToken = default)
         {
             /* GetStatisticsAsync fails to work as expected, instead we use GetPropertiesAsync */
             await serviceClient.GetPropertiesAsync(cancellationToken);

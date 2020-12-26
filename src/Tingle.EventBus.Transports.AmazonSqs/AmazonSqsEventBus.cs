@@ -58,7 +58,8 @@ namespace Tingle.EventBus.Transports.AmazonSqs
         }
 
         /// <inheritdoc/>
-        public override async Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default)
+        public override async Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,
+                                                          CancellationToken cancellationToken = default)
         {
             _ = await snsClient.ListTopicsAsync(cancellationToken);
             var prefix = BusOptions.Scope ?? "";

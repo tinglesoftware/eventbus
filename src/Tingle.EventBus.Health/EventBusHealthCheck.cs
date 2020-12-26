@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Tingle.EventBus.Health
 {
@@ -10,15 +10,15 @@ namespace Tingle.EventBus.Health
     /// </summary>
     public class EventBusHealthCheck : IHealthCheck
     {
-        private readonly IEventBus eventBus;
+        private readonly IEventBus bus;
 
         /// <summary>
         /// Creates an instance of <see cref="EventBusHealthCheck"/>
         /// </summary>
-        /// <param name="eventBus">The instance of <see cref="IEventBus"/> to use.</param>
-        public EventBusHealthCheck(IEventBus eventBus)
+        /// <param name="bus">The instance of <see cref="IEventBus"/> to use.</param>
+        public EventBusHealthCheck(IEventBus bus)
         {
-            this.eventBus = eventBus ?? throw new ArgumentNullException(nameof(eventBus));
+            this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
         }
 
         /// <inheritdoc/>
@@ -26,8 +26,12 @@ namespace Tingle.EventBus.Health
         {
             try
             {
-                var healthy = await eventBus.CheckHealthAsync(cancellationToken);
-                return healthy ? HealthCheckResult.Healthy() : HealthCheckResult.Unhealthy();
+                var extras = new EventBusHealthCheckExtras();
+                var healthy = await bus.CheckHealthAsync(extras, cancellationToken);
+                return healthy ? HealthCheckResult.Healthy(description: extras.Description,
+                                                           data: extras.Data)
+                               : HealthCheckResult.Unhealthy(description: extras.Description,
+                                                             data: extras.Data);
             }
             catch (Exception ex)
             {

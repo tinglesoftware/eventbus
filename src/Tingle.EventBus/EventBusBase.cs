@@ -63,7 +63,8 @@ namespace Tingle.EventBus
         protected TTransportOptions TransportOptions { get; }
 
         /// <inheritdoc/>
-        public abstract Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default);
+        public abstract Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,
+                                                    CancellationToken cancellationToken = default);
 
         /// <inheritdoc/>
         public async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,

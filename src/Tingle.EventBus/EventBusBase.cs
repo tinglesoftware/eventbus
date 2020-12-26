@@ -80,12 +80,6 @@ namespace Tingle.EventBus
         }
 
         /// <inheritdoc/>
-        protected abstract Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
-                                                                  DateTimeOffset? scheduled = null,
-                                                                  CancellationToken cancellationToken = default)
-            where TEvent : class;
-
-        /// <inheritdoc/>
         public async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
                                                               DateTimeOffset? scheduled = null,
                                                               CancellationToken cancellationToken = default)
@@ -101,6 +95,12 @@ namespace Tingle.EventBus
                                            scheduled: scheduled,
                                            cancellationToken: cancellationToken);
         }
+
+        /// <inheritdoc/>
+        protected abstract Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
+                                                                  DateTimeOffset? scheduled = null,
+                                                                  CancellationToken cancellationToken = default)
+            where TEvent : class;
 
         /// <inheritdoc/>
         protected abstract Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
@@ -128,12 +128,17 @@ namespace Tingle.EventBus
                 await Task.Delay(BusOptions.StartupDelay.Value, cancellationToken);
             }
 
-            // start the bus
+            // Start the bus
+            logger.StartingBus();
             await StartBusAsync(cancellationToken);
         }
 
         /// <inheritdoc/>
-        public async Task StopAsync(CancellationToken cancellationToken) => await StopBusAsync(cancellationToken);
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            logger.StoppingBus();
+            await StopBusAsync(cancellationToken);
+        }
 
         /// <summary>
         /// Triggered when the bus host is ready to start.

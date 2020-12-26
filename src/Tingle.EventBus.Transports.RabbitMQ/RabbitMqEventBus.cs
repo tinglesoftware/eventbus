@@ -80,6 +80,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         /// <inheritdoc/>
         protected override Task StopBusAsync(CancellationToken cancellationToken)
         {
+            logger.StoppingBusReceivers();
             var channels = subscriptionChannelsCache.Select(kvp => (key: kvp.Key, sc: kvp.Value)).ToList();
             foreach (var (key, channel) in channels)
             {
@@ -258,6 +259,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             }
 
             var registrations = BusOptions.GetConsumerRegistrations();
+            logger.StartingBusReceivers(registrations.Count);
             foreach (var reg in registrations)
             {
                 var exchangeName = reg.EventName;

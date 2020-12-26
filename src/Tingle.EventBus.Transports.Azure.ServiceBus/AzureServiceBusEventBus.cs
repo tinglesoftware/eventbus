@@ -380,9 +380,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
-                await PushToConsumerAsync<TEvent, TConsumer>(@event: context,
-                                                             scope: scope,
-                                                             cancellationToken: cancellationToken);
+                await ConsumeAsync<TEvent, TConsumer>(@event: context,
+                                                      scope: scope,
+                                                      cancellationToken: cancellationToken);
 
                 // complete the message
                 await args.CompleteMessageAsync(message: message, cancellationToken: cancellationToken);

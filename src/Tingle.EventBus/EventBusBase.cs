@@ -183,9 +183,9 @@ namespace Tingle.EventBus
         /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task PushToConsumerAsync<TEvent, TConsumer>(EventContext<TEvent> @event,
-                                                                    IServiceScope scope,
-                                                                    CancellationToken cancellationToken)
+        protected async Task ConsumeAsync<TEvent, TConsumer>(EventContext<TEvent> @event,
+                                                             IServiceScope scope,
+                                                             CancellationToken cancellationToken)
             where TConsumer : IEventBusConsumer<TEvent>
         {
             // Set the bus in context

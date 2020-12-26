@@ -301,9 +301,9 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                       message.MessageId,
                                       message.PopReceipt,
                                       context.EventId);
-                await PushToConsumerAsync<TEvent, TConsumer>(@event: context,
-                                                             scope: scope,
-                                                             cancellationToken: cancellationToken);
+                await ConsumeAsync<TEvent, TConsumer>(@event: context,
+                                                      scope: scope,
+                                                      cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {

@@ -343,9 +343,9 @@ namespace Tingle.EventBus.Transports.AmazonSqs
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
-                await PushToConsumerAsync<TEvent, TConsumer>(@event: context,
-                                                             scope: scope,
-                                                             cancellationToken: cancellationToken);
+                await ConsumeAsync<TEvent, TConsumer>(@event: context,
+                                                      scope: scope,
+                                                      cancellationToken: cancellationToken);
 
                 // delete the message from the queue
                 await sqsClient.DeleteMessageAsync(queueUrl: queueUrl,

@@ -163,7 +163,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 sequenceNumbers.Add(response.SequenceNumber);
             }
 
-            // return the sequence number
+            // return the sequence numbers
             return scheduled != null ? sequenceNumbers : null;
         }
 

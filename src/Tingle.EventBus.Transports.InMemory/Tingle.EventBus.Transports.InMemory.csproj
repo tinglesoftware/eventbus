@@ -2,6 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <Description>
+      EventBus transport for InMemory usage.
+      $(Description)
+    </Description>
+    <PackageTags>$(PackageTags);InMemory</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

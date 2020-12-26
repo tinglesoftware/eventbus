@@ -2,6 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <Description>
+      EventBus transport for Amazon SQS.
+      $(Description)
+    </Description>
+    <PackageTags>$(PackageTags);Amazon;AWS;SQS;SNS</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

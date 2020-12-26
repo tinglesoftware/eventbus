@@ -24,23 +24,7 @@ namespace Tingle.EventBus.Serialization
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
         public DefaultEventSerializer(IOptions<EventBusOptions> optionsAccessor)
         {
-            var options = optionsAccessor?.Value?.SerializerOptions ?? throw new ArgumentNullException(nameof(optionsAccessor));
-
-            serializerOptions = new JsonSerializerOptions
-            {
-                NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals | JsonNumberHandling.AllowReadingFromString,
-                WriteIndented = options.Indented,
-                DefaultIgnoreCondition = options.IgnoreNullValues
-                                        ? JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull
-                                        : JsonIgnoreCondition.Never,
-
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                PropertyNameCaseInsensitive = true,
-                AllowTrailingCommas = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-            };
-
-            // TODO: consider support for enums as strings, converter for System.Version, converter for System.TimeSpan
+            serializerOptions = optionsAccessor?.Value?.SerializerOptions ?? throw new ArgumentNullException(nameof(optionsAccessor));
         }
 
         /// <inheritdoc/>

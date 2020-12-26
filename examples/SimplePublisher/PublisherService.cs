@@ -24,8 +24,6 @@ namespace SimplePublisher
 
             for (var i = 0; i < times; i++)
             {
-                await Task.Delay(delay, stoppingToken);
-
                 var evt = new DoorOpened
                 {
                     Kind = (OpenDoorKind)(int)rnd.Next(0, 5),
@@ -34,6 +32,8 @@ namespace SimplePublisher
                 };
 
                 await publisher.PublishAsync(evt, cancellationToken: stoppingToken);
+
+                await Task.Delay(delay, stoppingToken);
             }
         }
     }

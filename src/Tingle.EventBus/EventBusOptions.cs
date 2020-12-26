@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
 
@@ -17,9 +18,23 @@ namespace Tingle.EventBus
         public TimeSpan? StartupDelay { get; set; }
 
         /// <summary>
-        /// The options to use for serializations.
+        /// The options to use for serialization.
         /// </summary>
-        public EventSerializerOptions SerializerOptions { get; } = new EventSerializerOptions();
+        public JsonSerializerOptions SerializerOptions { get; set; } = new JsonSerializerOptions
+        {
+            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
+                           | System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString,
+            WriteIndented = true,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault
+                                   | System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true,
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+
+            // TODO: consider support for enums as strings, converter for System.Version, converter for System.TimeSpan
+        };
 
         /// <summary>
         /// The naming convention to use when generating names for types and entities on the sepected transport.

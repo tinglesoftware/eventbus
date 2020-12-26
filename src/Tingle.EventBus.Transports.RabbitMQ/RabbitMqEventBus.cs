@@ -75,10 +75,10 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         }
 
         /// <inheritdoc/>
-        public override async Task StartAsync(CancellationToken cancellationToken) => await ConnectConsumersAsync(cancellationToken);
+        public override async Task StartBusAsync(CancellationToken cancellationToken) => await ConnectConsumersAsync(cancellationToken);
 
         /// <inheritdoc/>
-        public override Task StopAsync(CancellationToken cancellationToken)
+        public override Task StopBusAsync(CancellationToken cancellationToken)
         {
             var channels = subscriptionChannelsCache.Select(kvp => (key: kvp.Key, sc: kvp.Value)).ToList();
             foreach (var (key, channel) in channels)

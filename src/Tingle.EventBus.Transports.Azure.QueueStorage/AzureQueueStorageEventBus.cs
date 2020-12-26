@@ -57,7 +57,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        public override Task StartAsync(CancellationToken cancellationToken)
+        public override Task StartBusAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
             logger.StartingBus(registrations.Count);
@@ -70,7 +70,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        public override Task StopAsync(CancellationToken cancellationToken)
+        public override Task StopBusAsync(CancellationToken cancellationToken)
         {
             logger.StoppingBus();
             receiveCancellationTokenSource.Cancel();

@@ -67,7 +67,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
         }
 
         /// <inheritdoc/>
-        public override async Task StartAsync(CancellationToken cancellationToken)
+        public override async Task StartBusAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
             foreach (var reg in registrations)
@@ -78,7 +78,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
         }
 
         /// <inheritdoc/>
-        public override Task StopAsync(CancellationToken cancellationToken)
+        public override Task StopBusAsync(CancellationToken cancellationToken)
         {
             receiveCancellationTokenSource.Cancel();
             // TODO: figure out a way to wait for notification of termination in all receivers

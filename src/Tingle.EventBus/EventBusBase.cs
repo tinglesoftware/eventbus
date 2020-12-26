@@ -87,10 +87,10 @@ namespace Tingle.EventBus
             where TEvent : class;
 
         /// <inheritdoc/>
-        public abstract Task StartAsync(CancellationToken cancellationToken);
+        public abstract Task StartBusAsync(CancellationToken cancellationToken);
 
         /// <inheritdoc/>
-        public abstract Task StopAsync(CancellationToken cancellationToken);
+        public abstract Task StopBusAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Deserialize an event from a stream of bytes.

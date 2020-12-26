@@ -38,9 +38,9 @@ namespace Tingle.EventBus
 
         /// <summary>
         /// The naming convention to use when generating names for types and entities on the sepected transport.
-        /// Defaults to <see cref="EventBusNamingConvention.KebabCase"/>.
+        /// Defaults to <see cref="NamingConvention.KebabCase"/>.
         /// </summary>
-        public EventBusNamingConvention NamingConvention { get; set; } = EventBusNamingConvention.KebabCase;
+        public NamingConvention NamingConvention { get; set; } = NamingConvention.KebabCase;
 
         /// <summary>
         /// The scope to use for queues and subscriptions.

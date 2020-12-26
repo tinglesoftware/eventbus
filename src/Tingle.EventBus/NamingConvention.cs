@@ -3,7 +3,7 @@
     /// <summary>
     /// The naming convention used when generating names from types.
     /// </summary>
-    public enum EventBusNamingConvention
+    public enum NamingConvention
     {
         /// <summary>
         /// The type name is unchanged.

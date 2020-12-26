@@ -76,34 +76,34 @@ namespace Tingle.EventBus.Registrations
         }
 
 
-        internal static string ApplyNamingConvention(string raw, EventBusNamingConvention convention)
+        internal static string ApplyNamingConvention(string raw, NamingConvention convention)
         {
             return convention switch
             {
-                EventBusNamingConvention.KebabCase => namePattern.Replace(raw, m => "-" + m.Value).ToLowerInvariant(),
-                EventBusNamingConvention.SnakeCase => namePattern.Replace(raw, m => "_" + m.Value).ToLowerInvariant(),
+                NamingConvention.KebabCase => namePattern.Replace(raw, m => "-" + m.Value).ToLowerInvariant(),
+                NamingConvention.SnakeCase => namePattern.Replace(raw, m => "_" + m.Value).ToLowerInvariant(),
                 _ => raw,
             };
         }
 
-        internal static string ReplaceInvalidCharacters(string raw, EventBusNamingConvention convention)
+        internal static string ReplaceInvalidCharacters(string raw, NamingConvention convention)
         {
             return convention switch
             {
-                EventBusNamingConvention.KebabCase => Regex.Replace(raw, "[^a-z0-9-]", "-"),
-                EventBusNamingConvention.SnakeCase => Regex.Replace(raw, "[^a-z0-9-]", "_"),
+                NamingConvention.KebabCase => Regex.Replace(raw, "[^a-z0-9-]", "-"),
+                NamingConvention.SnakeCase => Regex.Replace(raw, "[^a-z0-9-]", "_"),
                 _ => Regex.Replace(raw, "[^a-zA-Z0-9-_]", ""),
             };
         }
 
-        internal static string AppendScope(string unscoped, EventBusNamingConvention convention, string scope)
+        internal static string AppendScope(string unscoped, NamingConvention convention, string scope)
         {
             if (string.IsNullOrWhiteSpace(scope)) return unscoped;
 
             return convention switch
             {
-                EventBusNamingConvention.KebabCase => string.Join("-", scope, unscoped).ToLowerInvariant(),
-                EventBusNamingConvention.SnakeCase => string.Join("_", scope, unscoped).ToLowerInvariant(),
+                NamingConvention.KebabCase => string.Join("-", scope, unscoped).ToLowerInvariant(),
+                NamingConvention.SnakeCase => string.Join("_", scope, unscoped).ToLowerInvariant(),
                 _ => throw new ArgumentOutOfRangeException(nameof(convention), $"'{convention}' does not support scoping"),
             };
         }

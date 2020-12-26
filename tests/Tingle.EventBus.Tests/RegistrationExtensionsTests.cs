@@ -15,27 +15,27 @@ namespace Tingle.EventBus.Tests
     public class RegistrationExtensionsTests
     {
         [Theory]
-        [InlineData("SampleEvent", EventBusNamingConvention.KebabCase, "sample-event")]
-        [InlineData("SampleConsumer", EventBusNamingConvention.SnakeCase, "sample_consumer")]
-        public void ApplyNamingConvention_Works(string raw, EventBusNamingConvention convention, string expected)
+        [InlineData("SampleEvent", NamingConvention.KebabCase, "sample-event")]
+        [InlineData("SampleConsumer", NamingConvention.SnakeCase, "sample_consumer")]
+        public void ApplyNamingConvention_Works(string raw, NamingConvention convention, string expected)
         {
             var actual = RegistrationExtensions.ApplyNamingConvention(raw: raw, convention: convention);
             Assert.Equal(expected, actual);
         }
 
         [Theory]
-        [InlineData("sample-event", EventBusNamingConvention.KebabCase, "dev", "dev-sample-event")]
-        [InlineData("sample_event", EventBusNamingConvention.SnakeCase, "prd", "prd_sample_event")]
-        public void AppendScope_Works(string unscoped, EventBusNamingConvention convention, string scope, string expected)
+        [InlineData("sample-event", NamingConvention.KebabCase, "dev", "dev-sample-event")]
+        [InlineData("sample_event", NamingConvention.SnakeCase, "prd", "prd_sample_event")]
+        public void AppendScope_Works(string unscoped, NamingConvention convention, string scope, string expected)
         {
             var actual = RegistrationExtensions.AppendScope(unscoped: unscoped, convention: convention, scope: scope);
             Assert.Equal(expected, actual);
         }
 
         [Theory]
-        [InlineData("dev-sample.event", EventBusNamingConvention.KebabCase, "dev-sample-event")]
-        [InlineData("prd_sample+event", EventBusNamingConvention.SnakeCase, "prd_sample_event")]
-        public void ReplaceInvalidCharacters_Works(string raw, EventBusNamingConvention convention, string expected)
+        [InlineData("dev-sample.event", NamingConvention.KebabCase, "dev-sample-event")]
+        [InlineData("prd_sample+event", NamingConvention.SnakeCase, "prd_sample_event")]
+        public void ReplaceInvalidCharacters_Works(string raw, NamingConvention convention, string expected)
         {
             var actual = RegistrationExtensions.ReplaceInvalidCharacters(raw: raw, convention: convention);
             Assert.Equal(expected, actual);
@@ -83,29 +83,29 @@ namespace Tingle.EventBus.Tests
         {
             new object[] {
                 new EventRegistration(typeof(TestEvent1)),
-                new EventBusOptions { UseFullTypeNames = false, Scope = "dev", NamingConvention = EventBusNamingConvention.KebabCase, },
+                new EventBusOptions { UseFullTypeNames = false, Scope = "dev", NamingConvention = NamingConvention.KebabCase, },
                 "dev-test-event1",
             },
             new object[] {
                 new EventRegistration(typeof(TestEvent1)),
-                new EventBusOptions { UseFullTypeNames = false, Scope = "dev", NamingConvention = EventBusNamingConvention.SnakeCase, },
+                new EventBusOptions { UseFullTypeNames = false, Scope = "dev", NamingConvention = NamingConvention.SnakeCase, },
                 "dev_test_event1",
             },
 
             new object[] {
                 new EventRegistration(typeof(TestEvent1)),
-                new EventBusOptions { UseFullTypeNames = true, Scope = "dev", NamingConvention = EventBusNamingConvention.KebabCase, },
+                new EventBusOptions { UseFullTypeNames = true, Scope = "dev", NamingConvention = NamingConvention.KebabCase, },
                 "dev-tingle-event-bus-tests-registration-extensions-tests-test-event1",
             },
             new object[] {
                 new EventRegistration(typeof(TestEvent1)),
-                new EventBusOptions { UseFullTypeNames = true, Scope = "dev", NamingConvention = EventBusNamingConvention.SnakeCase, },
+                new EventBusOptions { UseFullTypeNames = true, Scope = "dev", NamingConvention = NamingConvention.SnakeCase, },
                 "dev_tingle_event_bus_tests_registration_extensions_tests_test_event1",
             },
 
             new object[] {
                 new EventRegistration(typeof(TestEvent2)),
-                new EventBusOptions { UseFullTypeNames = true, Scope = "dev", NamingConvention = EventBusNamingConvention.KebabCase, },
+                new EventBusOptions { UseFullTypeNames = true, Scope = "dev", NamingConvention = NamingConvention.KebabCase, },
                 "sample-event",
             },
         };
@@ -123,41 +123,41 @@ namespace Tingle.EventBus.Tests
         {
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
-                new EventBusOptions { UseApplicationNameInsteadOfConsumerName = false, ForceConsumerName = false, NamingConvention = EventBusNamingConvention.KebabCase },
+                new EventBusOptions { UseApplicationNameInsteadOfConsumerName = false, ForceConsumerName = false, NamingConvention = NamingConvention.KebabCase },
                 "app1",
                 "tingle-event-bus-tests-registration-extensions-tests-test-consumer1",
             },
 
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
-                new EventBusOptions { UseApplicationNameInsteadOfConsumerName = false, ForceConsumerName = true, NamingConvention = EventBusNamingConvention.KebabCase },
+                new EventBusOptions { UseApplicationNameInsteadOfConsumerName = false, ForceConsumerName = true, NamingConvention = NamingConvention.KebabCase },
                 "app1",
                 "tingle-event-bus-tests-registration-extensions-tests-test-consumer1",
             },
 
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
-                new EventBusOptions { UseApplicationNameInsteadOfConsumerName = true, ForceConsumerName = false, NamingConvention = EventBusNamingConvention.KebabCase },
+                new EventBusOptions { UseApplicationNameInsteadOfConsumerName = true, ForceConsumerName = false, NamingConvention = NamingConvention.KebabCase },
                 "app1",
                 "app1",
             },
 
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
-                new EventBusOptions { UseApplicationNameInsteadOfConsumerName = true, ForceConsumerName = true, NamingConvention = EventBusNamingConvention.KebabCase },
+                new EventBusOptions { UseApplicationNameInsteadOfConsumerName = true, ForceConsumerName = true, NamingConvention = NamingConvention.KebabCase },
                 "app1",
                 "tingle-event-bus-tests-registration-extensions-tests-test-consumer1",
             },
 
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent2), typeof(TestConsumer2)),
-                new EventBusOptions { UseApplicationNameInsteadOfConsumerName = false, ForceConsumerName = true, NamingConvention = EventBusNamingConvention.KebabCase, },
+                new EventBusOptions { UseApplicationNameInsteadOfConsumerName = false, ForceConsumerName = true, NamingConvention = NamingConvention.KebabCase, },
                 "app1",
                 "sample-consumer",
             },
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent2), typeof(TestConsumer2)),
-                new EventBusOptions { UseApplicationNameInsteadOfConsumerName = true, ForceConsumerName = false, NamingConvention = EventBusNamingConvention.SnakeCase, },
+                new EventBusOptions { UseApplicationNameInsteadOfConsumerName = true, ForceConsumerName = false, NamingConvention = NamingConvention.SnakeCase, },
                 "app1",
                 "sample-consumer",
             },

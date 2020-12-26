@@ -63,24 +63,32 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Subscribe to events that a consumer can listen to.
         /// </summary>
         /// <typeparam name="TConsumer">The type of consumer to handle the events.</typeparam>
+        /// <param name="lifetime">
+        /// The lifetime to use when resolving and maintaining instances of <typeparamref name="TConsumer"/>.
+        /// Using <see cref="ServiceLifetime.Transient"/> is best because a clean instance is created each
+        /// time a message is received and has a high level of isolation hence avoiding leackage of dependencies.
+        /// However, it can result in high memory usage making <see cref="ServiceLifetime.Scoped"/> the
+        /// middleground. Scoped instances are resued for each message received in a batch of messages so long
+        /// as they are processed sequencially.
+        /// <br />
+        /// <br />
+        /// These decisions do not apply in all scenarios and should be reconsidered depending on the
+        /// design of <typeparamref name="TConsumer"/>.
+        /// </param>
         /// <returns></returns>
-        public EventBusBuilder Subscribe<TConsumer>() where TConsumer : class, IEventBusConsumer
+        public EventBusBuilder Subscribe<TConsumer>(ServiceLifetime lifetime = ServiceLifetime.Scoped) where TConsumer : class, IEventBusConsumer
         {
-            /*
-             * Register the consumer to resolution. Transient scope is better here because
-             * we would rather create an instance for each time we need rather than have
-             * leakage of depenencies.
-            */
-            Services.AddTransient<TConsumer>();
-
-            var genericConsumerType = typeof(IEventBusConsumer<>);
-            var eventTypes = new List<Type>();
-
             var consumerType = typeof(TConsumer);
             if (consumerType.IsAbstract)
             {
                 throw new InvalidOperationException($"Abstract consumer types are not allowed.");
             }
+
+            // register the consumer for resolution
+            Services.Add(ServiceDescriptor.Describe(consumerType, consumerType, lifetime));
+
+            var genericConsumerType = typeof(IEventBusConsumer<>);
+            var eventTypes = new List<Type>();
 
             // get events from each implementation of IEventConsumer<TEvent>
             var interfaces = consumerType.GetInterfaces();

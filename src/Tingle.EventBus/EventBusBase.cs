@@ -179,23 +179,23 @@ namespace Tingle.EventBus
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
         /// <typeparam name="TConsumer">The type of consumer</typeparam>
-        /// <param name="eventContext">The context containing the event</param>
+        /// <param name="event">The context containing the event</param>
         /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task PushToConsumerAsync<TEvent, TConsumer>(EventContext<TEvent> eventContext,
+        protected async Task PushToConsumerAsync<TEvent, TConsumer>(EventContext<TEvent> @event,
                                                                     IServiceScope scope,
                                                                     CancellationToken cancellationToken)
             where TConsumer : IEventBusConsumer<TEvent>
         {
             // Set the bus in context
-            eventContext.SetBus(this);
+            @event.SetBus(this);
 
             // Resolve the consumer
             var consumer = scope.ServiceProvider.GetRequiredService<TConsumer>();
 
             // Invoke handler method
-            await consumer.ConsumeAsync(eventContext, cancellationToken).ConfigureAwait(false);
+            await consumer.ConsumeAsync(@event, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

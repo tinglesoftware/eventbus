@@ -298,7 +298,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
-                await PushToConsumerAsync<TEvent, TConsumer>(eventContext: context,
+                await PushToConsumerAsync<TEvent, TConsumer>(@event: context,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
 

@@ -169,7 +169,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
             try
             {
-                await PushToConsumerAsync<TEvent, TConsumer>(eventContext: context,
+                await PushToConsumerAsync<TEvent, TConsumer>(@event: context,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
                 consumed.Add(context);

@@ -32,8 +32,6 @@ namespace Tingle.EventBus
             PropertyNameCaseInsensitive = true,
             AllowTrailingCommas = true,
             ReadCommentHandling = JsonCommentHandling.Skip,
-
-            // TODO: consider support for enums as strings, converter for System.Version, converter for System.TimeSpan
         };
 
         /// <summary>

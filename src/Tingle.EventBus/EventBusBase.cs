@@ -71,9 +71,12 @@ namespace Tingle.EventBus
                                                        CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // TODO: Add diagnostics headers
+            // Add diagnostics headers
+            @event.Headers.AddIfNotDefault(Logging.DiagnosticHeaders.ActivityId, Activity.Current?.Id);
 
-            return await PublishOnBusAsync<TEvent>(@event: @event, scheduled: scheduled, cancellationToken: cancellationToken);
+            return await PublishOnBusAsync(@event: @event,
+                                           scheduled: scheduled,
+                                           cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>
@@ -88,9 +91,15 @@ namespace Tingle.EventBus
                                                               CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // TODO: Add diagnostics headers
+            // Add diagnostics headers
+            foreach (var @event in events)
+            {
+                @event.Headers.AddIfNotDefault(Logging.DiagnosticHeaders.ActivityId, Activity.Current?.Id);
+            }
 
-            return await PublishOnBusAsync<TEvent>(events: events, scheduled: scheduled, cancellationToken: cancellationToken);
+            return await PublishOnBusAsync(events: events,
+                                           scheduled: scheduled,
+                                           cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>

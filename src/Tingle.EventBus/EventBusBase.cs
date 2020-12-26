@@ -87,6 +87,22 @@ namespace Tingle.EventBus
             where TEvent : class;
 
         /// <inheritdoc/>
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            // if a startup delay has been specified, apply it
+            if (BusOptions.StartupDelay != null)
+            {
+                await Task.Delay(BusOptions.StartupDelay.Value, cancellationToken);
+            }
+
+            // start the bus
+            await StartBusAsync(cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public async Task StopAsync(CancellationToken cancellationToken) => await StopBusAsync(cancellationToken);
+
+        /// <inheritdoc/>
         public abstract Task StartBusAsync(CancellationToken cancellationToken);
 
         /// <inheritdoc/>

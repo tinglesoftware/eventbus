@@ -1,17 +1,15 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Amazon.Kinesis;
+using Amazon.Kinesis.Model;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Amazon.Runtime;
-using Amazon.Kinesis;
-using Amazon.Kinesis.Model;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.Amazon.Kinesis
 {
@@ -56,13 +54,15 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         /// <inheritdoc/>
         protected override Task StartBusAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            // Consuming is not yet supported on this bus due to it's complexity
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
         protected override Task StopBusAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            // Consuming is not yet supported on this bus due to it's complexity
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>

@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Tingle.EventBus.Health" />
+    <InternalsVisibleTo Include="Tingle.EventBus.Transports.Amazon.Kinesis" />
     <InternalsVisibleTo Include="Tingle.EventBus.Transports.Amazon.Sqs" />
     <InternalsVisibleTo Include="Tingle.EventBus.Transports.Azure.EventHubs" />
     <InternalsVisibleTo Include="Tingle.EventBus.Transports.Azure.QueueStorage" />

@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             var services = builder.Services;
 
-            // configure the options for Azure Service Bus
+            // configure the options for Amazon SQS and SNS option
             services.Configure(configure);
             services.PostConfigure<AmazonSqsOptions>(options =>
             {

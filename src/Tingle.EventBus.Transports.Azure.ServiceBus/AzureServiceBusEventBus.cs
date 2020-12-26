@@ -69,7 +69,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         /// <inheritdoc/>
-        public override async Task StartBusAsync(CancellationToken cancellationToken)
+        protected override async Task StartBusAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
             foreach (var reg in registrations)
@@ -92,7 +92,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         /// <inheritdoc/>
-        public override async Task StopBusAsync(CancellationToken cancellationToken)
+        protected override async Task StopBusAsync(CancellationToken cancellationToken)
         {
             var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
             foreach (var (key, proc) in clients)

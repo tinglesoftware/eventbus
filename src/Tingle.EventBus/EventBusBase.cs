@@ -102,11 +102,19 @@ namespace Tingle.EventBus
         /// <inheritdoc/>
         public async Task StopAsync(CancellationToken cancellationToken) => await StopBusAsync(cancellationToken);
 
-        /// <inheritdoc/>
-        public abstract Task StartBusAsync(CancellationToken cancellationToken);
+        /// <summary>
+        /// Triggered when the bus host is ready to start.
+        /// </summary>
+        /// <param name="cancellationToken">Indicates that the start process has been aborted.</param>
+        /// <returns></returns>
+        protected abstract Task StartBusAsync(CancellationToken cancellationToken);
 
-        /// <inheritdoc/>
-        public abstract Task StopBusAsync(CancellationToken cancellationToken);
+        /// <summary>
+        /// Triggered when the bus host is performing a graceful shutdown.
+        /// </summary>
+        /// <param name="cancellationToken">Indicates that the shutdown process should no longer be graceful.</param>
+        /// <returns></returns>
+        protected abstract Task StopBusAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Deserialize an event from a stream of bytes.

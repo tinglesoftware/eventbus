@@ -62,10 +62,10 @@ namespace Tingle.EventBus.Transports.InMemory
         }
 
         /// <inheritdoc/>
-        public override Task StartBusAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        protected override Task StartBusAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
         /// <inheritdoc/>
-        public override Task StopBusAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        protected override Task StopBusAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
         /// <inheritdoc/>
         public override Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,

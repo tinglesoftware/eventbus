@@ -21,6 +21,15 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public void PostConfigure(string name, EventBusOptions options)
         {
+            // check bounds for startup delay, if provided
+            if (options.StartupDelay != null)
+            {
+                var ticks = options.StartupDelay.Value.Ticks;
+                ticks = Math.Max(ticks, TimeSpan.FromSeconds(5).Ticks); // must be more than 5 seconds
+                ticks = Math.Min(ticks, TimeSpan.FromMinutes(10).Ticks); // must be less than 10 minutes
+                options.StartupDelay = TimeSpan.FromTicks(ticks);
+            }
+
             // setup HostInfo
             if (options.HostInfo == null)
             {

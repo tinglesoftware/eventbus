@@ -11,6 +11,12 @@ namespace Tingle.EventBus
     public class EventBusOptions
     {
         /// <summary>
+        /// The duration of time to delay the starting of the bus.
+        /// When specified, the value must be more than 5 seconds but less than 10 minutes.
+        /// </summary>
+        public TimeSpan? StartupDelay { get; set; }
+
+        /// <summary>
         /// The options to use for serializations.
         /// </summary>
         public EventSerializerOptions SerializerOptions { get; } = new EventSerializerOptions();

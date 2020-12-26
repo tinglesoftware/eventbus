@@ -3,7 +3,7 @@ using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using System;
 using Tingle.EventBus;
-using Tingle.EventBus.Transports.AmazonSqs;
+using Tingle.EventBus.Transports.Amazon.Sqs;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

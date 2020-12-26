@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using Tingle.EventBus.Transports.AmazonSqs;
+using Tingle.EventBus.Transports.Amazon.Sqs;
 
 namespace Amazon.Runtime
 {

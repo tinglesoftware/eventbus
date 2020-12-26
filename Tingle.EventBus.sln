@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.InMemory", "src\Tingle.EventBus.Transports.InMemory\Tingle.EventBus.Transports.InMemory.csproj", "{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.AmazonSqs", "src\Tingle.EventBus.Transports.AmazonSqs\Tingle.EventBus.Transports.AmazonSqs.csproj", "{9D2FB610-EBAB-434C-A7C3-6FB20C3D0C3E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Amazon.Sqs", "src\Tingle.EventBus.Transports.Amazon.Sqs\Tingle.EventBus.Transports.Amazon.Sqs.csproj", "{9D2FB610-EBAB-434C-A7C3-6FB20C3D0C3E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Azure.QueueStorage", "src\Tingle.EventBus.Transports.Azure.QueueStorage\Tingle.EventBus.Transports.Azure.QueueStorage.csproj", "{07C3232C-687A-4C85-9A67-9BEF854BB91F}"
 EndProject
@@ -36,9 +36,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleConsumer", "examples\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Azure.EventHubs", "src\Tingle.EventBus.Transports.Azure.EventHubs\Tingle.EventBus.Transports.Azure.EventHubs.csproj", "{96ABC0DF-3007-4FC4-B6B0-FE24A11D7C60}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplePublisher", "examples\SimplePublisher\SimplePublisher.csproj", "{2FEC41FE-188B-4B02-943B-0FEAB0E1FA39}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimplePublisher", "examples\SimplePublisher\SimplePublisher.csproj", "{2FEC41FE-188B-4B02-943B-0FEAB0E1FA39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Tests", "tests\Tingle.EventBus.Tests\Tingle.EventBus.Tests.csproj", "{108968DB-1C48-4B53-9F23-CE7C5BAA88B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Tests", "tests\Tingle.EventBus.Tests\Tingle.EventBus.Tests.csproj", "{108968DB-1C48-4B53-9F23-CE7C5BAA88B4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

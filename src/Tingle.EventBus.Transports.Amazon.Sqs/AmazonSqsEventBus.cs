@@ -15,8 +15,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Registrations;
+using MAV = Amazon.SimpleNotificationService.Model.MessageAttributeValue;
 
-namespace Tingle.EventBus.Transports.AmazonSqs
+namespace Tingle.EventBus.Transports.Amazon.Sqs
 {
     /// <summary>
     /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using
@@ -271,11 +272,7 @@ namespace Tingle.EventBus.Transports.AmazonSqs
             }
 
             if (string.IsNullOrWhiteSpace(value)) return;
-            request.MessageAttributes[key] = new Amazon.SimpleNotificationService.Model.MessageAttributeValue
-            {
-                DataType = "String",
-                StringValue = value
-            };
+            request.MessageAttributes[key] = new MAV { DataType = "String", StringValue = value };
         }
 
         private static bool TryGetAttribute(Message message, string key, out string value)

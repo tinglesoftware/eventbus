@@ -6,7 +6,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using System;
 
-namespace Tingle.EventBus.Transports.AmazonSqs
+namespace Tingle.EventBus.Transports.Amazon.Sqs
 {
     /// <summary>
     /// Options for configuring Amazon SQS based event bus.

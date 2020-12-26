@@ -120,10 +120,12 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             channel.ExchangeDeclare(exchange: name, type: "fanout");
 
             // serialize the event
+            using var scope = CreateScope();
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
                                                    registration: reg,
+                                                   scope: scope,
                                                    cancellationToken: cancellationToken);
 
             // publish message
@@ -181,6 +183,8 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             var name = reg.EventName;
             channel.ExchangeDeclare(exchange: name, type: "fanout");
 
+            using var scope = CreateScope();
+
             var serializedEvents = new List<(EventContext<TEvent>, ContentType, ReadOnlyMemory<byte>)>();
             foreach (var @event in events)
             {
@@ -188,6 +192,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 var contentType = await SerializeAsync(body: ms,
                                                        @event: @event,
                                                        registration: reg,
+                                                       scope: scope,
                                                        cancellationToken: cancellationToken);
                 serializedEvents.Add((@event, contentType, ms.ToArray()));
             }
@@ -285,13 +290,17 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             try
             {
+                using var scope = CreateScope();
                 using var ms = new MemoryStream(args.Body.ToArray());
                 var contentType = GetContentType(args.BasicProperties);
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
                                                              registration: reg,
+                                                             scope: scope,
                                                              cancellationToken: cancellationToken);
-                await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
+                await PushToConsumerAsync<TEvent, TConsumer>(eventContext: context,
+                                                             scope: scope,
+                                                             cancellationToken: cancellationToken);
 
                 // acknowlege the message
                 channel.BasicAck(deliveryTag: args.DeliveryTag, multiple: false);

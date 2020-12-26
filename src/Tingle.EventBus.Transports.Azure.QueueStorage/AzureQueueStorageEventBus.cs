@@ -83,11 +83,13 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
+            using var scope = CreateScope();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
                                                    registration: reg,
+                                                   scope: scope,
                                                    cancellationToken: cancellationToken);
 
 
@@ -118,6 +120,8 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             // log warning when doing batch
             logger.LogWarning("Azure Queue Storage does not support batching. The events will be looped through one by one");
 
+            using var scope = CreateScope();
+
             // work on each event
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             var sequenceNumbers = new List<string>();
@@ -128,6 +132,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                 var contentType = await SerializeAsync(body: ms,
                                                        @event: @event,
                                                        registration: reg,
+                                                       scope: scope,
                                                        cancellationToken: cancellationToken);
                 // if scheduled for later, calculate the visibility timeout
                 var visibilityTimeout = scheduled - DateTimeOffset.UtcNow;
@@ -257,15 +262,20 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                 else
                 {
                     logger.LogDebug("Received {MessageCount} messages on '{QueueName}'", messages.Length, queueClient.Name);
+                    using var scope = CreateScope(); // shared
                     foreach (var message in messages)
                     {
-                        await (Task)method.Invoke(this, new object[] { reg, queueClient, message, cancellationToken, });
+                        await (Task)method.Invoke(this, new object[] { reg, queueClient, message, scope, cancellationToken, });
                     }
                 }
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, QueueClient queueClient, QueueMessage message, CancellationToken cancellationToken)
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg,
+                                                                     QueueClient queueClient,
+                                                                     QueueMessage message,
+                                                                     IServiceScope scope,
+                                                                     CancellationToken cancellationToken)
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
@@ -285,12 +295,15 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
                                                              registration: reg,
+                                                             scope: scope,
                                                              cancellationToken: cancellationToken);
                 logger.LogInformation("Received message: '{MessageId}|{PopReceipt}' containing Event '{EventId}'",
                                       message.MessageId,
                                       message.PopReceipt,
                                       context.EventId);
-                await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
+                await PushToConsumerAsync<TEvent, TConsumer>(eventContext: context,
+                                                             scope: scope,
+                                                             cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {

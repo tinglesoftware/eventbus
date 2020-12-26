@@ -118,11 +118,13 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
+            using var scope = CreateScope();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
                                                    registration: reg,
+                                                   scope: scope,
                                                    cancellationToken: cancellationToken);
 
             var message = new ServiceBusMessage(ms.ToArray())
@@ -166,6 +168,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                                        DateTimeOffset? scheduled = null,
                                                                        CancellationToken cancellationToken = default)
         {
+            using var scope = CreateScope();
             var messages = new List<ServiceBusMessage>();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             foreach (var @event in events)
@@ -174,6 +177,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 var contentType = await SerializeAsync(body: ms,
                                                        @event: @event,
                                                        registration: reg,
+                                                       scope: scope,
                                                        cancellationToken: cancellationToken);
 
                 var message = new ServiceBusMessage(ms.ToArray())
@@ -368,13 +372,17 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             try
             {
+                using var scope = CreateScope();
                 using var ms = message.Body.ToStream();
                 var contentType = new ContentType(message.ContentType);
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
                                                              registration: reg,
+                                                             scope: scope,
                                                              cancellationToken: cancellationToken);
-                await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
+                await PushToConsumerAsync<TEvent, TConsumer>(eventContext: context,
+                                                             scope: scope,
+                                                             cancellationToken: cancellationToken);
 
                 // complete the message
                 await args.CompleteMessageAsync(message: message, cancellationToken: cancellationToken);

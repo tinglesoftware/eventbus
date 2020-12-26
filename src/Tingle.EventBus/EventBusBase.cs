@@ -126,16 +126,17 @@ namespace Tingle.EventBus
         /// </param>
         /// <param name="contentType">The type of content contained in the <paramref name="body"/>.</param>
         /// <param name="registration">The bus registration for this event.</param>
+        /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(Stream body,
                                                                             ContentType contentType,
                                                                             EventRegistration registration,
-                                                                            CancellationToken cancellationToken)
+                                                                            IServiceScope scope,
+                                                                            CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // Get the serializer. Should we find a serializer based on the content type?
-            using var scope = serviceScopeFactory.CreateScope();
+            // Get the serializer
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
 
             // Deserialize the content into a context
@@ -152,20 +153,21 @@ namespace Tingle.EventBus
         /// </param>
         /// <param name="event">The context of the event to be serialized.</param>
         /// <param name="registration">The bus registration for this event.</param>
+        /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         protected async Task<ContentType> SerializeAsync<TEvent>(Stream body,
                                                                  EventContext<TEvent> @event,
                                                                  EventRegistration registration,
-                                                                 CancellationToken cancellationToken)
+                                                                 IServiceScope scope,
+                                                                 CancellationToken cancellationToken = default)
             where TEvent : class
         {
             // set properties that may be missing
             @event.EventId ??= Guid.NewGuid().ToString();
             @event.Sent ??= DateTimeOffset.UtcNow;
 
-            // Get the serializer. Should we find a serializer based on the content type?
-            using var scope = serviceScopeFactory.CreateScope();
+            // Get the serializer
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
 
             // do actual serialization and return the content type
@@ -178,21 +180,33 @@ namespace Tingle.EventBus
         /// <typeparam name="TEvent">The event type.</typeparam>
         /// <typeparam name="TConsumer">The type of consumer</typeparam>
         /// <param name="eventContext">The context containing the event</param>
+        /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task PushToConsumerAsync<TEvent, TConsumer>(EventContext<TEvent> eventContext, CancellationToken cancellationToken)
+        protected async Task PushToConsumerAsync<TEvent, TConsumer>(EventContext<TEvent> eventContext,
+                                                                    IServiceScope scope,
+                                                                    CancellationToken cancellationToken)
             where TConsumer : IEventBusConsumer<TEvent>
         {
-            // resolve the consumer
-            using var scope = serviceScopeFactory.CreateScope();
-            var provider = scope.ServiceProvider;
-            var consumer = provider.GetRequiredService<TConsumer>();
-
-            // set the bus
+            // Set the bus in context
             eventContext.SetBus(this);
 
-            // invoke handler method
+            // Resolve the consumer
+            var consumer = scope.ServiceProvider.GetRequiredService<TConsumer>();
+
+            // Invoke handler method
             await consumer.ConsumeAsync(eventContext, cancellationToken).ConfigureAwait(false);
         }
+
+        /// <summary>
+        /// Create an <see cref="IServiceScope"/> which contains an <see cref="IServiceProvider"/>
+        /// used to resolve dependencies from a newly created scope.
+        /// </summary>
+        /// <returns>
+        /// An <see cref="IServiceScope"/> controlling the lifetime of the scope.
+        /// Once this is disposed, any scoped services that have been resolved
+        /// from the <see cref="IServiceScope.ServiceProvider"/> will also be disposed.
+        /// </returns>
+        protected IServiceScope CreateScope() => serviceScopeFactory.CreateScope();
     }
 }

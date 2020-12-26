@@ -96,11 +96,13 @@ namespace Tingle.EventBus.Transports.AmazonSqs
                 logger.LogWarning("Amazon SNS does not support delay or scheduled publish");
             }
 
+            using var scope = CreateScope();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
                                                    registration: reg,
+                                                   scope: scope,
                                                    cancellationToken: cancellationToken);
 
             // get the topic arn and send the message
@@ -130,15 +132,18 @@ namespace Tingle.EventBus.Transports.AmazonSqs
                 logger.LogWarning("Amazon SNS does not support delay or scheduled publish");
             }
 
-            // work on each event
+            using var scope = CreateScope();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             var sequenceNumbers = new List<string>();
+
+            // work on each event
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
                 var contentType = await SerializeAsync(body: ms,
                                                        @event: @event,
                                                        registration: reg,
+                                                       scope: scope,
                                                        cancellationToken: cancellationToken);
 
                 // get the topic arn and send the message
@@ -332,11 +337,15 @@ namespace Tingle.EventBus.Transports.AmazonSqs
                 TryGetAttribute(message, "Content-Type", out var contentType_str);
                 var contentType = new ContentType(contentType_str ?? "text/plain");
 
+                using var scope = CreateScope();
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
                                                              registration: reg,
+                                                             scope: scope,
                                                              cancellationToken: cancellationToken);
-                await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
+                await PushToConsumerAsync<TEvent, TConsumer>(eventContext: context,
+                                                             scope: scope,
+                                                             cancellationToken: cancellationToken);
 
                 // delete the message from the queue
                 await sqsClient.DeleteMessageAsync(queueUrl: queueUrl,

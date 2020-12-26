@@ -137,6 +137,8 @@ namespace Tingle.EventBus.Transports.InMemory
                 }
             }
 
+            using var scope = CreateScope(); // shared
+
             // find consumers registered for the event
             var eventType = typeof(TEvent);
             var registered = BusOptions.GetConsumerRegistrations().Where(r => r.EventType == eventType).ToList();
@@ -147,12 +149,14 @@ namespace Tingle.EventBus.Transports.InMemory
                 var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
                 var mt = GetType().GetMethod(nameof(DispatchToConsumerAsync), flags);
                 var method = mt.MakeGenericMethod(typeof(TEvent), reg.ConsumerType);
-                return (Task)method.Invoke(this, new object[] { @event, cancellationToken, });
+                return (Task)method.Invoke(this, new object[] { @event, scope, cancellationToken, });
             }).ToList();
             await Task.WhenAll(tasks);
         }
 
-        private async Task DispatchToConsumerAsync<TEvent, TConsumer>(EventContext<TEvent> @event, CancellationToken cancellationToken)
+        private async Task DispatchToConsumerAsync<TEvent, TConsumer>(EventContext<TEvent> @event,
+                                                                      IServiceScope scope,
+                                                                      CancellationToken cancellationToken)
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
@@ -165,7 +169,9 @@ namespace Tingle.EventBus.Transports.InMemory
 
             try
             {
-                await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
+                await PushToConsumerAsync<TEvent, TConsumer>(eventContext: context,
+                                                             scope: scope,
+                                                             cancellationToken: cancellationToken);
                 consumed.Add(context);
             }
             catch (Exception ex)

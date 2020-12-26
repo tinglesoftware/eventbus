@@ -128,11 +128,13 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 logger.LogWarning("Azure EventHubs does not support delay or scheduled publish");
             }
 
+            using var scope = CreateScope();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
             var contentType = await SerializeAsync(body: ms,
                                                    @event: @event,
                                                    registration: reg,
+                                                   scope: scope,
                                                    cancellationToken: cancellationToken);
 
             var message = new EventData(ms.ToArray());
@@ -171,6 +173,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 logger.LogWarning("Azure EventHubs does not support expiring events");
             }
 
+            using var scope = CreateScope();
             var messages = new List<EventData>();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             foreach (var @event in events)
@@ -179,6 +182,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 var contentType = await SerializeAsync(body: ms,
                                                        @event: @event,
                                                        registration: reg,
+                                                       scope: scope,
                                                        cancellationToken: cancellationToken);
 
                 var message = new EventData(ms.ToArray());
@@ -333,13 +337,17 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
             try
             {
+                using var scope = CreateScope();
                 using var ms = new MemoryStream(data.Body.ToArray());
                 var contentType = new ContentType(contentType_str?.ToString() ?? "*/*");
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
                                                              registration: reg,
+                                                             scope: scope,
                                                              cancellationToken: cancellationToken);
-                await PushToConsumerAsync<TEvent, TConsumer>(context, cancellationToken);
+                await PushToConsumerAsync<TEvent, TConsumer>(eventContext: context,
+                                                             scope: scope,
+                                                             cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {

@@ -104,9 +104,9 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         }
 
         /// <inheritdoc/>
-        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                DateTimeOffset? scheduled = null,
-                                                                CancellationToken cancellationToken = default)
+        protected override async Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
+                                                                        DateTimeOffset? scheduled = null,
+                                                                        CancellationToken cancellationToken = default)
         {
             if (!IsConnected)
             {
@@ -168,9 +168,9 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         }
 
         /// <inheritdoc/>
-        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                       DateTimeOffset? scheduled = null,
-                                                                       CancellationToken cancellationToken = default)
+        protected override async Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                               DateTimeOffset? scheduled = null,
+                                                                               CancellationToken cancellationToken = default)
         {
             if (!IsConnected)
             {

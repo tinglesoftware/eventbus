@@ -68,9 +68,9 @@ namespace Tingle.EventBus.Transports.InMemory
         protected override Task StopBusAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
         /// <inheritdoc/>
-        public override Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                          DateTimeOffset? scheduled = null,
-                                                          CancellationToken cancellationToken = default)
+        protected override Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
+                                                                  DateTimeOffset? scheduled = null,
+                                                                  CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -85,9 +85,9 @@ namespace Tingle.EventBus.Transports.InMemory
         }
 
         /// <inheritdoc/>
-        public override Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                 DateTimeOffset? scheduled = null,
-                                                                 CancellationToken cancellationToken = default)
+        protected override Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                         DateTimeOffset? scheduled = null,
+                                                                         CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)

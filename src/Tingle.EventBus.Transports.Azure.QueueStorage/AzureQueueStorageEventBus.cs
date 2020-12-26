@@ -79,9 +79,9 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                DateTimeOffset? scheduled = null,
-                                                                CancellationToken cancellationToken = default)
+        protected override async Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
+                                                                        DateTimeOffset? scheduled = null,
+                                                                        CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
@@ -113,9 +113,9 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                       DateTimeOffset? scheduled = null,
-                                                                       CancellationToken cancellationToken = default)
+        protected override async Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                               DateTimeOffset? scheduled = null,
+                                                                               CancellationToken cancellationToken = default)
         {
             // log warning when doing batch
             logger.LogWarning("Azure Queue Storage does not support batching. The events will be looped through one by one");

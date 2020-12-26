@@ -66,15 +66,37 @@ namespace Tingle.EventBus
         public abstract Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default);
 
         /// <inheritdoc/>
-        public abstract Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                          DateTimeOffset? scheduled = null,
-                                                          CancellationToken cancellationToken = default)
+        public async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                       DateTimeOffset? scheduled = null,
+                                                       CancellationToken cancellationToken = default)
+            where TEvent : class
+        {
+            // TODO: Add diagnostics headers
+
+            return await PublishOnBusAsync<TEvent>(@event: @event, scheduled: scheduled, cancellationToken: cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        protected abstract Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
+                                                                  DateTimeOffset? scheduled = null,
+                                                                  CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <inheritdoc/>
-        public abstract Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                 DateTimeOffset? scheduled = null,
-                                                                 CancellationToken cancellationToken = default)
+        public async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                              DateTimeOffset? scheduled = null,
+                                                              CancellationToken cancellationToken = default)
+            where TEvent : class
+        {
+            // TODO: Add diagnostics headers
+
+            return await PublishOnBusAsync<TEvent>(events: events, scheduled: scheduled, cancellationToken: cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        protected abstract Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                         DateTimeOffset? scheduled = null,
+                                                                         CancellationToken cancellationToken = default)
             where TEvent : class;
 
 
@@ -85,6 +107,8 @@ namespace Tingle.EventBus
         /// <inheritdoc/>
         public abstract Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
             where TEvent : class;
+
+        #region Start/Stop
 
         /// <inheritdoc/>
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -115,6 +139,8 @@ namespace Tingle.EventBus
         /// <param name="cancellationToken">Indicates that the shutdown process should no longer be graceful.</param>
         /// <returns></returns>
         protected abstract Task StopBusAsync(CancellationToken cancellationToken);
+
+        #endregion
 
         /// <summary>
         /// Deserialize an event from a stream of bytes.

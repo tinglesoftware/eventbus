@@ -14,6 +14,10 @@ namespace Tingle.EventBus.Registrations
                                                              EventBusOptions options,
                                                              IHostEnvironment environment)
         {
+            if (reg is null) throw new ArgumentNullException(nameof(reg));
+            if (options is null) throw new ArgumentNullException(nameof(options));
+            if (environment is null) throw new ArgumentNullException(nameof(environment));
+
             // set the consumer name, if not set
             if (string.IsNullOrWhiteSpace(reg.ConsumerName))
             {
@@ -38,6 +42,9 @@ namespace Tingle.EventBus.Registrations
 
         internal static T SetEventName<T>(this T reg, EventBusOptions options) where T : EventRegistration
         {
+            if (reg is null) throw new ArgumentNullException(nameof(reg));
+            if (options is null) throw new ArgumentNullException(nameof(options));
+
             // set the event name, if not set
             if (string.IsNullOrWhiteSpace(reg.EventName))
             {
@@ -59,6 +66,8 @@ namespace Tingle.EventBus.Registrations
 
         internal static T SetSerializer<T>(this T reg) where T : EventRegistration
         {
+            if (reg is null) throw new ArgumentNullException(nameof(reg));
+
             // if the event serializer has not been specified, attempt to get from the attribute
             var attrs = reg.EventType.GetCustomAttributes(false);
             reg.EventSerializerType ??= attrs.OfType<EventSerializerAttribute>().SingleOrDefault()?.SerializerType;
@@ -75,6 +84,17 @@ namespace Tingle.EventBus.Registrations
             return reg;
         }
 
+        internal static string GetApplicationName(this EventBusOptions options, IHostEnvironment environment)
+        {
+            if (options is null) throw new ArgumentNullException(nameof(options));
+            if (environment is null) throw new ArgumentNullException(nameof(environment));
+
+            var name = environment.ApplicationName;
+            name = ApplyNamingConvention(name, options.NamingConvention);
+            name = AppendScope(name, options.NamingConvention, options.Scope);
+            name = ReplaceInvalidCharacters(name, options.NamingConvention);
+            return name;
+        }
 
         internal static string ApplyNamingConvention(string raw, NamingConvention convention)
         {

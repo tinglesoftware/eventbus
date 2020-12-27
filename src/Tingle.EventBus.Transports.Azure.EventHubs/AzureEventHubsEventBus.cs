@@ -355,7 +355,6 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             catch (Exception ex)
             {
                 logger.LogError(ex, "Event processing failed. Moving to deadletter.");
-                //await args.DeadLetterMessageAsync(message: message, cancellationToken: cancellationToken);
 
                 // get the producer for the dead letter event hub and send the event there
                 var dlqProcessor = await GetProducerAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);

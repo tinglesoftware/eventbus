@@ -153,13 +153,13 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         /// <inheritdoc/>
         public override Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
         {
-            throw new NotSupportedException("Amazon Kinesis does not support canceling published messages.");
+            throw new NotSupportedException("Amazon Kinesis does not support canceling published events.");
         }
 
         /// <inheritdoc/>
         public override Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
         {
-            throw new NotSupportedException("Amazon Kinesis does not support canceling published messages.");
+            throw new NotSupportedException("Amazon Kinesis does not support canceling published events.");
         }
     }
 }

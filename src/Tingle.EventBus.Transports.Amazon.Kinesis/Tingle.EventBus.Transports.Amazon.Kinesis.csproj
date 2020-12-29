@@ -7,6 +7,7 @@
       $(Description)
     </Description>
     <PackageTags>$(PackageTags);Amazon;AWS;Kinesis</PackageTags>
+    <IsPackable>false</IsPackable> <!-- still in development -->
   </PropertyGroup>
 
   <ItemGroup>

@@ -44,7 +44,7 @@ namespace CustomSerializer
                 Sent = jToken.Value<DateTime>("createdDate"),
             };
 
-            // TODO: consider moving this to extenion methods on EventContext for both get and set
+            // you can consider moving this to extenion methods on EventContext for both get and set
             context.Headers["eventType"] = jToken.Value<string>("eventType");
             context.Headers["resourceVersion"] = jToken.Value<string>("resourceVersion");
             context.Headers["publisherId"] = jToken.Value<string>("publisherId");

@@ -1,5 +1,6 @@
 ﻿using Amazon.Kinesis;
 using Amazon.Kinesis.Model;
+using Amazon.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -95,7 +96,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
 
             // send the event
             var response = await kinesisClient.PutRecordAsync(request, cancellationToken);
-            // TODO: response.EnsureSuccess();
+            response.EnsureSuccess();
 
             // return the sequence number
             return scheduled != null ? response.SequenceNumber : null;
@@ -142,7 +143,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             };
 
             var response = await kinesisClient.PutRecordsAsync(request, cancellationToken);
-            // TODO: response.EnsureSuccess();
+            response.EnsureSuccess();
 
             // Should we check for failed records and throw exception?
 

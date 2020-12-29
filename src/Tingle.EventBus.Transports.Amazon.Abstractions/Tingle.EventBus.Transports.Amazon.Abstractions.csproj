@@ -1,7 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Description>
+      EventBus transport abstractions for Amazon/AWS.
+      $(Description)
+    </Description>
+    <PackageTags>$(PackageTags);Amazon;AWS</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.Core" Version="3.5.1.56" />
+  </ItemGroup>
 
 </Project>

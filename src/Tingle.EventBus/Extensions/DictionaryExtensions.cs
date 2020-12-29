@@ -1,7 +1,7 @@
 ﻿namespace System.Collections.Generic
 {
     /// <summary>
-    /// Extension methods on <see cref=""/>
+    /// Extension methods on <see cref="IDictionary{TKey, TValue}"/>
     /// </summary>
     public static class DictionaryExtensions
     {

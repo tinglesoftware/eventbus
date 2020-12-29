@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Tingle.EventBus.Transports.Amazon.Sqs
+namespace Tingle.EventBus.Transports.Amazon
 {
     ///
     [Serializable]

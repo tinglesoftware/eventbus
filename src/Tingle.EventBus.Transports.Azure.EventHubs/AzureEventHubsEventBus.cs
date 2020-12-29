@@ -126,10 +126,16 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                                         DateTimeOffset? scheduled = null,
                                                                         CancellationToken cancellationToken = default)
         {
-            // log warning when trying to publish scheduled message
+            // log warning when trying to publish scheduled event
             if (scheduled != null)
             {
                 logger.LogWarning("Azure EventHubs does not support delay or scheduled publish");
+            }
+
+            // log warning when trying to publish expiring event
+            if (@event.Expires != null)
+            {
+                logger.LogWarning("Azure EventHubs does not support expiring events");
             }
 
             using var scope = CreateScope();
@@ -141,23 +147,17 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                    scope: scope,
                                                    cancellationToken: cancellationToken);
 
-            var message = new EventData(ms.ToArray());
-            message.Properties["MessageId"] = @event.EventId;
-            message.Properties["CorrelationId"] = @event.CorrelationId;
-            message.Properties["Content-Type"] = contentType.ToString();
+            var data = new EventData(ms.ToArray());
+            data.Properties["EventId"] = @event.EventId;
+            data.Properties["CorrelationId"] = @event.CorrelationId;
+            data.Properties["Content-Type"] = contentType.ToString();
 
-            // log warning when trying to publish expiring message
-            if (@event.Expires != null)
-            {
-                logger.LogWarning("Azure EventHubs does not support expiring events");
-            }
-
-            // get the producer and send the message accordingly
+            // get the producer and send the event accordingly
             var producer = await GetProducerAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
-            await producer.SendAsync(new[] { message }, cancellationToken);
+            await producer.SendAsync(new[] { data }, cancellationToken);
 
             // return the sequence number
-            return message.SequenceNumber.ToString();
+            return data.SequenceNumber.ToString();
         }
 
         /// <inheritdoc/>
@@ -165,20 +165,20 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                                                DateTimeOffset? scheduled = null,
                                                                                CancellationToken cancellationToken = default)
         {
-            // log warning when trying to publish scheduled message
+            // log warning when trying to publish scheduled events
             if (scheduled != null)
             {
                 logger.LogWarning("Azure EventHubs does not support delay or scheduled publish");
             }
 
-            // log warning when trying to publish expiring message
+            // log warning when trying to publish expiring events
             if (events.Any(e => e.Expires != null))
             {
                 logger.LogWarning("Azure EventHubs does not support expiring events");
             }
 
             using var scope = CreateScope();
-            var messages = new List<EventData>();
+            var datas = new List<EventData>();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             foreach (var @event in events)
             {
@@ -189,31 +189,31 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                        scope: scope,
                                                        cancellationToken: cancellationToken);
 
-                var message = new EventData(ms.ToArray());
-                message.Properties["MessageId"] = @event.EventId;
-                message.Properties["CorrelationId"] = @event.CorrelationId;
-                message.Properties["Content-Type"] = contentType.ToString();
-                messages.Add(message);
+                var data = new EventData(ms.ToArray());
+                data.Properties["EventId"] = @event.EventId;
+                data.Properties["CorrelationId"] = @event.CorrelationId;
+                data.Properties["Content-Type"] = contentType.ToString();
+                datas.Add(data);
             }
 
-            // get the producer and send the messages accordingly
+            // get the producer and send the events accordingly
             var producer = await GetProducerAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
-            await producer.SendAsync(messages, cancellationToken);
+            await producer.SendAsync(datas, cancellationToken);
 
             // return the sequence numbers
-            return messages.Select(m => m.SequenceNumber.ToString()).ToList();
+            return datas.Select(m => m.SequenceNumber.ToString()).ToList();
         }
 
         /// <inheritdoc/>
         public override Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
         {
-            throw new NotSupportedException("Azure EventHubs does not support canceling published messages.");
+            throw new NotSupportedException("Azure EventHubs does not support canceling published events.");
         }
 
         /// <inheritdoc/>
         public override Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
         {
-            throw new NotSupportedException("Azure EventHubs does not support canceling published messages.");
+            throw new NotSupportedException("Azure EventHubs does not support canceling published events.");
         }
 
         private async Task<EventHubProducerClient> GetProducerAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
@@ -327,13 +327,13 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             var data = args.Data;
             var cancellationToken = args.CancellationToken;
 
-            data.Properties.TryGetValue("MessageId", out var messageId);
+            data.Properties.TryGetValue("EventId", out var eventId);
             data.Properties.TryGetValue("CorrelationId", out var correlationId);
             data.Properties.TryGetValue("Content-Type", out var contentType_str);
 
             using var log_scope = logger.BeginScope(new Dictionary<string, string>
             {
-                ["MesageId"] = messageId?.ToString(),
+                ["EventId"] = eventId?.ToString(),
                 ["CorrelationId"] = correlationId?.ToString(),
                 ["SequenceNumber"] = data.SequenceNumber.ToString(),
             });

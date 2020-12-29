@@ -5,7 +5,9 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -69,9 +71,9 @@ namespace Tingle.EventBus.Transports.InMemory
         protected override Task StopBusAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
         /// <inheritdoc/>
-        protected override Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
-                                                                  DateTimeOffset? scheduled = null,
-                                                                  CancellationToken cancellationToken = default)
+        protected override async Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
+                                                                        DateTimeOffset? scheduled = null,
+                                                                        CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -81,12 +83,22 @@ namespace Tingle.EventBus.Transports.InMemory
 
             var scheduledId = scheduled?.ToUnixTimeMilliseconds().ToString();
             published.Add(@event);
-            var _ = SendToConsumersAsync(@event, scheduled);
-            return Task.FromResult(scheduledId);
+
+            using var scope = CreateScope();
+            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
+            using var ms = new MemoryStream();
+            var contentType = await SerializeAsync(body: ms,
+                                                   @event: @event,
+                                                   registration: reg,
+                                                   scope: scope,
+                                                   cancellationToken: cancellationToken);
+
+            var _ = SendToConsumersAsync<TEvent>(ms, contentType, scheduled);
+            return scheduled != null ? scheduledId : null;
         }
 
         /// <inheritdoc/>
-        protected override Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
+        protected async override Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
                                                                          DateTimeOffset? scheduled = null,
                                                                          CancellationToken cancellationToken = default)
         {
@@ -96,9 +108,17 @@ namespace Tingle.EventBus.Transports.InMemory
                 logger.LogWarning("InMemory EventBus uses a short-lived timer that is not persisted for scheduled publish");
             }
 
+            using var scope = CreateScope();
+            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             foreach (var @event in events)
             {
-                var _ = SendToConsumersAsync(@event, scheduled);
+                using var ms = new MemoryStream();
+                var contentType = await SerializeAsync(body: ms,
+                                                       @event: @event,
+                                                       registration: reg,
+                                                       scope: scope,
+                                                       cancellationToken: cancellationToken);
+                var _ = SendToConsumersAsync<TEvent>(ms, contentType, scheduled);
             }
 
             var random = new Random();
@@ -108,7 +128,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 random.NextBytes(bys);
                 return Convert.ToString(BitConverter.ToInt64(bys));
             });
-            return Task.FromResult(scheduled != null ? scheduledIds.ToList() : (IList<string>)Array.Empty<string>());
+            return scheduled != null ? scheduledIds.ToList() : null;
         }
 
         /// <inheritdoc/>
@@ -123,7 +143,8 @@ namespace Tingle.EventBus.Transports.InMemory
             throw new NotSupportedException("InMemory EventBus does not support canceling published messages.");
         }
 
-        private async Task SendToConsumersAsync<TEvent>(EventContext<TEvent> @event, DateTimeOffset? scheduled)
+        private async Task SendToConsumersAsync<TEvent>(MemoryStream ms, ContentType contentType, DateTimeOffset? scheduled)
+            where TEvent : class
         {
             var cts = new CancellationTokenSource();
             var cancellationToken = cts.Token;
@@ -138,7 +159,13 @@ namespace Tingle.EventBus.Transports.InMemory
                 }
             }
 
+            logger.LogDebug("Processing sent/incoming event");
             using var scope = CreateScope(); // shared
+            var context = await DeserializeAsync<TEvent>(body: ms,
+                                                         contentType: contentType,
+                                                         registration: BusOptions.GetOrCreateEventRegistration<TEvent>(),
+                                                         scope: scope,
+                                                         cancellationToken: cancellationToken);
 
             // find consumers registered for the event
             var eventType = typeof(TEvent);
@@ -150,7 +177,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
                 var mt = GetType().GetMethod(nameof(DispatchToConsumerAsync), flags);
                 var method = mt.MakeGenericMethod(typeof(TEvent), reg.ConsumerType);
-                return (Task)method.Invoke(this, new object[] { @event, scope, cancellationToken, });
+                return (Task)method.Invoke(this, new object[] { context, scope, cancellationToken, });
             }).ToList();
             await Task.WhenAll(tasks);
         }
@@ -170,6 +197,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
             try
             {
+                logger.LogInformation("Received event '{EventId}'", context.EventId);
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
@@ -177,7 +205,7 @@ namespace Tingle.EventBus.Transports.InMemory
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Event processing failed. Moving to deadletter.");
+                logger.LogError(ex, "Event processing failed. Deadletter is not supported in memory.");
                 failed.Add(context);
             }
         }

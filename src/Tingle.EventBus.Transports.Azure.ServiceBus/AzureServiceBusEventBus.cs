@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -9,8 +11,6 @@ using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Messaging.ServiceBus;
-using Azure.Messaging.ServiceBus.Administration;
 using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Azure.ServiceBus
@@ -58,13 +58,16 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         {
             var queues = managementClient.GetQueuesRuntimePropertiesAsync(cancellationToken).AsPages();
             await foreach (var _ in queues) ; // there's nothing to do
-            var topics = managementClient.GetTopicsRuntimePropertiesAsync(cancellationToken);
-            await foreach (var t in topics)
+            if (!TransportOptions.UseBasicTier)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                var topics = managementClient.GetTopicsRuntimePropertiesAsync(cancellationToken);
+                await foreach (var t in topics)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                var subscriptions = managementClient.GetSubscriptionsRuntimePropertiesAsync(t.Name, cancellationToken);
-                await foreach (var _ in subscriptions) ; // there's nothing to do
+                    var subscriptions = managementClient.GetSubscriptionsRuntimePropertiesAsync(t.Name, cancellationToken);
+                    await foreach (var _ in subscriptions) ; // there's nothing to do
+                }
             }
             return true;
         }
@@ -274,8 +277,16 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 {
                     var name = reg.EventName;
 
-                    // ensure topic is created
-                    await CreateTopicIfNotExistsAsync(topicName: name, cancellationToken: cancellationToken);
+                    if (TransportOptions.UseBasicTier)
+                    {
+                        // ensure queue is created, for basic tier
+                        await CreateQueueIfNotExistsAsync(name: name, cancellationToken: cancellationToken);
+                    }
+                    else
+                    {
+                        // ensure topic is created, for non-basic tier
+                        await CreateTopicIfNotExistsAsync(name: name, cancellationToken: cancellationToken);
+                    }
 
                     // create the sender
                     sender = serviceBusClient.CreateSender(name);
@@ -302,19 +313,27 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 var key = $"{topicName}/{subscriptionName}";
                 if (!processorsCache.TryGetValue(key, out var processor))
                 {
-                    // if the subscription does not exist, create it
-                    if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionName, cancellationToken))
+                    if (TransportOptions.UseBasicTier)
                     {
-                        // ensure topic is created before creating the subscription
-                        await CreateTopicIfNotExistsAsync(topicName: topicName, cancellationToken: cancellationToken);
+                        // ensure queue is created for basic tier
+                        await CreateQueueIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
+                    }
+                    else
+                    {
+                        // if the subscription does not exist, create it
+                        if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionName, cancellationToken))
+                        {
+                            // ensure topic is created before creating the subscription, for non-basic tier
+                            await CreateTopicIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
 
-                        var options = new CreateSubscriptionOptions(topicName: topicName, subscriptionName: subscriptionName);
+                            var options = new CreateSubscriptionOptions(topicName: topicName, subscriptionName: subscriptionName);
 
-                        // TODO: set the defaults for a subscription here
+                            // TODO: set the defaults for a subscription here
 
-                        // allow for the defaults to be overriden
-                        TransportOptions.SetupSubscriptionOptions?.Invoke(options);
-                        await managementClient.CreateSubscriptionAsync(options: options, cancellationToken: cancellationToken);
+                            // allow for the defaults to be overriden
+                            TransportOptions.SetupSubscriptionOptions?.Invoke(options);
+                            await managementClient.CreateSubscriptionAsync(options: options, cancellationToken: cancellationToken);
+                        }
                     }
 
                     // create the processor
@@ -329,9 +348,17 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                         AutoCompleteMessages = false,
                     };
 
-                    processor = serviceBusClient.CreateProcessor(topicName: topicName,
-                                                                 subscriptionName: subscriptionName,
-                                                                 options: sbpo);
+                    if (TransportOptions.UseBasicTier)
+                    {
+                        processor = serviceBusClient.CreateProcessor(queueName: topicName,
+                                                                     options: sbpo);
+                    }
+                    else
+                    {
+                        processor = serviceBusClient.CreateProcessor(topicName: topicName,
+                                                                     subscriptionName: subscriptionName,
+                                                                     options: sbpo);
+                    }
                     processorsCache[key] = processor;
                 }
 
@@ -343,18 +370,33 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
-        private async Task CreateTopicIfNotExistsAsync(string topicName, CancellationToken cancellationToken)
+        private async Task CreateTopicIfNotExistsAsync(string name, CancellationToken cancellationToken)
         {
             // if the topic does not exist, create it
-            if (!await managementClient.TopicExistsAsync(topicName, cancellationToken))
+            if (!await managementClient.TopicExistsAsync(name: name, cancellationToken: cancellationToken))
             {
-                var options = new CreateTopicOptions(name: topicName);
+                var options = new CreateTopicOptions(name: name);
 
                 // TODO: set the defaults for a topic here
 
                 // allow for the defaults to be overriden
                 TransportOptions.SetupTopicOptions?.Invoke(options);
                 _ = await managementClient.CreateTopicAsync(options: options, cancellationToken: cancellationToken);
+            }
+        }
+
+        private async Task CreateQueueIfNotExistsAsync(string name, CancellationToken cancellationToken)
+        {
+            // if the queue does not exist, create it
+            if (!await managementClient.QueueExistsAsync(name: name, cancellationToken: cancellationToken))
+            {
+                var options = new CreateQueueOptions(name: name);
+
+                // TODO: set the defaults for a queue here
+
+                // allow for the defaults to be overriden
+                TransportOptions.SetupQueueOptions?.Invoke(options);
+                _ = await managementClient.CreateQueueAsync(options: options, cancellationToken: cancellationToken);
             }
         }
 

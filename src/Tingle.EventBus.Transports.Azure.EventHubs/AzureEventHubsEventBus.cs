@@ -295,7 +295,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                     // create the processor
                     processor = new EventProcessorClient(checkpointStore: blobContainerClient,
                                                          consumerGroup: consumerGroup,
-                                                         connectionString: TransportOptions.BlobStorageConnectionString,
+                                                         connectionString: TransportOptions.ConnectionString,
                                                          eventHubName: eventHubName,
                                                          clientOptions: epco);
                     processorsCache[key] = processor;
@@ -378,10 +378,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         private Task OnPartitionInitializingAsync(EventProcessorClient processor, PartitionInitializingEventArgs args)
         {
             logger.LogInformation("Opening processor for PartitionId:{PartitionId}, EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, DefaultStartingPosition:{DefaultStartingPosition}",
+                                  args.PartitionId,
                                   processor.EventHubName,
                                   processor.ConsumerGroup,
-                                  args.PartitionId,
-                                  args.DefaultStartingPosition.ToString());
+                                  args.DefaultStartingPosition);
             return Task.CompletedTask;
         }
 

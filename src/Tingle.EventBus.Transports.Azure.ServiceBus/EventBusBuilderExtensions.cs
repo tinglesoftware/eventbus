@@ -44,5 +44,33 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder;
         }
+
+        /// <summary>
+        /// Add Azure Service Bus as the underlying transport for the Event Bus.
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="connectionString">
+        /// The connection string to the Azure Service Bus namespace.
+        /// Maps to <see cref="AzureServiceBusOptions.ConnectionString"/>.
+        /// </param>
+        /// <param name="configure"></param>
+        /// <returns></returns>
+        public static EventBusBuilder AddAzureServiceBus(this EventBusBuilder builder,
+                                                         string connectionString,
+                                                         Action<AzureServiceBusOptions> configure = null)
+        {
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new ArgumentException($"'{nameof(connectionString)}' cannot be null or whitespace", nameof(connectionString));
+            }
+
+            return builder.AddAzureServiceBus(options =>
+            {
+                options.ConnectionString = connectionString;
+                configure?.Invoke(options);
+            });
+        }
     }
 }

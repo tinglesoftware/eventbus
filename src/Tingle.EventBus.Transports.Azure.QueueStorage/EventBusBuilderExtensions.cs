@@ -44,5 +44,33 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder;
         }
+
+        /// <summary>
+        /// Add Azure Queue Storage as the underlying transport for the Event Bus.
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="connectionString">
+        /// The connection string to the Azure Storage account.
+        /// Maps to <see cref="AzureQueueStorageOptions.ConnectionString"/>.
+        /// </param>
+        /// <param name="configure"></param>
+        /// <returns></returns>
+        public static EventBusBuilder AddAzureQueueStorage(this EventBusBuilder builder,
+                                                           string connectionString,
+                                                           Action<AzureQueueStorageOptions> configure = null)
+        {
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new ArgumentException($"'{nameof(connectionString)}' cannot be null or whitespace", nameof(connectionString));
+            }
+
+            return builder.AddAzureQueueStorage(options =>
+            {
+                options.ConnectionString = connectionString;
+                configure?.Invoke(options);
+            });
+        }
     }
 }

@@ -53,5 +53,33 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder;
         }
+
+        /// <summary>
+        /// Add Azure EventHubs as the underlying transport for the Event Bus.
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="connectionString">
+        /// The connection string to the Azure EventHubs namespace.
+        /// Maps to <see cref="AzureEventHubsOptions.ConnectionString"/>.
+        /// </param>
+        /// <param name="configure"></param>
+        /// <returns></returns>
+        public static EventBusBuilder AddAzureEventHubs(this EventBusBuilder builder,
+                                                        string connectionString,
+                                                        Action<AzureEventHubsOptions> configure)
+        {
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new ArgumentException($"'{nameof(connectionString)}' cannot be null or whitespace", nameof(connectionString));
+            }
+
+            return builder.AddAzureEventHubs(options =>
+            {
+                options.ConnectionString = connectionString;
+                configure?.Invoke(options);
+            });
+        }
     }
 }

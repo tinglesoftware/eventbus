@@ -1,4 +1,5 @@
 ﻿using Azure.Messaging.EventHubs;
+using Azure.Messaging.EventHubs.Consumer;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -34,5 +35,14 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Defaults to <see cref="EventHubsTransportType.AmqpTcp"/>
         /// </summary>
         public EventHubsTransportType TransportType { get; set; } = EventHubsTransportType.AmqpTcp;
+
+        /// <summary>
+        /// Gets or sets value indicating if the Event Hubs namespace is in the Basic tier.
+        /// The Basic tier does not support mutiple consumer groups.
+        /// In this case, the transport would make use of the default consumer group only
+        /// (<see cref="EventHubConsumerClient.DefaultConsumerGroupName"/>).
+        /// Defaults to <see langword="true"/>.
+        /// </summary>
+        public bool UseBasicTier { get; set; } = true;
     }
 }

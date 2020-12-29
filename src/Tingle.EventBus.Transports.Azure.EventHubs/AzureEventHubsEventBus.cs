@@ -1,4 +1,5 @@
 ﻿using Azure.Messaging.EventHubs;
+using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Processor;
 using Azure.Messaging.EventHubs.Producer;
 using Azure.Storage.Blobs;
@@ -260,7 +261,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             try
             {
                 var eventHubName = reg.EventName;
-                var consumerGroup = reg.ConsumerName;
+                var consumerGroup = TransportOptions.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : reg.ConsumerName;
 
                 var key = $"{eventHubName}/{consumerGroup}";
                 if (!processorsCache.TryGetValue(key, out var processor))

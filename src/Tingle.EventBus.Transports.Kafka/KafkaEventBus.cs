@@ -82,9 +82,13 @@ namespace Tingle.EventBus.Transports.Kafka
         {
             var registrations = BusOptions.GetConsumerRegistrations();
             logger.StartingBusReceivers(registrations.Count);
-            var topics = registrations.Select(r => r.EventName);
-            consumer.Subscribe(topics);
-            _ = ProcessAsync();
+            var topics = registrations.Select(r => r.EventName).ToList();
+            // only consume if there are topics to subscribe to
+            if (topics.Count > 0)
+            {
+                consumer.Subscribe(topics);
+                _ = ProcessAsync();
+            }
             return Task.CompletedTask;
         }
 

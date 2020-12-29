@@ -136,24 +136,29 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             var message = new ServiceBusMessage(ms.ToArray())
             {
                 MessageId = @event.EventId,
-                CorrelationId = @event.CorrelationId,
-                ContentType = contentType.ToString(),
+                ContentType = contentType?.ToString(),
             };
 
-            // if scheduled for later, set the value in the message
+            // If CorrelationId is present, set it
+            if (@event.CorrelationId != null)
+            {
+                message.CorrelationId = @event.CorrelationId;
+            }
+
+            // If scheduled for later, set the value in the message
             if (scheduled != null && scheduled > DateTimeOffset.UtcNow)
             {
                 message.ScheduledEnqueueTime = scheduled.Value.DateTime;
             }
 
-            // if expiry is set in the future, set the ttl in the message
+            // If expiry is set in the future, set the ttl in the message
             if (@event.Expires != null && @event.Expires > DateTimeOffset.UtcNow)
             {
                 var ttl = @event.Expires.Value - DateTimeOffset.UtcNow;
                 message.TimeToLive = ttl;
             }
 
-            // get the sender and send the message accordingly
+            // Get the sender and send the message accordingly
             var sender = await GetSenderAsync(reg, cancellationToken);
             if (scheduled != null)
             {
@@ -193,13 +198,19 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     ContentType = contentType.ToString(),
                 };
 
-                // if scheduled for later, set the value in the message
+                // If CorrelationId is present, set it
+                if (@event.CorrelationId != null)
+                {
+                    message.CorrelationId = @event.CorrelationId;
+                }
+
+                // If scheduled for later, set the value in the message
                 if (scheduled != null && scheduled > DateTimeOffset.UtcNow)
                 {
                     message.ScheduledEnqueueTime = scheduled.Value.DateTime;
                 }
 
-                // if expiry is set in the future, set the ttl in the message
+                // If expiry is set in the future, set the ttl in the message
                 if (@event.Expires != null && @event.Expires > DateTimeOffset.UtcNow)
                 {
                     var ttl = @event.Expires.Value - DateTimeOffset.UtcNow;
@@ -209,7 +220,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 messages.Add(message);
             }
 
-            // get the sender and send the messages accordingly
+            // Get the sender and send the messages accordingly
             var sender = await GetSenderAsync(reg, cancellationToken);
             if (scheduled != null)
             {
@@ -315,28 +326,28 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 {
                     if (TransportOptions.UseBasicTier)
                     {
-                        // ensure queue is created for basic tier
+                        // Ensure queue is created for basic tier
                         await CreateQueueIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
                     }
                     else
                     {
-                        // if the subscription does not exist, create it
+                        // If the subscription does not exist, create it
                         if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionName, cancellationToken))
                         {
-                            // ensure topic is created before creating the subscription, for non-basic tier
+                            // Ensure topic is created before creating the subscription, for non-basic tier
                             await CreateTopicIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
 
                             var options = new CreateSubscriptionOptions(topicName: topicName, subscriptionName: subscriptionName);
 
                             // TODO: set the defaults for a subscription here
 
-                            // allow for the defaults to be overriden
+                            // Allow for the defaults to be overriden
                             TransportOptions.SetupSubscriptionOptions?.Invoke(options);
                             await managementClient.CreateSubscriptionAsync(options: options, cancellationToken: cancellationToken);
                         }
                     }
 
-                    // create the processor
+                    // Create the processor
                     var sbpo = new ServiceBusProcessorOptions
                     {
                         // Maximum number of concurrent calls to the callback ProcessMessagesAsync(), set to 1 for simplicity.
@@ -372,14 +383,14 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
         private async Task CreateTopicIfNotExistsAsync(string name, CancellationToken cancellationToken)
         {
-            // if the topic does not exist, create it
+            // If the topic does not exist, create it
             if (!await managementClient.TopicExistsAsync(name: name, cancellationToken: cancellationToken))
             {
                 var options = new CreateTopicOptions(name: name);
 
                 // TODO: set the defaults for a topic here
 
-                // allow for the defaults to be overriden
+                // Allow for the defaults to be overriden
                 TransportOptions.SetupTopicOptions?.Invoke(options);
                 _ = await managementClient.CreateTopicAsync(options: options, cancellationToken: cancellationToken);
             }
@@ -387,14 +398,14 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
         private async Task CreateQueueIfNotExistsAsync(string name, CancellationToken cancellationToken)
         {
-            // if the queue does not exist, create it
+            // If the queue does not exist, create it
             if (!await managementClient.QueueExistsAsync(name: name, cancellationToken: cancellationToken))
             {
                 var options = new CreateQueueOptions(name: name);
 
                 // TODO: set the defaults for a queue here
 
-                // allow for the defaults to be overriden
+                // Allow for the defaults to be overriden
                 TransportOptions.SetupQueueOptions?.Invoke(options);
                 _ = await managementClient.CreateQueueAsync(options: options, cancellationToken: cancellationToken);
             }
@@ -429,7 +440,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
 
-                // complete the message
+                // Complete the message
                 await args.CompleteMessageAsync(message: message, cancellationToken: cancellationToken);
             }
             catch (Exception ex)

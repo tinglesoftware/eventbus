@@ -151,6 +151,8 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             data.Properties["EventId"] = @event.EventId;
             data.Properties["CorrelationId"] = @event.CorrelationId;
             data.Properties["Content-Type"] = contentType.ToString();
+            data.Properties["Event-Name"] = reg.EventName;
+            data.Properties["Event-Type"] = reg.EventType.FullName;
 
             // get the producer and send the event accordingly
             var producer = await GetProducerAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
@@ -193,6 +195,8 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 data.Properties["EventId"] = @event.EventId;
                 data.Properties["CorrelationId"] = @event.CorrelationId;
                 data.Properties["Content-Type"] = contentType.ToString();
+                data.Properties["Event-Name"] = reg.EventName;
+                data.Properties["Event-Type"] = reg.EventType.FullName;
                 datas.Add(data);
             }
 
@@ -330,12 +334,16 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             data.Properties.TryGetValue("EventId", out var eventId);
             data.Properties.TryGetValue("CorrelationId", out var correlationId);
             data.Properties.TryGetValue("Content-Type", out var contentType_str);
+            data.Properties.TryGetValue("Event-Name", out var eventName);
+            data.Properties.TryGetValue("Event-Type", out var eventType_str);
 
             using var log_scope = logger.BeginScope(new Dictionary<string, string>
             {
                 ["EventId"] = eventId?.ToString(),
                 ["CorrelationId"] = correlationId?.ToString(),
                 ["SequenceNumber"] = data.SequenceNumber.ToString(),
+                ["Event-Name"] = eventName?.ToString(),
+                ["Event-Type"] = eventType_str?.ToString(),
             });
 
             try

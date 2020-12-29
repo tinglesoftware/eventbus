@@ -46,6 +46,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomSerializer", "examples\CustomSerializer\CustomSerializer.csproj", "{2C55FABC-8C94-4104-BE05-42A477D2AD9E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Transports.Amazon.Abstractions", "src\Tingle.EventBus.Transports.Amazon.Abstractions\Tingle.EventBus.Transports.Amazon.Abstractions.csproj", "{1ED48501-B1A3-4882-B67A-FC39278505BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -108,6 +110,10 @@ Global
 		{2C55FABC-8C94-4104-BE05-42A477D2AD9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C55FABC-8C94-4104-BE05-42A477D2AD9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C55FABC-8C94-4104-BE05-42A477D2AD9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1ED48501-B1A3-4882-B67A-FC39278505BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1ED48501-B1A3-4882-B67A-FC39278505BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1ED48501-B1A3-4882-B67A-FC39278505BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1ED48501-B1A3-4882-B67A-FC39278505BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -127,6 +133,7 @@ Global
 		{7432F6AC-265B-4226-B285-AE9ABB33F4AD} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{2664F6EA-94DB-4E14-A5B3-43FBCCF472E3} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{2C55FABC-8C94-4104-BE05-42A477D2AD9E} = {62F603F3-FF36-4E36-AC0C-08D1883525BE}
+		{1ED48501-B1A3-4882-B67A-FC39278505BE} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9E5CC03E-DDE6-4455-9D5D-03617DE5DBD8}

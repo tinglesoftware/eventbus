@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Tingle.EventBus;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
@@ -52,6 +54,24 @@ namespace Microsoft.Extensions.DependencyInjection
                 reg.SetSerializer() // set the serializer
                    .SetEventName(options) // set the event name
                    .SetConsumerName(options, environment); // set the consumer name
+            }
+
+            // ensure there are no events with the same name
+            var grouped = registrations.GroupBy(r => r.EventName);
+            var conflicted = grouped.FirstOrDefault(kvp => kvp.Count() > 1);
+            if (conflicted != null)
+            {
+                throw new InvalidOperationException($"The event name '{conflicted.Key}' cannot be used more than once."
+                                                  + $" Types: - {string.Join("\r\n- ", conflicted.Select(r => r.EventType.FullName))}");
+            }
+
+            // ensure there are no consumers with the same name
+            grouped = registrations.GroupBy(r => r.ConsumerName);
+            conflicted = grouped.FirstOrDefault(kvp => kvp.Count() > 1);
+            if (conflicted != null)
+            {
+                throw new InvalidOperationException($"The consumer name '{conflicted.Key}' cannot be used more than once."
+                                                  + $" Types: - {string.Join("\r\n- ", conflicted.Select(r => r.ConsumerType.FullName))}");
             }
         }
     }

@@ -40,9 +40,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimplePublisher", "examples
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Tests", "tests\Tingle.EventBus.Tests\Tingle.EventBus.Tests.csproj", "{108968DB-1C48-4B53-9F23-CE7C5BAA88B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Transports.Amazon.Kinesis", "src\Tingle.EventBus.Transports.Amazon.Kinesis\Tingle.EventBus.Transports.Amazon.Kinesis.csproj", "{7432F6AC-265B-4226-B285-AE9ABB33F4AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Amazon.Kinesis", "src\Tingle.EventBus.Transports.Amazon.Kinesis\Tingle.EventBus.Transports.Amazon.Kinesis.csproj", "{7432F6AC-265B-4226-B285-AE9ABB33F4AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Transports.Kafka", "src\Tingle.EventBus.Transports.Kafka\Tingle.EventBus.Transports.Kafka.csproj", "{2664F6EA-94DB-4E14-A5B3-43FBCCF472E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Kafka", "src\Tingle.EventBus.Transports.Kafka\Tingle.EventBus.Transports.Kafka.csproj", "{2664F6EA-94DB-4E14-A5B3-43FBCCF472E3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomSerializer", "examples\CustomSerializer\CustomSerializer.csproj", "{2C55FABC-8C94-4104-BE05-42A477D2AD9E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -102,6 +104,10 @@ Global
 		{2664F6EA-94DB-4E14-A5B3-43FBCCF472E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2664F6EA-94DB-4E14-A5B3-43FBCCF472E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2664F6EA-94DB-4E14-A5B3-43FBCCF472E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C55FABC-8C94-4104-BE05-42A477D2AD9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C55FABC-8C94-4104-BE05-42A477D2AD9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C55FABC-8C94-4104-BE05-42A477D2AD9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C55FABC-8C94-4104-BE05-42A477D2AD9E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -120,6 +126,7 @@ Global
 		{108968DB-1C48-4B53-9F23-CE7C5BAA88B4} = {BDD324B6-9EFC-49A3-9CF6-6CE494446C4B}
 		{7432F6AC-265B-4226-B285-AE9ABB33F4AD} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{2664F6EA-94DB-4E14-A5B3-43FBCCF472E3} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
+		{2C55FABC-8C94-4104-BE05-42A477D2AD9E} = {62F603F3-FF36-4E36-AC0C-08D1883525BE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9E5CC03E-DDE6-4455-9D5D-03617DE5DBD8}

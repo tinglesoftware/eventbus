@@ -281,9 +281,8 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
                     // TODO: consider optionally allowing for credentials to perform ARM operations?
 
-                    var blobContainerName = $"{TransportOptions.BlobContainerPrefix}{consumerGroup}";
                     var blobContainerClient = new BlobContainerClient(connectionString: TransportOptions.BlobStorageConnectionString,
-                                                                      blobContainerName: blobContainerName);
+                                                                      blobContainerName: TransportOptions.BlobContainerName);
 
                     var epco = new EventProcessorClientOptions
                     {

@@ -22,13 +22,13 @@ namespace Microsoft.Extensions.DependencyInjection
         public string BlobStorageConnectionString { get; set; }
 
         /// <summary>
-        /// The prefix to use for blob containers used by the EventHubs processor.
+        /// The name of the blob container used by the EventHubs processor.
         /// Azure Blob Storage is used by the EventHubs processor to store the events stream offset
         /// which allows the events to be processed from a certain point.
         /// It is also used to create a lease per partition hence preventing duplicate events.
-        /// Defaults to <c>checkpoints-</c>
+        /// Defaults to <c>checkpoints</c>
         /// </summary>
-        public string BlobContainerPrefix { get; set; } = "checkpoints-";
+        public string BlobContainerName { get; set; } = "checkpoints";
 
         /// <summary>
         /// The type of transport to use.

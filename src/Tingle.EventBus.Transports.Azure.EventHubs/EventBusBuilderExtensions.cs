@@ -38,14 +38,14 @@ namespace Microsoft.Extensions.DependencyInjection
                     throw new InvalidOperationException($"The '{nameof(options.BlobStorageConnectionString)}' must be provided");
                 }
 
-                // ensure the blob container prefix is provided
-                if (string.IsNullOrWhiteSpace(options.BlobContainerPrefix))
+                // ensure the blob container name is provided
+                if (string.IsNullOrWhiteSpace(options.BlobContainerName))
                 {
-                    throw new InvalidOperationException($"The '{nameof(options.BlobContainerPrefix)}' must be provided");
+                    throw new InvalidOperationException($"The '{nameof(options.BlobContainerName)}' must be provided");
                 }
 
                 // ensure the prefix is always lower case.
-                options.BlobContainerPrefix = options.BlobContainerPrefix.ToLower();
+                options.BlobContainerName = options.BlobContainerName.ToLower();
             });
 
             // register the event bus

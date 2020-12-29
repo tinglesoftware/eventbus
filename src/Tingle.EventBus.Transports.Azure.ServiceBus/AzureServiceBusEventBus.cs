@@ -43,7 +43,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                        ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            var connectionString = TransportOptions.ConnectionStringProperties.ToString();
+            var connectionString = TransportOptions.ConnectionString;
             managementClient = new ServiceBusAdministrationClient(connectionString);
 
             var sbcOptions = new ServiceBusClientOptions { TransportType = TransportOptions.TransportType, };

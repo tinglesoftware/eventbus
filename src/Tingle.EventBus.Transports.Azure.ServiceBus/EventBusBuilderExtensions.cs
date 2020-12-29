@@ -28,14 +28,9 @@ namespace Microsoft.Extensions.DependencyInjection
             services.PostConfigure<AzureServiceBusOptions>(options =>
             {
                 // ensure the connection string is not null
-                if (string.IsNullOrWhiteSpace(options.ConnectionString) && options.ConnectionStringProperties == null)
+                if (string.IsNullOrWhiteSpace(options.ConnectionString))
                 {
-                    throw new InvalidOperationException($"Either '{nameof(options.ConnectionString)}' or '{nameof(options.ConnectionStringProperties)}' must be provided");
-                }
-
-                if (options.ConnectionStringProperties == null)
-                {
-                    options.ConnectionStringProperties = ServiceBusConnectionStringProperties.Parse(options.ConnectionString);
+                    throw new InvalidOperationException($"The '{nameof(options.ConnectionString)}' must be provided");
                 }
             });
 

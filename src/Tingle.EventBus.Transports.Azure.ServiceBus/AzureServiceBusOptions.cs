@@ -11,15 +11,8 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         /// <summary>
         /// The connection string to Azure Service Bus.
-        /// When not configured, <see cref="ConnectionStringProperties"/> must be provided.
         /// </summary>
         public string ConnectionString { get; set; }
-
-        /// <summary>
-        /// The connection options to Azure Service Bus.
-        /// When not set, <see cref="ConnectionString"/> is used to create it.
-        /// </summary>
-        public ServiceBusConnectionStringProperties ConnectionStringProperties { get; set; }
 
         /// <summary>
         /// The type of transport to use.

@@ -15,15 +15,17 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddInMemory(this EventBusBuilder builder, Action<InMemoryOptions> configure)
+        public static EventBusBuilder AddInMemory(this EventBusBuilder builder, Action<InMemoryOptions> configure = null)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
-            if (configure is null) throw new ArgumentNullException(nameof(configure));
 
             var services = builder.Services;
 
             // configure the options for Azure Service Bus
-            services.Configure(configure);
+            if (configure != null)
+            {
+                services.Configure(configure);
+            }
 
             // register the event bus
             services.AddSingleton<IEventBus, InMemoryEventBus>();

@@ -20,10 +20,10 @@ using MAV = Amazon.SimpleNotificationService.Model.MessageAttributeValue;
 namespace Tingle.EventBus.Transports.Amazon.Sqs
 {
     /// <summary>
-    /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using
+    /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using
     /// Amazon SQS and Amazon SNS as the transport.
     /// </summary>
-    public class AmazonSqsEventBus : EventBusBase<AmazonSqsOptions>
+    public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsOptions>
     {
         private readonly Dictionary<Type, string> topicArnsCache = new Dictionary<Type, string>();
         private readonly SemaphoreSlim topicArnsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
@@ -42,7 +42,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         /// <param name="optionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public AmazonSqsEventBus(IHostEnvironment environment,
+        public AmazonSqsTransport(IHostEnvironment environment,
                                  IServiceScopeFactory serviceScopeFactory,
                                  IOptions<EventBusOptions> optionsAccessor,
                                  IOptions<AmazonSqsOptions> transportOptionsAccessor,
@@ -55,7 +55,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             sqsClient = new AmazonSQSClient(credentials: TransportOptions.Credentials,
                                             clientConfig: TransportOptions.SqsConfig);
 
-            logger = loggerFactory?.CreateLogger<AmazonSqsEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateLogger<AmazonSqsTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>
@@ -69,7 +69,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         }
 
         /// <inheritdoc/>
-        protected override async Task StartBusAsync(CancellationToken cancellationToken)
+        public override async Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
             logger.StartingBusReceivers(registrations.Count);
@@ -81,7 +81,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         }
 
         /// <inheritdoc/>
-        protected override Task StopBusAsync(CancellationToken cancellationToken)
+        public override Task StopAsync(CancellationToken cancellationToken)
         {
             logger.StoppingBusReceivers();
             receiveCancellationTokenSource.Cancel();
@@ -90,9 +90,9 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         }
 
         /// <inheritdoc/>
-        protected override async Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                DateTimeOffset? scheduled = null,
+                                                                CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -123,9 +123,9 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         }
 
         /// <inheritdoc/>
-        protected override async Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                               DateTimeOffset? scheduled = null,
-                                                                               CancellationToken cancellationToken = default)
+        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       DateTimeOffset? scheduled = null,
+                                                                       CancellationToken cancellationToken = default)
         {
             // log warning when doing batch
             logger.LogWarning("Amazon SNS does not support batching. The events will be looped through one by one");

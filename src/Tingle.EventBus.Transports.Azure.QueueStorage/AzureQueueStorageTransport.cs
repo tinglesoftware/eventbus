@@ -17,9 +17,9 @@ using Tingle.EventBus.Registrations;
 namespace Tingle.EventBus.Transports.Azure.QueueStorage
 {
     /// <summary>
-    /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using Azure Queue Storage.
+    /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Azure Queue Storage.
     /// </summary>
-    public class AzureQueueStorageEventBus : EventBusBase<AzureQueueStorageOptions>
+    public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorageOptions>
     {
         private const string SequenceNumberSeparator = "|";
 
@@ -37,15 +37,15 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public AzureQueueStorageEventBus(IHostEnvironment environment,
-                                         IServiceScopeFactory serviceScopeFactory,
-                                         IOptions<EventBusOptions> busOptionsAccessor,
-                                         IOptions<AzureQueueStorageOptions> transportOptionsAccessor,
-                                         ILoggerFactory loggerFactory)
+        public AzureQueueStorageTransport(IHostEnvironment environment,
+                                          IServiceScopeFactory serviceScopeFactory,
+                                          IOptions<EventBusOptions> busOptionsAccessor,
+                                          IOptions<AzureQueueStorageOptions> transportOptionsAccessor,
+                                          ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             serviceClient = new QueueServiceClient(TransportOptions.ConnectionString);
-            logger = loggerFactory?.CreateLogger<AzureQueueStorageEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateLogger<AzureQueueStorageTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>
@@ -58,7 +58,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        protected override Task StartBusAsync(CancellationToken cancellationToken)
+        public override Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
             logger.StartingBusReceivers(registrations.Count);
@@ -71,7 +71,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        protected override Task StopBusAsync(CancellationToken cancellationToken)
+        public override Task StopAsync(CancellationToken cancellationToken)
         {
             logger.StoppingBusReceivers();
             receiveCancellationTokenSource.Cancel();
@@ -80,9 +80,9 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        protected override async Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                DateTimeOffset? scheduled = null,
+                                                                CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
@@ -114,9 +114,9 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        protected override async Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                               DateTimeOffset? scheduled = null,
-                                                                               CancellationToken cancellationToken = default)
+        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       DateTimeOffset? scheduled = null,
+                                                                       CancellationToken cancellationToken = default)
         {
             // log warning when doing batch
             logger.LogWarning("Azure Queue Storage does not support batching. The events will be looped through one by one");

@@ -20,9 +20,9 @@ using Tingle.EventBus.Registrations;
 namespace Tingle.EventBus.Transports.RabbitMQ
 {
     /// <summary>
-    /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using RabbitMQ.
+    /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using RabbitMQ.
     /// </summary>
-    public class RabbitMqEventBus : EventBusBase<RabbitMqOptions>, IDisposable
+    public class RabbitMqTransport : EventBusTransportBase<RabbitMqOptions>, IDisposable
     {
         private readonly ILogger logger;
 
@@ -43,14 +43,14 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public RabbitMqEventBus(IHostEnvironment environment,
-                                IServiceScopeFactory serviceScopeFactory,
-                                IOptions<EventBusOptions> busOptionsAccessor,
-                                IOptions<RabbitMqOptions> transportOptionsAccessor,
-                                ILoggerFactory loggerFactory)
+        public RabbitMqTransport(IHostEnvironment environment,
+                                 IServiceScopeFactory serviceScopeFactory,
+                                 IOptions<EventBusOptions> busOptionsAccessor,
+                                 IOptions<RabbitMqOptions> transportOptionsAccessor,
+                                 ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            logger = loggerFactory?.CreateLogger<RabbitMqEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateLogger<RabbitMqTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
 
             retryPolicy = Policy.Handle<BrokerUnreachableException>()
                                 .Or<SocketException>()
@@ -76,10 +76,10 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         }
 
         /// <inheritdoc/>
-        protected override async Task StartBusAsync(CancellationToken cancellationToken) => await ConnectConsumersAsync(cancellationToken);
+        public override async Task StartAsync(CancellationToken cancellationToken) => await ConnectConsumersAsync(cancellationToken);
 
         /// <inheritdoc/>
-        protected override Task StopBusAsync(CancellationToken cancellationToken)
+        public override Task StopAsync(CancellationToken cancellationToken)
         {
             logger.StoppingBusReceivers();
             var channels = subscriptionChannelsCache.Select(kvp => (key: kvp.Key, sc: kvp.Value)).ToList();
@@ -106,9 +106,9 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         }
 
         /// <inheritdoc/>
-        protected override async Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                DateTimeOffset? scheduled = null,
+                                                                CancellationToken cancellationToken = default)
         {
             if (!IsConnected)
             {
@@ -170,9 +170,9 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         }
 
         /// <inheritdoc/>
-        protected override async Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                               DateTimeOffset? scheduled = null,
-                                                                               CancellationToken cancellationToken = default)
+        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       DateTimeOffset? scheduled = null,
+                                                                       CancellationToken cancellationToken = default)
         {
             if (!IsConnected)
             {

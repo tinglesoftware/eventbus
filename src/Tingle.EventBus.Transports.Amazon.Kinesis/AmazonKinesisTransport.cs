@@ -15,10 +15,10 @@ using System.Threading.Tasks;
 namespace Tingle.EventBus.Transports.Amazon.Kinesis
 {
     /// <summary>
-    /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using
+    /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using
     /// Amazon Kinesis as the transport.
     /// </summary>
-    public class AmazonKinesisEventBus : EventBusBase<AmazonKinesisOptions>
+    public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisOptions>
     {
         private readonly AmazonKinesisClient kinesisClient;
         private readonly ILogger logger;
@@ -31,7 +31,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public AmazonKinesisEventBus(IHostEnvironment environment,
+        public AmazonKinesisTransport(IHostEnvironment environment,
                                      IServiceScopeFactory serviceScopeFactory,
                                      IOptions<EventBusOptions> busOptionsAccessor,
                                      IOptions<AmazonKinesisOptions> transportOptionsAccessor,
@@ -41,7 +41,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             kinesisClient = new AmazonKinesisClient(credentials: TransportOptions.Credentials,
                                                     clientConfig: TransportOptions.KinesisConfig);
 
-            logger = loggerFactory?.CreateLogger<AmazonKinesisEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateLogger<AmazonKinesisTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>
@@ -53,23 +53,23 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         }
 
         /// <inheritdoc/>
-        protected override Task StartBusAsync(CancellationToken cancellationToken)
+        public override Task StartAsync(CancellationToken cancellationToken)
         {
             // Consuming is not yet supported on this bus due to it's complexity
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
-        protected override Task StopBusAsync(CancellationToken cancellationToken)
+        public override Task StopAsync(CancellationToken cancellationToken)
         {
             // Consuming is not yet supported on this bus due to it's complexity
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
-        protected override async Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                DateTimeOffset? scheduled = null,
+                                                                CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -103,9 +103,9 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         }
 
         /// <inheritdoc/>
-        protected override async Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                               DateTimeOffset? scheduled = null,
-                                                                               CancellationToken cancellationToken = default)
+        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       DateTimeOffset? scheduled = null,
+                                                                       CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)

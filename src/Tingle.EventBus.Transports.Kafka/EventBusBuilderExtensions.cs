@@ -1,7 +1,6 @@
 ﻿using Confluent.Kafka;
 using System;
 using System.Linq;
-using Tingle.EventBus;
 using Tingle.EventBus.Transports.Kafka;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -53,8 +52,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.CheckpointInterval = Math.Max(options.CheckpointInterval, 1);
             });
 
-            // register the event bus
-            services.AddSingleton<IEventBus, KafkaEventBus>();
+            // register the transport
+            builder.RegisterTransport<KafkaTransport>();
 
             return builder;
         }

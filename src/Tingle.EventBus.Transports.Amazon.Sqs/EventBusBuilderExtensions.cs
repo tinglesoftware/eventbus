@@ -56,8 +56,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.SnsConfig.RegionEndpoint ??= options.Region;
             });
 
-            // register the event bus
-            services.AddSingleton<IEventBus, AmazonSqsEventBus>();
+            // register the transport
+            builder.RegisterTransport<AmazonSqsTransport>();
 
             return builder;
         }

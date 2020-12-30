@@ -1,6 +1,5 @@
 ﻿using RabbitMQ.Client;
 using System;
-using Tingle.EventBus;
 using Tingle.EventBus.Transports.RabbitMQ;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -55,11 +54,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.RetryCount = Math.Max(options.RetryCount, 0);
             });
 
-            // register the event bus
-            services.AddSingleton<IEventBus, RabbitMqEventBus>();
-
             // The consumer names must be forced in RabbitMQ
             builder.Configure(options => options.ForceConsumerName = true);
+
+            // register the transport
+            builder.RegisterTransport<RabbitMqTransport>();
 
             return builder;
         }

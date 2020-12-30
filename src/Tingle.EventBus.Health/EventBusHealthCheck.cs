@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 namespace Tingle.EventBus.Health
 {
     /// <summary>
-    /// Implementation of <see cref="IHealthCheck"/> for an <see cref="IEventBus"/>
+    /// Implementation of <see cref="IHealthCheck"/> for <see cref="EventBus"/>
     /// </summary>
     public class EventBusHealthCheck : IHealthCheck
     {
-        private readonly IEventBus bus;
+        private readonly EventBus bus;
 
         /// <summary>
         /// Creates an instance of <see cref="EventBusHealthCheck"/>
         /// </summary>
-        /// <param name="bus">The instance of <see cref="IEventBus"/> to use.</param>
-        public EventBusHealthCheck(IEventBus bus)
+        /// <param name="bus">The instance of <see cref="EventBus"/> to use.</param>
+        public EventBusHealthCheck(EventBus bus)
         {
             this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
         }

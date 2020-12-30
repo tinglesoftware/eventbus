@@ -1,6 +1,4 @@
-﻿using Azure.Messaging.ServiceBus;
-using System;
-using Tingle.EventBus;
+﻿using System;
 using Tingle.EventBus.Transports.Azure.ServiceBus;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -34,8 +32,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             });
 
-            // register the event bus
-            services.AddSingleton<IEventBus, AzureServiceBusEventBus>();
+            // register the transport
+            builder.RegisterTransport<AzureServiceBusTransport>();
 
             return builder;
         }

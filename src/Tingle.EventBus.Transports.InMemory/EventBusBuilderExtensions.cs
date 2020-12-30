@@ -1,5 +1,4 @@
 ﻿using System;
-using Tingle.EventBus;
 using Tingle.EventBus.Transports.InMemory;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -27,8 +26,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 services.Configure(configure);
             }
 
-            // register the event bus
-            services.AddSingleton<IEventBus, InMemoryEventBus>();
+            // register the transport
+            builder.RegisterTransport<InMemoryTransport>();
 
             return builder;
         }

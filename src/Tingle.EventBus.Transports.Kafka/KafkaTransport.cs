@@ -15,9 +15,9 @@ using Tingle.EventBus.Registrations;
 namespace Tingle.EventBus.Transports.Kafka
 {
     /// <summary>
-    /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using Kafka.
+    /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Kafka.
     /// </summary>
-    public class KafkaEventBus : EventBusBase<KafkaOptions>
+    public class KafkaTransport : EventBusTransportBase<KafkaOptions>
     {
         // the timeout used for non-async operations
         private static readonly TimeSpan StandardTimeout = TimeSpan.FromSeconds(30);
@@ -36,11 +36,11 @@ namespace Tingle.EventBus.Transports.Kafka
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public KafkaEventBus(IHostEnvironment environment,
-                             IServiceScopeFactory serviceScopeFactory,
-                             IOptions<EventBusOptions> busOptionsAccessor,
-                             IOptions<KafkaOptions> transportOptionsAccessor,
-                             ILoggerFactory loggerFactory)
+        public KafkaTransport(IHostEnvironment environment,
+                              IServiceScopeFactory serviceScopeFactory,
+                              IOptions<EventBusOptions> busOptionsAccessor,
+                              IOptions<KafkaOptions> transportOptionsAccessor,
+                              ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             // Should be setup the logger?
@@ -66,7 +66,7 @@ namespace Tingle.EventBus.Transports.Kafka
                             //.SetValueSerializer((ISerializer<byte[]>)null)
                             .Build();
 
-            logger = loggerFactory?.CreateLogger<KafkaEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateLogger<KafkaTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>
@@ -78,7 +78,7 @@ namespace Tingle.EventBus.Transports.Kafka
         }
 
         /// <inheritdoc/>
-        protected override Task StartBusAsync(CancellationToken cancellationToken)
+        public override Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
             logger.StartingBusReceivers(registrations.Count);
@@ -93,7 +93,7 @@ namespace Tingle.EventBus.Transports.Kafka
         }
 
         /// <inheritdoc/>
-        protected override Task StopBusAsync(CancellationToken cancellationToken)
+        public override Task StopAsync(CancellationToken cancellationToken)
         {
             // cancel receivers
             logger.StoppingBusReceivers();
@@ -106,9 +106,9 @@ namespace Tingle.EventBus.Transports.Kafka
         }
 
         /// <inheritdoc/>
-        protected async override Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public async override Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                DateTimeOffset? scheduled = null,
+                                                                CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -145,9 +145,9 @@ namespace Tingle.EventBus.Transports.Kafka
         }
 
         /// <inheritdoc/>
-        protected async override Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                               DateTimeOffset? scheduled = null,
-                                                                               CancellationToken cancellationToken = default)
+        public async override Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       DateTimeOffset? scheduled = null,
+                                                                       CancellationToken cancellationToken = default)
         {
             // log warning when doing batch
             logger.LogWarning("Kafka does not support batching. The events will be looped through one by one");

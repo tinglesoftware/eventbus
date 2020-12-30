@@ -1,5 +1,4 @@
 ﻿using System;
-using Tingle.EventBus;
 using Tingle.EventBus.Transports.Azure.QueueStorage;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -39,8 +38,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             });
 
-            // register the event bus
-            services.AddSingleton<IEventBus, AzureQueueStorageEventBus>();
+            // register the transport
+            builder.RegisterTransport<AzureQueueStorageTransport>();
 
             return builder;
         }

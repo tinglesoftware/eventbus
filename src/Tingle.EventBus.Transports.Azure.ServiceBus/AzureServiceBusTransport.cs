@@ -16,9 +16,9 @@ using Tingle.EventBus.Registrations;
 namespace Tingle.EventBus.Transports.Azure.ServiceBus
 {
     /// <summary>
-    /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using Azure Service Bus.
+    /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Azure Service Bus.
     /// </summary>
-    public class AzureServiceBusEventBus : EventBusBase<AzureServiceBusOptions>
+    public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusOptions>
     {
         private readonly Dictionary<Type, ServiceBusSender> sendersCache = new Dictionary<Type, ServiceBusSender>();
         private readonly SemaphoreSlim sendersCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
@@ -36,11 +36,11 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public AzureServiceBusEventBus(IHostEnvironment environment,
-                                       IServiceScopeFactory serviceScopeFactory,
-                                       IOptions<EventBusOptions> busOptionsAccessor,
-                                       IOptions<AzureServiceBusOptions> transportOptionsAccessor,
-                                       ILoggerFactory loggerFactory)
+        public AzureServiceBusTransport(IHostEnvironment environment,
+                                        IServiceScopeFactory serviceScopeFactory,
+                                        IOptions<EventBusOptions> busOptionsAccessor,
+                                        IOptions<AzureServiceBusOptions> transportOptionsAccessor,
+                                        ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             var connectionString = TransportOptions.ConnectionString;
@@ -49,7 +49,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             var sbcOptions = new ServiceBusClientOptions { TransportType = TransportOptions.TransportType, };
             serviceBusClient = new ServiceBusClient(connectionString, sbcOptions);
 
-            logger = loggerFactory?.CreateLogger<AzureServiceBusEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateLogger<AzureServiceBusTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>
@@ -76,7 +76,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         /// <inheritdoc/>
-        protected override async Task StartBusAsync(CancellationToken cancellationToken)
+        public override async Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
             logger.StartingBusReceivers(registrations.Count);
@@ -101,7 +101,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         /// <inheritdoc/>
-        protected override async Task StopBusAsync(CancellationToken cancellationToken)
+        public override async Task StopAsync(CancellationToken cancellationToken)
         {
             logger.StoppingBusReceivers();
             var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
@@ -124,9 +124,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         /// <inheritdoc/>
-        protected override async Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                DateTimeOffset? scheduled = null,
+                                                                CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
@@ -183,9 +183,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         /// <inheritdoc/>
-        protected override async Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                               DateTimeOffset? scheduled = null,
-                                                                               CancellationToken cancellationToken = default)
+        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       DateTimeOffset? scheduled = null,
+                                                                       CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
             var messages = new List<ServiceBusMessage>();

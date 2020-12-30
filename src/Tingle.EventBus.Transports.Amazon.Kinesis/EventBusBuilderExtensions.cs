@@ -53,8 +53,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.KinesisConfig.RegionEndpoint ??= options.Region;
             });
 
-            // register the event bus
-            services.AddSingleton<IEventBus, AmazonKinesisEventBus>();
+            // register the transport
+            builder.RegisterTransport<AmazonKinesisTransport>();
 
             return builder;
         }

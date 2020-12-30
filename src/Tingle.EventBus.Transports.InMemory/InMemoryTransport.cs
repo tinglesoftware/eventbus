@@ -14,10 +14,10 @@ using System.Threading.Tasks;
 namespace Tingle.EventBus.Transports.InMemory
 {
     /// <summary>
-    /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using an in-memory transport.
+    /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using an in-memory transport.
     /// This implementation should only be used for unit testing or similar scenarios as it does not offer persistence.
     /// </summary>
-    public class InMemoryEventBus : EventBusBase<InMemoryOptions>
+    public class InMemoryTransport : EventBusTransportBase<InMemoryOptions>
     {
         private readonly ConcurrentBag<object> published = new ConcurrentBag<object>();
         private readonly ConcurrentBag<object> consumed = new ConcurrentBag<object>();
@@ -32,14 +32,14 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public InMemoryEventBus(IHostEnvironment environment,
-                                IServiceScopeFactory serviceScopeFactory,
-                                IOptions<EventBusOptions> busOptionsAccessor,
-                                IOptions<InMemoryOptions> transportOptionsAccessor,
-                                ILoggerFactory loggerFactory)
+        public InMemoryTransport(IHostEnvironment environment,
+                                 IServiceScopeFactory serviceScopeFactory,
+                                 IOptions<EventBusOptions> busOptionsAccessor,
+                                 IOptions<InMemoryOptions> transportOptionsAccessor,
+                                 ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            logger = loggerFactory?.CreateLogger<InMemoryEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateLogger<InMemoryTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <summary>
@@ -65,15 +65,15 @@ namespace Tingle.EventBus.Transports.InMemory
         }
 
         /// <inheritdoc/>
-        protected override Task StartBusAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public override Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
         /// <inheritdoc/>
-        protected override Task StopBusAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public override Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
         /// <inheritdoc/>
-        protected override async Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                DateTimeOffset? scheduled = null,
+                                                                CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -98,9 +98,9 @@ namespace Tingle.EventBus.Transports.InMemory
         }
 
         /// <inheritdoc/>
-        protected async override Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                         DateTimeOffset? scheduled = null,
-                                                                         CancellationToken cancellationToken = default)
+        public async override Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       DateTimeOffset? scheduled = null,
+                                                                       CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)

@@ -1,5 +1,4 @@
 ﻿using System;
-using Tingle.EventBus;
 using Tingle.EventBus.Transports.Azure.EventHubs;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -48,8 +47,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.BlobContainerName = options.BlobContainerName.ToLower();
             });
 
-            // register the event bus
-            services.AddSingleton<IEventBus, AzureEventHubsEventBus>();
+            // register the transport
+            builder.RegisterTransport<AzureEventHubsTransport>();
 
             return builder;
         }

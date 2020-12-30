@@ -19,9 +19,9 @@ using Tingle.EventBus.Registrations;
 namespace Tingle.EventBus.Transports.Azure.EventHubs
 {
     /// <summary>
-    /// Implementation of <see cref="IEventBus"/> via <see cref="EventBusBase{TTransportOptions}"/> using Azure Event Hubs.
+    /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Azure Event Hubs.
     /// </summary>
-    public class AzureEventHubsEventBus : EventBusBase<AzureEventHubsOptions>
+    public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsOptions>
     {
         private readonly Dictionary<(Type, bool), EventHubProducerClient> producersCache = new Dictionary<(Type, bool), EventHubProducerClient>();
         private readonly SemaphoreSlim producersCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
@@ -37,14 +37,14 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public AzureEventHubsEventBus(IHostEnvironment environment,
-                                      IServiceScopeFactory serviceScopeFactory,
-                                      IOptions<EventBusOptions> busOptionsAccessor,
-                                      IOptions<AzureEventHubsOptions> transportOptionsAccessor,
-                                      ILoggerFactory loggerFactory)
+        public AzureEventHubsTransport(IHostEnvironment environment,
+                                       IServiceScopeFactory serviceScopeFactory,
+                                       IOptions<EventBusOptions> busOptionsAccessor,
+                                       IOptions<AzureEventHubsOptions> transportOptionsAccessor,
+                                       ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            logger = loggerFactory?.CreateLogger<AzureEventHubsEventBus>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateLogger<AzureEventHubsTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>
@@ -64,7 +64,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         }
 
         /// <inheritdoc/>
-        protected override async Task StartBusAsync(CancellationToken cancellationToken)
+        public override async Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
             logger.StartingBusReceivers(registrations.Count);
@@ -99,7 +99,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         }
 
         /// <inheritdoc/>
-        protected override async Task StopBusAsync(CancellationToken cancellationToken)
+        public override async Task StopAsync(CancellationToken cancellationToken)
         {
             logger.StoppingBusReceivers();
             var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
@@ -122,9 +122,9 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         }
 
         /// <inheritdoc/>
-        protected override async Task<string> PublishOnBusAsync<TEvent>(EventContext<TEvent> @event,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                DateTimeOffset? scheduled = null,
+                                                                CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled event
             if (scheduled != null)
@@ -163,9 +163,9 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         }
 
         /// <inheritdoc/>
-        protected override async Task<IList<string>> PublishOnBusAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                               DateTimeOffset? scheduled = null,
-                                                                               CancellationToken cancellationToken = default)
+        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       DateTimeOffset? scheduled = null,
+                                                                       CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled events
             if (scheduled != null)

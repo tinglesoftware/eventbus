@@ -148,6 +148,9 @@ namespace Tingle.EventBus.Transports.InMemory
             var cts = new CancellationTokenSource();
             var cancellationToken = cts.Token;
 
+            // reset the stream to the begining
+            ms.Seek(0, SeekOrigin.Begin);
+
             // if the message is scheduled, apply a delay for the duration
             if (scheduled != null)
             {

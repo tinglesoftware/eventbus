@@ -139,10 +139,6 @@ namespace Tingle.EventBus.Transports
                                                                  CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // set properties that may be missing
-            @event.EventId ??= Guid.NewGuid().ToString();
-            @event.Sent ??= DateTimeOffset.UtcNow;
-
             // Get the serializer
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
 

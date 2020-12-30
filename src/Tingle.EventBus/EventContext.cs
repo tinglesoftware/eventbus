@@ -11,7 +11,6 @@ namespace Tingle.EventBus
     /// </summary>
     public abstract class EventContext : IEventPublisher
     {
-
         /// <summary>
         /// 
         /// </summary>

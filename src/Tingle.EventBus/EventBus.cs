@@ -79,7 +79,11 @@ namespace Tingle.EventBus
             // Add diagnostics headers
             @event.Headers.AddIfNotDefault(DiagnosticHeaders.ActivityId, Activity.Current?.Id);
 
-            // publish on the transport
+            // Set properties that may be missing
+            @event.EventId ??= Guid.NewGuid().ToString();
+            @event.Sent ??= DateTimeOffset.UtcNow;
+
+            // Publish on the transport
             var transport = GetTransportForEvent<TEvent>();
             return await transport.PublishAsync(@event: @event,
                                                 scheduled: scheduled,
@@ -102,13 +106,17 @@ namespace Tingle.EventBus
                                                               CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // Add diagnostics headers
             foreach (var @event in events)
             {
+                // Add diagnostics headers
                 @event.Headers.AddIfNotDefault(DiagnosticHeaders.ActivityId, Activity.Current?.Id);
+
+                // Set properties that may be missing
+                @event.EventId ??= Guid.NewGuid().ToString();
+                @event.Sent ??= DateTimeOffset.UtcNow;
             }
 
-            // publish on the transport
+            // Publish on the transport
             var transport = GetTransportForEvent<TEvent>();
             return await transport.PublishAsync(events: events,
                                                 scheduled: scheduled,

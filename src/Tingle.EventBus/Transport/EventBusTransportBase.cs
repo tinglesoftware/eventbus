@@ -160,9 +160,6 @@ namespace Tingle.EventBus.Transport
                                                              CancellationToken cancellationToken)
             where TConsumer : IEventBusConsumer<TEvent>
         {
-            // Set the bus in context
-            @event.SetBus(this);
-
             // Resolve the consumer
             var consumer = scope.ServiceProvider.GetRequiredService<TConsumer>();
 

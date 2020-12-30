@@ -11,7 +11,12 @@ namespace Tingle.EventBus
     /// </summary>
     public abstract class EventContext : IEventPublisher
     {
-        private EventBus bus;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bus">The <see cref="EventBus"/> in which this context exists.</param>
+        protected EventContext(EventBus bus) => Bus = bus ?? throw new ArgumentNullException(nameof(bus));
 
         /// <summary>
         /// The unique identifier of the event.
@@ -53,19 +58,24 @@ namespace Tingle.EventBus
         /// </summary>
         public IDictionary<string, object> Headers { get; set; } = new Dictionary<string, object>();
 
+        /// <summary>
+        /// The bus in which this context exists.
+        /// </summary>
+        internal EventBus Bus { get; }
+
         /// <inheritdoc/>
         public Task<string> PublishAsync<TEvent>(TEvent @event,
                                                  DateTimeOffset? scheduled = null,
                                                  CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            var context = new EventContext<TEvent>
+            var context = new EventContext<TEvent>(Bus)
             {
                 CorrelationId = EventId,
                 Event = @event,
             };
 
-            return bus.PublishAsync(@event: context, scheduled: scheduled, cancellationToken: cancellationToken);
+            return Bus.PublishAsync(@event: context, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>
@@ -74,28 +84,25 @@ namespace Tingle.EventBus
                                                         CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            var contexts = events.Select(e => new EventContext<TEvent>
+            var contexts = events.Select(e => new EventContext<TEvent>(Bus)
             {
                 CorrelationId = EventId,
                 Event = e,
             }).ToList();
-            return bus.PublishAsync(events: contexts, scheduled: scheduled, cancellationToken: cancellationToken);
+            return Bus.PublishAsync(events: contexts, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>
         public async Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default) where TEvent : class
         {
-            await bus.CancelAsync<TEvent>(id: id, cancellationToken: cancellationToken);
+            await Bus.CancelAsync<TEvent>(id: id, cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>
         public async Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default) where TEvent : class
         {
-            await bus.CancelAsync<TEvent>(ids: ids, cancellationToken: cancellationToken);
+            await Bus.CancelAsync<TEvent>(ids: ids, cancellationToken: cancellationToken);
         }
-
-        //TODO: move this to internal constructor and make field readonly
-        internal void SetBus(EventBus bus) => this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
     }
 
     /// <summary>
@@ -104,6 +111,9 @@ namespace Tingle.EventBus
     /// <typeparam name="T">The type of event carried.</typeparam>
     public class EventContext<T> : EventContext
     {
+        /// <inheritdoc/>
+        public EventContext(EventBus bus) : base(bus) { }
+
         /// <summary>
         /// The event published or to be published.
         /// </summary>

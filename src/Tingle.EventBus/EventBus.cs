@@ -78,12 +78,8 @@ namespace Tingle.EventBus
             // Add diagnostics headers
             @event.Headers.AddIfNotDefault(Logging.DiagnosticHeaders.ActivityId, Activity.Current?.Id);
 
-            // get the transport
-            var reg = options.GetOrCreateEventRegistration<TEvent>();
-            var transportType = options.RegisteredTransportNames[reg.TransportName];
-            var transport = transports.Single(t => t.GetType() == transportType);
-
             // publish on the transport
+            var transport = GetTransportForEvent<TEvent>();
             return await transport.PublishAsync(@event: @event,
                                                 scheduled: scheduled,
                                                 cancellationToken: cancellationToken);
@@ -111,12 +107,8 @@ namespace Tingle.EventBus
                 @event.Headers.AddIfNotDefault(Logging.DiagnosticHeaders.ActivityId, Activity.Current?.Id);
             }
 
-            // get the transport
-            var reg = options.GetOrCreateEventRegistration<TEvent>();
-            var transportType = options.RegisteredTransportNames[reg.TransportName];
-            var transport = transports.Single(t => t.GetType() == transportType);
-
             // publish on the transport
+            var transport = GetTransportForEvent<TEvent>();
             return await transport.PublishAsync(events: events,
                                                 scheduled: scheduled,
                                                 cancellationToken: cancellationToken);
@@ -133,12 +125,8 @@ namespace Tingle.EventBus
         public async Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // get the transport
-            var reg = options.GetOrCreateEventRegistration<TEvent>();
-            var transportType = options.RegisteredTransportNames[reg.TransportName];
-            var transport = transports.Single(t => t.GetType() == transportType);
-
             // cancel on the transport
+            var transport = GetTransportForEvent<TEvent>();
             await transport.CancelAsync<TEvent>(id: id, cancellationToken: cancellationToken);
         }
 
@@ -152,12 +140,8 @@ namespace Tingle.EventBus
         public async Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // get the transport
-            var reg = options.GetOrCreateEventRegistration<TEvent>();
-            var transportType = options.RegisteredTransportNames[reg.TransportName];
-            var transport = transports.Single(t => t.GetType() == transportType);
-
             // cancel on the transport
+            var transport = GetTransportForEvent<TEvent>();
             await transport.CancelAsync<TEvent>(ids: ids, cancellationToken: cancellationToken);
         }
 
@@ -187,6 +171,15 @@ namespace Tingle.EventBus
             {
                 await t.StopAsync(cancellationToken);
             }
+        }
+
+
+        internal IEventBusTransport GetTransportForEvent<TEvent>()
+        {
+            // get the transport
+            var reg = options.GetOrCreateEventRegistration<TEvent>();
+            var transportType = options.RegisteredTransportNames[reg.TransportName];
+            return transports.Single(t => t.GetType() == transportType);
         }
     }
 }

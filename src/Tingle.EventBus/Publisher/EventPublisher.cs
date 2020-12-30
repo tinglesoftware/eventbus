@@ -21,7 +21,7 @@ namespace Tingle.EventBus
                                                        CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            var context = new EventContext<TEvent> { Event = @event };
+            var context = new EventContext<TEvent>(bus) { Event = @event };
             return await bus.PublishAsync(context, scheduled, cancellationToken);
         }
 
@@ -30,7 +30,7 @@ namespace Tingle.EventBus
                                                               DateTimeOffset? scheduled = null,
                                                               CancellationToken cancellationToken = default) where TEvent : class
         {
-            var contexts = events.Select(e => new EventContext<TEvent> { Event = e }).ToList();
+            var contexts = events.Select(e => new EventContext<TEvent>(bus) { Event = e }).ToList();
             return await bus.PublishAsync(events: contexts, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 

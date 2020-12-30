@@ -56,7 +56,8 @@ namespace Tingle.EventBus.Serialization
         }
 
         /// <inheritdoc/>
-        public async Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
+        public async Task<EventContext<T>> DeserializeAsync<T>(EventBus bus,
+                                                               Stream stream,
                                                                ContentType contentType,
                                                                CancellationToken cancellationToken = default)
             where T : class
@@ -75,7 +76,7 @@ namespace Tingle.EventBus.Serialization
             T @event = typeof(T) == typeof(JsonElement) ? eventToken as T : ToObject<T>(eventToken, serializerOptions);
 
             // create the context with the event and popuate common properties
-            var context = new EventContext<T>
+            var context = new EventContext<T>(bus)
             {
                 EventId = envelope.EventId,
                 RequestId = envelope.RequestId,

@@ -16,7 +16,8 @@ namespace CustomSerializer
         private readonly JsonSerializer serializer = JsonSerializer.CreateDefault();
 
         /// <inheritdoc/>
-        public Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
+        public Task<EventContext<T>> DeserializeAsync<T>(EventBus bus,
+                                                         Stream stream,
                                                          ContentType contentType,
                                                          CancellationToken cancellationToken = default) where T : class
         {
@@ -37,7 +38,7 @@ namespace CustomSerializer
             var jToken = serializer.Deserialize<JToken>(jtr);
 
             var @event = jToken.ToObject<AzureDevOpsCodePushed>();
-            var context = new EventContext<T>
+            var context = new EventContext<T>(bus)
             {
                 EventId = jToken.Value<string>("id"),
                 Event = @event as T,

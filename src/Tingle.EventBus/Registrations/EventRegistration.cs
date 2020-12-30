@@ -40,6 +40,11 @@ namespace Tingle.EventBus.Registrations
         public string EventName { get; set; }
 
         /// <summary>
+        /// The name of the transport used for the event.
+        /// </summary>
+        public string TransportName { get; set; }
+
+        /// <summary>
         /// The type used for serializing and deserializing events.
         /// This type must implement <see cref="Serialization.IEventSerializer"/>.
         /// </summary>

@@ -53,6 +53,7 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 reg.SetSerializer() // set the serializer
                    .SetEventName(options) // set the event name
+                   .SetTransportName(options) // set the transport name
                    .SetConsumerName(options, environment); // set the consumer name
             }
 

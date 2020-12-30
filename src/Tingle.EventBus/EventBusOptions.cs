@@ -105,7 +105,8 @@ namespace Tingle.EventBus
             // at this point, the registration does not exist; create it and add to the registrations
             registration = new EventRegistration(key);
             registration.SetSerializer() // set serializer
-                        .SetEventName(this); // set event name
+                        .SetEventName(this) // set event name
+                        .SetTransportName(this); // set transport name
             return EventRegistrations[key] = registration;
         }
 

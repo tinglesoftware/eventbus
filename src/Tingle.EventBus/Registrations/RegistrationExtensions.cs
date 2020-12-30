@@ -84,6 +84,43 @@ namespace Tingle.EventBus.Registrations
             return reg;
         }
 
+        internal static T SetTransportName<T>(this T reg, EventBusOptions options) where T : EventRegistration
+        {
+            if (reg is null) throw new ArgumentNullException(nameof(reg));
+            if (options is null) throw new ArgumentNullException(nameof(options));
+
+            var type = reg.EventType;
+
+            // if the event transport name has not been specified, attempt to get from the attribute
+            reg.TransportName ??= type.GetCustomAttributes(false).OfType<EventTransportNameAttribute>().SingleOrDefault()?.Name;
+
+            // if the event transport name has not been set, try the default one
+            reg.TransportName ??= options.DefaultTransportName;
+
+            // set the transport name from the default, if not set
+            if (string.IsNullOrWhiteSpace(reg.TransportName))
+            {
+                // if only one transport is registered, use it
+                if (options.RegisteredTransportNames.Count == 1)
+                {
+                    reg.TransportName = options.RegisteredTransportNames.Single();
+                }
+                else
+                {
+                    throw new InvalidOperationException($"The transport on event '{type.FullName}' must be set"
+                                                      + " explicitly when more than one transport is registered.");
+                }
+            }
+
+            // ensure the transport name set has been registered
+            if (!options.RegisteredTransportNames.Contains(reg.TransportName))
+            {
+                throw new InvalidOperationException($"Transport '{reg.TransportName}' on event '{type.FullName}' must be registered.");
+            }
+
+            return reg;
+        }
+
         internal static string GetApplicationName(this EventBusOptions options, IHostEnvironment environment)
         {
             if (options is null) throw new ArgumentNullException(nameof(options));

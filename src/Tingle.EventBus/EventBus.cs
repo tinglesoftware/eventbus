@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Transports;
 
 namespace Tingle.EventBus
@@ -76,7 +77,7 @@ namespace Tingle.EventBus
             where TEvent : class
         {
             // Add diagnostics headers
-            @event.Headers.AddIfNotDefault(Logging.DiagnosticHeaders.ActivityId, Activity.Current?.Id);
+            @event.Headers.AddIfNotDefault(DiagnosticHeaders.ActivityId, Activity.Current?.Id);
 
             // publish on the transport
             var transport = GetTransportForEvent<TEvent>();
@@ -104,7 +105,7 @@ namespace Tingle.EventBus
             // Add diagnostics headers
             foreach (var @event in events)
             {
-                @event.Headers.AddIfNotDefault(Logging.DiagnosticHeaders.ActivityId, Activity.Current?.Id);
+                @event.Headers.AddIfNotDefault(DiagnosticHeaders.ActivityId, Activity.Current?.Id);
             }
 
             // publish on the transport

@@ -1,4 +1,4 @@
-﻿namespace Tingle.EventBus.Logging
+﻿namespace Tingle.EventBus.Diagnostics
 {
     internal static class DiagnosticHeaders
     {

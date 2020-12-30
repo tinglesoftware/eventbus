@@ -79,7 +79,7 @@ namespace Tingle.EventBus.Transports.Kafka
         public override Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
-            Logger.StartingBusReceivers(registrations.Count);
+            Logger.StartingTransport(registrations.Count);
             var topics = registrations.Select(r => r.EventName).ToList();
             // only consume if there are topics to subscribe to
             if (topics.Count > 0)
@@ -94,7 +94,7 @@ namespace Tingle.EventBus.Transports.Kafka
         public override Task StopAsync(CancellationToken cancellationToken)
         {
             // cancel receivers
-            Logger.StoppingBusReceivers();
+            Logger.StoppingTransport();
             receiveCancellationTokenSource.Cancel();
 
             // ensure all outstanding produce requests are processed

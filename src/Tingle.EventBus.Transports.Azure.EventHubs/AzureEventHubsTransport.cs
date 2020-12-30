@@ -66,7 +66,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
-            Logger.StartingBusReceivers(registrations.Count);
+            Logger.StartingTransport(registrations.Count);
             foreach (var reg in registrations)
             {
                 var processor = await GetProcessorAsync(reg: reg, cancellationToken: cancellationToken);
@@ -100,7 +100,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         /// <inheritdoc/>
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            Logger.StoppingBusReceivers();
+            Logger.StoppingTransport();
             var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
             foreach (var (key, proc) in clients)
             {

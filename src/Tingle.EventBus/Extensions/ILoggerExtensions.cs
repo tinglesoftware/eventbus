@@ -17,26 +17,26 @@ namespace Microsoft.Extensions.Logging
             = LoggerMessage.Define(
                 eventId: new EventId(2, nameof(StoppingBus)),
                 logLevel: LogLevel.Debug,
-                formatString: "Stopping bus receivers.");
+                formatString: "Stopping bus.");
 
-        private static readonly Action<ILogger, int, Exception> _startingReceivers
+        private static readonly Action<ILogger, int, Exception> _startingTransport
             = LoggerMessage.Define<int>(
-                eventId: new EventId(3, nameof(StartingBusReceivers)),
+                eventId: new EventId(3, nameof(StartingTransport)),
                 logLevel: LogLevel.Debug,
-                formatString: "Starting bus receivers. Consumers: '{Count}'");
+                formatString: "Starting transport. Consumers: '{Count}'");
 
-        private static readonly Action<ILogger, Exception> _stoppingReceivers
+        private static readonly Action<ILogger, Exception> _stoppingTransport
             = LoggerMessage.Define(
-                eventId: new EventId(4, nameof(StoppingBusReceivers)),
+                eventId: new EventId(4, nameof(StoppingTransport)),
                 logLevel: LogLevel.Debug,
-                formatString: "Stopping bus receivers.");
+                formatString: "Stopping transport.");
 
         public static void StartingBus(this ILogger logger) => _startingBus(logger, null);
 
         public static void StoppingBus(this ILogger logger) => _stoppingBus(logger, null);
 
-        public static void StartingBusReceivers(this ILogger logger, int count) => _startingReceivers(logger, count, null);
+        public static void StartingTransport(this ILogger logger, int count) => _startingTransport(logger, count, null);
 
-        public static void StoppingBusReceivers(this ILogger logger) => _stoppingReceivers(logger, null);
+        public static void StoppingTransport(this ILogger logger) => _stoppingTransport(logger, null);
     }
 }

@@ -60,7 +60,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         public override Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
-            Logger.StartingBusReceivers(registrations.Count);
+            Logger.StartingTransport(registrations.Count);
             foreach (var reg in registrations)
             {
                 _ = ReceiveAsync(reg);
@@ -72,7 +72,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         /// <inheritdoc/>
         public override Task StopAsync(CancellationToken cancellationToken)
         {
-            Logger.StoppingBusReceivers();
+            Logger.StoppingTransport();
             receiveCancellationTokenSource.Cancel();
             // TODO: figure out a way to wait for notification of termination in all receivers
             return Task.CompletedTask;

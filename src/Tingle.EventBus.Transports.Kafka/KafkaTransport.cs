@@ -27,7 +27,6 @@ namespace Tingle.EventBus.Transports.Kafka
         private readonly IConsumer<string, byte[]> consumer; // consumer instance is thread safe thus can be shared, and across topics
         private readonly CancellationTokenSource receiveCancellationTokenSource = new CancellationTokenSource();
         private readonly IAdminClient adminClient;
-        private readonly ILogger logger;
 
         /// <summary>
         /// 
@@ -66,8 +65,6 @@ namespace Tingle.EventBus.Transports.Kafka
             consumer = new ConsumerBuilder<string, byte[]>(c_config)
                             //.SetValueSerializer((ISerializer<byte[]>)null)
                             .Build();
-
-            logger = loggerFactory?.CreateTransportLogger(TransportNames.Kafka) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>
@@ -82,7 +79,7 @@ namespace Tingle.EventBus.Transports.Kafka
         public override Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
-            logger.StartingBusReceivers(registrations.Count);
+            Logger.StartingBusReceivers(registrations.Count);
             var topics = registrations.Select(r => r.EventName).ToList();
             // only consume if there are topics to subscribe to
             if (topics.Count > 0)
@@ -97,7 +94,7 @@ namespace Tingle.EventBus.Transports.Kafka
         public override Task StopAsync(CancellationToken cancellationToken)
         {
             // cancel receivers
-            logger.StoppingBusReceivers();
+            Logger.StoppingBusReceivers();
             receiveCancellationTokenSource.Cancel();
 
             // ensure all outstanding produce requests are processed
@@ -114,7 +111,7 @@ namespace Tingle.EventBus.Transports.Kafka
             // log warning when trying to publish scheduled message
             if (scheduled != null)
             {
-                logger.LogWarning("Kafka does not support delay or scheduled publish");
+                Logger.LogWarning("Kafka does not support delay or scheduled publish");
             }
 
             using var scope = CreateScope();
@@ -151,12 +148,12 @@ namespace Tingle.EventBus.Transports.Kafka
                                                                        CancellationToken cancellationToken = default)
         {
             // log warning when doing batch
-            logger.LogWarning("Kafka does not support batching. The events will be looped through one by one");
+            Logger.LogWarning("Kafka does not support batching. The events will be looped through one by one");
 
             // log warning when trying to publish scheduled message
             if (scheduled != null)
             {
-                logger.LogWarning("Kafka does not support delay or scheduled publish");
+                Logger.LogWarning("Kafka does not support delay or scheduled publish");
             }
 
             using var scope = CreateScope();
@@ -219,14 +216,14 @@ namespace Tingle.EventBus.Transports.Kafka
                 var result = consumer.Consume(cancellationToken);
                 if (result.IsPartitionEOF)
                 {
-                    logger.LogTrace("Reached end of topic {Topic}, Partition:{Partition}, Offset:{Offset}.",
+                    Logger.LogTrace("Reached end of topic {Topic}, Partition:{Partition}, Offset:{Offset}.",
                                     result.Topic,
                                     result.Partition,
                                     result.Offset);
                     continue;
                 }
 
-                logger.LogDebug("Received message at {TopicPartitionOffset}", result.TopicPartitionOffset);
+                Logger.LogDebug("Received message at {TopicPartitionOffset}", result.TopicPartitionOffset);
 
                 // get the registration for topic
                 var topic = result.Topic;
@@ -263,7 +260,7 @@ namespace Tingle.EventBus.Transports.Kafka
             message.Headers.TryGetValue("CorrelationId", out var correlationId);
             message.Headers.TryGetValue("Content-Type", out var contentType_str);
 
-            using var log_scope = logger.BeginScope(new Dictionary<string, string>
+            using var log_scope = Logger.BeginScope(new Dictionary<string, string>
             {
                 ["MessageKey"] = message.Key,
                 ["CorrelationId"] = correlationId?.ToString(),
@@ -271,7 +268,7 @@ namespace Tingle.EventBus.Transports.Kafka
 
             try
             {
-                logger.LogDebug("Processing '{MessageKey}", message.Key);
+                Logger.LogDebug("Processing '{MessageKey}", message.Key);
                 using var scope = CreateScope();
                 using var ms = new MemoryStream(message.Value);
                 var contentType = new ContentType(contentType_str?.ToString() ?? "*/*");
@@ -280,7 +277,7 @@ namespace Tingle.EventBus.Transports.Kafka
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
-                logger.LogInformation("Received event: '{MessageKey}' containing Event '{EventId}'",
+                Logger.LogInformation("Received event: '{MessageKey}' containing Event '{EventId}'",
                                       message.Key,
                                       context.EventId);
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
@@ -289,7 +286,7 @@ namespace Tingle.EventBus.Transports.Kafka
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Event processing failed. Moving to deadletter.");
+                Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
 
                 // produce message on deadletter topic
                 var dlt = reg.EventName += "-deadletter";

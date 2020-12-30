@@ -28,7 +28,6 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         private readonly SemaphoreSlim queueClientsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
         private readonly CancellationTokenSource receiveCancellationTokenSource = new CancellationTokenSource();
         private readonly QueueServiceClient serviceClient;
-        private readonly ILogger logger;
 
         /// <summary>
         /// 
@@ -46,7 +45,6 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             serviceClient = new QueueServiceClient(TransportOptions.ConnectionString);
-            logger = loggerFactory?.CreateTransportLogger(TransportNames.AzureQueueStorage) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>
@@ -62,7 +60,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         public override Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
-            logger.StartingBusReceivers(registrations.Count);
+            Logger.StartingBusReceivers(registrations.Count);
             foreach (var reg in registrations)
             {
                 _ = ReceiveAsync(reg);
@@ -74,7 +72,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         /// <inheritdoc/>
         public override Task StopAsync(CancellationToken cancellationToken)
         {
-            logger.StoppingBusReceivers();
+            Logger.StoppingBusReceivers();
             receiveCancellationTokenSource.Cancel();
             // TODO: figure out a way to wait for notification of termination in all receivers
             return Task.CompletedTask;
@@ -104,7 +102,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             // get the queue client and send the message
             var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
             var message = Encoding.UTF8.GetString(ms.ToArray());
-            logger.LogInformation("Sending {EventId} to '{QueueName}'", @event.EventId, queueClient.Name);
+            Logger.LogInformation("Sending {EventId} to '{QueueName}'", @event.EventId, queueClient.Name);
             var response = await queueClient.SendMessageAsync(messageText: message,
                                                               visibilityTimeout: visibilityTimeout,
                                                               timeToLive: ttl,
@@ -120,7 +118,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                                        CancellationToken cancellationToken = default)
         {
             // log warning when doing batch
-            logger.LogWarning("Azure Queue Storage does not support batching. The events will be looped through one by one");
+            Logger.LogWarning("Azure Queue Storage does not support batching. The events will be looped through one by one");
 
             using var scope = CreateScope();
 
@@ -144,7 +142,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
                 // send the message
                 var message = Encoding.UTF8.GetString(ms.ToArray());
-                logger.LogInformation("Sending {EventId} to '{QueueName}'", @event.EventId, queueClient.Name);
+                Logger.LogInformation("Sending {EventId} to '{QueueName}'", @event.EventId, queueClient.Name);
                 var response = await queueClient.SendMessageAsync(messageText: message,
                                                                   visibilityTimeout: visibilityTimeout,
                                                                   timeToLive: ttl,
@@ -169,7 +167,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
             var parts = id.Split(SequenceNumberSeparator);
             string messageId = parts[0], popReceipt = parts[1];
-            logger.LogInformation("Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'", messageId, popReceipt, queueClient.Name);
+            Logger.LogInformation("Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'", messageId, popReceipt, queueClient.Name);
             await queueClient.DeleteMessageAsync(messageId: messageId,
                                                  popReceipt: popReceipt,
                                                  cancellationToken: cancellationToken);
@@ -190,13 +188,13 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             }).ToList();
 
             // log warning when doing batch
-            logger.LogWarning("Azure Queue Storage does not support batching. The events will be canceled one by one");
+            Logger.LogWarning("Azure Queue Storage does not support batching. The events will be canceled one by one");
 
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
             foreach (var (messageId, popReceipt) in splits)
             {
-                logger.LogInformation("Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'", messageId, popReceipt, queueClient.Name);
+                Logger.LogInformation("Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'", messageId, popReceipt, queueClient.Name);
                 await queueClient.DeleteMessageAsync(messageId: messageId,
                                                      popReceipt: popReceipt,
                                                      cancellationToken: cancellationToken);
@@ -226,7 +224,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                   });
 
                     // ensure queue is created if it does not exist
-                    logger.LogInformation("Ensuring queue '{QueueName}' exists", name);
+                    Logger.LogInformation("Ensuring queue '{QueueName}' exists", name);
                     await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
 
                     queueClientsCache[(reg.EventType, deadletter)] = queueClient;
@@ -258,12 +256,12 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                 if (messages.Length == 0)
                 {
                     var delay = TransportOptions.EmptyResultsDelay;
-                    logger.LogTrace("No messages on '{QueueName}', delaying check for {Delay}", queueClient.Name, delay);
+                    Logger.LogTrace("No messages on '{QueueName}', delaying check for {Delay}", queueClient.Name, delay);
                     await Task.Delay(delay, cancellationToken);
                 }
                 else
                 {
-                    logger.LogDebug("Received {MessageCount} messages on '{QueueName}'", messages.Length, queueClient.Name);
+                    Logger.LogDebug("Received {MessageCount} messages on '{QueueName}'", messages.Length, queueClient.Name);
                     using var scope = CreateScope(); // shared
                     foreach (var message in messages)
                     {
@@ -281,7 +279,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
-            using var log_scope = logger.BeginScope(new Dictionary<string, string>
+            using var log_scope = Logger.BeginScope(new Dictionary<string, string>
             {
                 ["MesageId"] = message.MessageId,
                 ["PopReceipt"] = message.PopReceipt,
@@ -291,7 +289,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
             try
             {
-                logger.LogDebug("Processing '{MessageId}|{PopReceipt}'", message.MessageId, message.PopReceipt);
+                Logger.LogDebug("Processing '{MessageId}|{PopReceipt}'", message.MessageId, message.PopReceipt);
                 using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.MessageText));
                 var contentType = new ContentType("*/*");
                 var context = await DeserializeAsync<TEvent>(body: ms,
@@ -299,7 +297,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
-                logger.LogInformation("Received message: '{MessageId}|{PopReceipt}' containing Event '{EventId}'",
+                Logger.LogInformation("Received message: '{MessageId}|{PopReceipt}' containing Event '{EventId}'",
                                       message.MessageId,
                                       message.PopReceipt,
                                       context.EventId);
@@ -309,7 +307,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Event processing failed. Moving to deadletter.");
+                Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
 
                 // get the client for the dead letter queue and send the mesage there
                 var dlqClient = await GetQueueClientAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
@@ -317,7 +315,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             }
 
             // always delete the message from the current queue
-            logger.LogTrace("Deleting '{MessageId}|{PopReceipt}' on '{QueueName}'",
+            Logger.LogTrace("Deleting '{MessageId}|{PopReceipt}' on '{QueueName}'",
                             message.MessageId,
                             message.PopReceipt,
                             queueClient.Name);

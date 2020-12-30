@@ -33,7 +33,6 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         private readonly CancellationTokenSource receiveCancellationTokenSource = new CancellationTokenSource();
         private readonly AmazonSimpleNotificationServiceClient snsClient;
         private readonly AmazonSQSClient sqsClient;
-        private readonly ILogger logger;
 
         /// <summary>
         /// 
@@ -55,8 +54,6 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
 
             sqsClient = new AmazonSQSClient(credentials: TransportOptions.Credentials,
                                             clientConfig: TransportOptions.SqsConfig);
-
-            logger = loggerFactory?.CreateTransportLogger(TransportNames.AmazonSqs) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>
@@ -73,7 +70,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
-            logger.StartingBusReceivers(registrations.Count);
+            Logger.StartingBusReceivers(registrations.Count);
             foreach (var reg in registrations)
             {
                 var queueUrl = await GetQueueUrlAsync(reg: reg, cancellationToken: cancellationToken);
@@ -84,7 +81,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         /// <inheritdoc/>
         public override Task StopAsync(CancellationToken cancellationToken)
         {
-            logger.StoppingBusReceivers();
+            Logger.StoppingBusReceivers();
             receiveCancellationTokenSource.Cancel();
             // TODO: figure out a way to wait for notification of termination in all receivers
             return Task.CompletedTask;
@@ -98,7 +95,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             // log warning when trying to publish scheduled message
             if (scheduled != null)
             {
-                logger.LogWarning("Amazon SNS does not support delay or scheduled publish");
+                Logger.LogWarning("Amazon SNS does not support delay or scheduled publish");
             }
 
             using var scope = CreateScope();
@@ -129,12 +126,12 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                                                                        CancellationToken cancellationToken = default)
         {
             // log warning when doing batch
-            logger.LogWarning("Amazon SNS does not support batching. The events will be looped through one by one");
+            Logger.LogWarning("Amazon SNS does not support batching. The events will be looped through one by one");
 
             // log warning when trying to publish scheduled message
             if (scheduled != null)
             {
-                logger.LogWarning("Amazon SNS does not support delay or scheduled publish");
+                Logger.LogWarning("Amazon SNS does not support delay or scheduled publish");
             }
 
             using var scope = CreateScope();
@@ -325,7 +322,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             TryGetAttribute(message, "CorrelationId", out var correlationId);
             TryGetAttribute(message, "SequenceNumber", out var sequenceNumber);
 
-            using var log_scope = logger.BeginScope(new Dictionary<string, string>
+            using var log_scope = Logger.BeginScope(new Dictionary<string, string>
             {
                 ["MesageId"] = message.MessageId,
                 ["CorrelationId"] = correlationId,
@@ -355,7 +352,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Event processing failed. Moving to deadletter.");
+                Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
                 // TODO: implement dead lettering in SQS
             }
         }

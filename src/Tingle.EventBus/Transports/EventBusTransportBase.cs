@@ -20,7 +20,6 @@ namespace Tingle.EventBus.Transports
     public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransport where TTransportOptions : class, new()
     {
         private readonly IServiceScopeFactory serviceScopeFactory;
-        private readonly ILogger logger;
 
         /// <summary>
         /// 
@@ -40,7 +39,9 @@ namespace Tingle.EventBus.Transports
             this.serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             BusOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
             TransportOptions = transportOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(transportOptionsAccessor));
-            logger = loggerFactory?.CreateLogger("EventBus") ?? throw new ArgumentNullException(nameof(logger));
+            var categoryName = $"EventBus.Transports.{GetType().Name}";
+            categoryName = System.Text.RegularExpressions.Regex.Replace(categoryName, @"Transport$", string.Empty); // remove trailing "Transport"
+            Logger = loggerFactory?.CreateLogger(categoryName) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <summary>
@@ -57,6 +58,9 @@ namespace Tingle.EventBus.Transports
         /// Options for configuring the transport.
         /// </summary>
         protected TTransportOptions TransportOptions { get; }
+
+        ///
+        protected ILogger Logger { get; }
 
         /// <inheritdoc/>
         public abstract Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,

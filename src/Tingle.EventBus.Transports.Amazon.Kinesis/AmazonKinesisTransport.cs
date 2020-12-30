@@ -22,7 +22,6 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
     public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisOptions>
     {
         private readonly AmazonKinesisClient kinesisClient;
-        private readonly ILogger logger;
 
         /// <summary>
         /// 
@@ -41,8 +40,6 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         {
             kinesisClient = new AmazonKinesisClient(credentials: TransportOptions.Credentials,
                                                     clientConfig: TransportOptions.KinesisConfig);
-
-            logger = loggerFactory?.CreateTransportLogger(TransportNames.AmazonKinesis) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>
@@ -75,7 +72,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             // log warning when trying to publish scheduled message
             if (scheduled != null)
             {
-                logger.LogWarning("Amazon Kinesis does not support delay or scheduled publish");
+                Logger.LogWarning("Amazon Kinesis does not support delay or scheduled publish");
             }
 
             using var scope = CreateScope();
@@ -111,7 +108,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             // log warning when trying to publish scheduled message
             if (scheduled != null)
             {
-                logger.LogWarning("Amazon Kinesis does not support delay or scheduled publish");
+                Logger.LogWarning("Amazon Kinesis does not support delay or scheduled publish");
             }
 
             using var scope = CreateScope();

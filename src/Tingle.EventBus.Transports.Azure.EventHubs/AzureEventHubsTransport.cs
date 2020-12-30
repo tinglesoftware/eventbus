@@ -28,7 +28,6 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         private readonly SemaphoreSlim producersCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
         private readonly Dictionary<string, EventProcessorClient> processorsCache = new Dictionary<string, EventProcessorClient>();
         private readonly SemaphoreSlim processorsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
-        private readonly ILogger logger;
 
         /// <summary>
         /// 
@@ -45,7 +44,6 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                        ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            logger = loggerFactory?.CreateTransportLogger(TransportNames.AzureEventHubs) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>
@@ -68,7 +66,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = BusOptions.GetConsumerRegistrations();
-            logger.StartingBusReceivers(registrations.Count);
+            Logger.StartingBusReceivers(registrations.Count);
             foreach (var reg in registrations)
             {
                 var processor = await GetProcessorAsync(reg: reg, cancellationToken: cancellationToken);
@@ -102,22 +100,22 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         /// <inheritdoc/>
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            logger.StoppingBusReceivers();
+            Logger.StoppingBusReceivers();
             var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
             foreach (var (key, proc) in clients)
             {
-                logger.LogDebug("Stopping client: {Processor}", key);
+                Logger.LogDebug("Stopping client: {Processor}", key);
 
                 try
                 {
                     await proc.StopProcessingAsync(cancellationToken);
                     processorsCache.Remove(key);
 
-                    logger.LogDebug("Stopped processor for {Processor}", key);
+                    Logger.LogDebug("Stopped processor for {Processor}", key);
                 }
                 catch (Exception exception)
                 {
-                    logger.LogWarning(exception, "Stop processor faulted for {Processor}", key);
+                    Logger.LogWarning(exception, "Stop processor faulted for {Processor}", key);
                 }
             }
         }
@@ -130,13 +128,13 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             // log warning when trying to publish scheduled event
             if (scheduled != null)
             {
-                logger.LogWarning("Azure EventHubs does not support delay or scheduled publish");
+                Logger.LogWarning("Azure EventHubs does not support delay or scheduled publish");
             }
 
             // log warning when trying to publish expiring event
             if (@event.Expires != null)
             {
-                logger.LogWarning("Azure EventHubs does not support expiring events");
+                Logger.LogWarning("Azure EventHubs does not support expiring events");
             }
 
             using var scope = CreateScope();
@@ -171,13 +169,13 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             // log warning when trying to publish scheduled events
             if (scheduled != null)
             {
-                logger.LogWarning("Azure EventHubs does not support delay or scheduled publish");
+                Logger.LogWarning("Azure EventHubs does not support delay or scheduled publish");
             }
 
             // log warning when trying to publish expiring events
             if (events.Any(e => e.Expires != null))
             {
-                logger.LogWarning("Azure EventHubs does not support expiring events");
+                Logger.LogWarning("Azure EventHubs does not support expiring events");
             }
 
             using var scope = CreateScope();
@@ -320,11 +318,11 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         {
             if (!args.HasEvent)
             {
-                logger.LogWarning($"'{nameof(OnEventReceivedAsync)}' was invoked but the arguments do not have an event.");
+                Logger.LogWarning($"'{nameof(OnEventReceivedAsync)}' was invoked but the arguments do not have an event.");
                 return;
             }
 
-            logger.LogDebug("Processor received event on EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId:{PartitionId}",
+            Logger.LogDebug("Processor received event on EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId:{PartitionId}",
                             processor.EventHubName,
                             processor.ConsumerGroup,
                             args.Partition.PartitionId);
@@ -338,7 +336,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             data.Properties.TryGetValue("Event-Name", out var eventName);
             data.Properties.TryGetValue("Event-Type", out var eventType_str);
 
-            using var log_scope = logger.BeginScope(new Dictionary<string, string>
+            using var log_scope = Logger.BeginScope(new Dictionary<string, string>
             {
                 ["EventId"] = eventId?.ToString(),
                 ["CorrelationId"] = correlationId?.ToString(),
@@ -363,7 +361,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Event processing failed. Moving to deadletter.");
+                Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
 
                 // get the producer for the dead letter event hub and send the event there
                 var dlqProcessor = await GetProducerAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
@@ -376,7 +374,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
         private Task OnPartitionClosingAsync(EventProcessorClient processor, PartitionClosingEventArgs args)
         {
-            logger.LogInformation("Closing processor for EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId:{PartitionId} (Reason:{Reason})",
+            Logger.LogInformation("Closing processor for EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId:{PartitionId} (Reason:{Reason})",
                                   processor.EventHubName,
                                   processor.ConsumerGroup,
                                   args.PartitionId,
@@ -386,7 +384,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
         private Task OnPartitionInitializingAsync(EventProcessorClient processor, PartitionInitializingEventArgs args)
         {
-            logger.LogInformation("Opening processor for PartitionId:{PartitionId}, EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, DefaultStartingPosition:{DefaultStartingPosition}",
+            Logger.LogInformation("Opening processor for PartitionId:{PartitionId}, EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, DefaultStartingPosition:{DefaultStartingPosition}",
                                   args.PartitionId,
                                   processor.EventHubName,
                                   processor.ConsumerGroup,
@@ -396,7 +394,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
         private Task OnProcessErrorAsync(EventProcessorClient processor, ProcessErrorEventArgs args)
         {
-            logger.LogError(args.Exception,
+            Logger.LogError(args.Exception,
                             "Event processing faulted. Operation:{Operation}, EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId: {PartitionId}",
                             args.Operation,
                             processor.EventHubName,

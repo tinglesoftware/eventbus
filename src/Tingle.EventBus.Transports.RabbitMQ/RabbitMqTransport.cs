@@ -25,13 +25,10 @@ namespace Tingle.EventBus.Transports.RabbitMQ
     [TransportName(TransportNames.RabbitMq)]
     public class RabbitMqTransport : EventBusTransportBase<RabbitMqOptions>, IDisposable
     {
-        private readonly ILogger logger;
-
-        private readonly RetryPolicy retryPolicy;
         private readonly SemaphoreSlim connectionLock = new SemaphoreSlim(1, 1);
-
         private readonly Dictionary<string, IModel> subscriptionChannelsCache = new Dictionary<string, IModel>();
         private readonly SemaphoreSlim subscriptionChannelsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
+        private readonly RetryPolicy retryPolicy;
 
         private IConnection connection;
         private bool disposed;
@@ -51,15 +48,13 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                                  ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            logger = loggerFactory?.CreateTransportLogger(TransportNames.RabbitMq) ?? throw new ArgumentNullException(nameof(loggerFactory));
-
             retryPolicy = Policy.Handle<BrokerUnreachableException>()
                                 .Or<SocketException>()
                                 .WaitAndRetry(retryCount: TransportOptions.RetryCount,
                                               sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
                                               onRetry: (ex, time) =>
                                               {
-                                                  logger.LogError(ex, "RabbitMQ Client could not connect after {Timeout:n1}s ", time.TotalSeconds);
+                                                  Logger.LogError(ex, "RabbitMQ Client could not connect after {Timeout:n1}s ", time.TotalSeconds);
                                               });
         }
 
@@ -82,11 +77,11 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         /// <inheritdoc/>
         public override Task StopAsync(CancellationToken cancellationToken)
         {
-            logger.StoppingBusReceivers();
+            Logger.StoppingBusReceivers();
             var channels = subscriptionChannelsCache.Select(kvp => (key: kvp.Key, sc: kvp.Value)).ToList();
             foreach (var (key, channel) in channels)
             {
-                logger.LogDebug("Closing channel: {Subscription}", key);
+                Logger.LogDebug("Closing channel: {Subscription}", key);
 
                 try
                 {
@@ -96,11 +91,11 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                         subscriptionChannelsCache.Remove(key);
                     }
 
-                    logger.LogDebug("Closed channel for {Subscription}", key);
+                    Logger.LogDebug("Closed channel for {Subscription}", key);
                 }
                 catch (Exception exception)
                 {
-                    logger.LogWarning(exception, "Close channel faulted for {Subscription}", key);
+                    Logger.LogWarning(exception, "Close channel faulted for {Subscription}", key);
                 }
             }
             return Task.CompletedTask;
@@ -261,7 +256,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             }
 
             var registrations = BusOptions.GetConsumerRegistrations();
-            logger.StartingBusReceivers(registrations.Count);
+            Logger.StartingBusReceivers(registrations.Count);
             foreach (var reg in registrations)
             {
                 var exchangeName = reg.EventName;
@@ -284,7 +279,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
-            using var log_scope = logger.BeginScope(new Dictionary<string, string>
+            using var log_scope = Logger.BeginScope(new Dictionary<string, string>
             {
                 ["MessageId"] = args.BasicProperties?.MessageId,
                 ["RoutingKey"] = args.RoutingKey,
@@ -311,7 +306,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Event processing failed. Moving to deadletter.");
+                Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
                 channel.BasicNack(deliveryTag: args.DeliveryTag, multiple: false, requeue: false);
             }
         }
@@ -335,7 +330,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: "");
                     channel.CallbackException += delegate (object sender, CallbackExceptionEventArgs e)
                     {
-                        logger.LogError(e.Exception, "Callback exeception for {Subscription}", key);
+                        Logger.LogError(e.Exception, "Callback exeception for {Subscription}", key);
                         var _ = ConnectConsumersAsync(CancellationToken.None); // do not await or chain token
                     };
 
@@ -352,7 +347,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
         private async Task<bool> TryConnectAsync(CancellationToken cancellationToken)
         {
-            logger.LogDebug("RabbitMQ Client is trying to connect.");
+            Logger.LogDebug("RabbitMQ Client is trying to connect.");
             await connectionLock.WaitAsync(cancellationToken);
 
             try
@@ -360,7 +355,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 // if already connected, do not proceed
                 if (IsConnected)
                 {
-                    logger.LogDebug("RabbitMQ Client is already connected.");
+                    Logger.LogDebug("RabbitMQ Client is already connected.");
                     return true;
                 }
 
@@ -375,14 +370,14 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     connection.CallbackException += OnCallbackException;
                     connection.ConnectionBlocked += OnConnectionBlocked;
 
-                    logger.LogDebug("RabbitMQ Client acquired a persistent connection to '{HostName}'.",
+                    Logger.LogDebug("RabbitMQ Client acquired a persistent connection to '{HostName}'.",
                                     connection.Endpoint.HostName);
 
                     return true;
                 }
                 else
                 {
-                    logger.LogCritical("RabbitMQ Client connections could not be created and opened.");
+                    Logger.LogCritical("RabbitMQ Client connections could not be created and opened.");
                     return false;
                 }
             }
@@ -400,7 +395,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         {
             if (disposed) return;
 
-            logger.LogWarning("RabbitMQ connection was blocked for {Reason}. Trying to re-connect...", e.Reason);
+            Logger.LogWarning("RabbitMQ connection was blocked for {Reason}. Trying to re-connect...", e.Reason);
 
             TryConnect();
         }
@@ -409,7 +404,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         {
             if (disposed) return;
 
-            logger.LogWarning(e.Exception, "A RabbitMQ connection throw exception. Trying to re-connect...");
+            Logger.LogWarning(e.Exception, "A RabbitMQ connection throw exception. Trying to re-connect...");
 
             TryConnect();
         }
@@ -418,7 +413,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         {
             if (disposed) return;
 
-            logger.LogWarning("RabbitMQ connection shutdown. Trying to re-connect...");
+            Logger.LogWarning("RabbitMQ connection shutdown. Trying to re-connect...");
 
             TryConnect();
         }
@@ -445,7 +440,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "Trouble disposing RabbitMQ connection");
+                        Logger.LogError(ex, "Trouble disposing RabbitMQ connection");
                     }
                 }
 

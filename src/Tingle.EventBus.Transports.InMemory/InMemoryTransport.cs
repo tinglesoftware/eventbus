@@ -23,7 +23,6 @@ namespace Tingle.EventBus.Transports.InMemory
         private readonly ConcurrentBag<object> published = new ConcurrentBag<object>();
         private readonly ConcurrentBag<object> consumed = new ConcurrentBag<object>();
         private readonly ConcurrentBag<object> failed = new ConcurrentBag<object>();
-        private readonly ILogger logger;
 
         /// <summary>
         /// 
@@ -40,7 +39,6 @@ namespace Tingle.EventBus.Transports.InMemory
                                  ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            logger = loggerFactory?.CreateTransportLogger(TransportNames.InMemory) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <summary>
@@ -79,7 +77,7 @@ namespace Tingle.EventBus.Transports.InMemory
             // log warning when trying to publish scheduled message
             if (scheduled != null)
             {
-                logger.LogWarning("InMemory EventBus uses a short-lived timer that is not persisted for scheduled publish");
+                Logger.LogWarning("InMemory EventBus uses a short-lived timer that is not persisted for scheduled publish");
             }
 
             var scheduledId = scheduled?.ToUnixTimeMilliseconds().ToString();
@@ -106,7 +104,7 @@ namespace Tingle.EventBus.Transports.InMemory
             // log warning when trying to publish scheduled message
             if (scheduled != null)
             {
-                logger.LogWarning("InMemory EventBus uses a short-lived timer that is not persisted for scheduled publish");
+                Logger.LogWarning("InMemory EventBus uses a short-lived timer that is not persisted for scheduled publish");
             }
 
             using var scope = CreateScope();
@@ -160,7 +158,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 }
             }
 
-            logger.LogDebug("Processing sent/incoming event");
+            Logger.LogDebug("Processing sent/incoming event");
             using var scope = CreateScope(); // shared
             var context = await DeserializeAsync<TEvent>(body: ms,
                                                          contentType: contentType,
@@ -198,7 +196,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
             try
             {
-                logger.LogInformation("Received event '{EventId}'", context.EventId);
+                Logger.LogInformation("Received event '{EventId}'", context.EventId);
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
@@ -206,7 +204,7 @@ namespace Tingle.EventBus.Transports.InMemory
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Event processing failed. Deadletter is not supported in memory.");
+                Logger.LogError(ex, "Event processing failed. Deadletter is not supported in memory.");
                 failed.Add(context);
             }
         }

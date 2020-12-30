@@ -14,7 +14,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddAzureQueueStorage(this EventBusBuilder builder, Action<AzureQueueStorageOptions> configure)
+        public static EventBusBuilder AddAzureQueueStorageTransport(this EventBusBuilder builder, Action<AzureQueueStorageOptions> configure)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configure is null) throw new ArgumentNullException(nameof(configure));
@@ -54,9 +54,9 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddAzureQueueStorage(this EventBusBuilder builder,
-                                                           string connectionString,
-                                                           Action<AzureQueueStorageOptions> configure = null)
+        public static EventBusBuilder AddAzureQueueStorageTransport(this EventBusBuilder builder,
+                                                                    string connectionString,
+                                                                    Action<AzureQueueStorageOptions> configure = null)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
 
@@ -65,7 +65,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentException($"'{nameof(connectionString)}' cannot be null or whitespace", nameof(connectionString));
             }
 
-            return builder.AddAzureQueueStorage(options =>
+            return builder.AddAzureQueueStorageTransport(options =>
             {
                 options.ConnectionString = connectionString;
                 configure?.Invoke(options);

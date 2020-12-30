@@ -14,7 +14,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddAzureEventHubs(this EventBusBuilder builder, Action<AzureEventHubsOptions> configure)
+        public static EventBusBuilder AddAzureEventHubsTransport(this EventBusBuilder builder, Action<AzureEventHubsOptions> configure)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configure is null) throw new ArgumentNullException(nameof(configure));
@@ -63,9 +63,9 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddAzureEventHubs(this EventBusBuilder builder,
-                                                        string connectionString,
-                                                        Action<AzureEventHubsOptions> configure)
+        public static EventBusBuilder AddAzureEventHubsTransport(this EventBusBuilder builder,
+                                                                 string connectionString,
+                                                                 Action<AzureEventHubsOptions> configure)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
 
@@ -74,7 +74,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentException($"'{nameof(connectionString)}' cannot be null or whitespace", nameof(connectionString));
             }
 
-            return builder.AddAzureEventHubs(options =>
+            return builder.AddAzureEventHubsTransport(options =>
             {
                 options.ConnectionString = connectionString;
                 configure?.Invoke(options);

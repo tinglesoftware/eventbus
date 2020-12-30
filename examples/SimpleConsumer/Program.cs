@@ -22,7 +22,7 @@ namespace SimpleConsumer
                         builder.Subscribe<SampleEventConsumer>();
 
                         // Transport specific configuration
-                        builder.AddAzureQueueStorage(options => options.ConnectionString = "UseDevelopmentStorage=true;");
+                        builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");
                     });
                 });
     }

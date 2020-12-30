@@ -16,7 +16,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddKafka(this EventBusBuilder builder, Action<KafkaOptions> configure)
+        public static EventBusBuilder AddKafkaTransport(this EventBusBuilder builder, Action<KafkaOptions> configure)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configure is null) throw new ArgumentNullException(nameof(configure));

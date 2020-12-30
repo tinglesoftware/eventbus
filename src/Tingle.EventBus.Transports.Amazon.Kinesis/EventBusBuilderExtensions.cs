@@ -1,7 +1,6 @@
 ﻿using Amazon;
 using Amazon.Kinesis;
 using System;
-using Tingle.EventBus;
 using Tingle.EventBus.Transports.Amazon.Kinesis;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -17,7 +16,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddAmazonKinesis(this EventBusBuilder builder, Action<AmazonKinesisOptions> configure)
+        public static EventBusBuilder AddAmazonKinesisTransport(this EventBusBuilder builder, Action<AmazonKinesisOptions> configure)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configure is null) throw new ArgumentNullException(nameof(configure));

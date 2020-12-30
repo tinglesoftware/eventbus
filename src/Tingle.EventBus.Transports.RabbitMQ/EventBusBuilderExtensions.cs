@@ -15,7 +15,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddRabbitMq(this EventBusBuilder builder, Action<RabbitMqOptions> configure)
+        public static EventBusBuilder AddRabbitMqTransport(this EventBusBuilder builder, Action<RabbitMqOptions> configure)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configure is null) throw new ArgumentNullException(nameof(configure));

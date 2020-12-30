@@ -2,7 +2,6 @@
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using System;
-using Tingle.EventBus;
 using Tingle.EventBus.Transports.Amazon.Sqs;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -18,7 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddAmazonSqs(this EventBusBuilder builder, Action<AmazonSqsOptions> configure)
+        public static EventBusBuilder AddAmazonSqsTransport(this EventBusBuilder builder, Action<AmazonSqsOptions> configure)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configure is null) throw new ArgumentNullException(nameof(configure));

@@ -25,7 +25,7 @@ namespace CustomSerializer
                         builder.Services.AddSingleton<AzureDevOpsEventSerializer>();
 
                         // Transport specific configuration
-                        builder.AddAzureQueueStorage(options => options.ConnectionString = "UseDevelopmentStorage=true;");
+                        builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");
                     });
                 });
     }

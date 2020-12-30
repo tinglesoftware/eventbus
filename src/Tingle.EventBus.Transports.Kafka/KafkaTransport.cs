@@ -67,7 +67,7 @@ namespace Tingle.EventBus.Transports.Kafka
                             //.SetValueSerializer((ISerializer<byte[]>)null)
                             .Build();
 
-            logger = loggerFactory?.CreateLogger<KafkaTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateTransportLogger(TransportNames.Kafka) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>

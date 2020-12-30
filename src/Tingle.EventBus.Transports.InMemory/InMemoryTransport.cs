@@ -40,7 +40,7 @@ namespace Tingle.EventBus.Transports.InMemory
                                  ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            logger = loggerFactory?.CreateLogger<InMemoryTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateTransportLogger(TransportNames.InMemory) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <summary>

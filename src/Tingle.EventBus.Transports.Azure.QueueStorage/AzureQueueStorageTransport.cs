@@ -46,7 +46,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             serviceClient = new QueueServiceClient(TransportOptions.ConnectionString);
-            logger = loggerFactory?.CreateLogger<AzureQueueStorageTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateTransportLogger(TransportNames.AzureQueueStorage) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>

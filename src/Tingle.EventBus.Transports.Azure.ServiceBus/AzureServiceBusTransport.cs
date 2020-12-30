@@ -50,7 +50,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             var sbcOptions = new ServiceBusClientOptions { TransportType = TransportOptions.TransportType, };
             serviceBusClient = new ServiceBusClient(connectionString, sbcOptions);
 
-            logger = loggerFactory?.CreateLogger<AzureServiceBusTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateTransportLogger(TransportNames.AzureServiceBus) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>

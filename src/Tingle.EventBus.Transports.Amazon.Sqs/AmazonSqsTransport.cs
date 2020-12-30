@@ -56,7 +56,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             sqsClient = new AmazonSQSClient(credentials: TransportOptions.Credentials,
                                             clientConfig: TransportOptions.SqsConfig);
 
-            logger = loggerFactory?.CreateLogger<AmazonSqsTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateTransportLogger(TransportNames.AmazonSqs) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>

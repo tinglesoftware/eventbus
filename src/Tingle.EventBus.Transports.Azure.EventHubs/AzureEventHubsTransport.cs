@@ -45,7 +45,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                        ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            logger = loggerFactory?.CreateLogger<AzureEventHubsTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateTransportLogger(TransportNames.AzureEventHubs) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>

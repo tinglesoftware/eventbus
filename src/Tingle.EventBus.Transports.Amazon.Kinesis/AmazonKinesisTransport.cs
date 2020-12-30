@@ -42,7 +42,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             kinesisClient = new AmazonKinesisClient(credentials: TransportOptions.Credentials,
                                                     clientConfig: TransportOptions.KinesisConfig);
 
-            logger = loggerFactory?.CreateLogger<AmazonKinesisTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateTransportLogger(TransportNames.AmazonKinesis) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>

@@ -51,7 +51,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                                  ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            logger = loggerFactory?.CreateLogger<RabbitMqTransport>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            logger = loggerFactory?.CreateTransportLogger(TransportNames.RabbitMq) ?? throw new ArgumentNullException(nameof(loggerFactory));
 
             retryPolicy = Policy.Handle<BrokerUnreachableException>()
                                 .Or<SocketException>()

@@ -18,6 +18,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using
     /// Amazon Kinesis as the transport.
     /// </summary>
+    [TransportName(TransportNames.AmazonKinesis)]
     public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisOptions>
     {
         private readonly AmazonKinesisClient kinesisClient;

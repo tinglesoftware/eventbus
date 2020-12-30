@@ -21,6 +21,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
     /// <summary>
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Azure Event Hubs.
     /// </summary>
+    [TransportName(TransportNames.AzureEventHubs)]
     public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsOptions>
     {
         private readonly Dictionary<(Type, bool), EventHubProducerClient> producersCache = new Dictionary<(Type, bool), EventHubProducerClient>();

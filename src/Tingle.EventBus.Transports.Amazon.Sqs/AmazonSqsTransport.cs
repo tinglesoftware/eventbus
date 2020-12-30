@@ -23,6 +23,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using
     /// Amazon SQS and Amazon SNS as the transport.
     /// </summary>
+    [TransportName(TransportNames.AmazonSqs)]
     public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsOptions>
     {
         private readonly Dictionary<Type, string> topicArnsCache = new Dictionary<Type, string>();

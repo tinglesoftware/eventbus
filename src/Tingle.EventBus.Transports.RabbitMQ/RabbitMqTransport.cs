@@ -22,6 +22,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
     /// <summary>
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using RabbitMQ.
     /// </summary>
+    [TransportName(TransportNames.RabbitMq)]
     public class RabbitMqTransport : EventBusTransportBase<RabbitMqOptions>, IDisposable
     {
         private readonly ILogger logger;

@@ -18,6 +18,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
     /// <summary>
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Azure Service Bus.
     /// </summary>
+    [TransportName(TransportNames.AzureServiceBus)]
     public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusOptions>
     {
         private readonly Dictionary<Type, ServiceBusSender> sendersCache = new Dictionary<Type, ServiceBusSender>();

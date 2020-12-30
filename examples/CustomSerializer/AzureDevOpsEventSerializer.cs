@@ -14,10 +14,15 @@ namespace CustomSerializer
     {
         private const string WildCardContentType = "*/*";
         private readonly JsonSerializer serializer = JsonSerializer.CreateDefault();
+        private readonly EventBus bus;
+
+        public AzureDevOpsEventSerializer(EventBus bus)
+        {
+            this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
+        }
 
         /// <inheritdoc/>
-        public Task<EventContext<T>> DeserializeAsync<T>(EventBus bus,
-                                                         Stream stream,
+        public Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
                                                          ContentType contentType,
                                                          CancellationToken cancellationToken = default) where T : class
         {

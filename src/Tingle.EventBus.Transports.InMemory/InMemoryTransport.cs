@@ -188,7 +188,7 @@ namespace Tingle.EventBus.Transports.InMemory
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
-            var context = new EventContext<TEvent>
+            var context = new EventContext<TEvent>(@event.Bus)
             {
                 EventId = Guid.NewGuid().ToString(),
                 CorrelationId = @event.CorrelationId,

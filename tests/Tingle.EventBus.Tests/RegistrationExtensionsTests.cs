@@ -186,7 +186,7 @@ namespace Tingle.EventBus.Tests
 
         class DummyEventSerializer1 : IEventSerializer
         {
-            public Task<EventContext<T>> DeserializeAsync<T>(EventBus bus, Stream stream, ContentType contentType, CancellationToken cancellationToken = default) where T : class
+            public Task<EventContext<T>> DeserializeAsync<T>(Stream stream, ContentType contentType, CancellationToken cancellationToken = default) where T : class
             {
                 throw new NotImplementedException();
             }

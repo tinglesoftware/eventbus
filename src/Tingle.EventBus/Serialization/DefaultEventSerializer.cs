@@ -15,14 +15,17 @@ namespace Tingle.EventBus.Serialization
     {
         private static readonly ContentType JsonContentType = new ContentType("application/json; charset=utf-8");
 
+        private readonly EventBus bus;
         private readonly JsonSerializerOptions serializerOptions;
 
         /// <summary>
         /// Creates an instance of <see cref="DefaultEventSerializer"/>.
         /// </summary>
+        /// <param name="bus"></param>
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
-        public DefaultEventSerializer(IOptions<EventBusOptions> optionsAccessor)
+        public DefaultEventSerializer(EventBus bus, IOptions<EventBusOptions> optionsAccessor)
         {
+            this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
             serializerOptions = optionsAccessor?.Value?.SerializerOptions ?? throw new ArgumentNullException(nameof(optionsAccessor));
         }
 
@@ -56,8 +59,7 @@ namespace Tingle.EventBus.Serialization
         }
 
         /// <inheritdoc/>
-        public async Task<EventContext<T>> DeserializeAsync<T>(EventBus bus,
-                                                               Stream stream,
+        public async Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
                                                                ContentType contentType,
                                                                CancellationToken cancellationToken = default)
             where T : class

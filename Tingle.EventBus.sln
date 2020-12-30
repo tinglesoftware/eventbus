@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.30611.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus", "src\Tingle.EventBus\Tingle.EventBus.csproj", "{967CBEC5-4A2D-4635-905D-6AA2DFE1341F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Health", "src\Tingle.EventBus.Health\Tingle.EventBus.Health.csproj", "{5B305D89-BB50-4456-9D96-479CC655A71C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Azure.ServiceBus", "src\Tingle.EventBus.Transports.Azure.ServiceBus\Tingle.EventBus.Transports.Azure.ServiceBus.csproj", "{0CD9B9A2-FA9E-49EC-BE7A-3E5E425A2E53}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.RabbitMQ", "src\Tingle.EventBus.Transports.RabbitMQ\Tingle.EventBus.Transports.RabbitMQ.csproj", "{1BCD0C98-D061-4143-B00F-0031FBCD5E5E}"
@@ -44,9 +42,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Kafka", "src\Tingle.EventBus.Transports.Kafka\Tingle.EventBus.Transports.Kafka.csproj", "{2664F6EA-94DB-4E14-A5B3-43FBCCF472E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomSerializer", "examples\CustomSerializer\CustomSerializer.csproj", "{2C55FABC-8C94-4104-BE05-42A477D2AD9E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomSerializer", "examples\CustomSerializer\CustomSerializer.csproj", "{2C55FABC-8C94-4104-BE05-42A477D2AD9E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Transports.Amazon.Abstractions", "src\Tingle.EventBus.Transports.Amazon.Abstractions\Tingle.EventBus.Transports.Amazon.Abstractions.csproj", "{1ED48501-B1A3-4882-B67A-FC39278505BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Amazon.Abstractions", "src\Tingle.EventBus.Transports.Amazon.Abstractions\Tingle.EventBus.Transports.Amazon.Abstractions.csproj", "{1ED48501-B1A3-4882-B67A-FC39278505BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,10 +56,6 @@ Global
 		{967CBEC5-4A2D-4635-905D-6AA2DFE1341F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{967CBEC5-4A2D-4635-905D-6AA2DFE1341F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{967CBEC5-4A2D-4635-905D-6AA2DFE1341F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5B305D89-BB50-4456-9D96-479CC655A71C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5B305D89-BB50-4456-9D96-479CC655A71C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5B305D89-BB50-4456-9D96-479CC655A71C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5B305D89-BB50-4456-9D96-479CC655A71C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0CD9B9A2-FA9E-49EC-BE7A-3E5E425A2E53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0CD9B9A2-FA9E-49EC-BE7A-3E5E425A2E53}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0CD9B9A2-FA9E-49EC-BE7A-3E5E425A2E53}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -120,7 +114,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{967CBEC5-4A2D-4635-905D-6AA2DFE1341F} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
-		{5B305D89-BB50-4456-9D96-479CC655A71C} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{0CD9B9A2-FA9E-49EC-BE7A-3E5E425A2E53} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{1BCD0C98-D061-4143-B00F-0031FBCD5E5E} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{193A10A0-C9B4-4FD4-8C93-8894C6CE98A8} = {3647730E-193B-45E9-8ECE-DDA7494C9030}

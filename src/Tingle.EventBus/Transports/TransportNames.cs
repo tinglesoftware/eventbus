@@ -1,4 +1,4 @@
-﻿namespace Tingle.EventBus.Transport
+﻿namespace Tingle.EventBus.Transports
 {
     /// <summary>
     /// The names of known transports

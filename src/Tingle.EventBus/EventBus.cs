@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Tingle.EventBus.Transport;
+using Tingle.EventBus.Transports;
 
 namespace Tingle.EventBus
 {

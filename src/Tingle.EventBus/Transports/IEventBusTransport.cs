@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Tingle.EventBus.Transport
+namespace Tingle.EventBus.Transports
 {
     /// <summary>
     /// Contract for implementing an event bus transport.

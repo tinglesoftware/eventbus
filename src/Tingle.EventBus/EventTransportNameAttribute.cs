@@ -5,7 +5,7 @@ namespace Tingle.EventBus
     /// <summary>
     /// Specify the name of the transport used for this event contract/type, overriding the default one.
     /// <br />
-    /// To specify the name of a custom transport, use <see cref="Transport.TransportNameAttribute"/>.
+    /// To specify the name of a custom transport, use <see cref="Transports.TransportNameAttribute"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
     public sealed class EventTransportNameAttribute : Attribute

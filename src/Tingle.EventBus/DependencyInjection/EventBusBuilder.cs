@@ -6,7 +6,7 @@ using System.Linq;
 using Tingle.EventBus;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
-using Tingle.EventBus.Transport;
+using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

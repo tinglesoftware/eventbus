@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus.Transport
+namespace Tingle.EventBus.Transports
 {
     /// <summary>
     /// The abstractions for an event bus

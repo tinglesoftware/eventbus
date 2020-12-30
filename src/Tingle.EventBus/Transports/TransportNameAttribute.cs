@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Tingle.EventBus.Transport
+namespace Tingle.EventBus.Transports
 {
     /// <summary>
     /// Specify the name used for a transport.

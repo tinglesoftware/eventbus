@@ -56,15 +56,18 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         public override async Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,
                                                           CancellationToken cancellationToken = default)
         {
+            logger.LogDebug("Listing Queues ...");
             var queues = managementClient.GetQueuesRuntimePropertiesAsync(cancellationToken).AsPages();
             await foreach (var _ in queues) ; // there's nothing to do
             if (!TransportOptions.UseBasicTier)
             {
+                logger.LogDebug("Listing Topics ...");
                 var topics = managementClient.GetTopicsRuntimePropertiesAsync(cancellationToken);
                 await foreach (var t in topics)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    logger.LogDebug("Listing Subscriptions for '{TopicName}' topic ...", t.Name);
                     var subscriptions = managementClient.GetSubscriptionsRuntimePropertiesAsync(t.Name, cancellationToken);
                     await foreach (var _ in subscriptions) ; // there's nothing to do
                 }
@@ -91,7 +94,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     return (Task)method.Invoke(this, new object[] { reg, args, });
                 };
 
-                // start processing 
+                // start processing
+                logger.LogInformation("Starting processing on {EntityPath}", processor.EntityPath);
                 await processor.StartProcessingAsync(cancellationToken: cancellationToken);
             }
         }
@@ -160,6 +164,10 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             // Get the sender and send the message accordingly
             var sender = await GetSenderAsync(reg, cancellationToken);
+            logger.LogInformation("Sending {EventId} to '{EntityPath}'. Scheduled: {Scheduled}",
+                                  @event.EventId,
+                                  sender.EntityPath,
+                                  scheduled);
             if (scheduled != null)
             {
                 var seqNum = await sender.ScheduleMessageAsync(message: message,
@@ -222,6 +230,11 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             // Get the sender and send the messages accordingly
             var sender = await GetSenderAsync(reg, cancellationToken);
+            logger.LogInformation("Sending {EventsCount} messages to '{EntityPath}'. Scheduled: {Scheduled}. Events:\r\n- {EventIds}",
+                                  events.Count,
+                                  sender.EntityPath,
+                                  scheduled,
+                                  string.Join("\r\n- ", events.Select(e => e.EventId)));
             if (scheduled != null)
             {
                 var seqNums = await sender.ScheduleMessagesAsync(messages: messages,
@@ -252,6 +265,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             // get the sender and cancel the message accordingly
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             var sender = await GetSenderAsync(reg, cancellationToken);
+            logger.LogInformation("Canceling scheduled message: {SequenceNumber} on {EntityPath}", seqNum, sender.EntityPath);
             await sender.CancelScheduledMessageAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken);
         }
 
@@ -275,6 +289,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             // get the sender and cancel the messages accordingly
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             var sender = await GetSenderAsync(reg, cancellationToken);
+            logger.LogInformation("Canceling scheduled messages on {EntityPath}:\r\n- {SequenceNumbers}",
+                                  sender.EntityPath,
+                                  string.Join("\r\n- ", seqNums));
             await sender.CancelScheduledMessagesAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken);
         }
 
@@ -291,11 +308,13 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     if (TransportOptions.UseBasicTier)
                     {
                         // ensure queue is created, for basic tier
+                        logger.LogDebug("Creating sender for queue '{QueueName}'", name);
                         await CreateQueueIfNotExistsAsync(name: name, cancellationToken: cancellationToken);
                     }
                     else
                     {
                         // ensure topic is created, for non-basic tier
+                        logger.LogDebug("Creating sender for topic '{TopicName}'", name);
                         await CreateTopicIfNotExistsAsync(name: name, cancellationToken: cancellationToken);
                     }
 
@@ -331,18 +350,27 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     }
                     else
                     {
+                        // Ensure topic is created before creating the subscription, for non-basic tier
+                        await CreateTopicIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
+
                         // If the subscription does not exist, create it
+                        logger.LogDebug("Checking if subscription '{SubscriptionName}' exists under topic '{TopicName}'",
+                                        subscriptionName,
+                                        topicName);
                         if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionName, cancellationToken))
                         {
-                            // Ensure topic is created before creating the subscription, for non-basic tier
-                            await CreateTopicIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
-
+                            logger.LogTrace("Subscription '{SubscriptionName}' under topic '{TopicName}' does not exist, preparing creation.",
+                                            subscriptionName,
+                                            topicName);
                             var options = new CreateSubscriptionOptions(topicName: topicName, subscriptionName: subscriptionName);
 
                             // TODO: set the defaults for a subscription here
 
                             // Allow for the defaults to be overriden
                             TransportOptions.SetupSubscriptionOptions?.Invoke(options);
+                            logger.LogInformation("Creating subscription '{SubscriptionName}' under topic '{TopicName}'",
+                                                  subscriptionName,
+                                                  topicName);
                             await managementClient.CreateSubscriptionAsync(options: options, cancellationToken: cancellationToken);
                         }
                     }
@@ -361,11 +389,14 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
                     if (TransportOptions.UseBasicTier)
                     {
-                        processor = serviceBusClient.CreateProcessor(queueName: topicName,
-                                                                     options: sbpo);
+                        logger.LogDebug("Creating processor for queue '{QueueName}'", topicName);
+                        processor = serviceBusClient.CreateProcessor(queueName: topicName, options: sbpo);
                     }
                     else
                     {
+                        logger.LogDebug("Creating processor for topic '{TopicName}' and subscription '{Subscription}'",
+                                        topicName,
+                                        subscriptionName);
                         processor = serviceBusClient.CreateProcessor(topicName: topicName,
                                                                      subscriptionName: subscriptionName,
                                                                      options: sbpo);
@@ -384,14 +415,17 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         private async Task CreateTopicIfNotExistsAsync(string name, CancellationToken cancellationToken)
         {
             // If the topic does not exist, create it
+            logger.LogDebug("Checking if topic '{TopicName}' exists", name);
             if (!await managementClient.TopicExistsAsync(name: name, cancellationToken: cancellationToken))
             {
+                logger.LogTrace("Topic '{TopicName}' does not exist, preparing creation.", name);
                 var options = new CreateTopicOptions(name: name);
 
                 // TODO: set the defaults for a topic here
 
                 // Allow for the defaults to be overriden
                 TransportOptions.SetupTopicOptions?.Invoke(options);
+                logger.LogInformation("Creating topic '{TopicName}'", name);
                 _ = await managementClient.CreateTopicAsync(options: options, cancellationToken: cancellationToken);
             }
         }
@@ -399,14 +433,17 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         private async Task CreateQueueIfNotExistsAsync(string name, CancellationToken cancellationToken)
         {
             // If the queue does not exist, create it
+            logger.LogDebug("Checking if queue '{QueueName}' exists", name);
             if (!await managementClient.QueueExistsAsync(name: name, cancellationToken: cancellationToken))
             {
+                logger.LogTrace("Queue '{QueueName}' does not exist, preparing creation.", name);
                 var options = new CreateQueueOptions(name: name);
 
                 // TODO: set the defaults for a queue here
 
                 // Allow for the defaults to be overriden
                 TransportOptions.SetupQueueOptions?.Invoke(options);
+                logger.LogInformation("Creating queue '{QueueName}'", name);
                 _ = await managementClient.CreateQueueAsync(options: options, cancellationToken: cancellationToken);
             }
         }
@@ -441,6 +478,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                       cancellationToken: cancellationToken);
 
                 // Complete the message
+                logger.LogDebug("Completing message: {MessageId}.", message.MessageId);
                 await args.CompleteMessageAsync(message: message, cancellationToken: cancellationToken);
             }
             catch (Exception ex)
@@ -453,7 +491,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         private Task OnMessageFaultedAsync(ProcessErrorEventArgs args)
         {
             logger.LogError(args.Exception,
-                            "Message receiving faulted. Endpoint:{Endpoint}, Entity Path: {EntityPath}, Source: {ErrorSource}",
+                            "Message receiving faulted. Namespace:{FullyQualifiedNamespace}, Entity Path: {EntityPath}, Source: {ErrorSource}",
                             args.FullyQualifiedNamespace,
                             args.EntityPath,
                             args.ErrorSource);

@@ -11,7 +11,7 @@ namespace Tingle.EventBus
     /// </summary>
     public abstract class EventContext : IEventPublisher
     {
-        private IEventBus bus;
+        private EventBus bus;
 
         /// <summary>
         /// The unique identifier of the event.
@@ -94,7 +94,8 @@ namespace Tingle.EventBus
             await bus.CancelAsync<TEvent>(ids: ids, cancellationToken: cancellationToken);
         }
 
-        internal void SetBus(IEventBus bus) => this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
+        //TODO: move this to internal constructor and make field readonly
+        internal void SetBus(EventBus bus) => this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
     }
 
     /// <summary>

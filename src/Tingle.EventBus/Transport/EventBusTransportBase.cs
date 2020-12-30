@@ -161,7 +161,7 @@ namespace Tingle.EventBus.Transport
             where TConsumer : IEventBusConsumer<TEvent>
         {
             // Set the bus in context
-            @event.SetTransport(this);
+            @event.SetBus(this);
 
             // Resolve the consumer
             var consumer = scope.ServiceProvider.GetRequiredService<TConsumer>();

@@ -140,5 +140,16 @@ namespace Tingle.EventBus
         {
             return ConsumerRegistrations.TryGetValue(key: typeof(TEvent), out registration);
         }
+
+        /// <summary>
+        /// Gets or sets the name of the default transport.
+        /// When there is only one transport registered, setting this value is not necessary, as it is used as the default.
+        /// </summary>
+        public string DefaultTransportName { get; set; }
+
+        /// <summary>
+        /// The list of registered transport names.
+        /// </summary>
+        internal Dictionary<string, Type> RegisteredTransportNames { get; } = new Dictionary<string, Type>();
     }
 }

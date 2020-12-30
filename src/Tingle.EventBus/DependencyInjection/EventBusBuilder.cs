@@ -6,6 +6,7 @@ using System.Linq;
 using Tingle.EventBus;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
+using Tingle.EventBus.Transport;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -40,6 +41,41 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             Services.Configure(configure);
             return this;
+        }
+
+        /// <summary>
+        /// Register a transport to be used by the bus.
+        /// </summary>
+        /// <typeparam name="TTransport"></typeparam>
+        /// <returns></returns>
+        public EventBusBuilder RegisterTransport<TTransport>() where TTransport : class, IEventBusTransport
+        {
+            // Register for resolution
+            Services.AddSingleton<IEventBusTransport, TTransport>();
+
+            // Get the name of the transport
+            var tname = GetTransportName<TTransport>();
+
+            // Add name to registered transports
+            return Configure(options => options.RegisteredTransportNames.Add(tname, typeof(TTransport)));
+        }
+
+        /// <summary>
+        /// Unregister a transport already registered on the bus.
+        /// </summary>
+        /// <typeparam name="TTransport"></typeparam>
+        /// <returns></returns>
+        public EventBusBuilder UnregisterTransport<TTransport>() where TTransport : class, IEventBusTransport
+        {
+            // remove the service descriptor if it exists
+            var target = Services.SingleOrDefault(t => t.ServiceType == typeof(IEventBusTransport) && t.ImplementationType == typeof(TTransport));
+            if (target != null) Services.Remove(target);
+
+            // Get the name of the transport
+            var tname = GetTransportName<TTransport>();
+
+            // Remove name from registered transports
+            return Configure(options => options.RegisteredTransportNames.Remove(tname));
         }
 
         /// <summary>
@@ -185,6 +221,17 @@ namespace Microsoft.Extensions.DependencyInjection
                 var registration = options.GetOrCreateEventRegistration<TEvent>();
                 configure(registration);
             });
+        }
+
+        private static string GetTransportName<TTransport>() where TTransport : IEventBusTransport
+        {
+            var type = typeof(TTransport);
+            var attrs = type.GetCustomAttributes(false).OfType<TransportNameAttribute>().ToList();
+            if (attrs.Count == 0)
+            {
+                throw new InvalidOperationException($"'{type.FullName}' must have '{typeof(TransportNameAttribute).FullName}' declared on it.");
+            }
+            return attrs.SingleOrDefault()?.Name;
         }
     }
 }

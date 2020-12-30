@@ -41,7 +41,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     ApplicationName = environment.ApplicationName,
                     ApplicationVersion = entry.GetName().Version.ToString(),
                     EnvironmentName = environment.EnvironmentName,
-                    LibraryVersion = typeof(IEventBus).Assembly.GetName().Version.ToString(),
+                    LibraryVersion = typeof(EventBus).Assembly.GetName().Version.ToString(),
                     MachineName = Environment.MachineName,
                     OperatingSystem = Environment.OSVersion.ToString(),
                 };
@@ -58,7 +58,7 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 // ensure the transport name set has been registered
                 var tname = options.DefaultTransportName;
-                if (!options.RegisteredTransportNames.Contains(tname))
+                if (!options.RegisteredTransportNames.ContainsKey(tname))
                 {
                     throw new InvalidOperationException($"The default transport  specified '{tname}' must be a registered one.");
                 }
@@ -69,7 +69,7 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 if (options.RegisteredTransportNames.Count == 1)
                 {
-                    options.DefaultTransportName = options.RegisteredTransportNames.Single();
+                    options.DefaultTransportName = options.RegisteredTransportNames.Single().Key;
                 }
             }
 

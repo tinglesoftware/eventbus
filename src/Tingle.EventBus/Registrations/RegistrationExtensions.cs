@@ -106,7 +106,7 @@ namespace Tingle.EventBus.Registrations
             }
 
             // ensure the transport name set has been registered
-            if (!options.RegisteredTransportNames.Contains(reg.TransportName))
+            if (!options.RegisteredTransportNames.ContainsKey(reg.TransportName))
             {
                 throw new InvalidOperationException($"Transport '{reg.TransportName}' on event '{type.FullName}' must be registered.");
             }

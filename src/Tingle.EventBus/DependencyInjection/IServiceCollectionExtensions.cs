@@ -24,9 +24,10 @@ namespace Microsoft.Extensions.DependencyInjection
             var builder = new EventBusBuilder(services)
                 .UseDefaultSerializer();
 
-            // register services that can resolve each other
-            services.AddHostedService(p => p.GetRequiredService<IEventBus>());
+            // register necessary services
             services.AddTransient<IEventPublisher, EventPublisher>();
+            services.AddSingleton<EventBus>();
+            services.AddHostedService(p => p.GetRequiredService<EventBus>());
 
             setupAction?.Invoke(builder);
 

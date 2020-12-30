@@ -8,9 +8,9 @@ namespace Tingle.EventBus
 {
     internal class EventPublisher : IEventPublisher
     {
-        private readonly IEventBus bus;
+        private readonly EventBus bus;
 
-        public EventPublisher(IEventBus bus)
+        public EventPublisher(EventBus bus)
         {
             this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
         }

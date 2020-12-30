@@ -100,16 +100,9 @@ namespace Tingle.EventBus.Registrations
             // set the transport name from the default, if not set
             if (string.IsNullOrWhiteSpace(reg.TransportName))
             {
-                // if only one transport is registered, use it
-                if (options.RegisteredTransportNames.Count == 1)
-                {
-                    reg.TransportName = options.RegisteredTransportNames.Single();
-                }
-                else
-                {
-                    throw new InvalidOperationException($"The transport on event '{type.FullName}' must be set"
-                                                      + " explicitly when more than one transport is registered.");
-                }
+                throw new InvalidOperationException($"Unable to set the transport for event '{type.FullName}'."
+                                                  + $" Either set the '{nameof(options.DefaultTransportName)}' option"
+                                                  + $" or use the '{typeof(EventTransportNameAttribute).FullName}' on the event.");
             }
 
             // ensure the transport name set has been registered

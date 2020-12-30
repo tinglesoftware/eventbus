@@ -47,6 +47,32 @@ namespace Microsoft.Extensions.DependencyInjection
                 };
             }
 
+            // ensure there is at least one registered transport
+            if (options.RegisteredTransportNames.Count == 0)
+            {
+                throw new InvalidOperationException("There must be at least one registered transport");
+            }
+
+            // if the default transport name has been set, ensure it is registered
+            if (!string.IsNullOrWhiteSpace(options.DefaultTransportName))
+            {
+                // ensure the transport name set has been registered
+                var tname = options.DefaultTransportName;
+                if (!options.RegisteredTransportNames.Contains(tname))
+                {
+                    throw new InvalidOperationException($"The default transport  specified '{tname}' must be a registered one.");
+                }
+            }
+
+            // if the default transport name has not been set, and there is one registered, set it as default
+            if (string.IsNullOrWhiteSpace(options.DefaultTransportName))
+            {
+                if (options.RegisteredTransportNames.Count == 1)
+                {
+                    options.DefaultTransportName = options.RegisteredTransportNames.Single();
+                }
+            }
+
             // for each consumer registration, ensure we have everything set
             var registrations = options.GetConsumerRegistrations();
             foreach (var reg in registrations)

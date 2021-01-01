@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Mime;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Registrations;
@@ -19,6 +20,7 @@ namespace Tingle.EventBus.Transports
     /// <typeparam name="TTransportOptions">The type used for configuring options of the transport</typeparam>
     public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransport where TTransportOptions : class, new()
     {
+        private static readonly Regex CategoryNamePattern = new Regex(@"Transport$", RegexOptions.Compiled);
         private readonly IServiceScopeFactory serviceScopeFactory;
 
         /// <summary>
@@ -40,7 +42,7 @@ namespace Tingle.EventBus.Transports
             BusOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
             TransportOptions = transportOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(transportOptionsAccessor));
             var categoryName = $"EventBus.Transports.{GetType().Name}";
-            categoryName = System.Text.RegularExpressions.Regex.Replace(categoryName, @"Transport$", string.Empty); // remove trailing "Transport"
+            categoryName = CategoryNamePattern.Replace(categoryName, string.Empty); // remove trailing "Transport"
             Logger = loggerFactory?.CreateLogger(categoryName) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 

@@ -20,7 +20,7 @@ namespace Tingle.EventBus
         ///
         protected static readonly DiagnosticListener DiagnosticListener = new DiagnosticListener("Tingle-EventBus");
 
-        private readonly IEnumerable<IEventBusTransport> transports;
+        private readonly List<IEventBusTransport> transports;
         private readonly EventBusOptions options;
         private readonly ILogger logger;
 
@@ -34,7 +34,7 @@ namespace Tingle.EventBus
                         IOptions<EventBusOptions> optionsAccessor,
                         ILoggerFactory loggerFactory)
         {
-            this.transports = transports ?? throw new ArgumentNullException(nameof(transports));
+            this.transports = transports?.ToList() ?? throw new ArgumentNullException(nameof(transports));
             options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
             logger = loggerFactory?.CreateLogger("EventBus") ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -165,7 +165,7 @@ namespace Tingle.EventBus
             }
 
             // Start the bus and its transports
-            logger.LogDebug("Starting bus.");
+            logger.LogDebug("Starting bus with {TransportsCount} transports.", transports.Count());
             foreach (var t in transports)
             {
                 await t.StartAsync(cancellationToken);

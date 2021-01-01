@@ -160,10 +160,38 @@ namespace Tingle.EventBus
             // If a startup delay has been specified, apply it
             if (options.StartupDelay != null)
             {
-                logger.LogInformation("Delaying bus startup for '{StartupDelay}'", options.StartupDelay);
-                await Task.Delay(options.StartupDelay.Value, cancellationToken);
+                // We cannot await the call because it will cause other components not to start.
+                // Instead, create a cancellation token linked to the one provided so that we can
+                // stop startup if told to do so.
+                var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                _ = DelayThenStartTransportsAsync(options.StartupDelay.Value, cts.Token);
             }
+            else
+            {
+                // Without a delay, just start the transports directly
+                await StartTransports(cancellationToken);
+            }
+        }
 
+        private async Task DelayThenStartTransportsAsync(TimeSpan delay, CancellationToken cancellationToken)
+        {
+            // With delayed startup, the error may dissappear since the call to this method is not awaited.
+            // The appropriate logging needs to be done.
+            try
+            {
+                logger.LogInformation("Delaying bus startup for '{Delay}'", delay);
+                await Task.Delay(delay, cancellationToken);
+                await StartTransports(cancellationToken);
+            }
+            catch (Exception ex)
+                when (!(ex is OperationCanceledException || ex is TaskCanceledException)) // skip operation cancel
+            {
+                logger.LogError(ex, "Starting bus delayed error.");
+            }
+        }
+
+        private async Task StartTransports(CancellationToken cancellationToken)
+        {
             // Start the bus and its transports
             logger.LogDebug("Starting bus with {TransportsCount} transports.", transports.Count());
             foreach (var t in transports)

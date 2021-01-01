@@ -41,9 +41,14 @@ namespace Tingle.EventBus.Transports
             this.serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             BusOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
             TransportOptions = transportOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(transportOptionsAccessor));
+
+            // Create a well-scoped logger
             var categoryName = $"EventBus.Transports.{GetType().Name}";
             categoryName = CategoryNamePattern.Replace(categoryName, string.Empty); // remove trailing "Transport"
             Logger = loggerFactory?.CreateLogger(categoryName) ?? throw new ArgumentNullException(nameof(loggerFactory));
+
+            // Get the name of the transport
+            Name = EventBusBuilder.GetTransportName(GetType());
         }
 
         /// <summary>
@@ -60,6 +65,12 @@ namespace Tingle.EventBus.Transports
         /// Options for configuring the transport.
         /// </summary>
         protected TTransportOptions TransportOptions { get; }
+
+        /// <summary>
+        /// The name of this transport as extracted from <see cref="TransportNameAttribute"/> declared on it.
+        /// This name cannot be changed
+        /// </summary>
+        protected string Name { get; }
 
         ///
         protected ILogger Logger { get; }

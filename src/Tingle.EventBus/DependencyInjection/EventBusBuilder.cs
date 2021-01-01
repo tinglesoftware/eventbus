@@ -223,15 +223,25 @@ namespace Microsoft.Extensions.DependencyInjection
             });
         }
 
-        private static string GetTransportName<TTransport>() where TTransport : IEventBusTransport
+        private static string GetTransportName<TTransport>() where TTransport : IEventBusTransport => GetTransportName(typeof(TTransport));
+
+        internal static string GetTransportName(Type type)
         {
-            var type = typeof(TTransport);
+            // Ensure the type implements IEventBusTransport
+            if (!(typeof(IEventBusTransport).IsAssignableFrom(type)))
+            {
+                throw new InvalidOperationException($"'{type.FullName}' must implement '{typeof(IEventBusTransport).FullName}'.");
+            }
+
+            // Ensure the TransportNameAttribute attribute is declared on it
             var attrs = type.GetCustomAttributes(false).OfType<TransportNameAttribute>().ToList();
             if (attrs.Count == 0)
             {
                 throw new InvalidOperationException($"'{type.FullName}' must have '{typeof(TransportNameAttribute).FullName}' declared on it.");
             }
-            return attrs.SingleOrDefault()?.Name;
+
+            // Ensure there is only one attribute and get the name
+            return attrs.Single().Name;
         }
     }
 }

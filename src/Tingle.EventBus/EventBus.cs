@@ -175,14 +175,11 @@ namespace Tingle.EventBus
         /// <inheritdoc/>
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            // Stop the bus and its transports
+            // Stop the bus and its transports in parallel
             logger.LogDebug("Stopping bus.");
-            foreach (var t in transports)
-            {
-                await t.StopAsync(cancellationToken);
-            }
+            var tasks = transports.Select(t => t.StopAsync(cancellationToken));
+            await Task.WhenAll(tasks);
         }
-
 
         internal IEventBusTransport GetTransportForEvent<TEvent>()
         {

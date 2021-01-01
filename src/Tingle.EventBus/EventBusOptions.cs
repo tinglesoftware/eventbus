@@ -13,9 +13,10 @@ namespace Tingle.EventBus
     {
         /// <summary>
         /// The duration of time to delay the starting of the bus.
-        /// When specified, the value must be more than 5 seconds but less than 10 minutes.
+        /// The default value is 5 seconds. Max value is 10 minutes and minimum is 5 seconds.
+        /// When <see langword="null"/>, the bus is started immediately.
         /// </summary>
-        public TimeSpan? StartupDelay { get; set; }
+        public TimeSpan? StartupDelay { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
         /// The options to use for serialization.

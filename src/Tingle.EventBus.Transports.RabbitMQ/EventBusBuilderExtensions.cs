@@ -15,7 +15,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddRabbitMqTransport(this EventBusBuilder builder, Action<RabbitMqOptions> configure)
+        public static EventBusBuilder AddRabbitMqTransport(this EventBusBuilder builder, Action<RabbitMqTransportOptions> configure)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configure is null) throw new ArgumentNullException(nameof(configure));
@@ -24,7 +24,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // configure the options for RabbitMQ
             services.Configure(configure);
-            services.PostConfigure<RabbitMqOptions>(options =>
+            services.PostConfigure<RabbitMqTransportOptions>(options =>
             {
                 // if we do not have a connection factory, attempt to create one
                 if (options.ConnectionFactory == null)

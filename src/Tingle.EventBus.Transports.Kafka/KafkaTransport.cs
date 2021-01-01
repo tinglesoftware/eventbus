@@ -18,7 +18,7 @@ namespace Tingle.EventBus.Transports.Kafka
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Kafka.
     /// </summary>
     [TransportName(TransportNames.Kafka)]
-    public class KafkaTransport : EventBusTransportBase<KafkaOptions>
+    public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>
     {
         // the timeout used for non-async operations
         private static readonly TimeSpan StandardTimeout = TimeSpan.FromSeconds(30);
@@ -39,7 +39,7 @@ namespace Tingle.EventBus.Transports.Kafka
         public KafkaTransport(IHostEnvironment environment,
                               IServiceScopeFactory serviceScopeFactory,
                               IOptions<EventBusOptions> busOptionsAccessor,
-                              IOptions<KafkaOptions> transportOptionsAccessor,
+                              IOptions<KafkaTransportOptions> transportOptionsAccessor,
                               ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {

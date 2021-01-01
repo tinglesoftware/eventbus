@@ -23,7 +23,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using RabbitMQ.
     /// </summary>
     [TransportName(TransportNames.RabbitMq)]
-    public class RabbitMqTransport : EventBusTransportBase<RabbitMqOptions>, IDisposable
+    public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>, IDisposable
     {
         private readonly SemaphoreSlim connectionLock = new SemaphoreSlim(1, 1);
         private readonly Dictionary<string, IModel> subscriptionChannelsCache = new Dictionary<string, IModel>();
@@ -44,7 +44,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         public RabbitMqTransport(IHostEnvironment environment,
                                  IServiceScopeFactory serviceScopeFactory,
                                  IOptions<EventBusOptions> busOptionsAccessor,
-                                 IOptions<RabbitMqOptions> transportOptionsAccessor,
+                                 IOptions<RabbitMqTransportOptions> transportOptionsAccessor,
                                  ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {

@@ -1,12 +1,13 @@
 ﻿using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
+using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Options for configuring Azure EventHubs based event bus.
     /// </summary>
-    public class AzureEventHubsOptions
+    public class AzureEventHubsTransportOptions : EventBusTransportOptionsBase
     {
         /// <summary>
         /// The connection string to Azure EventHubs.

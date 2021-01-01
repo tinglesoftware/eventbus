@@ -20,7 +20,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Azure Queue Storage.
     /// </summary>
     [TransportName(TransportNames.AzureQueueStorage)]
-    public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorageOptions>
+    public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorageTransportOptions>
     {
         private const string SequenceNumberSeparator = "|";
 
@@ -40,7 +40,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         public AzureQueueStorageTransport(IHostEnvironment environment,
                                           IServiceScopeFactory serviceScopeFactory,
                                           IOptions<EventBusOptions> busOptionsAccessor,
-                                          IOptions<AzureQueueStorageOptions> transportOptionsAccessor,
+                                          IOptions<AzureQueueStorageTransportOptions> transportOptionsAccessor,
                                           ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {

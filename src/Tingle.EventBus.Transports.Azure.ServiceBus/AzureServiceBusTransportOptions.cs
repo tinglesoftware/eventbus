@@ -1,13 +1,14 @@
 ﻿using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using System;
+using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Options for configuring Azure Service Bus based event bus.
     /// </summary>
-    public class AzureServiceBusOptions
+    public class AzureServiceBusTransportOptions : EventBusTransportOptionsBase
     {
         /// <summary>
         /// The connection string to Azure Service Bus.

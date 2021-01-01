@@ -24,7 +24,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
     /// Amazon SQS and Amazon SNS as the transport.
     /// </summary>
     [TransportName(TransportNames.AmazonSqs)]
-    public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsOptions>
+    public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOptions>
     {
         private readonly Dictionary<Type, string> topicArnsCache = new Dictionary<Type, string>();
         private readonly SemaphoreSlim topicArnsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
@@ -45,7 +45,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         public AmazonSqsTransport(IHostEnvironment environment,
                                  IServiceScopeFactory serviceScopeFactory,
                                  IOptions<EventBusOptions> optionsAccessor,
-                                 IOptions<AmazonSqsOptions> transportOptionsAccessor,
+                                 IOptions<AmazonSqsTransportOptions> transportOptionsAccessor,
                                  ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, optionsAccessor, transportOptionsAccessor, loggerFactory)
         {

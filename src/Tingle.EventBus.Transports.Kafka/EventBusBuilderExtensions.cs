@@ -16,7 +16,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddKafkaTransport(this EventBusBuilder builder, Action<KafkaOptions> configure)
+        public static EventBusBuilder AddKafkaTransport(this EventBusBuilder builder, Action<KafkaTransportOptions> configure)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configure is null) throw new ArgumentNullException(nameof(configure));
@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // configure the options for Kafka
             services.Configure(configure);
-            services.PostConfigure<KafkaOptions>(options =>
+            services.PostConfigure<KafkaTransportOptions>(options =>
             {
                 if (options.BootstrapServers == null && options.AdminConfig == null)
                 {

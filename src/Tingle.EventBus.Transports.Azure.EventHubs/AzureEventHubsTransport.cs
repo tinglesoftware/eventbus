@@ -22,7 +22,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Azure Event Hubs.
     /// </summary>
     [TransportName(TransportNames.AzureEventHubs)]
-    public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsOptions>
+    public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTransportOptions>
     {
         private readonly Dictionary<(Type, bool), EventHubProducerClient> producersCache = new Dictionary<(Type, bool), EventHubProducerClient>();
         private readonly SemaphoreSlim producersCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
@@ -40,7 +40,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         public AzureEventHubsTransport(IHostEnvironment environment,
                                        IServiceScopeFactory serviceScopeFactory,
                                        IOptions<EventBusOptions> busOptionsAccessor,
-                                       IOptions<AzureEventHubsOptions> transportOptionsAccessor,
+                                       IOptions<AzureEventHubsTransportOptions> transportOptionsAccessor,
                                        ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {

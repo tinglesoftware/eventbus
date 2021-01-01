@@ -17,7 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddAmazonSqsTransport(this EventBusBuilder builder, Action<AmazonSqsOptions> configure)
+        public static EventBusBuilder AddAmazonSqsTransport(this EventBusBuilder builder, Action<AmazonSqsTransportOptions> configure)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configure is null) throw new ArgumentNullException(nameof(configure));
@@ -26,7 +26,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // configure the options for Amazon SQS and SNS option
             services.Configure(configure);
-            services.PostConfigure<AmazonSqsOptions>(options =>
+            services.PostConfigure<AmazonSqsTransportOptions>(options =>
             {
                 // ensure the region is provided
                 if (string.IsNullOrWhiteSpace(options.RegionName) && options.Region == null)

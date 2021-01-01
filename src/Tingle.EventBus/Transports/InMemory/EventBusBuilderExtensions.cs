@@ -14,7 +14,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddInMemoryTransport(this EventBusBuilder builder, Action<InMemoryOptions> configure = null)
+        public static EventBusBuilder AddInMemoryTransport(this EventBusBuilder builder, Action<InMemoryTransportOptions> configure = null)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
 

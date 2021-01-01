@@ -14,7 +14,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddAzureQueueStorageTransport(this EventBusBuilder builder, Action<AzureQueueStorageOptions> configure)
+        public static EventBusBuilder AddAzureQueueStorageTransport(this EventBusBuilder builder, Action<AzureQueueStorageTransportOptions> configure)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configure is null) throw new ArgumentNullException(nameof(configure));
@@ -23,7 +23,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // configure the options for Azure Queue Storage
             services.Configure(configure);
-            services.PostConfigure<AzureQueueStorageOptions>(options =>
+            services.PostConfigure<AzureQueueStorageTransportOptions>(options =>
             {
                 // ensure the connection string
                 if (string.IsNullOrWhiteSpace(options.ConnectionString))
@@ -50,13 +50,13 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="connectionString">
         /// The connection string to the Azure Storage account.
-        /// Maps to <see cref="AzureQueueStorageOptions.ConnectionString"/>.
+        /// Maps to <see cref="AzureQueueStorageTransportOptions.ConnectionString"/>.
         /// </param>
         /// <param name="configure"></param>
         /// <returns></returns>
         public static EventBusBuilder AddAzureQueueStorageTransport(this EventBusBuilder builder,
                                                                     string connectionString,
-                                                                    Action<AzureQueueStorageOptions> configure = null)
+                                                                    Action<AzureQueueStorageTransportOptions> configure = null)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
 

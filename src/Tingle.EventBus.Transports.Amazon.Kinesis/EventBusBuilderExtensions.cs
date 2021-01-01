@@ -16,7 +16,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddAmazonKinesisTransport(this EventBusBuilder builder, Action<AmazonKinesisOptions> configure)
+        public static EventBusBuilder AddAmazonKinesisTransport(this EventBusBuilder builder, Action<AmazonKinesisTransportOptions> configure)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configure is null) throw new ArgumentNullException(nameof(configure));
@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Configure the options for Amazon Kinesis
             services.Configure(configure);
-            services.PostConfigure<AmazonKinesisOptions>(options =>
+            services.PostConfigure<AmazonKinesisTransportOptions>(options =>
             {
                 // Ensure the region is provided
                 if (string.IsNullOrWhiteSpace(options.RegionName) && options.Region == null)

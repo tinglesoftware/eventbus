@@ -2,13 +2,14 @@
 using Confluent.Kafka.Admin;
 using System;
 using System.Collections.Generic;
+using Tingle.EventBus.Transports;
 
-namespace Tingle.EventBus.Transports.Kafka
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Options for configuring Kafka based event bus.
     /// </summary>
-    public class KafkaOptions
+    public class KafkaTransportOptions: EventBusTransportOptionsBase
     {
         /// <summary>
         /// The initial list of brokers indicated as <c>host</c> or <c>host:port</c>

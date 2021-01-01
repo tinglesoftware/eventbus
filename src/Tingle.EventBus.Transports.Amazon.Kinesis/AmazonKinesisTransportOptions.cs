@@ -1,14 +1,16 @@
 ﻿using Amazon;
-using Amazon.Runtime;
 using Amazon.Kinesis;
+using Amazon.Runtime;
 using System;
+using Tingle.EventBus;
+using Tingle.EventBus.Transports;
 
-namespace Tingle.EventBus.Transports.Amazon.Kinesis
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Options for configuring Amazon Kinesis based event bus.
     /// </summary>
-    public class AmazonKinesisOptions
+    public class AmazonKinesisTransportOptions : EventBusTransportOptionsBase
     {
         /// <summary>
         /// The system name of the region to connect to.
@@ -49,6 +51,6 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         /// Defaults function uses <see cref="EventContext.Id"/> as the partion key.
         /// The value returned is hashed to determine the shard the event is sent to.
         /// </summary>
-        public Func<EventContext, string> PartitionKeyResolver{ get; set; } = (ctx) => ctx.Id;
+        public Func<EventContext, string> PartitionKeyResolver { get; set; } = (ctx) => ctx.Id;
     }
 }

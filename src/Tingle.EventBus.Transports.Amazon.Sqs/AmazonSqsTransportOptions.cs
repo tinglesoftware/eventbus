@@ -5,13 +5,14 @@ using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using System;
+using Tingle.EventBus.Transports;
 
-namespace Tingle.EventBus.Transports.Amazon.Sqs
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Options for configuring Amazon SQS based event bus.
     /// </summary>
-    public class AmazonSqsOptions
+    public class AmazonSqsTransportOptions : EventBusTransportOptionsBase
     {
         /// <summary>
         /// The system name of the region to connect to.

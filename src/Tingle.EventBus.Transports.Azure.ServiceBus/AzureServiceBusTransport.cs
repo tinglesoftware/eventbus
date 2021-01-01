@@ -19,7 +19,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Azure Service Bus.
     /// </summary>
     [TransportName(TransportNames.AzureServiceBus)]
-    public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusOptions>
+    public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTransportOptions>
     {
         private readonly Dictionary<Type, ServiceBusSender> sendersCache = new Dictionary<Type, ServiceBusSender>();
         private readonly SemaphoreSlim sendersCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
@@ -39,7 +39,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         public AzureServiceBusTransport(IHostEnvironment environment,
                                         IServiceScopeFactory serviceScopeFactory,
                                         IOptions<EventBusOptions> busOptionsAccessor,
-                                        IOptions<AzureServiceBusOptions> transportOptionsAccessor,
+                                        IOptions<AzureServiceBusTransportOptions> transportOptionsAccessor,
                                         ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {

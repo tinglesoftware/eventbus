@@ -19,7 +19,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
     /// Amazon Kinesis as the transport.
     /// </summary>
     [TransportName(TransportNames.AmazonKinesis)]
-    public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisOptions>
+    public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTransportOptions>
     {
         private readonly AmazonKinesisClient kinesisClient;
 
@@ -34,7 +34,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         public AmazonKinesisTransport(IHostEnvironment environment,
                                      IServiceScopeFactory serviceScopeFactory,
                                      IOptions<EventBusOptions> busOptionsAccessor,
-                                     IOptions<AmazonKinesisOptions> transportOptionsAccessor,
+                                     IOptions<AmazonKinesisTransportOptions> transportOptionsAccessor,
                                      ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {

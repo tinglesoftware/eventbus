@@ -5,9 +5,9 @@ using Tingle.EventBus;
 namespace Microsoft.Extensions.Options
 {
     /// <summary>
-    /// A class to finish the configuration of instances of <see cref="AzureEventHubsOptions"/>.
+    /// A class to finish the configuration of instances of <see cref="AzureEventHubsTransportOptions"/>.
     /// </summary>
-    internal class AzureEventHubsPostConfigureOptions : IPostConfigureOptions<AzureEventHubsOptions>
+    internal class AzureEventHubsPostConfigureOptions : IPostConfigureOptions<AzureEventHubsTransportOptions>
     {
         private readonly EventBusOptions busOptions;
 
@@ -16,7 +16,7 @@ namespace Microsoft.Extensions.Options
             busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
         }
 
-        public void PostConfigure(string name, AzureEventHubsOptions options)
+        public void PostConfigure(string name, AzureEventHubsTransportOptions options)
         {
             // ensure the connection string
             if (string.IsNullOrWhiteSpace(options.ConnectionString))

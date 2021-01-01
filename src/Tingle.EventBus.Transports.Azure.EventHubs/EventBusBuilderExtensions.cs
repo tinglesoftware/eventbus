@@ -16,7 +16,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder AddAzureEventHubsTransport(this EventBusBuilder builder, Action<AzureEventHubsOptions> configure)
+        public static EventBusBuilder AddAzureEventHubsTransport(this EventBusBuilder builder, Action<AzureEventHubsTransportOptions> configure)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configure is null) throw new ArgumentNullException(nameof(configure));
@@ -26,7 +26,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // configure the options for Azure Service Bus
             services.Configure(configure);
             services.TryAddEnumerable(
-                ServiceDescriptor.Singleton<IPostConfigureOptions<AzureEventHubsOptions>, AzureEventHubsPostConfigureOptions>());
+                ServiceDescriptor.Singleton<IPostConfigureOptions<AzureEventHubsTransportOptions>, AzureEventHubsPostConfigureOptions>());
 
             // register the transport
             builder.RegisterTransport<AzureEventHubsTransport>();
@@ -40,13 +40,13 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="connectionString">
         /// The connection string to the Azure EventHubs namespace.
-        /// Maps to <see cref="AzureEventHubsOptions.ConnectionString"/>.
+        /// Maps to <see cref="AzureEventHubsTransportOptions.ConnectionString"/>.
         /// </param>
         /// <param name="configure"></param>
         /// <returns></returns>
         public static EventBusBuilder AddAzureEventHubsTransport(this EventBusBuilder builder,
                                                                  string connectionString,
-                                                                 Action<AzureEventHubsOptions> configure)
+                                                                 Action<AzureEventHubsTransportOptions> configure)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
 

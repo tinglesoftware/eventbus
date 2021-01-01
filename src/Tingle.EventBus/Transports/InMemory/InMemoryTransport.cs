@@ -18,7 +18,7 @@ namespace Tingle.EventBus.Transports.InMemory
     /// This implementation should only be used for unit testing or similar scenarios as it does not offer persistence.
     /// </summary>
     [TransportName(TransportNames.InMemory)]
-    public class InMemoryTransport : EventBusTransportBase<InMemoryOptions>
+    public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
     {
         private readonly ConcurrentBag<object> published = new ConcurrentBag<object>();
         private readonly ConcurrentBag<object> consumed = new ConcurrentBag<object>();
@@ -35,7 +35,7 @@ namespace Tingle.EventBus.Transports.InMemory
         public InMemoryTransport(IHostEnvironment environment,
                                  IServiceScopeFactory serviceScopeFactory,
                                  IOptions<EventBusOptions> busOptionsAccessor,
-                                 IOptions<InMemoryOptions> transportOptionsAccessor,
+                                 IOptions<InMemoryTransportOptions> transportOptionsAccessor,
                                  ILoggerFactory loggerFactory)
             : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {

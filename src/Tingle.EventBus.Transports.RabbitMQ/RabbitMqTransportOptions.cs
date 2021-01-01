@@ -1,11 +1,12 @@
 ﻿using RabbitMQ.Client;
+using Tingle.EventBus.Transports;
 
-namespace Tingle.EventBus.Transports.RabbitMQ
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Options for configuring RabbitMQ based event bus.
     /// </summary>
-    public class RabbitMqOptions
+    public class RabbitMqTransportOptions : EventBusTransportOptionsBase
     {
         /// <summary>
         /// The number of retries to make.

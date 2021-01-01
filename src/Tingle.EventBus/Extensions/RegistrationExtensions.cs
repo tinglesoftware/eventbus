@@ -6,7 +6,10 @@ using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Registrations
 {
-    internal static class RegistrationExtensions
+    /// <summary>
+    /// Extension methods on <see cref="EventRegistration"/> and <see cref="ConsumerRegistration"/>.
+    /// </summary>
+    public static class RegistrationExtensions
     {
         private static readonly Regex namePattern = new Regex("(?<=[a-z0-9])[A-Z]", RegexOptions.Compiled);
 

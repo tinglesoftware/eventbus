@@ -43,21 +43,31 @@ namespace Tingle.EventBus
         /// Checks for health of the bus.
         /// This function can be used by the Health Checks framework and may throw and execption during execution.
         /// </summary>
-        /// <param name="extras">The extra information about the health check.</param>
+        /// <param name="data">Additional key-value pairs describing the health of the bus.</param>
         /// <param name="cancellationToken"></param>
         /// <returns>A value indicating if the bus is healthly.</returns>
-        public async Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,
+        public async Task<bool> CheckHealthAsync(Dictionary<string, object> data,
                                                  CancellationToken cancellationToken = default)
         {
+            var healthy = true;
+
             // Ensure each transport is healthy
             foreach (var t in transports)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var healthy = await t.CheckHealthAsync(extras, cancellationToken);
-                if (!healthy)
-                    return false;
+
+                // Get the name of the transport
+                var name = Microsoft.Extensions.DependencyInjection.EventBusBuilder.GetTransportName(t.GetType());
+
+                // Check the health on the transport
+                var tdata = new Dictionary<string, object>();
+                healthy &= await t.CheckHealthAsync(tdata, cancellationToken);
+
+                // Combine the data dictionaries into one, keyed by the transport name
+                data[name] = tdata;
             }
-            return true;
+
+            return healthy;
         }
 
         /// <summary>

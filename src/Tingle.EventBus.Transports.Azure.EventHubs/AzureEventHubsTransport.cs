@@ -47,7 +47,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         }
 
         /// <inheritdoc/>
-        public override async Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,
+        public override async Task<bool> CheckHealthAsync(Dictionary<string, object> data,
                                                           CancellationToken cancellationToken = default)
         {
             // get properties for the producers

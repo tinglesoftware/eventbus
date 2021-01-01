@@ -68,7 +68,7 @@ namespace Tingle.EventBus.Transports.Kafka
         }
 
         /// <inheritdoc/>
-        public override Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,
+        public override Task<bool> CheckHealthAsync(Dictionary<string, object> data,
                                                     CancellationToken cancellationToken = default)
         {
             adminClient.GetMetadata(StandardTimeout);

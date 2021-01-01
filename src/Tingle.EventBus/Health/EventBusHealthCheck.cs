@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,12 +27,10 @@ namespace Tingle.EventBus.Health
         {
             try
             {
-                var extras = new EventBusHealthCheckExtras();
-                var healthy = await bus.CheckHealthAsync(extras, cancellationToken);
-                return healthy ? HealthCheckResult.Healthy(description: extras.Description,
-                                                           data: extras.Data)
-                               : HealthCheckResult.Unhealthy(description: extras.Description,
-                                                             data: extras.Data);
+                var data = new Dictionary<string, object>();
+                var healthy = await bus.CheckHealthAsync(data, cancellationToken);
+                return healthy ? HealthCheckResult.Healthy(data: data)
+                               : HealthCheckResult.Unhealthy(data: data);
             }
             catch (Exception ex)
             {

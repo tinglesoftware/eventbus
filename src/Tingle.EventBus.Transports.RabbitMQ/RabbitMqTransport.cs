@@ -59,7 +59,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         }
 
         /// <inheritdoc/>
-        public override async Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,
+        public override async Task<bool> CheckHealthAsync(Dictionary<string, object> data,
                                                           CancellationToken cancellationToken = default)
         {
             if (!IsConnected)

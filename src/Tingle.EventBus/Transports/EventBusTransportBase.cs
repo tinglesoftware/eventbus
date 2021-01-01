@@ -77,7 +77,7 @@ namespace Tingle.EventBus.Transports
         protected ILogger Logger { get; }
 
         /// <inheritdoc/>
-        public abstract Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,
+        public abstract Task<bool> CheckHealthAsync(Dictionary<string, object> data,
                                                     CancellationToken cancellationToken = default);
 
         /// <inheritdoc/>

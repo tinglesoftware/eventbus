@@ -43,7 +43,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         }
 
         /// <inheritdoc/>
-        public override async Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,
+        public override async Task<bool> CheckHealthAsync(Dictionary<string, object> data,
                                                           CancellationToken cancellationToken = default)
         {
             _ = await kinesisClient.ListStreamsAsync(cancellationToken);

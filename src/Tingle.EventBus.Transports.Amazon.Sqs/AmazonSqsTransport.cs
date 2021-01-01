@@ -57,7 +57,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         }
 
         /// <inheritdoc/>
-        public override async Task<bool> CheckHealthAsync(EventBusHealthCheckExtras extras,
+        public override async Task<bool> CheckHealthAsync(Dictionary<string, object> data,
                                                           CancellationToken cancellationToken = default)
         {
             _ = await snsClient.ListTopicsAsync(cancellationToken);

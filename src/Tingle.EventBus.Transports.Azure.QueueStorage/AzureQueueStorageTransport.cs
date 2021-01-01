@@ -223,9 +223,17 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                       MessageEncoding = QueueMessageEncoding.Base64,
                                                   });
 
-                    // ensure queue is created if it does not exist
-                    Logger.LogInformation("Ensuring queue '{QueueName}' exists", name);
-                    await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
+                    // if entity creation is enabled, ensure queue is created
+                    if (!TransportOptions.EnableQueueCreation)
+                    {
+                        // ensure queue is created if it does not exist
+                        Logger.LogInformation("Ensuring queue '{QueueName}' exists", name);
+                        await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
+                    }
+                    else
+                    {
+                        Logger.LogTrace("Entity creation is diabled. Queue creation skipped");
+                    }
 
                     queueClientsCache[(reg.EventType, deadletter)] = queueClient;
                 }

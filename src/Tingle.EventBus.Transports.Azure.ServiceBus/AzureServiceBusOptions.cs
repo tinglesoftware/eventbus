@@ -28,10 +28,11 @@ namespace Microsoft.Extensions.DependencyInjection
         public ServiceBusTransportType TransportType { get; set; } = ServiceBusTransportType.AmqpTcp;
 
         /// <summary>
-        /// Gets or sets value indicating if the Service Bus entities (e.g. queues, topics and subscriptions) should be created.
-        /// If <see langword="false"/>, it is the responsibility of the caller to create entities.
+        /// Gets or sets value indicating if the Service Bus entities (e.g. queues, topics and subscriptions)
+        /// should be created.
+        /// If <see langword="false"/>, it is the responsibility of the developer to create the required entities.
         /// Always set this value to <see langword="false"/> when the <see cref="ConnectionString"/>
-        /// is a shared access signature without the <c>Manage</c> permissions.
+        /// is a shared access signature without the <c>Manage</c> permission.
         /// Defaults to <see langword="true"/>.
         /// </summary>
         public bool EnableEntityCreation { get; set; } = true;

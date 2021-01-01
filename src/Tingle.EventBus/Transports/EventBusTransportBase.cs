@@ -190,5 +190,11 @@ namespace Tingle.EventBus.Transports
         /// from the <see cref="IServiceScope.ServiceProvider"/> will also be disposed.
         /// </returns>
         protected IServiceScope CreateScope() => serviceScopeFactory.CreateScope();
+
+        /// <summary>
+        /// Gets the consumer registrations for this transport.
+        /// </summary>
+        /// <returns></returns>
+        protected ICollection<ConsumerRegistration> GetConsumerRegistrations() => BusOptions.GetConsumerRegistrations(transportName: Name);
     }
 }

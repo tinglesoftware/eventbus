@@ -255,7 +255,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 await TryConnectAsync(cancellationToken);
             }
 
-            var registrations = BusOptions.GetConsumerRegistrations();
+            var registrations = GetConsumerRegistrations();
             Logger.StartingTransport(registrations.Count);
             foreach (var reg in registrations)
             {

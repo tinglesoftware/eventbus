@@ -171,7 +171,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
             // find consumers registered for the event
             var eventType = typeof(TEvent);
-            var registered = BusOptions.GetConsumerRegistrations().Where(r => r.EventType == eventType).ToList();
+            var registered = GetConsumerRegistrations().Where(r => r.EventType == eventType).ToList();
 
             // send the message to each consumer in parallel
             var tasks = registered.Select(reg =>

@@ -59,7 +59,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         /// <inheritdoc/>
         public override Task StartAsync(CancellationToken cancellationToken)
         {
-            var registrations = BusOptions.GetConsumerRegistrations();
+            var registrations = GetConsumerRegistrations();
             Logger.StartingTransport(registrations.Count);
             foreach (var reg in registrations)
             {

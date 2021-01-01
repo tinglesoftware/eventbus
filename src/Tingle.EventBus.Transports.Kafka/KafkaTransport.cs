@@ -78,7 +78,7 @@ namespace Tingle.EventBus.Transports.Kafka
         /// <inheritdoc/>
         public override Task StartAsync(CancellationToken cancellationToken)
         {
-            var registrations = BusOptions.GetConsumerRegistrations();
+            var registrations = GetConsumerRegistrations();
             Logger.StartingTransport(registrations.Count);
             var topics = registrations.Select(r => r.EventName).ToList();
             // only consume if there are topics to subscribe to
@@ -227,7 +227,7 @@ namespace Tingle.EventBus.Transports.Kafka
 
                 // get the registration for topic
                 var topic = result.Topic;
-                var reg = BusOptions.GetConsumerRegistrations().Single(r => r.EventName == topic);
+                var reg = GetConsumerRegistrations().Single(r => r.EventName == topic);
 
                 // form the generic method
                 var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);

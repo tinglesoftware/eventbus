@@ -83,7 +83,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             // for each consumer registration, ensure we have everything set
-            var registrations = options.GetConsumerRegistrations();
+            var registrations = options.ConsumerRegistrations.Values;
             foreach (var reg in registrations)
             {
                 reg.SetSerializer() // set the serializer

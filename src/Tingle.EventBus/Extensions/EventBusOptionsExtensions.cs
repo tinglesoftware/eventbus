@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus
@@ -34,13 +35,20 @@ namespace Tingle.EventBus
         }
 
         /// <summary>
-        /// Gets all the consumer registrations.
+        /// Gets the consumer registrations for a given transport.
         /// </summary>
         /// <param name="options">The instance of <see cref="EventBusOptions"/> to use.</param>
+        /// <param name="transportName">The name of the transport for whom to get registered consumers.</param>
         /// <returns></returns>
-        public static ICollection<ConsumerRegistration> GetConsumerRegistrations(this EventBusOptions options)
+        public static ICollection<ConsumerRegistration> GetConsumerRegistrations(this EventBusOptions options, string transportName)
         {
-            return options.ConsumerRegistrations.Values;
+            if (string.IsNullOrWhiteSpace(transportName))
+            {
+                throw new System.ArgumentException($"'{nameof(transportName)}' cannot be null or whitespace", nameof(transportName));
+            }
+
+            // filter out the consumers where the event is set for the given transport
+            return options.ConsumerRegistrations.Values.Where(r => r.TransportName == transportName).ToList();
         }
 
         /// <summary>

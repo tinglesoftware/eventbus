@@ -10,7 +10,6 @@
     <InternalsVisibleTo Include="Tingle.EventBus.Transports.Azure.EventHubs" />
     <InternalsVisibleTo Include="Tingle.EventBus.Transports.Azure.QueueStorage" />
     <InternalsVisibleTo Include="Tingle.EventBus.Transports.Azure.ServiceBus" />
-    <InternalsVisibleTo Include="Tingle.EventBus.Transports.InMemory" />
     <InternalsVisibleTo Include="Tingle.EventBus.Transports.Kafka" />
     <InternalsVisibleTo Include="Tingle.EventBus.Transports.RabbitMQ" />
     <!-- Tests -->

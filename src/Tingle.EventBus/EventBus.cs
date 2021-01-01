@@ -165,7 +165,7 @@ namespace Tingle.EventBus
             }
 
             // Start the bus and its transports
-            logger.StartingBus();
+            logger.LogDebug("Starting bus.");
             foreach (var t in transports)
             {
                 await t.StartAsync(cancellationToken);
@@ -176,7 +176,7 @@ namespace Tingle.EventBus
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             // Stop the bus and its transports
-            logger.StoppingBus();
+            logger.LogDebug("Stopping bus.");
             foreach (var t in transports)
             {
                 await t.StopAsync(cancellationToken);

@@ -160,6 +160,7 @@ namespace Tingle.EventBus
             // If a startup delay has been specified, apply it
             if (options.StartupDelay != null)
             {
+                logger.LogInformation("Delaying bus startup for '{StartupDelay}'", options.StartupDelay);
                 await Task.Delay(options.StartupDelay.Value, cancellationToken);
             }
 

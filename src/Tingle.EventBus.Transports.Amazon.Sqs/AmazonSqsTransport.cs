@@ -316,10 +316,23 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             {
                 var response = await sqsClient.ReceiveMessageAsync(queueUrl, cancellationToken);
                 response.EnsureSuccess();
+                var messages = response.Messages;
 
-                foreach (var message in response.Messages)
+                // if the response is empty, introduce a delay
+                if (messages.Count == 0)
                 {
-                    await (Task)method.Invoke(this, new object[] { reg, queueUrl, message, cancellationToken, });
+                    var delay = TransportOptions.EmptyResultsDelay;
+                    Logger.LogTrace("No messages on '{QueueUrl}', delaying check for {Delay}", queueUrl, delay);
+                    await Task.Delay(delay, cancellationToken);
+                }
+                else
+                {
+                    Logger.LogDebug("Received {MessageCount} messages on '{QueueUrl}'", messages.Count, queueUrl);
+                    using var scope = CreateScope(); // shared
+                    foreach (var message in messages)
+                    {
+                        await (Task)method.Invoke(this, new object[] { reg, queueUrl, message, cancellationToken, });
+                    }
                 }
             }
         }

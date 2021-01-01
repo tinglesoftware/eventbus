@@ -73,5 +73,13 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         /// This is only called before creation.
         /// </summary>
         public Action<CreateQueueRequest> SetupCreateQueueRequest { get; set; }
+
+        /// <summary>
+        /// The delay to introduce everytime zero messages are received.
+        /// This eases on the CPU consumption and reduces the query costs.
+        /// This value must be between 30 seconds and 10 minutes.
+        /// Defaults to 1 minute.
+        /// </summary>
+        public TimeSpan EmptyResultsDelay { get; set; } = TimeSpan.FromMinutes(1);
     }
 }

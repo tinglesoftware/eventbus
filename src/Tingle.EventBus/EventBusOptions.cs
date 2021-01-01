@@ -97,5 +97,25 @@ namespace Tingle.EventBus
         /// The list of registered transport names.
         /// </summary>
         internal Dictionary<string, Type> RegisteredTransportNames { get; } = new Dictionary<string, Type>();
+
+        /// <summary>
+        /// Indicates if the messages/events procuded require guard against duplicate messages.
+        /// If <see langword="true"/>, duplicate messages having the same <see cref="EventContext.EventId"/>
+        /// sent to the same destination within a duration of <see cref="DuplicateDetectionDuration"/> will be discarded.
+        /// </summary>
+        /// <remarks>
+        /// Duplicate detection can only be done on the transport layer because it requires peristent storage.
+        /// This feature only works if the transport a message is sent on supports duplicate detection.
+        /// </remarks>
+        public bool EnableDeduplication { get; set; }
+
+        /// <summary>
+        /// The <see cref="TimeSpan"/> duration of duplicate detection history that is maintained by a transport.
+        /// </summary>
+        /// <remarks>
+        /// The default value is 1 minute. Max value is 7 days and minimum is 20 seconds.
+        /// This value is only relevant if <see cref="EnableDeduplication"/> is set to <see langword="true"/>.
+        /// </remarks>
+        public TimeSpan DuplicateDetectionDuration { get; set; } = TimeSpan.FromMinutes(1);
     }
 }

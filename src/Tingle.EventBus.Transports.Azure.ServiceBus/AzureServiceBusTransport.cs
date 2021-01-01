@@ -425,7 +425,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     // set the defaults for a topic here
                     Status = EntityStatus.Active,
                     EnablePartitioning = false,
-                    // TODO: enable deduplication if user has specified
+                    RequiresDuplicateDetection = BusOptions.EnableDeduplication,
+                    DuplicateDetectionHistoryTimeWindow = BusOptions.DuplicateDetectionDuration,
                 };
 
                 // Allow for the defaults to be overriden

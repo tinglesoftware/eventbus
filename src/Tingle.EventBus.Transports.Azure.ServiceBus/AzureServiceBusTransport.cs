@@ -360,9 +360,12 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                             Logger.LogTrace("Subscription '{SubscriptionName}' under topic '{TopicName}' does not exist, preparing creation.",
                                             subscriptionName,
                                             topicName);
-                            var options = new CreateSubscriptionOptions(topicName: topicName, subscriptionName: subscriptionName);
-
-                            // TODO: set the defaults for a subscription here
+                            var options = new CreateSubscriptionOptions(topicName: topicName, subscriptionName: subscriptionName)
+                            {
+                                // set the defaults for a subscription here
+                                Status = EntityStatus.Active,
+                                MaxDeliveryCount = 10,
+                            };
 
                             // Allow for the defaults to be overriden
                             TransportOptions.SetupSubscriptionOptions?.Invoke(options);
@@ -417,9 +420,13 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             if (!await managementClient.TopicExistsAsync(name: name, cancellationToken: cancellationToken))
             {
                 Logger.LogTrace("Topic '{TopicName}' does not exist, preparing creation.", name);
-                var options = new CreateTopicOptions(name: name);
-
-                // TODO: set the defaults for a topic here
+                var options = new CreateTopicOptions(name: name)
+                {
+                    // set the defaults for a topic here
+                    Status = EntityStatus.Active,
+                    EnablePartitioning = false,
+                    // TODO: enable deduplication if user has specified
+                };
 
                 // Allow for the defaults to be overriden
                 TransportOptions.SetupTopicOptions?.Invoke(options);
@@ -435,9 +442,12 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             if (!await managementClient.QueueExistsAsync(name: name, cancellationToken: cancellationToken))
             {
                 Logger.LogTrace("Queue '{QueueName}' does not exist, preparing creation.", name);
-                var options = new CreateQueueOptions(name: name);
-
-                // TODO: set the defaults for a queue here
+                var options = new CreateQueueOptions(name: name)
+                {
+                    // set the defaults for a queue here
+                    Status = EntityStatus.Active,
+                    MaxDeliveryCount = 10,
+                };
 
                 // Allow for the defaults to be overriden
                 TransportOptions.SetupQueueOptions?.Invoke(options);

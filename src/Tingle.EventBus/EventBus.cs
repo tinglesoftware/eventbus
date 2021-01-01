@@ -80,7 +80,7 @@ namespace Tingle.EventBus
             @event.Headers.AddIfNotDefault(DiagnosticHeaders.ActivityId, Activity.Current?.Id);
 
             // Set properties that may be missing
-            @event.EventId ??= Guid.NewGuid().ToString();
+            @event.Id ??= Guid.NewGuid().ToString();
             @event.Sent ??= DateTimeOffset.UtcNow;
 
             // Publish on the transport
@@ -112,7 +112,7 @@ namespace Tingle.EventBus
                 @event.Headers.AddIfNotDefault(DiagnosticHeaders.ActivityId, Activity.Current?.Id);
 
                 // Set properties that may be missing
-                @event.EventId ??= Guid.NewGuid().ToString();
+                @event.Id ??= Guid.NewGuid().ToString();
                 @event.Sent ??= DateTimeOffset.UtcNow;
             }
 

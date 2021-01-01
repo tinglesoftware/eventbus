@@ -45,7 +45,7 @@ namespace CustomSerializer
             var @event = jToken.ToObject<AzureDevOpsCodePushed>();
             var context = new EventContext<T>(bus)
             {
-                EventId = jToken.Value<string>("id"),
+                Id = jToken.Value<string>("id"),
                 Event = @event as T,
                 Sent = jToken.Value<DateTime>("createdDate"),
             };

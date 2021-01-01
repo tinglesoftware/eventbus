@@ -137,7 +137,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             var message = new ServiceBusMessage(ms.ToArray())
             {
-                MessageId = @event.EventId,
+                MessageId = @event.Id,
                 ContentType = contentType?.ToString(),
             };
 
@@ -162,8 +162,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             // Get the sender and send the message accordingly
             var sender = await GetSenderAsync(reg, cancellationToken);
-            Logger.LogInformation("Sending {EventId} to '{EntityPath}'. Scheduled: {Scheduled}",
-                                  @event.EventId,
+            Logger.LogInformation("Sending {Id} to '{EntityPath}'. Scheduled: {Scheduled}",
+                                  @event.Id,
                                   sender.EntityPath,
                                   scheduled);
             if (scheduled != null)
@@ -199,7 +199,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
                 var message = new ServiceBusMessage(ms.ToArray())
                 {
-                    MessageId = @event.EventId,
+                    MessageId = @event.Id,
                     CorrelationId = @event.CorrelationId,
                     ContentType = contentType.ToString(),
                 };
@@ -228,11 +228,11 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             // Get the sender and send the messages accordingly
             var sender = await GetSenderAsync(reg, cancellationToken);
-            Logger.LogInformation("Sending {EventsCount} messages to '{EntityPath}'. Scheduled: {Scheduled}. Events:\r\n- {EventIds}",
+            Logger.LogInformation("Sending {EventsCount} messages to '{EntityPath}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
                                   events.Count,
                                   sender.EntityPath,
                                   scheduled,
-                                  string.Join("\r\n- ", events.Select(e => e.EventId)));
+                                  string.Join("\r\n- ", events.Select(e => e.Id)));
             if (scheduled != null)
             {
                 var seqNums = await sender.ScheduleMessagesAsync(messages: messages,

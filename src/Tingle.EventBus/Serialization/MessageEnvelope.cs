@@ -11,7 +11,7 @@ namespace Tingle.EventBus.Serialization
         /// <summary>
         /// The unique identifier of the event.
         /// </summary>
-        public string EventId { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
         /// The unique identifier of the request associated with the event.

@@ -192,14 +192,14 @@ namespace Tingle.EventBus.Transports.InMemory
         {
             var context = new EventContext<TEvent>(@event.Bus)
             {
-                EventId = Guid.NewGuid().ToString(),
+                Id = Guid.NewGuid().ToString(),
                 CorrelationId = @event.CorrelationId,
                 Event = @event.Event,
             };
 
             try
             {
-                Logger.LogInformation("Received event '{EventId}'", context.EventId);
+                Logger.LogInformation("Received event '{Id}'", context.Id);
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);

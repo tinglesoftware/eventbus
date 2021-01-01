@@ -20,7 +20,7 @@ namespace Tingle.EventBus
         /// <summary>
         /// The unique identifier of the event.
         /// </summary>
-        public string EventId { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
         /// The unique identifier of the request accosiated with the event.
@@ -70,7 +70,7 @@ namespace Tingle.EventBus
         {
             var context = new EventContext<TEvent>(Bus)
             {
-                CorrelationId = EventId,
+                CorrelationId = Id,
                 Event = @event,
             };
 
@@ -85,7 +85,7 @@ namespace Tingle.EventBus
         {
             var contexts = events.Select(e => new EventContext<TEvent>(Bus)
             {
-                CorrelationId = EventId,
+                CorrelationId = Id,
                 Event = e,
             }).ToList();
             return Bus.PublishAsync(events: contexts, scheduled: scheduled, cancellationToken: cancellationToken);

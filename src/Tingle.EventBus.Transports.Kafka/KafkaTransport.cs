@@ -130,7 +130,7 @@ namespace Tingle.EventBus.Transports.Kafka
             message.Headers.Add(nameof(@event.CorrelationId), @event.CorrelationId);
             message.Headers.Add(nameof(@event.ConversationId), @event.ConversationId);
             message.Headers.Add(nameof(@event.InitiatorId), @event.InitiatorId);
-            message.Key = @event.EventId;
+            message.Key = @event.Id;
             message.Value = ms.ToArray();
 
             // send the event
@@ -177,7 +177,7 @@ namespace Tingle.EventBus.Transports.Kafka
                 message.Headers.Add(nameof(@event.CorrelationId), @event.CorrelationId);
                 message.Headers.Add(nameof(@event.ConversationId), @event.ConversationId);
                 message.Headers.Add(nameof(@event.InitiatorId), @event.InitiatorId);
-                message.Key = @event.EventId;
+                message.Key = @event.Id;
                 message.Value = ms.ToArray();
 
                 // send the event
@@ -277,9 +277,9 @@ namespace Tingle.EventBus.Transports.Kafka
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
-                Logger.LogInformation("Received event: '{MessageKey}' containing Event '{EventId}'",
+                Logger.LogInformation("Received event: '{MessageKey}' containing Event '{Id}'",
                                       message.Key,
-                                      context.EventId);
+                                      context.Id);
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);

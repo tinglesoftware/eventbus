@@ -38,7 +38,7 @@ namespace Tingle.EventBus.Serialization
         {
             var envelope = new MessageEnvelope
             {
-                EventId = context.EventId,
+                Id = context.Id,
                 RequestId = context.RequestId,
                 ConversationId = context.ConversationId,
                 CorrelationId = context.CorrelationId,
@@ -80,7 +80,7 @@ namespace Tingle.EventBus.Serialization
             // create the context with the event and popuate common properties
             var context = new EventContext<T>(bus)
             {
-                EventId = envelope.EventId,
+                Id = envelope.Id,
                 RequestId = envelope.RequestId,
                 ConversationId = envelope.ConversationId,
                 CorrelationId = envelope.CorrelationId,

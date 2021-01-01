@@ -101,7 +101,7 @@ namespace Tingle.EventBus
 
         /// <summary>
         /// Indicates if the messages/events procuded require guard against duplicate messages.
-        /// If <see langword="true"/>, duplicate messages having the same <see cref="EventContext.EventId"/>
+        /// If <see langword="true"/>, duplicate messages having the same <see cref="EventContext.Id"/>
         /// sent to the same destination within a duration of <see cref="DuplicateDetectionDuration"/> will be discarded.
         /// </summary>
         /// <remarks>

@@ -147,7 +147,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                    cancellationToken: cancellationToken);
 
             var data = new EventData(ms.ToArray());
-            data.Properties["EventId"] = @event.EventId;
+            data.Properties["Id"] = @event.Id;
             data.Properties["CorrelationId"] = @event.CorrelationId;
             data.Properties["Content-Type"] = contentType.ToString();
             data.Properties["Event-Name"] = reg.EventName;
@@ -191,7 +191,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                        cancellationToken: cancellationToken);
 
                 var data = new EventData(ms.ToArray());
-                data.Properties["EventId"] = @event.EventId;
+                data.Properties["Id"] = @event.Id;
                 data.Properties["CorrelationId"] = @event.CorrelationId;
                 data.Properties["Content-Type"] = contentType.ToString();
                 data.Properties["Event-Name"] = reg.EventName;
@@ -330,7 +330,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             var data = args.Data;
             var cancellationToken = args.CancellationToken;
 
-            data.Properties.TryGetValue("EventId", out var eventId);
+            data.Properties.TryGetValue("Id", out var eventId);
             data.Properties.TryGetValue("CorrelationId", out var correlationId);
             data.Properties.TryGetValue("Content-Type", out var contentType_str);
             data.Properties.TryGetValue("Event-Name", out var eventName);
@@ -338,7 +338,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
             using var log_scope = Logger.BeginScope(new Dictionary<string, string>
             {
-                ["EventId"] = eventId?.ToString(),
+                ["Id"] = eventId?.ToString(),
                 ["CorrelationId"] = correlationId?.ToString(),
                 ["SequenceNumber"] = data.SequenceNumber.ToString(),
                 ["Event-Name"] = eventName?.ToString(),

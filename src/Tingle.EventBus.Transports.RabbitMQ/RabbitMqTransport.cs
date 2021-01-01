@@ -132,7 +132,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             {
                 // setup properties
                 var properties = channel.CreateBasicProperties();
-                properties.MessageId = @event.EventId;
+                properties.MessageId = @event.Id;
                 properties.CorrelationId = @event.CorrelationId;
                 properties.ContentEncoding = contentType.CharSet;
                 properties.ContentType = contentType.MediaType;
@@ -144,7 +144,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     if (delay > 0)
                     {
                         properties.Headers["x-delay"] = (long)delay;
-                        scheduledId = @event.EventId;
+                        scheduledId = @event.Id;
                     }
                 }
 
@@ -202,7 +202,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 {
                     // setup properties
                     var properties = channel.CreateBasicProperties();
-                    properties.MessageId = @event.EventId;
+                    properties.MessageId = @event.Id;
                     properties.CorrelationId = @event.CorrelationId;
                     properties.ContentEncoding = contentType.CharSet;
                     properties.ContentType = contentType.MediaType;
@@ -232,7 +232,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 batch.Publish();
             });
 
-            var messageIds = events.Select(m => m.EventId);
+            var messageIds = events.Select(m => m.Id);
             return scheduled != null ? messageIds.ToList() : (IList<string>)Array.Empty<string>();
         }
 

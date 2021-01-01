@@ -17,7 +17,7 @@ namespace SimpleConsumer
 
         public Task ConsumeAsync(EventContext<SampleEvent> context, CancellationToken cancellationToken = default)
         {
-            logger.LogInformation("Received event Id: {EventId}", context.EventId);
+            logger.LogInformation("Received event Id: {Id}", context.Id);
             logger.LogInformation("Event body: {EventBody}", System.Text.Json.JsonSerializer.Serialize(context.Event));
             return Task.CompletedTask;
         }

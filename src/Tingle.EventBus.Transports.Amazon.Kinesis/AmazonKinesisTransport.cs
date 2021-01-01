@@ -88,7 +88,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             var request = new PutRecordRequest
             {
                 Data = ms,
-                PartitionKey = @event.EventId, // TODO: consider a better partition key
+                PartitionKey = @event.Id, // TODO: consider a better partition key
                 StreamName = reg.EventName,
             };
 
@@ -128,7 +128,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
                 var record = new PutRecordsRequestEntry
                 {
                     Data = ms,
-                    PartitionKey = @event.EventId, // TODO: consider a better partition key
+                    PartitionKey = @event.Id, // TODO: consider a better partition key
                 };
                 records.Add(record);
             }

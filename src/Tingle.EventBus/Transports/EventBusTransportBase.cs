@@ -9,6 +9,7 @@ using System.Net.Mime;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
 
@@ -43,7 +44,7 @@ namespace Tingle.EventBus.Transports
             TransportOptions = transportOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(transportOptionsAccessor));
 
             // Create a well-scoped logger
-            var categoryName = $"EventBus.Transports.{GetType().Name}";
+            var categoryName = $"{CategoryNames.Transports}.{GetType().Name}";
             categoryName = CategoryNamePattern.Replace(categoryName, string.Empty); // remove trailing "Transport"
             Logger = loggerFactory?.CreateLogger(categoryName) ?? throw new ArgumentNullException(nameof(loggerFactory));
 

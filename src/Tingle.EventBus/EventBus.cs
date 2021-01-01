@@ -36,7 +36,7 @@ namespace Tingle.EventBus
         {
             this.transports = transports?.ToList() ?? throw new ArgumentNullException(nameof(transports));
             options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
-            logger = loggerFactory?.CreateLogger("EventBus") ?? throw new ArgumentNullException(nameof(logger));
+            logger = loggerFactory?.CreateLogger(CategoryNames.EventBus) ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>

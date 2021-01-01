@@ -351,29 +351,10 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                         // Ensure topic is created before creating the subscription, for non-basic tier
                         await CreateTopicIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
 
-                        // If the subscription does not exist, create it
-                        Logger.LogDebug("Checking if subscription '{SubscriptionName}' exists under topic '{TopicName}'",
-                                        subscriptionName,
-                                        topicName);
-                        if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionName, cancellationToken))
-                        {
-                            Logger.LogTrace("Subscription '{SubscriptionName}' under topic '{TopicName}' does not exist, preparing creation.",
-                                            subscriptionName,
-                                            topicName);
-                            var options = new CreateSubscriptionOptions(topicName: topicName, subscriptionName: subscriptionName)
-                            {
-                                // set the defaults for a subscription here
-                                Status = EntityStatus.Active,
-                                MaxDeliveryCount = 10,
-                            };
-
-                            // Allow for the defaults to be overriden
-                            TransportOptions.SetupSubscriptionOptions?.Invoke(options);
-                            Logger.LogInformation("Creating subscription '{SubscriptionName}' under topic '{TopicName}'",
-                                                  subscriptionName,
-                                                  topicName);
-                            await managementClient.CreateSubscriptionAsync(options: options, cancellationToken: cancellationToken);
-                        }
+                        // Ensure subscription is created
+                        await CreateSubscriptionIfNotExistsAsync(topicName: topicName,
+                                                                subscriptionName: subscriptionName,
+                                                                cancellationToken: cancellationToken);
                     }
 
                     // Create the processor
@@ -413,6 +394,27 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
+        private async Task CreateQueueIfNotExistsAsync(string name, CancellationToken cancellationToken)
+        {
+            // If the queue does not exist, create it
+            Logger.LogDebug("Checking if queue '{QueueName}' exists", name);
+            if (!await managementClient.QueueExistsAsync(name: name, cancellationToken: cancellationToken))
+            {
+                Logger.LogTrace("Queue '{QueueName}' does not exist, preparing creation.", name);
+                var options = new CreateQueueOptions(name: name)
+                {
+                    // set the defaults for a queue here
+                    Status = EntityStatus.Active,
+                    MaxDeliveryCount = 10,
+                };
+
+                // Allow for the defaults to be overriden
+                TransportOptions.SetupQueueOptions?.Invoke(options);
+                Logger.LogInformation("Creating queue '{QueueName}'", name);
+                _ = await managementClient.CreateQueueAsync(options: options, cancellationToken: cancellationToken);
+            }
+        }
+
         private async Task CreateTopicIfNotExistsAsync(string name, CancellationToken cancellationToken)
         {
             // If the topic does not exist, create it
@@ -436,30 +438,36 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
-        private async Task CreateQueueIfNotExistsAsync(string name, CancellationToken cancellationToken)
+        private async Task CreateSubscriptionIfNotExistsAsync(string topicName, string subscriptionName, CancellationToken cancellationToken)
         {
-            // If the queue does not exist, create it
-            Logger.LogDebug("Checking if queue '{QueueName}' exists", name);
-            if (!await managementClient.QueueExistsAsync(name: name, cancellationToken: cancellationToken))
+            // If the subscription does not exist, create it
+            Logger.LogDebug("Checking if subscription '{SubscriptionName}' under topic '{TopicName}' exists",
+                            subscriptionName,
+                            topicName);
+            if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionName, cancellationToken))
             {
-                Logger.LogTrace("Queue '{QueueName}' does not exist, preparing creation.", name);
-                var options = new CreateQueueOptions(name: name)
+                Logger.LogTrace("Subscription '{SubscriptionName}' under topic '{TopicName}' does not exist, preparing creation.",
+                                subscriptionName,
+                                topicName);
+                var options = new CreateSubscriptionOptions(topicName: topicName, subscriptionName: subscriptionName)
                 {
-                    // set the defaults for a queue here
+                    // set the defaults for a subscription here
                     Status = EntityStatus.Active,
                     MaxDeliveryCount = 10,
                 };
 
                 // Allow for the defaults to be overriden
-                TransportOptions.SetupQueueOptions?.Invoke(options);
-                Logger.LogInformation("Creating queue '{QueueName}'", name);
-                _ = await managementClient.CreateQueueAsync(options: options, cancellationToken: cancellationToken);
+                TransportOptions.SetupSubscriptionOptions?.Invoke(options);
+                Logger.LogInformation("Creating subscription '{SubscriptionName}' under topic '{TopicName}'",
+                                      subscriptionName,
+                                      topicName);
+                await managementClient.CreateSubscriptionAsync(options: options, cancellationToken: cancellationToken);
             }
         }
 
         private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, ProcessMessageEventArgs args)
-            where TEvent : class
-            where TConsumer : IEventBusConsumer<TEvent>
+                where TEvent : class
+                where TConsumer : IEventBusConsumer<TEvent>
         {
             var message = args.Message;
             var cancellationToken = args.CancellationToken;

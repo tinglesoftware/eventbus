@@ -42,5 +42,13 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         /// Configuration for Kinesis
         /// </summary>
         public AmazonKinesisConfig KinesisConfig { get; set; }
+
+        /// <summary>
+        /// A function for selecting the partition key from an event context.
+        /// This is called for event event before publishing.
+        /// Defaults function uses <see cref="EventContext.Id"/> as the partion key.
+        /// The value returned is hashed to determine the shard the event is sent to.
+        /// </summary>
+        public Func<EventContext, string> PartitionKeyResolver{ get; set; } = (ctx) => ctx.Id;
     }
 }

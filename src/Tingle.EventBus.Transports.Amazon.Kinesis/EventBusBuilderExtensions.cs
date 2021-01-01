@@ -23,11 +23,11 @@ namespace Microsoft.Extensions.DependencyInjection
 
             var services = builder.Services;
 
-            // configure the options for Amazon Kinesis
+            // Configure the options for Amazon Kinesis
             services.Configure(configure);
             services.PostConfigure<AmazonKinesisOptions>(options =>
             {
-                // ensure the region is provided
+                // Ensure the region is provided
                 if (string.IsNullOrWhiteSpace(options.RegionName) && options.Region == null)
                 {
                     throw new InvalidOperationException($"Either '{nameof(options.RegionName)}' or '{nameof(options.Region)}' must be provided");
@@ -35,24 +35,30 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 options.Region ??= RegionEndpoint.GetBySystemName(options.RegionName);
 
-                // ensure the access key is specified
+                // Ensure the access key is specified
                 if (string.IsNullOrWhiteSpace(options.AccessKey))
                 {
                     throw new InvalidOperationException($"The '{nameof(options.AccessKey)}' must be provided");
                 }
 
-                // ensure the secret is specified
+                // Ensure the secret is specified
                 if (string.IsNullOrWhiteSpace(options.SecretKey))
                 {
                     throw new InvalidOperationException($"The '{nameof(options.SecretKey)}' must be provided");
                 }
 
-                // ensure we have options for Kinesis and the region is set
+                // Ensure we have options for Kinesis and the region is set
                 options.KinesisConfig ??= new AmazonKinesisConfig();
                 options.KinesisConfig.RegionEndpoint ??= options.Region;
+
+                // Ensure the partition key resolver is set
+                if (options.PartitionKeyResolver == null)
+                {
+                    throw new InvalidOperationException($"The '{nameof(options.PartitionKeyResolver)}' must be provided");
+                }
             });
 
-            // register the transport
+            // Register the transport
             builder.RegisterTransport<AmazonKinesisTransport>();
 
             return builder;

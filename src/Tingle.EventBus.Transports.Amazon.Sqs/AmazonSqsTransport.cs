@@ -237,6 +237,12 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             var topic = await snsClient.FindTopicAsync(topicName: topicName);
             if (topic != null) return topic.TopicArn;
 
+            // if entity creation is not enabled, throw exception
+            if (!TransportOptions.EnableEntityCreation)
+            {
+                throw new InvalidOperationException("Entity creation is diabled. Required topic could not be created.");
+            }
+
             // create the topic
             var request = new CreateTopicRequest(name: topicName);
             TransportOptions.SetupCreateTopicRequest?.Invoke(request);
@@ -251,6 +257,12 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             // check if the queue exists
             var urlResponse = await sqsClient.GetQueueUrlAsync(queueName: queueName, cancellationToken);
             if (urlResponse != null && urlResponse.Successful()) return urlResponse.QueueUrl;
+
+            // if entity creation is not enabled, throw exception
+            if (!TransportOptions.EnableEntityCreation)
+            {
+                throw new InvalidOperationException("Entity creation is diabled. Required queue could not be created.");
+            }
 
             // create the queue
             var request = new CreateQueueRequest(queueName: queueName);

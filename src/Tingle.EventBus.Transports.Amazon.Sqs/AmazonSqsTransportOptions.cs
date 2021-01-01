@@ -53,17 +53,6 @@ namespace Microsoft.Extensions.DependencyInjection
         public AmazonSimpleNotificationServiceConfig SnsConfig { get; set; }
 
         /// <summary>
-        /// Gets or sets value indicating if the Amazon entities (e.g. queues and topics)
-        /// should be created.
-        /// If <see langword="false"/>, it is the responsibility of the developer to create
-        /// entities.
-        /// Always set this value to <see langword="false"/> when the credentials in use
-        /// lack the requisite permissions for creation.
-        /// Defaults to <see langword="true"/>.
-        /// </summary>
-        public bool EnableEntityCreation { get; set; } = true;
-
-        /// <summary>
         /// A setup function for setting up settings for a topic.
         /// This is only called before creation.
         /// </summary>

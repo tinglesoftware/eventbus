@@ -224,7 +224,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                   });
 
                     // if entity creation is enabled, ensure queue is created
-                    if (!TransportOptions.EnableQueueCreation)
+                    if (!TransportOptions.EnableEntityCreation)
                     {
                         // ensure queue is created if it does not exist
                         Logger.LogInformation("Ensuring queue '{QueueName}' exists", name);

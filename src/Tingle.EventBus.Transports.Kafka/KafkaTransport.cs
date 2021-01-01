@@ -234,9 +234,6 @@ namespace Tingle.EventBus.Transports.Kafka
                 await (Task)method.Invoke(this, new object[] { reg, result.Message, cancellationToken, });
 
 
-                //// update the checkpoint store so that the app receives only new events the next time it's run
-                //await args.UpdateCheckpointAsync(args.CancellationToken);
-
                 // if configured to checkpoint at intervals, respect it
                 if ((result.Offset % TransportOptions.CheckpointInterval) == 0)
                 {

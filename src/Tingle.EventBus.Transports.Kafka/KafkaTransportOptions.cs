@@ -2,6 +2,7 @@
 using Confluent.Kafka.Admin;
 using System;
 using System.Collections.Generic;
+using Tingle.EventBus;
 using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection

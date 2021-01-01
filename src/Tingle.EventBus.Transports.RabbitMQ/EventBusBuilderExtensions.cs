@@ -58,7 +58,7 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Configure(options => options.ForceConsumerName = true);
 
             // register the transport
-            builder.RegisterTransport<RabbitMqTransport>();
+            builder.RegisterTransport<RabbitMqTransport, RabbitMqTransportOptions>();
 
             return builder;
         }

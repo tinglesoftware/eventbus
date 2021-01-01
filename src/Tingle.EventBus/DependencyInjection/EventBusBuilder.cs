@@ -47,9 +47,15 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Register a transport to be used by the bus.
         /// </summary>
         /// <typeparam name="TTransport"></typeparam>
+        /// <typeparam name="TOptions"></typeparam>
         /// <returns></returns>
-        public EventBusBuilder RegisterTransport<TTransport>() where TTransport : class, IEventBusTransport
+        public EventBusBuilder RegisterTransport<TTransport, TOptions>()
+            where TTransport : class, IEventBusTransport
+            where TOptions : EventBusTransportOptionsBase
         {
+            // Post configure the common transport options
+            Services.AddSingleton<IPostConfigureOptions<TOptions>, TransportOptionsPostConfigureOptions<TOptions>>();
+
             // Register for resolution
             Services.AddSingleton<IEventBusTransport, TTransport>();
 

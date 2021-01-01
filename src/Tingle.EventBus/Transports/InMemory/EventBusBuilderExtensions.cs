@@ -27,7 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             // register the transport
-            builder.RegisterTransport<InMemoryTransport>();
+            builder.RegisterTransport<InMemoryTransport, InMemoryTransportOptions>();
 
             return builder;
         }

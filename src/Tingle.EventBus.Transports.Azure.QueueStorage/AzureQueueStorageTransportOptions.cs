@@ -1,5 +1,4 @@
-﻿using System;
-using Tingle.EventBus.Transports;
+﻿using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -12,14 +11,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// The connection string to Azure Queue Storage.
         /// </summary>
         public string ConnectionString { get; set; }
-
-        /// <summary>
-        /// The delay to introduce everytime zero messages are received.
-        /// This eases on the CPU consumption and reduces the query costs.
-        /// This value must be between 30 seconds and 10 minutes.
-        /// Defaults to 1 minute.
-        /// </summary>
-        public TimeSpan EmptyResultsDelay { get; set; } = TimeSpan.FromMinutes(1);
 
         /// <summary>
         /// Gets or sets value indicating if the queues should be created.

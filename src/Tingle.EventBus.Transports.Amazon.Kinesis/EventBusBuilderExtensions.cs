@@ -59,7 +59,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             // Register the transport
-            builder.RegisterTransport<AmazonKinesisTransport>();
+            builder.RegisterTransport<AmazonKinesisTransport, AmazonKinesisTransportOptions>();
 
             return builder;
         }

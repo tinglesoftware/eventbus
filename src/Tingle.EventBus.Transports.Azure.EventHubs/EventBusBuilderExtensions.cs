@@ -29,7 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 ServiceDescriptor.Singleton<IPostConfigureOptions<AzureEventHubsTransportOptions>, AzureEventHubsPostConfigureOptions>());
 
             // register the transport
-            builder.RegisterTransport<AzureEventHubsTransport>();
+            builder.RegisterTransport<AzureEventHubsTransport, AzureEventHubsTransportOptions>();
 
             return builder;
         }
@@ -46,7 +46,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public static EventBusBuilder AddAzureEventHubsTransport(this EventBusBuilder builder,
                                                                  string connectionString,
-                                                                 Action<AzureEventHubsTransportOptions> configure)
+                                                                 Action<AzureEventHubsTransportOptions> configure = null)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
 

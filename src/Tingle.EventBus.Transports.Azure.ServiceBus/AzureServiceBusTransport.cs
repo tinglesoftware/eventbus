@@ -396,6 +396,13 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
         private async Task CreateQueueIfNotExistsAsync(string name, CancellationToken cancellationToken)
         {
+            // if entity creation is not enabled, just return
+            if (!TransportOptions.EnableEntityCreation)
+            {
+                Logger.LogTrace("Entity creation is diabled. Queue creation skipped");
+                return;
+            }
+
             // If the queue does not exist, create it
             Logger.LogDebug("Checking if queue '{QueueName}' exists", name);
             if (!await managementClient.QueueExistsAsync(name: name, cancellationToken: cancellationToken))
@@ -417,6 +424,13 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
         private async Task CreateTopicIfNotExistsAsync(string name, CancellationToken cancellationToken)
         {
+            // if entity creation is not enabled, just return
+            if (!TransportOptions.EnableEntityCreation)
+            {
+                Logger.LogTrace("Entity creation is diabled. Topic creation skipped");
+                return;
+            }
+
             // If the topic does not exist, create it
             Logger.LogDebug("Checking if topic '{TopicName}' exists", name);
             if (!await managementClient.TopicExistsAsync(name: name, cancellationToken: cancellationToken))
@@ -440,6 +454,13 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
         private async Task CreateSubscriptionIfNotExistsAsync(string topicName, string subscriptionName, CancellationToken cancellationToken)
         {
+            // if entity creation is not enabled, just return
+            if (!TransportOptions.EnableEntityCreation)
+            {
+                Logger.LogTrace("Entity creation is diabled. Subscription creation skipped");
+                return;
+            }
+
             // If the subscription does not exist, create it
             Logger.LogDebug("Checking if subscription '{SubscriptionName}' under topic '{TopicName}' exists",
                             subscriptionName,

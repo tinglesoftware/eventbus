@@ -128,7 +128,6 @@ namespace Tingle.EventBus.Transports.Kafka
             message.Headers.Add("Content-Type", contentType.ToString());
             message.Headers.Add(nameof(@event.RequestId), @event.RequestId);
             message.Headers.Add(nameof(@event.CorrelationId), @event.CorrelationId);
-            message.Headers.Add(nameof(@event.ConversationId), @event.ConversationId);
             message.Headers.Add(nameof(@event.InitiatorId), @event.InitiatorId);
             message.Key = @event.Id;
             message.Value = ms.ToArray();
@@ -175,7 +174,6 @@ namespace Tingle.EventBus.Transports.Kafka
                 message.Headers.Add("Content-Type", contentType.ToString());
                 message.Headers.Add(nameof(@event.RequestId), @event.RequestId);
                 message.Headers.Add(nameof(@event.CorrelationId), @event.CorrelationId);
-                message.Headers.Add(nameof(@event.ConversationId), @event.ConversationId);
                 message.Headers.Add(nameof(@event.InitiatorId), @event.InitiatorId);
                 message.Key = @event.Id;
                 message.Value = ms.ToArray();

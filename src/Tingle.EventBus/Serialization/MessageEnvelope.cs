@@ -24,11 +24,6 @@ namespace Tingle.EventBus.Serialization
         public string CorrelationId { get; set; }
 
         /// <summary>
-        /// The unique identifier of the conversation.
-        /// </summary>
-        public string ConversationId { get; set; }
-
-        /// <summary>
         /// The unique identifier of the initiator of the event.
         /// </summary>
         public string InitiatorId { get; set; }

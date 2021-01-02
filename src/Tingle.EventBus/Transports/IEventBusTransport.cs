@@ -11,6 +11,12 @@ namespace Tingle.EventBus.Transports
     public interface IEventBusTransport
     {
         /// <summary>
+        /// The name of the transport as extracted from <see cref="TransportNameAttribute"/> declared.
+        /// This name cannot be changed during runtime.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// Checks for health of the transport.
         /// This function can be used by the Health Checks framework and may throw and execption during execution.
         /// </summary>

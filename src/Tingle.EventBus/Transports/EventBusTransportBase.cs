@@ -67,11 +67,8 @@ namespace Tingle.EventBus.Transports
         /// </summary>
         protected TTransportOptions TransportOptions { get; }
 
-        /// <summary>
-        /// The name of this transport as extracted from <see cref="TransportNameAttribute"/> declared on it.
-        /// This name cannot be changed
-        /// </summary>
-        protected string Name { get; }
+        /// <inheritdoc/>
+        public string Name { get; }
 
         ///
         protected ILogger Logger { get; }

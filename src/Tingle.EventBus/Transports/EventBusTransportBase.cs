@@ -126,8 +126,8 @@ namespace Tingle.EventBus.Transports
         {
             // Instrument deserialization call
             using var activity = EventBusActivitySource.ActivitySource.StartActivity(ActivityNames.Deserialize);
-            activity?.AddTag(ActivityTags.EventType, typeof(TEvent).FullName);
-            activity?.AddTag(ActivityTags.SerializerType, registration.EventSerializerType.FullName);
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.EventBusSerializerType, registration.EventSerializerType.FullName);
 
             // Get the serializer
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
@@ -158,8 +158,8 @@ namespace Tingle.EventBus.Transports
         {
             // Instrument serialization call
             using var activity = EventBusActivitySource.ActivitySource.StartActivity(ActivityNames.Serialize);
-            activity?.AddTag(ActivityTags.EventType, typeof(TEvent).FullName);
-            activity?.AddTag(ActivityTags.SerializerType, registration.EventSerializerType.FullName);
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.EventBusSerializerType, registration.EventSerializerType.FullName);
 
             // Get the serializer
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);

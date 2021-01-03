@@ -294,11 +294,11 @@ namespace Tingle.EventBus.Transports.InMemory
             {
                 try
                 {
-                    if (queue.TryDequeue(out var entry))
+                    if (queue.TryDequeue(out var message))
                     {
                         Logger.LogDebug("Received a message on '{QueueName}'", queueName);
                         using var scope = CreateScope(); // shared
-                        await (Task)method.Invoke(this, new object[] { reg, entry, scope, cancellationToken, });
+                        await (Task)method.Invoke(this, new object[] { reg, queueEntity, message, scope, cancellationToken, });
                     }
                     else
                     {
@@ -336,7 +336,7 @@ namespace Tingle.EventBus.Transports.InMemory
             using var log_scope = Logger.BeginScopeForConsume(id: messageId, correlationId: null);
 
             // Instrumentation
-            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId.ToString());
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);

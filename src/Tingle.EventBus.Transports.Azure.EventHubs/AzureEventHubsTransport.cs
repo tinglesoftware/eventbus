@@ -158,6 +158,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
             // get the producer and send the event accordingly
             var producer = await GetProducerAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            Logger.LogInformation("Sending {Id} to '{EventHubName}'. Scheduled: {Scheduled}",
+                                  @event.Id,
+                                  producer.EventHubName,
+                                  scheduled);
             await producer.SendAsync(new[] { data }, cancellationToken);
 
             // return the sequence number
@@ -205,6 +209,11 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
             // get the producer and send the events accordingly
             var producer = await GetProducerAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            Logger.LogInformation("Sending {EventsCount} events to '{EventHubName}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
+                                  events.Count,
+                                  producer.EventHubName,
+                                  scheduled,
+                                  string.Join("\r\n- ", events.Select(e => e.Id)));
             await producer.SendAsync(datas, cancellationToken);
 
             // return the sequence numbers
@@ -358,6 +367,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
             try
             {
+                Logger.LogDebug("Processing '{EventId}|{PartitionKey}|{SequenceNumber}'",
+                                eventId,
+                                data.PartitionKey,
+                                data.SequenceNumber);
                 using var scope = CreateScope();
                 using var ms = new MemoryStream(data.Body.ToArray());
                 var contentType = new ContentType(contentType_str?.ToString() ?? "*/*");
@@ -366,6 +379,12 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
+                Logger.LogInformation("Received event: '{EventId}|{PartitionKey}|{SequenceNumber}' containing Event '{Id}'",
+                                      eventId,
+                                      data.PartitionKey,
+                                      data.SequenceNumber,
+                                      context.Id);
+
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
@@ -380,6 +399,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
 
             // update the checkpoint store so that the app receives only new events the next time it's run
+            Logger.LogDebug("Checkpointing {PartitionKey}, at {SequenceNumber}. Event: '{Id}'.",
+                            args.Partition,
+                            data.SequenceNumber,
+                            eventId);
             await args.UpdateCheckpointAsync(args.CancellationToken);
         }
 

@@ -299,11 +299,11 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer); // no way to get parentId at this point
-            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
-            activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
-            activity?.AddTag(ActivityTags.MessagingSystem, Name);
-            activity?.AddTag(ActivityTags.MessagingDestination, queueClient.Name);
-            activity?.AddTag(ActivityTags.MessagingDestinationKind, "queue");
+            activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
+            activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
+            activity?.AddTag(ActivityTagNames.MessagingDestination, queueClient.Name);
+            activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
 
             try
             {

@@ -1,6 +1,6 @@
 ﻿namespace Tingle.EventBus.Diagnostics
 {
-    internal static class ActivityTags
+    internal static class ActivityTagNames
     {
         public const string MessagingSystem = "messaging.system";
         public const string MessagingMessageId = "messaging.message_id";

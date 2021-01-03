@@ -85,7 +85,7 @@ namespace Tingle.EventBus
         {
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Publish, ActivityKind.Producer);
-            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
 
             // Add diagnostics headers to event
             @event.Headers.AddIfNotDefault(HeaderNames.EventType, typeof(TEvent).FullName);
@@ -96,12 +96,12 @@ namespace Tingle.EventBus
             @event.Sent ??= DateTimeOffset.UtcNow;
 
             // Add message specific activity tags
-            activity?.AddTag(ActivityTags.MessagingMessageId, @event.Id);
-            activity?.AddTag(ActivityTags.MessagingConversationId, @event.CorrelationId);
+            activity?.AddTag(ActivityTagNames.MessagingMessageId, @event.Id);
+            activity?.AddTag(ActivityTagNames.MessagingConversationId, @event.CorrelationId);
 
             // Get the transport and add transport specific activity tags
             var transport = GetTransportForEvent<TEvent>();
-            activity?.AddTag(ActivityTags.MessagingSystem, transport.Name);
+            activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
 
             // Publish on the transport
             return await transport.PublishAsync(@event: @event,
@@ -127,7 +127,7 @@ namespace Tingle.EventBus
         {
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Publish, ActivityKind.Producer);
-            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
 
             foreach (var @event in events)
             {
@@ -141,12 +141,12 @@ namespace Tingle.EventBus
             }
 
             // Add message specific activity tags
-            activity?.AddTag(ActivityTags.MessagingMessageId, string.Join(",", events.Select(e => e.Id)));
-            activity?.AddTag(ActivityTags.MessagingConversationId, string.Join(",", events.Select(e => e.CorrelationId)));
+            activity?.AddTag(ActivityTagNames.MessagingMessageId, string.Join(",", events.Select(e => e.Id)));
+            activity?.AddTag(ActivityTagNames.MessagingConversationId, string.Join(",", events.Select(e => e.CorrelationId)));
 
             // Get the transport and add transport specific activity tags
             var transport = GetTransportForEvent<TEvent>();
-            activity?.AddTag(ActivityTags.MessagingSystem, transport.Name);
+            activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
 
             // Publish on the transport
             return await transport.PublishAsync(events: events,

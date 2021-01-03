@@ -518,11 +518,11 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
-            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
-            activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
-            activity?.AddTag(ActivityTags.MessagingSystem, Name);
-            activity?.AddTag(ActivityTags.MessagingDestination, TransportOptions.UseBasicTier ? reg.EventName : reg.ConsumerName); // name of the queue/subscription
-            activity?.AddTag(ActivityTags.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
+            activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
+            activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
+            activity?.AddTag(ActivityTagNames.MessagingDestination, TransportOptions.UseBasicTier ? reg.EventName : reg.ConsumerName); // name of the queue/subscription
+            activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
 
             try
             {

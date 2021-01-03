@@ -265,9 +265,9 @@ namespace Tingle.EventBus.Transports.Kafka
 
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
-            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
-            activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
-            activity?.AddTag(ActivityTags.MessagingSystem, Name);
+            activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
+            activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
 
             try
             {

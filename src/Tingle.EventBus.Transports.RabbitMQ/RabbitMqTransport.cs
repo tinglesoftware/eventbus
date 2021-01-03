@@ -313,11 +313,11 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
-            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
-            activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
-            activity?.AddTag(ActivityTags.MessagingSystem, Name);
-            activity?.AddTag(ActivityTags.MessagingDestination, reg.ConsumerName);
-            activity?.AddTag(ActivityTags.MessagingDestinationKind, "queue"); // only queues are possible
+            activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
+            activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
+            activity?.AddTag(ActivityTagNames.MessagingDestination, reg.ConsumerName);
+            activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // only queues are possible
 
             try
             {

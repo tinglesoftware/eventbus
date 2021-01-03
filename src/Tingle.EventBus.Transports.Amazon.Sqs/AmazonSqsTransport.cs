@@ -115,7 +115,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             request.SetAttribute(AttributeNames.ContentType, contentType.ToString());
             request.SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId);
             request.SetAttribute(AttributeNames.ActivityId, Activity.Current?.Id);
-            Logger.LogInformation("Sending {Id} to '{TopicArn}'", @event.Id, topicArn);
+            Logger.LogInformation("Sending {Id} to '{TopicArn}'. Scheduled: {Scheduled}", @event.Id, topicArn, scheduled);
             var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
 
@@ -158,7 +158,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 request.SetAttribute(AttributeNames.ContentType, contentType.ToString());
                 request.SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId);
                 request.SetAttribute(AttributeNames.ActivityId, Activity.Current?.Id);
-                Logger.LogInformation("Sending {Id} to '{TopicArn}'", @event.Id, topicArn);
+                Logger.LogInformation("Sending {Id} to '{TopicArn}'. Scheduled: {Scheduled}", @event.Id, topicArn, scheduled);
                 var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
                 response.EnsureSuccess();
 

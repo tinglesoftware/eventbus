@@ -156,6 +156,10 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 }
 
                 // do actual publish
+                Logger.LogInformation("Sending {Id} to '{ExchangeName}'. Scheduled: {Scheduled}",
+                                      @event.Id,
+                                      name,
+                                      scheduled);
                 channel.BasicPublish(exchange: name,
                                      routingKey: "",
                                      basicProperties: properties,
@@ -229,6 +233,11 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 }
 
                 // do actual publish
+                Logger.LogInformation("Sending {EventsCount} messages to '{ExchangeName}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
+                                      events.Count,
+                                      name,
+                                      scheduled,
+                                      string.Join("\r\n- ", events.Select(e => e.Id)));
                 batch.Publish();
             });
 
@@ -290,6 +299,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             try
             {
+                Logger.LogDebug("Processing '{MessageId}'", messageId);
                 using var scope = CreateScope();
                 using var ms = new MemoryStream(args.Body.ToArray());
                 var contentType = GetContentType(args.BasicProperties);
@@ -298,11 +308,15 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
+                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
+                                      messageId,
+                                      context.Id);
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
 
-                // acknowlege the message
+                // Acknowlege the message
+                Logger.LogDebug("Completing message: {MessageId}, {DeliveryTag}.", messageId, args.DeliveryTag);
                 channel.BasicAck(deliveryTag: args.DeliveryTag, multiple: false);
             }
             catch (Exception ex)

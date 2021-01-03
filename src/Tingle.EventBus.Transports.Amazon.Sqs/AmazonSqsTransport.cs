@@ -9,11 +9,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Mime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Amazon.Sqs
@@ -110,8 +112,9 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             var topicArn = await GetTopicArnAsync(reg, cancellationToken);
             var message = Encoding.UTF8.GetString(ms.ToArray());
             var request = new PublishRequest(topicArn: topicArn, message: message);
-            request.SetAttribute("Content-Type", contentType.ToString());
-            request.SetAttribute(nameof(@event.CorrelationId), @event.CorrelationId);
+            request.SetAttribute(AttributeNames.ContentType, contentType.ToString());
+            request.SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId);
+            request.SetAttribute(AttributeNames.ActivityId, Activity.Current?.Id);
             Logger.LogInformation("Sending {Id} to '{TopicArn}'", @event.Id, topicArn);
             var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
@@ -152,8 +155,9 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 var topicArn = await GetTopicArnAsync(reg, cancellationToken);
                 var message = Encoding.UTF8.GetString(ms.ToArray());
                 var request = new PublishRequest(topicArn: topicArn, message: message);
-                request.SetAttribute("Content-Type", contentType.ToString());
-                request.SetAttribute(nameof(@event.CorrelationId), @event.CorrelationId);
+                request.SetAttribute(AttributeNames.ContentType, contentType.ToString());
+                request.SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId);
+                request.SetAttribute(AttributeNames.ActivityId, Activity.Current?.Id);
                 Logger.LogInformation("Sending {Id} to '{TopicArn}'", @event.Id, topicArn);
                 var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
                 response.EnsureSuccess();
@@ -319,9 +323,19 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
-            message.TryGetAttribute("CorrelationId", out var correlationId);
-            message.TryGetAttribute("SequenceNumber", out var sequenceNumber);
             var messageId = message.MessageId;
+            message.TryGetAttribute(AttributeNames.CorrelationId, out var correlationId);
+            message.TryGetAttribute(AttributeNames.SequenceNumber, out var sequenceNumber);
+            message.TryGetAttribute(AttributeNames.ActivityId, out var parentActivityId);
+
+            // Instrumentation
+            using var activity = StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId);
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
+            activity?.AddTag(ActivityTags.MessagingSystem, Name);
+            activity?.AddTag(ActivityTags.MessagingDestination, reg.EventName);
+            activity?.AddTag(ActivityTags.MessagingDestinationKind, "queue");
+            activity?.AddTag(ActivityTags.MessagingUrl, queueUrl);
 
             using var log_scope = Logger.BeginScope(new Dictionary<string, string>
             {
@@ -353,8 +367,6 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
-                // TODO: implement dead lettering in SQS
-                Logger.LogWarning("Dead lettering not implemented in {TransportName}.", Name);
 
                 // get the queueUrl for the dead letter queue and send the mesage there
                 var dlqQueueUrl = await GetQueueUrlAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);

@@ -15,7 +15,10 @@ namespace Amazon.SimpleNotificationService.Model
                 throw new ArgumentException($"'{nameof(key)}' cannot be null or whitespace", nameof(key));
             }
 
+            // ignore when the value is not null or empty
             if (string.IsNullOrWhiteSpace(value)) return;
+
+            // set the value
             request.MessageAttributes[key] = new MessageAttributeValue { DataType = "String", StringValue = value };
         }
     }

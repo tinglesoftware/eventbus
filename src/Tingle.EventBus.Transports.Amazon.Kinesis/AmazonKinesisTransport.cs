@@ -53,14 +53,32 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         /// <inheritdoc/>
         public override Task StartAsync(CancellationToken cancellationToken)
         {
-            // Consuming is not yet supported on this bus due to it's complexity
+            var registrations = GetConsumerRegistrations();
+            Logger.StartingTransport(registrations.Count);
+
+            // if there are consumers for this transport, throw exception
+            if (registrations.Count > 0)
+            {
+                // Consuming is not yet supported on this bus due to it's complexity
+                throw new NotSupportedException("Amazon Kinesis does not support consumers yet due to complexity requirements from KCL.");
+            }
+
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
         public override Task StopAsync(CancellationToken cancellationToken)
         {
-            // Consuming is not yet supported on this bus due to it's complexity
+            Logger.StoppingTransport();
+
+            var registrations = GetConsumerRegistrations();
+            // if there are consumers for this transport, throw exception
+            if (registrations.Count > 0)
+            {
+                // Consuming is not yet supported on this bus due to it's complexity
+                throw new NotSupportedException("Amazon Kinesis does not support consumers yet due to complexity requirements from KCL.");
+            }
+
             return Task.CompletedTask;
         }
 

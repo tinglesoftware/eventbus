@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Tingle.EventBus;
 
 namespace Microsoft.Extensions.Logging
 {
@@ -41,15 +42,17 @@ namespace Microsoft.Extensions.Logging
                                                        IDictionary<string, string> extras = null)
         {
             var state = new Dictionary<string, string>();
-            state.AddIfNotDefault("Id", id);
-            state.AddIfNotDefault("CorrelationId", correlationId);
-            state.AddIfNotDefault("SequenceNumber", sequenceNumber);
+            state.AddIfNotDefault(AttributeNames.Id, id);
+            state.AddIfNotDefault(AttributeNames.CorrelationId, correlationId);
+            state.AddIfNotDefault(AttributeNames.SequenceNumber, sequenceNumber);
 
             // if there are extras, add them
             if (extras != null)
             {
                 foreach (var kvp in extras)
-                    state[kvp.Key] = kvp.Value;
+                {
+                    state.AddIfNotDefault(kvp.Key, kvp.Value);
+                }
             }
 
             // create the scope

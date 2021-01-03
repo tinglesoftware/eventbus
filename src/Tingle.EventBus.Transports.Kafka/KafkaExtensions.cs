@@ -4,7 +4,7 @@ namespace Confluent.Kafka
 {
     internal static class KafkaExtensions
     {
-        public static Headers Add(this Headers headers, string key, string value)
+        public static Headers AddIfNotNull(this Headers headers, string key, string value)
         {
             if (!string.IsNullOrWhiteSpace(value))
             {

@@ -9,6 +9,8 @@
         public const string ContentType = "Content-Type";
         public const string SequenceNumber = "SequenceNumber";
         public const string CorrelationId = "CorrelationId";
+        public const string RequestId = "RequestId";
+        public const string InitiatorId = "InitiatorId";
 
         public const string ActivityId = "EventBus.ActivityId";
         public const string EventType = "EventBus.EventType";

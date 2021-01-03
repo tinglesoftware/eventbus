@@ -5,11 +5,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Kafka
@@ -125,10 +127,11 @@ namespace Tingle.EventBus.Transports.Kafka
 
             // prepare the message
             var message = new Message<string, byte[]>();
-            message.Headers.Add("Content-Type", contentType.ToString());
-            message.Headers.Add(nameof(@event.RequestId), @event.RequestId);
-            message.Headers.Add(nameof(@event.CorrelationId), @event.CorrelationId);
-            message.Headers.Add(nameof(@event.InitiatorId), @event.InitiatorId);
+            message.Headers.AddIfNotNull(AttributeNames.CorrelationId, @event.CorrelationId)
+                           .AddIfNotNull(AttributeNames.ContentType, contentType.ToString())
+                           .AddIfNotNull(AttributeNames.RequestId, @event.RequestId)
+                           .AddIfNotNull(AttributeNames.InitiatorId, @event.InitiatorId)
+                           .AddIfNotNull(AttributeNames.ActivityId, Activity.Current?.Id);
             message.Key = @event.Id;
             message.Value = ms.ToArray();
 
@@ -171,10 +174,11 @@ namespace Tingle.EventBus.Transports.Kafka
 
                 // prepare the message
                 var message = new Message<string, byte[]>();
-                message.Headers.Add("Content-Type", contentType.ToString());
-                message.Headers.Add(nameof(@event.RequestId), @event.RequestId);
-                message.Headers.Add(nameof(@event.CorrelationId), @event.CorrelationId);
-                message.Headers.Add(nameof(@event.InitiatorId), @event.InitiatorId);
+                message.Headers.AddIfNotNull(AttributeNames.CorrelationId, @event.CorrelationId)
+                               .AddIfNotNull(AttributeNames.ContentType, contentType.ToString())
+                               .AddIfNotNull(AttributeNames.RequestId, @event.RequestId)
+                               .AddIfNotNull(AttributeNames.InitiatorId, @event.InitiatorId)
+                               .AddIfNotNull(AttributeNames.ActivityId, Activity.Current?.Id);
                 message.Key = @event.Id;
                 message.Value = ms.ToArray();
 
@@ -253,10 +257,17 @@ namespace Tingle.EventBus.Transports.Kafka
             where TConsumer : IEventBusConsumer<TEvent>
         {
             var messageKey = message.Key;
-            message.Headers.TryGetValue("CorrelationId", out var correlationId);
-            message.Headers.TryGetValue("Content-Type", out var contentType_str);
+            message.Headers.TryGetValue(AttributeNames.CorrelationId, out var correlationId);
+            message.Headers.TryGetValue(AttributeNames.ContentType, out var contentType_str);
+            message.Headers.TryGetValue(AttributeNames.ActivityId, out var parentActivityId);
 
             using var log_scope = Logger.BeginScopeForConsume(id: messageKey, correlationId: correlationId);
+
+            // Instrumentation
+            using var activity = StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
+            activity?.AddTag(ActivityTags.MessagingSystem, Name);
 
             try
             {

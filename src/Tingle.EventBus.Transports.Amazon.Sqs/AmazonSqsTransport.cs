@@ -27,7 +27,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
     {
         private readonly Dictionary<Type, string> topicArnsCache = new Dictionary<Type, string>();
         private readonly SemaphoreSlim topicArnsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
-        private readonly Dictionary<string, string> queueUrlsCache = new Dictionary<string, string>();
+        private readonly Dictionary<(string, bool), string> queueUrlsCache = new Dictionary<(string, bool), string>();
         private readonly SemaphoreSlim queueUrlsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
         private readonly CancellationTokenSource receiveCancellationTokenSource = new CancellationTokenSource();
         private readonly AmazonSimpleNotificationServiceClient snsClient;
@@ -72,7 +72,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             Logger.StartingTransport(registrations.Count);
             foreach (var reg in registrations)
             {
-                var queueUrl = await GetQueueUrlAsync(reg: reg, cancellationToken: cancellationToken);
+                var queueUrl = await GetQueueUrlAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
                 _ = ReceiveAsync(reg, queueUrl);
             }
         }
@@ -201,7 +201,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             }
         }
 
-        private async Task<string> GetQueueUrlAsync(ConsumerRegistration reg, CancellationToken cancellationToken)
+        private async Task<string> GetQueueUrlAsync(ConsumerRegistration reg, bool deadletter, CancellationToken cancellationToken)
         {
             await queueUrlsCacheLock.WaitAsync(cancellationToken);
 
@@ -209,19 +209,25 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             {
                 var topicName = reg.EventName;
                 var queueName = reg.ConsumerName;
+                if (deadletter) queueName += "-deadletter";
 
                 var key = $"{topicName}/{queueName}";
-                if (!queueUrlsCache.TryGetValue(key, out var queueUrl))
+                if (!queueUrlsCache.TryGetValue((key, deadletter), out var queueUrl))
                 {
-                    // ensure topic is created before creating the subscription
-                    var topicArn = await CreateTopicIfNotExistsAsync(topicName: topicName, cancellationToken: cancellationToken);
-
                     // ensure queue is created before creating subscription
                     queueUrl = await CreateQueueIfNotExistsAsync(queueName: queueName, cancellationToken: cancellationToken);
 
-                    // create subscription from the topic to the queue
-                    await snsClient.SubscribeQueueAsync(topicArn: topicArn, sqsClient, queueUrl);
-                    queueUrlsCache[key] = queueUrl;
+                    // for non-deadletter, we need to ensure the topic exists and the queue is subscribed to it
+                    if (!deadletter)
+                    {
+                        // ensure topic is created before creating the subscription
+                        var topicArn = await CreateTopicIfNotExistsAsync(topicName: topicName, cancellationToken: cancellationToken);
+
+                        // create subscription from the topic to the queue
+                        await snsClient.SubscribeQueueAsync(topicArn: topicArn, sqsClient, queueUrl);
+                    }
+
+                    queueUrlsCache[(key, deadletter)] = queueUrl;
                 }
 
                 return queueUrl;
@@ -349,6 +355,16 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
                 // TODO: implement dead lettering in SQS
                 Logger.LogWarning("Dead lettering not implemented in {TransportName}.", Name);
+
+                // get the queueUrl for the dead letter queue and send the mesage there
+                var dlqQueueUrl = await GetQueueUrlAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
+                var dlqRequest = new SendMessageRequest
+                {
+                    MessageAttributes = message.MessageAttributes,
+                    MessageBody = message.Body,
+                    QueueUrl = dlqQueueUrl,
+                };
+                await sqsClient.SendMessageAsync(request: dlqRequest, cancellationToken: cancellationToken);
             }
 
             // always delete the message from the current queue

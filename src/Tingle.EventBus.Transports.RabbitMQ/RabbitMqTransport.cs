@@ -158,7 +158,9 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 }
 
                 // Add custom properties
-                properties.Headers.AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
+                properties.Headers.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
+                                  .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
+                                  .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
 
                 // do actual publish
                 Logger.LogInformation("Sending {Id} to '{ExchangeName}'. Scheduled: {Scheduled}",
@@ -234,7 +236,9 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     }
 
                     // Add custom properties
-                    properties.Headers.AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
+                    properties.Headers.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
+                                      .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
+                                      .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
 
                     // add to batch
                     batch.Add(exchange: name, routingKey: "", mandatory: false, properties: properties, body: body);

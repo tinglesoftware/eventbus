@@ -163,7 +163,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
 
             // Add custom properties
-            message.ApplicationProperties[AttributeNames.ActivityId] = Activity.Current?.Id;
+            message.ApplicationProperties.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
+                                         .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
+                                         .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
 
             // Get the sender and send the message accordingly
             var sender = await GetSenderAsync(reg, cancellationToken);
@@ -229,7 +231,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 }
 
                 // Add custom properties
-                message.ApplicationProperties[AttributeNames.ActivityId] = Activity.Current?.Id;
+                message.ApplicationProperties.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
+                                             .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
+                                             .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
 
                 messages.Add(message);
             }

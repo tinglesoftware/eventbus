@@ -7,7 +7,7 @@ namespace Amazon.SimpleNotificationService.Model
     /// </summary>
     internal static class PublishRequestExtensions
     {
-        public static void SetAttribute(this PublishRequest request, string key, string value)
+        public static PublishRequest SetAttribute(this PublishRequest request, string key, string value)
         {
             if (request is null) throw new ArgumentNullException(nameof(request));
             if (string.IsNullOrWhiteSpace(key))
@@ -15,11 +15,14 @@ namespace Amazon.SimpleNotificationService.Model
                 throw new ArgumentException($"'{nameof(key)}' cannot be null or whitespace", nameof(key));
             }
 
-            // ignore when the value is not null or empty
-            if (string.IsNullOrWhiteSpace(value)) return;
+            // set the value when not null or empty
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                request.MessageAttributes[key] = new MessageAttributeValue { DataType = "String", StringValue = value };
+                return request;
+            }
 
-            // set the value
-            request.MessageAttributes[key] = new MessageAttributeValue { DataType = "String", StringValue = value };
+            return request;
         }
     }
 }

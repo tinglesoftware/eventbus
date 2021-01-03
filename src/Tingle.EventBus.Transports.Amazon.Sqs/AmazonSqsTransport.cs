@@ -112,9 +112,11 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             var topicArn = await GetTopicArnAsync(reg, cancellationToken);
             var message = Encoding.UTF8.GetString(ms.ToArray());
             var request = new PublishRequest(topicArn: topicArn, message: message);
-            request.SetAttribute(AttributeNames.ContentType, contentType.ToString());
-            request.SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId);
-            request.SetAttribute(AttributeNames.ActivityId, Activity.Current?.Id);
+            request.SetAttribute(AttributeNames.ContentType, contentType.ToString())
+                   .SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId)
+                   .SetAttribute(AttributeNames.RequestId, @event.RequestId)
+                   .SetAttribute(AttributeNames.InitiatorId, @event.InitiatorId)
+                   .SetAttribute(AttributeNames.ActivityId, Activity.Current?.Id);
             Logger.LogInformation("Sending {Id} to '{TopicArn}'. Scheduled: {Scheduled}", @event.Id, topicArn, scheduled);
             var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
@@ -155,9 +157,11 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 var topicArn = await GetTopicArnAsync(reg, cancellationToken);
                 var message = Encoding.UTF8.GetString(ms.ToArray());
                 var request = new PublishRequest(topicArn: topicArn, message: message);
-                request.SetAttribute(AttributeNames.ContentType, contentType.ToString());
-                request.SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId);
-                request.SetAttribute(AttributeNames.ActivityId, Activity.Current?.Id);
+                request.SetAttribute(AttributeNames.ContentType, contentType.ToString())
+                       .SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId)
+                       .SetAttribute(AttributeNames.RequestId, @event.RequestId)
+                       .SetAttribute(AttributeNames.InitiatorId, @event.InitiatorId)
+                       .SetAttribute(AttributeNames.ActivityId, Activity.Current?.Id);
                 Logger.LogInformation("Sending {Id} to '{TopicArn}'. Scheduled: {Scheduled}", @event.Id, topicArn, scheduled);
                 var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
                 response.EnsureSuccess();

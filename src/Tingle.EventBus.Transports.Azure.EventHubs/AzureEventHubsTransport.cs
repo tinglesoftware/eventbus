@@ -149,12 +149,14 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                    cancellationToken: cancellationToken);
 
             var data = new EventData(ms.ToArray());
-            data.Properties[AttributeNames.Id] = @event.Id;
-            data.Properties[AttributeNames.CorrelationId] = @event.CorrelationId;
-            data.Properties[AttributeNames.ContentType] = contentType.ToString();
-            data.Properties[AttributeNames.EventName] = reg.EventName;
-            data.Properties[AttributeNames.EventType] = reg.EventType.FullName;
-            data.Properties[AttributeNames.ActivityId] = Activity.Current?.Id;
+            data.Properties.AddIfNotDefault(AttributeNames.Id, @event.Id)
+                           .AddIfNotDefault(AttributeNames.CorrelationId, @event.CorrelationId)
+                           .AddIfNotDefault(AttributeNames.ContentType, contentType.ToString())
+                           .AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
+                           .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
+                           .AddIfNotDefault(AttributeNames.EventName, reg.EventName)
+                           .AddIfNotDefault(AttributeNames.EventType, reg.EventType.FullName)
+                           .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
 
             // get the producer and send the event accordingly
             var producer = await GetProducerAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
@@ -198,12 +200,14 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                        cancellationToken: cancellationToken);
 
                 var data = new EventData(ms.ToArray());
-                data.Properties[AttributeNames.Id] = @event.Id;
-                data.Properties[AttributeNames.CorrelationId] = @event.CorrelationId;
-                data.Properties[AttributeNames.ContentType] = contentType.ToString();
-                data.Properties[AttributeNames.EventName] = reg.EventName;
-                data.Properties[AttributeNames.EventType] = reg.EventType.FullName;
-                data.Properties[AttributeNames.ActivityId] = Activity.Current?.Id;
+                data.Properties.AddIfNotDefault(AttributeNames.Id, @event.Id)
+                               .AddIfNotDefault(AttributeNames.CorrelationId, @event.CorrelationId)
+                               .AddIfNotDefault(AttributeNames.ContentType, contentType.ToString())
+                               .AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
+                               .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
+                               .AddIfNotDefault(AttributeNames.EventName, reg.EventName)
+                               .AddIfNotDefault(AttributeNames.EventType, reg.EventType.FullName)
+                               .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
                 datas.Add(data);
             }
 
@@ -352,7 +356,8 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
             using var log_scope = Logger.BeginScopeForConsume(id: eventId?.ToString(),
                                                               correlationId: correlationId?.ToString(),
-                                                              sequenceNumber: data.SequenceNumber, extras: new Dictionary<string, string>
+                                                              sequenceNumber: data.SequenceNumber,
+                                                              extras: new Dictionary<string, string>
                                                               {
                                                                   [AttributeNames.EventName] = eventName?.ToString(),
                                                                   [AttributeNames.EventType] = eventType?.ToString(),

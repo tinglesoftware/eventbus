@@ -112,6 +112,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             var request = new PublishRequest(topicArn: topicArn, message: message);
             request.SetAttribute("Content-Type", contentType.ToString());
             request.SetAttribute(nameof(@event.CorrelationId), @event.CorrelationId);
+            Logger.LogInformation("Sending {Id} to '{TopicArn}'", @event.Id, topicArn);
             var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
 
@@ -153,6 +154,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 var request = new PublishRequest(topicArn: topicArn, message: message);
                 request.SetAttribute("Content-Type", contentType.ToString());
                 request.SetAttribute(nameof(@event.CorrelationId), @event.CorrelationId);
+                Logger.LogInformation("Sending {Id} to '{TopicArn}'", @event.Id, topicArn);
                 var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
                 response.EnsureSuccess();
 
@@ -313,16 +315,18 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         {
             message.TryGetAttribute("CorrelationId", out var correlationId);
             message.TryGetAttribute("SequenceNumber", out var sequenceNumber);
+            var messageId = message.MessageId;
 
             using var log_scope = Logger.BeginScope(new Dictionary<string, string>
             {
-                ["MesageId"] = message.MessageId,
+                ["MesageId"] = messageId,
                 ["CorrelationId"] = correlationId,
                 ["SequenceNumber"] = sequenceNumber,
             });
 
             try
             {
+                Logger.LogDebug("Processing '{MessageId}'", messageId);
                 using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.Body));
                 message.TryGetAttribute("Content-Type", out var contentType_str);
                 var contentType = new ContentType(contentType_str ?? "text/plain");
@@ -333,20 +337,25 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
+                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
+                                      message.MessageId,
+                                      context.Id);
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
-
-                // delete the message from the queue
-                await sqsClient.DeleteMessageAsync(queueUrl: queueUrl,
-                                                   receiptHandle: message.ReceiptHandle,
-                                                   cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
                 // TODO: implement dead lettering in SQS
+                Logger.LogWarning("Dead lettering not implemented in {TransportName}.", Name);
             }
+
+            // always delete the message from the current queue
+            Logger.LogTrace("Deleting '{MessageId}' on '{QueueUrl}'", message.MessageId, queueUrl);
+            await sqsClient.DeleteMessageAsync(queueUrl: queueUrl,
+                                               receiptHandle: message.ReceiptHandle,
+                                               cancellationToken: cancellationToken);
         }
     }
 }

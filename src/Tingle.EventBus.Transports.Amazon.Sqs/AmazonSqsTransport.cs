@@ -15,7 +15,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Registrations;
-using MAV = Amazon.SimpleNotificationService.Model.MessageAttributeValue;
 
 namespace Tingle.EventBus.Transports.Amazon.Sqs
 {
@@ -111,8 +110,8 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             var topicArn = await GetTopicArnAsync(reg, cancellationToken);
             var message = Encoding.UTF8.GetString(ms.ToArray());
             var request = new PublishRequest(topicArn: topicArn, message: message);
-            SetAttribute(request, "Content-Type", contentType.ToString());
-            SetAttribute(request, nameof(@event.CorrelationId), @event.CorrelationId);
+            request.SetAttribute("Content-Type", contentType.ToString());
+            request.SetAttribute(nameof(@event.CorrelationId), @event.CorrelationId);
             var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
 
@@ -152,8 +151,8 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 var topicArn = await GetTopicArnAsync(reg, cancellationToken);
                 var message = Encoding.UTF8.GetString(ms.ToArray());
                 var request = new PublishRequest(topicArn: topicArn, message: message);
-                SetAttribute(request, "Content-Type", contentType.ToString());
-                SetAttribute(request, nameof(@event.CorrelationId), @event.CorrelationId);
+                request.SetAttribute("Content-Type", contentType.ToString());
+                request.SetAttribute(nameof(@event.CorrelationId), @event.CorrelationId);
                 var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
                 response.EnsureSuccess();
 
@@ -273,38 +272,6 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             return response.QueueUrl;
         }
 
-        private static void SetAttribute(PublishRequest request, string key, string value)
-        {
-            if (request is null) throw new ArgumentNullException(nameof(request));
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                throw new ArgumentException($"'{nameof(key)}' cannot be null or whitespace", nameof(key));
-            }
-
-            if (string.IsNullOrWhiteSpace(value)) return;
-            request.MessageAttributes[key] = new MAV { DataType = "String", StringValue = value };
-        }
-
-        private static bool TryGetAttribute(Message message, string key, out string value)
-        {
-            if (message is null) throw new ArgumentNullException(nameof(message));
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                throw new ArgumentException($"'{nameof(key)}' cannot be null or whitespace", nameof(key));
-            }
-
-            if (message.Attributes.TryGetValue(key, out value)) return true;
-
-            if (message.MessageAttributes.TryGetValue(key, out var attr))
-            {
-                value = attr.StringValue;
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
-
         private async Task ReceiveAsync(ConsumerRegistration reg, string queueUrl)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
@@ -344,8 +311,8 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
-            TryGetAttribute(message, "CorrelationId", out var correlationId);
-            TryGetAttribute(message, "SequenceNumber", out var sequenceNumber);
+            message.TryGetAttribute("CorrelationId", out var correlationId);
+            message.TryGetAttribute("SequenceNumber", out var sequenceNumber);
 
             using var log_scope = Logger.BeginScope(new Dictionary<string, string>
             {
@@ -357,7 +324,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             try
             {
                 using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.Body));
-                TryGetAttribute(message, "Content-Type", out var contentType_str);
+                message.TryGetAttribute("Content-Type", out var contentType_str);
                 var contentType = new ContentType(contentType_str ?? "text/plain");
 
                 using var scope = CreateScope();

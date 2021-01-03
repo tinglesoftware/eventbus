@@ -207,7 +207,6 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 var message = new ServiceBusMessage(ms.ToArray())
                 {
                     MessageId = @event.Id,
-                    CorrelationId = @event.CorrelationId,
                     ContentType = contentType.ToString(),
                 };
 
@@ -526,6 +525,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             try
             {
+                Logger.LogDebug("Processing '{MessageId}'", messageId);
                 using var scope = CreateScope();
                 using var ms = message.Body.ToStream();
                 var contentType = new ContentType(message.ContentType);

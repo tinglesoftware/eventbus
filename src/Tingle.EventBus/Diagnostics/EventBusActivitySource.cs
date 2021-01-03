@@ -12,7 +12,6 @@ namespace Tingle.EventBus.Diagnostics
         private static readonly Version Version = AssemblyName.Version;
         private static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
 
-
         /// <summary>
         /// Creates a new activity if there are active listeners for it, using the specified
         /// name, activity kind, and parent Id.

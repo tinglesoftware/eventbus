@@ -9,12 +9,14 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.RabbitMQ
@@ -155,6 +157,9 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     properties.Expiration = ((long)ttl.TotalMilliseconds).ToString();
                 }
 
+                // Add custom properties
+                properties.Headers.AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
+
                 // do actual publish
                 Logger.LogInformation("Sending {Id} to '{ExchangeName}'. Scheduled: {Scheduled}",
                                       @event.Id,
@@ -228,6 +233,9 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                         properties.Expiration = ((long)ttl.TotalMilliseconds).ToString();
                     }
 
+                    // Add custom properties
+                    properties.Headers.AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
+
                     // add to batch
                     batch.Add(exchange: name, routingKey: "", mandatory: false, properties: properties, body: body);
                 }
@@ -290,12 +298,20 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         {
             var messageId = args.BasicProperties?.MessageId;
             using var log_scope = Logger.BeginScopeForConsume(id: messageId,
-                                                           correlationId: args.BasicProperties?.CorrelationId,
-                                                           extras: new Dictionary<string, string>
-                                                           {
-                                                               ["RoutingKey"] = args.RoutingKey,
-                                                               ["DeliveryTag"] = args.DeliveryTag.ToString(),
-                                                           });
+                                                              correlationId: args.BasicProperties?.CorrelationId,
+                                                              extras: new Dictionary<string, string>
+                                                              {
+                                                                  ["RoutingKey"] = args.RoutingKey,
+                                                                  ["DeliveryTag"] = args.DeliveryTag.ToString(),
+                                                              });
+
+            // Instrumentation
+            using var activity = StartActivity(ActivityNames.Consume, ActivityKind.Consumer,);
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
+            activity?.AddTag(ActivityTags.MessagingSystem, Name);
+            activity?.AddTag(ActivityTags.MessagingDestination, reg.ConsumerName);
+            activity?.AddTag(ActivityTags.MessagingDestinationKind, "queue"); // only queues are possible
 
             try
             {

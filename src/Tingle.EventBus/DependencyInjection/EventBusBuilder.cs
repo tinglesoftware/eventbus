@@ -85,7 +85,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Setup the serializer to use when serializing events to and from the EventBus transport.
+        /// Setup the default serializer to use when serializing events to and from the EventBus transport.
         /// </summary>
         /// <typeparam name="TEventSerializer"></typeparam>
         /// <returns></returns>

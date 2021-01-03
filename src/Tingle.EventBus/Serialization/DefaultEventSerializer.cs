@@ -1,10 +1,12 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.IO;
 using System.Net.Mime;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Diagnostics;
 
 namespace Tingle.EventBus.Serialization
 {
@@ -17,16 +19,22 @@ namespace Tingle.EventBus.Serialization
 
         private readonly EventBus bus;
         private readonly JsonSerializerOptions serializerOptions;
+        private readonly ILogger logger;
 
         /// <summary>
         /// Creates an instance of <see cref="DefaultEventSerializer"/>.
         /// </summary>
         /// <param name="bus"></param>
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
-        public DefaultEventSerializer(EventBus bus, IOptions<EventBusOptions> optionsAccessor)
+        /// <param name="loggerFactory"></param>
+        public DefaultEventSerializer(EventBus bus, IOptions<EventBusOptions> optionsAccessor, ILoggerFactory loggerFactory)
         {
             this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
             serializerOptions = optionsAccessor?.Value?.SerializerOptions ?? throw new ArgumentNullException(nameof(optionsAccessor));
+
+            // Create a well-scoped logger
+            var categoryName = $"{LogCategoryNames.Serializers}.Default";
+            logger = loggerFactory?.CreateLogger(categoryName) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <inheritdoc/>
@@ -70,6 +78,7 @@ namespace Tingle.EventBus.Serialization
             // ensure we have a JsonElement for the event
             if (!(envelope.Event is JsonElement eventToken) || eventToken.ValueKind == JsonValueKind.Null)
             {
+                logger.LogWarning("The Event node is not a JsonElement or it is null");
                 eventToken = new JsonElement();
             }
 

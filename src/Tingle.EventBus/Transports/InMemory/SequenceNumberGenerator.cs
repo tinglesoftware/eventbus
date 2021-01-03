@@ -8,14 +8,14 @@ namespace Tingle.EventBus.Transports.InMemory
     /// </summary>
     public class SequenceNumberGenerator
     {
-        private long currentValue;
+        private int currentValue;
 
         ///
         public SequenceNumberGenerator(Random random)
         {
-            var bys = new byte[8];
+            var bys = new byte[4];
             random.NextBytes(bys);
-            currentValue = BitConverter.ToInt64(bys);
+            currentValue = BitConverter.ToInt32(bys);
         }
 
         ///

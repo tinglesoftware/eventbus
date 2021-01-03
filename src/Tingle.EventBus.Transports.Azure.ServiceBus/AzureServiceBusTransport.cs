@@ -491,15 +491,16 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 where TConsumer : IEventBusConsumer<TEvent>
         {
             var message = args.Message;
+            var messageId = message.MessageId;
             var cancellationToken = args.CancellationToken;
 
-            using var log_scope = Logger.BeginScope(new Dictionary<string, string>
-            {
-                ["MesageId"] = message.MessageId,
-                ["CorrelationId"] = message.CorrelationId,
-                ["SequenceNumber"] = message.SequenceNumber.ToString(),
-                ["EnqueuedSequenceNumber"] = message.EnqueuedSequenceNumber.ToString(),
-            });
+            using var log_scope = Logger.BeginScopeForConsume(id: messageId,
+                                                              correlationId: message.CorrelationId,
+                                                              sequenceNumber: message.SequenceNumber,
+                                                              extras: new Dictionary<string, string>
+                                                              {
+                                                                  ["EnqueuedSequenceNumber"] = message.EnqueuedSequenceNumber.ToString(),
+                                                              });
 
             try
             {
@@ -516,7 +517,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                       cancellationToken: cancellationToken);
 
                 // Complete the message
-                Logger.LogDebug("Completing message: {MessageId}.", message.MessageId);
+                Logger.LogDebug("Completing message: {MessageId}.", messageId);
                 await args.CompleteMessageAsync(message: message, cancellationToken: cancellationToken);
             }
             catch (Exception ex)

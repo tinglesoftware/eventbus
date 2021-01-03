@@ -279,13 +279,14 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
-            using var log_scope = Logger.BeginScope(new Dictionary<string, string>
-            {
-                ["MessageId"] = args.BasicProperties?.MessageId,
-                ["RoutingKey"] = args.RoutingKey,
-                ["CorrelationId"] = args.BasicProperties?.CorrelationId,
-                ["DeliveryTag"] = args.DeliveryTag.ToString(),
-            });
+            var messageId = args.BasicProperties?.MessageId;
+            using var log_scope = Logger.BeginScopeForConsume(id: messageId,
+                                                           correlationId: args.BasicProperties?.CorrelationId,
+                                                           extras: new Dictionary<string, string>
+                                                           {
+                                                               ["RoutingKey"] = args.RoutingKey,
+                                                               ["DeliveryTag"] = args.DeliveryTag.ToString(),
+                                                           });
 
             try
             {

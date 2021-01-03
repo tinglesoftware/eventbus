@@ -336,14 +336,13 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             data.Properties.TryGetValue("Event-Name", out var eventName);
             data.Properties.TryGetValue("Event-Type", out var eventType_str);
 
-            using var log_scope = Logger.BeginScope(new Dictionary<string, string>
-            {
-                ["Id"] = eventId?.ToString(),
-                ["CorrelationId"] = correlationId?.ToString(),
-                ["SequenceNumber"] = data.SequenceNumber.ToString(),
-                ["Event-Name"] = eventName?.ToString(),
-                ["Event-Type"] = eventType_str?.ToString(),
-            });
+            using var log_scope = Logger.BeginScopeForConsume(id: eventId?.ToString(),
+                                                              correlationId: correlationId?.ToString(),
+                                                              sequenceNumber: data.SequenceNumber, extras: new Dictionary<string, string>
+                                                              {
+                                                                  ["Event-Name"] = eventName?.ToString(),
+                                                                  ["Event-Type"] = eventType_str?.ToString(),
+                                                              });
 
             try
             {

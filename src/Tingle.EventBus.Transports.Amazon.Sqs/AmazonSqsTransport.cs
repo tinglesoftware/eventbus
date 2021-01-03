@@ -328,6 +328,8 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             message.TryGetAttribute(AttributeNames.SequenceNumber, out var sequenceNumber);
             message.TryGetAttribute(AttributeNames.ActivityId, out var parentActivityId);
 
+            using var log_scope = Logger.BeginScopeForConsume(id: messageId, correlationId: correlationId, sequenceNumber: sequenceNumber);
+
             // Instrumentation
             using var activity = StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId);
             activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
@@ -336,13 +338,6 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             activity?.AddTag(ActivityTags.MessagingDestination, reg.EventName);
             activity?.AddTag(ActivityTags.MessagingDestinationKind, "queue");
             activity?.AddTag(ActivityTags.MessagingUrl, queueUrl);
-
-            using var log_scope = Logger.BeginScope(new Dictionary<string, string>
-            {
-                ["MesageId"] = messageId,
-                ["CorrelationId"] = correlationId,
-                ["SequenceNumber"] = sequenceNumber,
-            });
 
             try
             {
@@ -358,7 +353,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
                 Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
-                                      message.MessageId,
+                                      messageId,
                                       context.Id);
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
@@ -380,7 +375,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             }
 
             // always delete the message from the current queue
-            Logger.LogTrace("Deleting '{MessageId}' on '{QueueUrl}'", message.MessageId, queueUrl);
+            Logger.LogTrace("Deleting '{MessageId}' on '{QueueUrl}'", messageId, queueUrl);
             await sqsClient.DeleteMessageAsync(queueUrl: queueUrl,
                                                receiptHandle: message.ReceiptHandle,
                                                cancellationToken: cancellationToken);

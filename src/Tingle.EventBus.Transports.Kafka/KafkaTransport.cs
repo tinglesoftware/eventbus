@@ -252,18 +252,15 @@ namespace Tingle.EventBus.Transports.Kafka
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
+            var messageKey = message.Key;
             message.Headers.TryGetValue("CorrelationId", out var correlationId);
             message.Headers.TryGetValue("Content-Type", out var contentType_str);
 
-            using var log_scope = Logger.BeginScope(new Dictionary<string, string>
-            {
-                ["MessageKey"] = message.Key,
-                ["CorrelationId"] = correlationId?.ToString(),
-            });
+            using var log_scope = Logger.BeginScopeForConsume(id: messageKey, correlationId: correlationId);
 
             try
             {
-                Logger.LogDebug("Processing '{MessageKey}", message.Key);
+                Logger.LogDebug("Processing '{MessageKey}", messageKey);
                 using var scope = CreateScope();
                 using var ms = new MemoryStream(message.Value);
                 var contentType = new ContentType(contentType_str?.ToString() ?? "*/*");
@@ -273,7 +270,7 @@ namespace Tingle.EventBus.Transports.Kafka
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
                 Logger.LogInformation("Received event: '{MessageKey}' containing Event '{Id}'",
-                                      message.Key,
+                                      messageKey,
                                       context.Id);
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,

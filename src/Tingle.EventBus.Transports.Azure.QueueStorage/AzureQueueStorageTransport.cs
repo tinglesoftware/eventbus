@@ -287,17 +287,17 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
-            using var log_scope = Logger.BeginScope(new Dictionary<string, string>
-            {
-                ["MesageId"] = message.MessageId,
-                ["PopReceipt"] = message.PopReceipt,
-                ["CorrelationId"] = null,
-                ["SequenceNumber"] = null,
-            });
+            var messageId = message.MessageId;
+            using var log_scope = Logger.BeginScopeForConsume(id: messageId,
+                                                              correlationId: null,
+                                                              extras: new Dictionary<string, string>
+                                                              {
+                                                                  ["PopReceipt"] = message.PopReceipt,
+                                                              });
 
             try
             {
-                Logger.LogDebug("Processing '{MessageId}|{PopReceipt}'", message.MessageId, message.PopReceipt);
+                Logger.LogDebug("Processing '{MessageId}|{PopReceipt}'", messageId, message.PopReceipt);
                 using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.MessageText));
                 var contentType = new ContentType("*/*");
                 var context = await DeserializeAsync<TEvent>(body: ms,
@@ -306,7 +306,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
                 Logger.LogInformation("Received message: '{MessageId}|{PopReceipt}' containing Event '{Id}'",
-                                      message.MessageId,
+                                      messageId,
                                       message.PopReceipt,
                                       context.Id);
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
@@ -324,10 +324,10 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
             // always delete the message from the current queue
             Logger.LogTrace("Deleting '{MessageId}|{PopReceipt}' on '{QueueName}'",
-                            message.MessageId,
+                            messageId,
                             message.PopReceipt,
                             queueClient.Name);
-            await queueClient.DeleteMessageAsync(messageId: message.MessageId,
+            await queueClient.DeleteMessageAsync(messageId: messageId,
                                                  popReceipt: message.PopReceipt,
                                                  cancellationToken: cancellationToken);
         }

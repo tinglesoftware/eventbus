@@ -6,7 +6,7 @@ namespace Tingle.EventBus.Transports.InMemory
     /// <summary>
     /// A sequence number generator for Inmemory transport
     /// </summary>
-    public class SequenceNumberGenerator // TODO: unit test this
+    public class SequenceNumberGenerator
     {
         private long currentValue;
 

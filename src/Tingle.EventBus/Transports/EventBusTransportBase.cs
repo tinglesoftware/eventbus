@@ -44,7 +44,7 @@ namespace Tingle.EventBus.Transports
             TransportOptions = transportOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(transportOptionsAccessor));
 
             // Create a well-scoped logger
-            var categoryName = $"{CategoryNames.Transports}.{GetType().Name}";
+            var categoryName = $"{LogCategoryNames.Transports}.{GetType().Name}";
             categoryName = CategoryNamePattern.Replace(categoryName, string.Empty); // remove trailing "Transport"
             Logger = loggerFactory?.CreateLogger(categoryName) ?? throw new ArgumentNullException(nameof(loggerFactory));
 

@@ -40,7 +40,6 @@ namespace Tingle.EventBus.Serialization
             {
                 Id = context.Id,
                 RequestId = context.RequestId,
-                ConversationId = context.ConversationId,
                 CorrelationId = context.CorrelationId,
                 InitiatorId = context.InitiatorId,
                 Event = context.Event,
@@ -82,7 +81,6 @@ namespace Tingle.EventBus.Serialization
             {
                 Id = envelope.Id,
                 RequestId = envelope.RequestId,
-                ConversationId = envelope.ConversationId,
                 CorrelationId = envelope.CorrelationId,
                 InitiatorId = envelope.InitiatorId,
                 Expires = envelope.Expires,

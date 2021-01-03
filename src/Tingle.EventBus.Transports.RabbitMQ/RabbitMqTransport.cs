@@ -9,12 +9,14 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.RabbitMQ
@@ -155,7 +157,16 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     properties.Expiration = ((long)ttl.TotalMilliseconds).ToString();
                 }
 
+                // Add custom properties
+                properties.Headers.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
+                                  .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
+                                  .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
+
                 // do actual publish
+                Logger.LogInformation("Sending {Id} to '{ExchangeName}'. Scheduled: {Scheduled}",
+                                      @event.Id,
+                                      name,
+                                      scheduled);
                 channel.BasicPublish(exchange: name,
                                      routingKey: "",
                                      basicProperties: properties,
@@ -224,11 +235,21 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                         properties.Expiration = ((long)ttl.TotalMilliseconds).ToString();
                     }
 
+                    // Add custom properties
+                    properties.Headers.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
+                                      .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
+                                      .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
+
                     // add to batch
                     batch.Add(exchange: name, routingKey: "", mandatory: false, properties: properties, body: body);
                 }
 
                 // do actual publish
+                Logger.LogInformation("Sending {EventsCount} messages to '{ExchangeName}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
+                                      events.Count,
+                                      name,
+                                      scheduled,
+                                      string.Join("\r\n- ", events.Select(e => e.Id)));
                 batch.Publish();
             });
 
@@ -279,16 +300,28 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
-            using var log_scope = Logger.BeginScope(new Dictionary<string, string>
-            {
-                ["MessageId"] = args.BasicProperties?.MessageId,
-                ["RoutingKey"] = args.RoutingKey,
-                ["CorrelationId"] = args.BasicProperties?.CorrelationId,
-                ["DeliveryTag"] = args.DeliveryTag.ToString(),
-            });
+            var messageId = args.BasicProperties?.MessageId;
+            using var log_scope = Logger.BeginScopeForConsume(id: messageId,
+                                                              correlationId: args.BasicProperties?.CorrelationId,
+                                                              extras: new Dictionary<string, string>
+                                                              {
+                                                                  ["RoutingKey"] = args.RoutingKey,
+                                                                  ["DeliveryTag"] = args.DeliveryTag.ToString(),
+                                                              });
+
+            args.BasicProperties.Headers.TryGetValue(AttributeNames.ActivityId, out var parentActivityId);
+
+            // Instrumentation
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
+            activity?.AddTag(ActivityTags.MessagingSystem, Name);
+            activity?.AddTag(ActivityTags.MessagingDestination, reg.ConsumerName);
+            activity?.AddTag(ActivityTags.MessagingDestinationKind, "queue"); // only queues are possible
 
             try
             {
+                Logger.LogDebug("Processing '{MessageId}'", messageId);
                 using var scope = CreateScope();
                 using var ms = new MemoryStream(args.Body.ToArray());
                 var contentType = GetContentType(args.BasicProperties);
@@ -297,11 +330,15 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
+                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
+                                      messageId,
+                                      context.Id);
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
 
-                // acknowlege the message
+                // Acknowlege the message
+                Logger.LogDebug("Completing message: {MessageId}, {DeliveryTag}.", messageId, args.DeliveryTag);
                 channel.BasicAck(deliveryTag: args.DeliveryTag, multiple: false);
             }
             catch (Exception ex)

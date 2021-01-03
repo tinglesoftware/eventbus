@@ -6,12 +6,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Azure.QueueStorage
@@ -102,7 +104,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             // get the queue client and send the message
             var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
             var message = Encoding.UTF8.GetString(ms.ToArray());
-            Logger.LogInformation("Sending {Id} to '{QueueName}'", @event.Id, queueClient.Name);
+            Logger.LogInformation("Sending {Id} to '{QueueName}'. Scheduled: {Scheduled}", @event.Id, queueClient.Name, scheduled);
             var response = await queueClient.SendMessageAsync(messageText: message,
                                                               visibilityTimeout: visibilityTimeout,
                                                               timeToLive: ttl,
@@ -142,7 +144,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
                 // send the message
                 var message = Encoding.UTF8.GetString(ms.ToArray());
-                Logger.LogInformation("Sending {Id} to '{QueueName}'", @event.Id, queueClient.Name);
+                Logger.LogInformation("Sending {Id} to '{QueueName}'. Scheduled: {Scheduled}", @event.Id, queueClient.Name, scheduled);
                 var response = await queueClient.SendMessageAsync(messageText: message,
                                                                   visibilityTimeout: visibilityTimeout,
                                                                   timeToLive: ttl,
@@ -287,17 +289,25 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             where TEvent : class
             where TConsumer : IEventBusConsumer<TEvent>
         {
-            using var log_scope = Logger.BeginScope(new Dictionary<string, string>
-            {
-                ["MesageId"] = message.MessageId,
-                ["PopReceipt"] = message.PopReceipt,
-                ["CorrelationId"] = null,
-                ["SequenceNumber"] = null,
-            });
+            var messageId = message.MessageId;
+            using var log_scope = Logger.BeginScopeForConsume(id: messageId,
+                                                              correlationId: null,
+                                                              extras: new Dictionary<string, string>
+                                                              {
+                                                                  ["PopReceipt"] = message.PopReceipt,
+                                                              });
+
+            // Instrumentation
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer); // no way to get parentId at this point
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
+            activity?.AddTag(ActivityTags.MessagingSystem, Name);
+            activity?.AddTag(ActivityTags.MessagingDestination, queueClient.Name);
+            activity?.AddTag(ActivityTags.MessagingDestinationKind, "queue");
 
             try
             {
-                Logger.LogDebug("Processing '{MessageId}|{PopReceipt}'", message.MessageId, message.PopReceipt);
+                Logger.LogDebug("Processing '{MessageId}|{PopReceipt}'", messageId, message.PopReceipt);
                 using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.MessageText));
                 var contentType = new ContentType("*/*");
                 var context = await DeserializeAsync<TEvent>(body: ms,
@@ -305,10 +315,18 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
+
                 Logger.LogInformation("Received message: '{MessageId}|{PopReceipt}' containing Event '{Id}'",
-                                      message.MessageId,
+                                      messageId,
                                       message.PopReceipt,
                                       context.Id);
+
+                // if the event contains the parent activity id, set it
+                if (context.Headers.TryGetValue(HeaderNames.ActivityId, out var parentActivityId))
+                {
+                    activity?.SetParentId(parentId: parentActivityId.ToString());
+                }
+
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
@@ -324,10 +342,10 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
             // always delete the message from the current queue
             Logger.LogTrace("Deleting '{MessageId}|{PopReceipt}' on '{QueueName}'",
-                            message.MessageId,
+                            messageId,
                             message.PopReceipt,
                             queueClient.Name);
-            await queueClient.DeleteMessageAsync(messageId: message.MessageId,
+            await queueClient.DeleteMessageAsync(messageId: messageId,
                                                  popReceipt: message.PopReceipt,
                                                  cancellationToken: cancellationToken);
         }

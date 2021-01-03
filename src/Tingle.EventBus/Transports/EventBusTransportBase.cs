@@ -67,11 +67,8 @@ namespace Tingle.EventBus.Transports
         /// </summary>
         protected TTransportOptions TransportOptions { get; }
 
-        /// <summary>
-        /// The name of this transport as extracted from <see cref="TransportNameAttribute"/> declared on it.
-        /// This name cannot be changed
-        /// </summary>
-        protected string Name { get; }
+        /// <inheritdoc/>
+        public string Name { get; }
 
         ///
         protected ILogger Logger { get; }
@@ -126,6 +123,11 @@ namespace Tingle.EventBus.Transports
                                                                             CancellationToken cancellationToken = default)
             where TEvent : class
         {
+            // Instrumentation
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Deserialize);
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.EventBusSerializerType, registration.EventSerializerType.FullName);
+
             // Get the serializer
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
 
@@ -153,6 +155,11 @@ namespace Tingle.EventBus.Transports
                                                                  CancellationToken cancellationToken = default)
             where TEvent : class
         {
+            // Instrumentation
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Serialize);
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.EventBusSerializerType, registration.EventSerializerType.FullName);
+
             // Get the serializer
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
 

@@ -9,11 +9,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Azure.EventHubs
@@ -147,14 +149,21 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                    cancellationToken: cancellationToken);
 
             var data = new EventData(ms.ToArray());
-            data.Properties["Id"] = @event.Id;
-            data.Properties["CorrelationId"] = @event.CorrelationId;
-            data.Properties["Content-Type"] = contentType.ToString();
-            data.Properties["Event-Name"] = reg.EventName;
-            data.Properties["Event-Type"] = reg.EventType.FullName;
+            data.Properties.AddIfNotDefault(AttributeNames.Id, @event.Id)
+                           .AddIfNotDefault(AttributeNames.CorrelationId, @event.CorrelationId)
+                           .AddIfNotDefault(AttributeNames.ContentType, contentType.ToString())
+                           .AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
+                           .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
+                           .AddIfNotDefault(AttributeNames.EventName, reg.EventName)
+                           .AddIfNotDefault(AttributeNames.EventType, reg.EventType.FullName)
+                           .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
 
             // get the producer and send the event accordingly
             var producer = await GetProducerAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            Logger.LogInformation("Sending {Id} to '{EventHubName}'. Scheduled: {Scheduled}",
+                                  @event.Id,
+                                  producer.EventHubName,
+                                  scheduled);
             await producer.SendAsync(new[] { data }, cancellationToken);
 
             // return the sequence number
@@ -191,16 +200,24 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                        cancellationToken: cancellationToken);
 
                 var data = new EventData(ms.ToArray());
-                data.Properties["Id"] = @event.Id;
-                data.Properties["CorrelationId"] = @event.CorrelationId;
-                data.Properties["Content-Type"] = contentType.ToString();
-                data.Properties["Event-Name"] = reg.EventName;
-                data.Properties["Event-Type"] = reg.EventType.FullName;
+                data.Properties.AddIfNotDefault(AttributeNames.Id, @event.Id)
+                               .AddIfNotDefault(AttributeNames.CorrelationId, @event.CorrelationId)
+                               .AddIfNotDefault(AttributeNames.ContentType, contentType.ToString())
+                               .AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
+                               .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
+                               .AddIfNotDefault(AttributeNames.EventName, reg.EventName)
+                               .AddIfNotDefault(AttributeNames.EventType, reg.EventType.FullName)
+                               .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
                 datas.Add(data);
             }
 
             // get the producer and send the events accordingly
             var producer = await GetProducerAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            Logger.LogInformation("Sending {EventsCount} events to '{EventHubName}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
+                                  events.Count,
+                                  producer.EventHubName,
+                                  scheduled,
+                                  string.Join("\r\n- ", events.Select(e => e.Id)));
             await producer.SendAsync(datas, cancellationToken);
 
             // return the sequence numbers
@@ -330,23 +347,35 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             var data = args.Data;
             var cancellationToken = args.CancellationToken;
 
-            data.Properties.TryGetValue("Id", out var eventId);
-            data.Properties.TryGetValue("CorrelationId", out var correlationId);
-            data.Properties.TryGetValue("Content-Type", out var contentType_str);
-            data.Properties.TryGetValue("Event-Name", out var eventName);
-            data.Properties.TryGetValue("Event-Type", out var eventType_str);
+            data.Properties.TryGetValue(AttributeNames.Id, out var eventId);
+            data.Properties.TryGetValue(AttributeNames.CorrelationId, out var correlationId);
+            data.Properties.TryGetValue(AttributeNames.ContentType, out var contentType_str);
+            data.Properties.TryGetValue(AttributeNames.EventName, out var eventName);
+            data.Properties.TryGetValue(AttributeNames.EventType, out var eventType);
+            data.Properties.TryGetValue(AttributeNames.ActivityId, out var parentActivityId);
 
-            using var log_scope = Logger.BeginScope(new Dictionary<string, string>
-            {
-                ["Id"] = eventId?.ToString(),
-                ["CorrelationId"] = correlationId?.ToString(),
-                ["SequenceNumber"] = data.SequenceNumber.ToString(),
-                ["Event-Name"] = eventName?.ToString(),
-                ["Event-Type"] = eventType_str?.ToString(),
-            });
+            using var log_scope = Logger.BeginScopeForConsume(id: eventId?.ToString(),
+                                                              correlationId: correlationId?.ToString(),
+                                                              sequenceNumber: data.SequenceNumber,
+                                                              extras: new Dictionary<string, string>
+                                                              {
+                                                                  [AttributeNames.EventName] = eventName?.ToString(),
+                                                                  [AttributeNames.EventType] = eventType?.ToString(),
+                                                              });
+
+            // Instrumentation
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
+            activity?.AddTag(ActivityTags.MessagingSystem, Name);
+            activity?.AddTag(ActivityTags.MessagingDestination, processor.EventHubName);
 
             try
             {
+                Logger.LogDebug("Processing '{EventId}|{PartitionKey}|{SequenceNumber}'",
+                                eventId,
+                                data.PartitionKey,
+                                data.SequenceNumber);
                 using var scope = CreateScope();
                 using var ms = new MemoryStream(data.Body.ToArray());
                 var contentType = new ContentType(contentType_str?.ToString() ?? "*/*");
@@ -355,6 +384,12 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
+                Logger.LogInformation("Received event: '{EventId}|{PartitionKey}|{SequenceNumber}' containing Event '{Id}'",
+                                      eventId,
+                                      data.PartitionKey,
+                                      data.SequenceNumber,
+                                      context.Id);
+
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
@@ -369,6 +404,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
 
             // update the checkpoint store so that the app receives only new events the next time it's run
+            Logger.LogDebug("Checkpointing {PartitionKey}, at {SequenceNumber}. Event: '{Id}'.",
+                            args.Partition,
+                            data.SequenceNumber,
+                            eventId);
             await args.UpdateCheckpointAsync(args.CancellationToken);
         }
 

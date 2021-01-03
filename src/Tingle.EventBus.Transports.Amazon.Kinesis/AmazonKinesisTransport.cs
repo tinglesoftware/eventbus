@@ -85,14 +85,16 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
                                                    cancellationToken: cancellationToken);
 
             // prepare the record
+            var streamName = reg.EventName;
             var request = new PutRecordRequest
             {
                 Data = ms,
                 PartitionKey = TransportOptions.PartitionKeyResolver(@event),
-                StreamName = reg.EventName,
+                StreamName = streamName,
             };
 
             // send the event
+            Logger.LogInformation("Sending {Id} to '{StreamName}'. Scheduled: {Scheduled}", @event.Id, streamName, scheduled);
             var response = await kinesisClient.PutRecordAsync(request, cancellationToken);
             response.EnsureSuccess();
 
@@ -134,12 +136,19 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             }
 
             // prepare the request
+            var streamName = reg.EventName;
             var request = new PutRecordsRequest
             {
-                StreamName = reg.EventName,
+                StreamName = streamName,
                 Records = records,
             };
 
+            // send the events
+            Logger.LogInformation("Sending {EventsCount} messages to '{StreamName}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
+                                  events.Count,
+                                  streamName,
+                                  scheduled,
+                                  string.Join("\r\n- ", events.Select(e => e.Id)));
             var response = await kinesisClient.PutRecordsAsync(request, cancellationToken);
             response.EnsureSuccess();
 

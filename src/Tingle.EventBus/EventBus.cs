@@ -17,9 +17,6 @@ namespace Tingle.EventBus
     /// </summary>
     public class EventBus : IHostedService
     {
-        ///
-        protected static readonly DiagnosticListener DiagnosticListener = new DiagnosticListener("Tingle-EventBus");
-
         private readonly List<IEventBusTransport> transports;
         private readonly EventBusOptions options;
         private readonly ILogger logger;
@@ -86,15 +83,27 @@ namespace Tingle.EventBus
                                                        CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // Add diagnostics headers
-            @event.Headers.AddIfNotDefault(DiagnosticHeaders.ActivityId, Activity.Current?.Id);
+            // Instrumentation
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Publish, ActivityKind.Producer);
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+
+            // Add diagnostics headers to event
+            @event.Headers.AddIfNotDefault(HeaderNames.EventType, typeof(TEvent).FullName);
+            @event.Headers.AddIfNotDefault(HeaderNames.ActivityId, activity?.Id);
 
             // Set properties that may be missing
             @event.Id ??= Guid.NewGuid().ToString();
             @event.Sent ??= DateTimeOffset.UtcNow;
 
-            // Publish on the transport
+            // Add message specific activity tags
+            activity?.AddTag(ActivityTags.MessagingMessageId, @event.Id);
+            activity?.AddTag(ActivityTags.MessagingConversationId, @event.CorrelationId);
+
+            // Get the transport and add transport specific activity tags
             var transport = GetTransportForEvent<TEvent>();
+            activity?.AddTag(ActivityTags.MessagingSystem, transport.Name);
+
+            // Publish on the transport
             return await transport.PublishAsync(@event: @event,
                                                 scheduled: scheduled,
                                                 cancellationToken: cancellationToken);
@@ -116,18 +125,30 @@ namespace Tingle.EventBus
                                                               CancellationToken cancellationToken = default)
             where TEvent : class
         {
+            // Instrumentation
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Publish, ActivityKind.Producer);
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+
             foreach (var @event in events)
             {
                 // Add diagnostics headers
-                @event.Headers.AddIfNotDefault(DiagnosticHeaders.ActivityId, Activity.Current?.Id);
+                @event.Headers.AddIfNotDefault(HeaderNames.EventType, typeof(TEvent).FullName);
+                @event.Headers.AddIfNotDefault(HeaderNames.ActivityId, Activity.Current?.Id);
 
                 // Set properties that may be missing
                 @event.Id ??= Guid.NewGuid().ToString();
                 @event.Sent ??= DateTimeOffset.UtcNow;
             }
 
-            // Publish on the transport
+            // Add message specific activity tags
+            activity?.AddTag(ActivityTags.MessagingMessageId, string.Join(",", events.Select(e => e.Id)));
+            activity?.AddTag(ActivityTags.MessagingConversationId, string.Join(",", events.Select(e => e.CorrelationId)));
+
+            // Get the transport and add transport specific activity tags
             var transport = GetTransportForEvent<TEvent>();
+            activity?.AddTag(ActivityTags.MessagingSystem, transport.Name);
+
+            // Publish on the transport
             return await transport.PublishAsync(events: events,
                                                 scheduled: scheduled,
                                                 cancellationToken: cancellationToken);

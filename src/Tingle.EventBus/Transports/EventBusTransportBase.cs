@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Mime;
 using System.Text.RegularExpressions;
@@ -123,6 +124,11 @@ namespace Tingle.EventBus.Transports
                                                                             CancellationToken cancellationToken = default)
             where TEvent : class
         {
+            // Instrument deserialization call
+            using var activity = EventBusActivitySource.ActivitySource.StartActivity(ActivityNames.Deserialize);
+            activity?.AddTag(ActivityTags.EventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.SerializerType, registration.EventSerializerType.FullName);
+
             // Get the serializer
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
 
@@ -150,6 +156,11 @@ namespace Tingle.EventBus.Transports
                                                                  CancellationToken cancellationToken = default)
             where TEvent : class
         {
+            // Instrument serialization call
+            using var activity = EventBusActivitySource.ActivitySource.StartActivity(ActivityNames.Serialize);
+            activity?.AddTag(ActivityTags.EventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.SerializerType, registration.EventSerializerType.FullName);
+
             // Get the serializer
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
 

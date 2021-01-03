@@ -16,6 +16,7 @@
         public const string NetPeerName = "net.peer.name";
 
         public const string EventType = "event.type";
+        public const string SerializerType = "serializer.type";
         public const string ConsumerType = "consumer.type";
     }
 }

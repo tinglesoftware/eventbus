@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Mime;
 using System.Text;
 using System.Threading;
@@ -31,7 +32,8 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         private readonly SemaphoreSlim topicArnsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
         private readonly Dictionary<(string, bool), string> queueUrlsCache = new Dictionary<(string, bool), string>();
         private readonly SemaphoreSlim queueUrlsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
-        private readonly CancellationTokenSource receiveCancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource stoppingCts = new CancellationTokenSource();
+        private readonly List<Task> receiverTasks = new List<Task>();
         private readonly AmazonSimpleNotificationServiceClient snsClient;
         private readonly AmazonSQSClient sqsClient;
 
@@ -75,17 +77,30 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             foreach (var reg in registrations)
             {
                 var queueUrl = await GetQueueUrlAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
-                _ = ReceiveAsync(reg, queueUrl);
+                var t = ReceiveAsync(reg: reg, queueUrl: queueUrl, cancellationToken: stoppingCts.Token);
+                receiverTasks.Add(t);
             }
         }
 
         /// <inheritdoc/>
-        public override Task StopAsync(CancellationToken cancellationToken)
+        public override async Task StopAsync(CancellationToken cancellationToken)
         {
             Logger.StoppingTransport();
-            receiveCancellationTokenSource.Cancel();
-            // TODO: figure out a way to wait for notification of termination in all receivers
-            return Task.CompletedTask;
+
+            // Stop called without start or there was no consumers registered
+            if (receiverTasks.Count == 0) return;
+
+            try
+            {
+                // Signal cancellation to the executing methods/tasks
+                stoppingCts.Cancel();
+            }
+            finally
+            {
+                // Wait until the tasks complete or the stop token triggers
+                var tasks = receiverTasks.Concat(new[] { Task.Delay(Timeout.Infinite, cancellationToken), });
+                await Task.WhenAny(tasks);
+            }
         }
 
         /// <inheritdoc/>
@@ -288,34 +303,46 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             return response.QueueUrl;
         }
 
-        private async Task ReceiveAsync(ConsumerRegistration reg, string queueUrl)
+        private async Task ReceiveAsync(ConsumerRegistration reg, string queueUrl, CancellationToken cancellationToken)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
             var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
             var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
-            var cancellationToken = receiveCancellationTokenSource.Token;
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                var response = await sqsClient.ReceiveMessageAsync(queueUrl, cancellationToken);
-                response.EnsureSuccess();
-                var messages = response.Messages;
+                try
+                {
+                    var response = await sqsClient.ReceiveMessageAsync(queueUrl, cancellationToken);
+                    response.EnsureSuccess();
+                    var messages = response.Messages;
 
-                // if the response is empty, introduce a delay
-                if (messages.Count == 0)
-                {
-                    var delay = TransportOptions.EmptyResultsDelay;
-                    Logger.LogTrace("No messages on '{QueueUrl}', delaying check for {Delay}", queueUrl, delay);
-                    await Task.Delay(delay, cancellationToken);
-                }
-                else
-                {
-                    Logger.LogDebug("Received {MessageCount} messages on '{QueueUrl}'", messages.Count, queueUrl);
-                    using var scope = CreateScope(); // shared
-                    foreach (var message in messages)
+                    // if the response is empty, introduce a delay
+                    if (messages.Count == 0)
                     {
-                        await (Task)method.Invoke(this, new object[] { reg, queueUrl, message, cancellationToken, });
+                        var delay = TransportOptions.EmptyResultsDelay;
+                        Logger.LogTrace("No messages on '{QueueUrl}', delaying check for {Delay}", queueUrl, delay);
+                        await Task.Delay(delay, cancellationToken);
                     }
+                    else
+                    {
+                        Logger.LogDebug("Received {MessageCount} messages on '{QueueUrl}'", messages.Count, queueUrl);
+                        using var scope = CreateScope(); // shared
+                        foreach (var message in messages)
+                        {
+                            await (Task)method.Invoke(this, new object[] { reg, queueUrl, message, cancellationToken, });
+                        }
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    // Ignore
+                    // Thrown from inside Task.Delay(...) if cancellation token is canceled
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ignore
+                    // Thrown from calls to cancellationToken.ThrowIfCancellationRequested(...)
                 }
             }
         }

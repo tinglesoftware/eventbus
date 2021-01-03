@@ -322,7 +322,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                       context.Id);
 
                 // if the event contains the parent activity id, set it
-                if (context.Headers.TryGetValue(DiagnosticHeaders.ActivityId, out var parentActivityId))
+                if (context.Headers.TryGetValue(HeaderNames.ActivityId, out var parentActivityId))
                 {
                     activity?.SetParentId(parentId: parentActivityId.ToString());
                 }

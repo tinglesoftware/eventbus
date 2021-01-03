@@ -91,7 +91,7 @@ namespace Tingle.EventBus
             activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
 
             // Add diagnostics headers to event
-            @event.Headers.AddIfNotDefault(DiagnosticHeaders.ActivityId, activity?.Id);
+            @event.Headers.AddIfNotDefault(HeaderNames.ActivityId, activity?.Id);
 
             // Set properties that may be missing
             @event.Id ??= Guid.NewGuid().ToString();
@@ -134,7 +134,7 @@ namespace Tingle.EventBus
             foreach (var @event in events)
             {
                 // Add diagnostics headers
-                @event.Headers.AddIfNotDefault(DiagnosticHeaders.ActivityId, Activity.Current?.Id);
+                @event.Headers.AddIfNotDefault(HeaderNames.ActivityId, Activity.Current?.Id);
 
                 // Set properties that may be missing
                 @event.Id ??= Guid.NewGuid().ToString();

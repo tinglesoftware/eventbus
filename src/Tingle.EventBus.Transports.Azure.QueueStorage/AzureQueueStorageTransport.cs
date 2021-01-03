@@ -104,7 +104,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             // get the queue client and send the message
             var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
             var message = Encoding.UTF8.GetString(ms.ToArray());
-            Logger.LogInformation("Sending {Id} to '{QueueName}'", @event.Id, queueClient.Name);
+            Logger.LogInformation("Sending {Id} to '{QueueName}'. Scheduled: {Scheduled}", @event.Id, queueClient.Name, scheduled);
             var response = await queueClient.SendMessageAsync(messageText: message,
                                                               visibilityTimeout: visibilityTimeout,
                                                               timeToLive: ttl,
@@ -144,7 +144,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
                 // send the message
                 var message = Encoding.UTF8.GetString(ms.ToArray());
-                Logger.LogInformation("Sending {Id} to '{QueueName}'", @event.Id, queueClient.Name);
+                Logger.LogInformation("Sending {Id} to '{QueueName}'. Scheduled: {Scheduled}", @event.Id, queueClient.Name, scheduled);
                 var response = await queueClient.SendMessageAsync(messageText: message,
                                                                   visibilityTimeout: visibilityTimeout,
                                                                   timeToLive: ttl,

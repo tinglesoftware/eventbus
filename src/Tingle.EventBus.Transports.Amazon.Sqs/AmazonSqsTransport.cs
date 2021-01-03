@@ -352,9 +352,11 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
+
                 Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
                                       messageId,
                                       context.Id);
+
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);

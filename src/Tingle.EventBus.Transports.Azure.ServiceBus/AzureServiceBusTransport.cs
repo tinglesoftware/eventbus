@@ -6,11 +6,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Azure.ServiceBus
@@ -160,6 +162,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 message.TimeToLive = ttl;
             }
 
+            // Add custom properties
+            message.ApplicationProperties[AttributeNames.ActivityId] = Activity.Current?.Id;
+
             // Get the sender and send the message accordingly
             var sender = await GetSenderAsync(reg, cancellationToken);
             Logger.LogInformation("Sending {Id} to '{EntityPath}'. Scheduled: {Scheduled}",
@@ -222,6 +227,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     var ttl = @event.Expires.Value - DateTimeOffset.UtcNow;
                     message.TimeToLive = ttl;
                 }
+
+                // Add custom properties
+                message.ApplicationProperties[AttributeNames.ActivityId] = Activity.Current?.Id;
 
                 messages.Add(message);
             }
@@ -487,12 +495,14 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, ProcessMessageEventArgs args)
-                where TEvent : class
-                where TConsumer : IEventBusConsumer<TEvent>
+            where TEvent : class
+            where TConsumer : IEventBusConsumer<TEvent>
         {
             var message = args.Message;
             var messageId = message.MessageId;
             var cancellationToken = args.CancellationToken;
+
+            message.ApplicationProperties.TryGetValue(AttributeNames.ActivityId, out var parentActivityId);
 
             using var log_scope = Logger.BeginScopeForConsume(id: messageId,
                                                               correlationId: message.CorrelationId,
@@ -501,6 +511,14 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                               {
                                                                   ["EnqueuedSequenceNumber"] = message.EnqueuedSequenceNumber.ToString(),
                                                               });
+
+            // Instrumentation
+            using var activity = StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
+            activity?.AddTag(ActivityTags.MessagingSystem, Name);
+            activity?.AddTag(ActivityTags.MessagingDestination, TransportOptions.UseBasicTier ? reg.EventName : reg.ConsumerName); // name of the queue/subscription
+            activity?.AddTag(ActivityTags.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
 
             try
             {
@@ -512,6 +530,11 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
+
+                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
+                                      messageId,
+                                      context.Id);
+
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);

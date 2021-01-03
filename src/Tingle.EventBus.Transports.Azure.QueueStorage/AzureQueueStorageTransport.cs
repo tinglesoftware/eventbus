@@ -315,6 +315,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
+
                 Logger.LogInformation("Received message: '{MessageId}|{PopReceipt}' containing Event '{Id}'",
                                       messageId,
                                       message.PopReceipt,

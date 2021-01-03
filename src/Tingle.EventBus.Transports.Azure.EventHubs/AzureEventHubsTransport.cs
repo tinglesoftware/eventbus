@@ -9,11 +9,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Azure.EventHubs
@@ -147,11 +149,12 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                    cancellationToken: cancellationToken);
 
             var data = new EventData(ms.ToArray());
-            data.Properties["Id"] = @event.Id;
-            data.Properties["CorrelationId"] = @event.CorrelationId;
-            data.Properties["Content-Type"] = contentType.ToString();
-            data.Properties["Event-Name"] = reg.EventName;
-            data.Properties["Event-Type"] = reg.EventType.FullName;
+            data.Properties[AttributeNames.Id] = @event.Id;
+            data.Properties[AttributeNames.CorrelationId] = @event.CorrelationId;
+            data.Properties[AttributeNames.ContentType] = contentType.ToString();
+            data.Properties[AttributeNames.EventName] = reg.EventName;
+            data.Properties[AttributeNames.EventType] = reg.EventType.FullName;
+            data.Properties[AttributeNames.ActivityId] = Activity.Current?.Id;
 
             // get the producer and send the event accordingly
             var producer = await GetProducerAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
@@ -191,11 +194,12 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                        cancellationToken: cancellationToken);
 
                 var data = new EventData(ms.ToArray());
-                data.Properties["Id"] = @event.Id;
-                data.Properties["CorrelationId"] = @event.CorrelationId;
-                data.Properties["Content-Type"] = contentType.ToString();
-                data.Properties["Event-Name"] = reg.EventName;
-                data.Properties["Event-Type"] = reg.EventType.FullName;
+                data.Properties[AttributeNames.Id] = @event.Id;
+                data.Properties[AttributeNames.CorrelationId] = @event.CorrelationId;
+                data.Properties[AttributeNames.ContentType] = contentType.ToString();
+                data.Properties[AttributeNames.EventName] = reg.EventName;
+                data.Properties[AttributeNames.EventType] = reg.EventType.FullName;
+                data.Properties[AttributeNames.ActivityId] = Activity.Current?.Id;
                 datas.Add(data);
             }
 
@@ -330,19 +334,27 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             var data = args.Data;
             var cancellationToken = args.CancellationToken;
 
-            data.Properties.TryGetValue("Id", out var eventId);
-            data.Properties.TryGetValue("CorrelationId", out var correlationId);
-            data.Properties.TryGetValue("Content-Type", out var contentType_str);
-            data.Properties.TryGetValue("Event-Name", out var eventName);
-            data.Properties.TryGetValue("Event-Type", out var eventType_str);
+            data.Properties.TryGetValue(AttributeNames.Id, out var eventId);
+            data.Properties.TryGetValue(AttributeNames.CorrelationId, out var correlationId);
+            data.Properties.TryGetValue(AttributeNames.ContentType, out var contentType_str);
+            data.Properties.TryGetValue(AttributeNames.EventName, out var eventName);
+            data.Properties.TryGetValue(AttributeNames.EventType, out var eventType);
+            data.Properties.TryGetValue(AttributeNames.ActivityId, out var parentActivityId);
 
             using var log_scope = Logger.BeginScopeForConsume(id: eventId?.ToString(),
                                                               correlationId: correlationId?.ToString(),
                                                               sequenceNumber: data.SequenceNumber, extras: new Dictionary<string, string>
                                                               {
-                                                                  ["Event-Name"] = eventName?.ToString(),
-                                                                  ["Event-Type"] = eventType_str?.ToString(),
+                                                                  [AttributeNames.EventName] = eventName?.ToString(),
+                                                                  [AttributeNames.EventType] = eventType?.ToString(),
                                                               });
+
+            // Instrumentation
+            using var activity = StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
+            activity?.AddTag(ActivityTags.MessagingSystem, Name);
+            activity?.AddTag(ActivityTags.MessagingDestination, processor.EventHubName);
 
             try
             {

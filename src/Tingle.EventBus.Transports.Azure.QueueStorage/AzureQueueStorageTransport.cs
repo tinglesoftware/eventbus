@@ -22,7 +22,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Azure Queue Storage.
     /// </summary>
     [TransportName(TransportNames.AzureQueueStorage)]
-    public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorageTransportOptions>
+    public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorageTransportOptions>, IDisposable
     {
         private const string SequenceNumberSeparator = "|";
 
@@ -374,6 +374,12 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             await queueClient.DeleteMessageAsync(messageId: messageId,
                                                  popReceipt: message.PopReceipt,
                                                  cancellationToken: cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            stoppingCts.Cancel();
         }
     }
 }

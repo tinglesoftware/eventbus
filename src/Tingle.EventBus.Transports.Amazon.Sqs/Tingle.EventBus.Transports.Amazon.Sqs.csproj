@@ -8,6 +8,7 @@
     </Description>
     <PackageTags>$(PackageTags);Amazon;AWS;SQS;SNS</PackageTags>
     <IsPackable>false</IsPackable> <!-- still in development -->
+    <NoWarn>$(NoWarn);CA1063</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

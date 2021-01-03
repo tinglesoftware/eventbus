@@ -26,7 +26,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
     /// Amazon SQS and Amazon SNS as the transport.
     /// </summary>
     [TransportName(TransportNames.AmazonSqs)]
-    public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOptions>
+    public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOptions>, IDisposable
     {
         private readonly Dictionary<Type, string> topicArnsCache = new Dictionary<Type, string>();
         private readonly SemaphoreSlim topicArnsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
@@ -412,6 +412,12 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             await sqsClient.DeleteMessageAsync(queueUrl: queueUrl,
                                                receiptHandle: message.ReceiptHandle,
                                                cancellationToken: cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            stoppingCts.Cancel();
         }
     }
 }

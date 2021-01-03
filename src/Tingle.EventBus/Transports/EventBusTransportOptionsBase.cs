@@ -24,5 +24,13 @@ namespace Tingle.EventBus.Transports
         /// Defaults to <see langword="true"/>.
         /// </summary>
         public bool EnableEntityCreation { get; set; } = true;
+
+        /// <summary>
+        /// The suffix to append to deadletter entities.
+        /// Dead letter entities are created on transports where they are not created by default,
+        /// and therefore look like normal entities.
+        /// Defaults to <c>-dedletter</c>.
+        /// </summary>
+        public string DeadLetterSuffix { get; set; } = "-deadleter";
     }
 }

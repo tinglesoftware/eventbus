@@ -292,7 +292,7 @@ namespace Tingle.EventBus.Transports.Kafka
                 Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
 
                 // produce message on deadletter topic
-                var dlt = reg.EventName += "-deadletter";
+                var dlt = reg.EventName += TransportOptions.DeadLetterSuffix;
                 await producer.ProduceAsync(topic: dlt, message: message, cancellationToken: cancellationToken);
             }
         }

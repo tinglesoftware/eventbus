@@ -18,6 +18,12 @@ namespace Microsoft.Extensions.DependencyInjection
             ticks = Math.Max(ticks, TimeSpan.FromSeconds(30).Ticks); // must be more than 30 seconds
             ticks = Math.Min(ticks, TimeSpan.FromMinutes(10).Ticks); // must be less than 10 minutes
             options.EmptyResultsDelay = TimeSpan.FromTicks(ticks);
+
+            // ensure the deadletter suffix name has been set
+            if (string.IsNullOrWhiteSpace(options.DeadLetterSuffix))
+            {
+                throw new InvalidOperationException($"The '{nameof(options.DeadLetterSuffix)}' must be provided");
+            }
         }
     }
 }

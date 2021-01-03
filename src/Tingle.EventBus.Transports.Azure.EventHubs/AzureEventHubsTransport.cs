@@ -245,7 +245,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 if (!producersCache.TryGetValue((reg.EventType, deadletter), out var producer))
                 {
                     var name = reg.EventName;
-                    if (deadletter) name += "-deadletter";
+                    if (deadletter) name += TransportOptions.DeadLetterSuffix;
 
                     // create the producer
                     producer = new EventHubProducerClient(connectionString: TransportOptions.ConnectionString,

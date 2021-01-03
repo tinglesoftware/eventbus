@@ -212,7 +212,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                 if (!queueClientsCache.TryGetValue((reg.EventType, deadletter), out var queueClient))
                 {
                     var name = reg.EventName;
-                    if (deadletter) name += "-deadletter";
+                    if (deadletter) name += TransportOptions.DeadLetterSuffix;
 
                     // create the queue client
                     queueClient = new QueueClient(connectionString: TransportOptions.ConnectionString,

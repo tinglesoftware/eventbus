@@ -217,7 +217,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             {
                 var topicName = reg.EventName;
                 var queueName = reg.ConsumerName;
-                if (deadletter) queueName += "-deadletter";
+                if (deadletter) queueName += TransportOptions.DeadLetterSuffix;
 
                 var key = $"{topicName}/{queueName}";
                 if (!queueUrlsCache.TryGetValue((key, deadletter), out var queueUrl))
@@ -225,7 +225,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                     // ensure queue is created before creating subscription
                     queueUrl = await CreateQueueIfNotExistsAsync(queueName: queueName, cancellationToken: cancellationToken);
 
-                    // for non-deadletter, we need to ensure the topic exists and the queue is subscribed to it
+                    // for non deadletter, we need to ensure the topic exists and the queue is subscribed to it
                     if (!deadletter)
                     {
                         // ensure topic is created before creating the subscription

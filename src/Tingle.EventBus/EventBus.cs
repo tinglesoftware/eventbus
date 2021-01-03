@@ -17,9 +17,6 @@ namespace Tingle.EventBus
     /// </summary>
     public class EventBus : IHostedService
     {
-        ///
-        protected static readonly DiagnosticListener DiagnosticListener = new DiagnosticListener("Tingle-EventBus");
-
         private readonly List<IEventBusTransport> transports;
         private readonly EventBusOptions options;
         private readonly ILogger logger;

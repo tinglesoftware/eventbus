@@ -6,12 +6,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Azure.QueueStorage
@@ -295,6 +297,14 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                                   ["PopReceipt"] = message.PopReceipt,
                                                               });
 
+            // Instrumentation
+            using var activity = StartActivity(ActivityNames.Consume, ActivityKind.Consumer); // no way to get parentId at this point
+            activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
+            activity?.AddTag(ActivityTags.MessagingSystem, Name);
+            activity?.AddTag(ActivityTags.MessagingDestination, queueClient.Name);
+            activity?.AddTag(ActivityTags.MessagingDestinationKind, "queue");
+
             try
             {
                 Logger.LogDebug("Processing '{MessageId}|{PopReceipt}'", messageId, message.PopReceipt);
@@ -309,6 +319,13 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                       messageId,
                                       message.PopReceipt,
                                       context.Id);
+
+                // if the event contains the parent activity id, set it
+                if (context.Headers.TryGetValue(DiagnosticHeaders.ActivityId, out var parentActivityId))
+                {
+                    activity?.SetParentId(parentId: parentActivityId.ToString());
+                }
+
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);

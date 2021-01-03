@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Mime;
 using System.Text.RegularExpressions;
@@ -124,8 +123,8 @@ namespace Tingle.EventBus.Transports
                                                                             CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // Instrument deserialization call
-            using var activity = StartActivity(ActivityNames.Deserialize);
+            // Instrumentation
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Deserialize);
             activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTags.EventBusSerializerType, registration.EventSerializerType.FullName);
 
@@ -156,8 +155,8 @@ namespace Tingle.EventBus.Transports
                                                                  CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // Instrument serialization call
-            using var activity = StartActivity(ActivityNames.Serialize);
+            // Instrumentation
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Serialize);
             activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTags.EventBusSerializerType, registration.EventSerializerType.FullName);
 
@@ -205,21 +204,5 @@ namespace Tingle.EventBus.Transports
         /// </summary>
         /// <returns></returns>
         protected ICollection<ConsumerRegistration> GetConsumerRegistrations() => BusOptions.GetConsumerRegistrations(transportName: Name);
-
-        /// <summary>
-        /// Creates a new activity if there are active listeners for it, using the specified
-        /// name, activity kind, and parent Id.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="kind"></param>
-        /// <param name="parentId"></param>
-        /// <returns></returns>
-        protected Activity StartActivity(string name, ActivityKind kind = ActivityKind.Internal, string parentId = null)
-        {
-            var actSrc = EventBusActivitySource.ActivitySource;
-            return parentId != null
-                ? actSrc.StartActivity(name: name, kind: kind, parentId: parentId)
-                : actSrc.StartActivity(name: name, kind: kind);
-        }
     }
 }

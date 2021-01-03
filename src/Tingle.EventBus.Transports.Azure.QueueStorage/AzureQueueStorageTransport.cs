@@ -298,7 +298,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                               });
 
             // Instrumentation
-            using var activity = StartActivity(ActivityNames.Consume, ActivityKind.Consumer); // no way to get parentId at this point
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer); // no way to get parentId at this point
             activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTags.MessagingSystem, Name);

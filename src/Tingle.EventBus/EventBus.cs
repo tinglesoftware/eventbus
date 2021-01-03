@@ -86,8 +86,8 @@ namespace Tingle.EventBus
                                                        CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // Instrument publish call
-            using var activity = EventBusActivitySource.ActivitySource.StartActivity(ActivityNames.Publish, ActivityKind.Producer);
+            // Instrumentation
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Publish, ActivityKind.Producer);
             activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
 
             // Add diagnostics headers to event
@@ -127,8 +127,8 @@ namespace Tingle.EventBus
                                                               CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // Instrument publish call
-            using var activity = EventBusActivitySource.ActivitySource.StartActivity(ActivityNames.Publish, ActivityKind.Producer);
+            // Instrumentation
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Publish, ActivityKind.Producer);
             activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
 
             foreach (var @event in events)

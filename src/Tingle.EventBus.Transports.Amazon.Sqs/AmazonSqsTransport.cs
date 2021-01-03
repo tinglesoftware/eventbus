@@ -335,7 +335,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             using var log_scope = Logger.BeginScopeForConsume(id: messageId, correlationId: correlationId, sequenceNumber: sequenceNumber);
 
             // Instrumentation
-            using var activity = StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId);
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId);
             activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTags.MessagingSystem, Name);

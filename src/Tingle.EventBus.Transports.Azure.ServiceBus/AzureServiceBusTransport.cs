@@ -517,7 +517,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                               });
 
             // Instrumentation
-            using var activity = StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
             activity?.AddTag(ActivityTags.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTags.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTags.MessagingSystem, Name);

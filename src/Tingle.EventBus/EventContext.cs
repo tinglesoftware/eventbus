@@ -58,6 +58,24 @@ namespace Tingle.EventBus
         internal EventBus Bus { get; }
 
         /// <inheritdoc/>
+        public Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                 DateTimeOffset? scheduled = null,
+                                                 CancellationToken cancellationToken = default)
+            where TEvent : class
+        {
+            return Bus.PublishAsync(@event: @event, scheduled: scheduled, cancellationToken: cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                        DateTimeOffset? scheduled = null,
+                                                        CancellationToken cancellationToken = default)
+            where TEvent : class
+        {
+            return Bus.PublishAsync(events: events, scheduled: scheduled, cancellationToken: cancellationToken);
+        }
+
+        /// <inheritdoc/>
         public Task<string> PublishAsync<TEvent>(TEvent @event,
                                                  DateTimeOffset? scheduled = null,
                                                  CancellationToken cancellationToken = default)
@@ -69,7 +87,7 @@ namespace Tingle.EventBus
                 Event = @event,
             };
 
-            return Bus.PublishAsync(@event: context, scheduled: scheduled, cancellationToken: cancellationToken);
+            return PublishAsync(@event: context, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>
@@ -83,7 +101,7 @@ namespace Tingle.EventBus
                 CorrelationId = Id,
                 Event = e,
             }).ToList();
-            return Bus.PublishAsync(events: contexts, scheduled: scheduled, cancellationToken: cancellationToken);
+            return PublishAsync(events: contexts, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>

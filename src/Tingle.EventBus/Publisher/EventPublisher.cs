@@ -16,13 +16,30 @@ namespace Tingle.EventBus
         }
 
         /// <inheritdoc/>
+        public async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                       DateTimeOffset? scheduled = null,
+                                                       CancellationToken cancellationToken = default)
+            where TEvent : class
+        {
+            return await bus.PublishAsync(@event, scheduled, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                              DateTimeOffset? scheduled = null,
+                                                              CancellationToken cancellationToken = default) where TEvent : class
+        {
+            return await bus.PublishAsync(events: events, scheduled: scheduled, cancellationToken: cancellationToken);
+        }
+
+        /// <inheritdoc/>
         public async Task<string> PublishAsync<TEvent>(TEvent @event,
                                                        DateTimeOffset? scheduled = null,
                                                        CancellationToken cancellationToken = default)
             where TEvent : class
         {
             var context = new EventContext<TEvent>(bus) { Event = @event };
-            return await bus.PublishAsync(context, scheduled, cancellationToken);
+            return await PublishAsync(context, scheduled, cancellationToken);
         }
 
         /// <inheritdoc/>
@@ -31,7 +48,7 @@ namespace Tingle.EventBus
                                                               CancellationToken cancellationToken = default) where TEvent : class
         {
             var contexts = events.Select(e => new EventContext<TEvent>(bus) { Event = e }).ToList();
-            return await bus.PublishAsync(events: contexts, scheduled: scheduled, cancellationToken: cancellationToken);
+            return await PublishAsync(events: contexts, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>

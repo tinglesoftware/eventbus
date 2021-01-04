@@ -11,18 +11,11 @@ namespace Tingle.EventBus.Transports.InMemory
         private int currentValue;
 
         ///
-        public SequenceNumberGenerator(Random random)
+        public SequenceNumberGenerator()
         {
-            var bys = new byte[4];
-            random.NextBytes(bys);
-            currentValue = BitConverter.ToInt32(bys);
+            var random = new Random(DateTimeOffset.UtcNow.Millisecond);
+            currentValue = random.Next();
         }
-
-        ///
-        public SequenceNumberGenerator() : this(new Random()) { }
-
-        ///
-        public SequenceNumberGenerator(int seed) : this(new Random(Seed: seed)) { }
 
         /// <summary>
         /// Generate the next sequence number.
@@ -31,7 +24,7 @@ namespace Tingle.EventBus.Transports.InMemory
         public string Generate()
         {
             var v = Interlocked.Increment(ref currentValue);
-            return Convert.ToUInt64(v).ToString();
+            return ((ulong)v).ToString();
         }
     }
 }

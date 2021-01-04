@@ -33,5 +33,22 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder;
         }
+
+        /// <summary>
+        /// Add InMemory test harness. This can be reolved using <see cref="InMemoryTestHarness"/>.
+        /// <br/>
+        /// Ensure the InMemory transport has been added using <see cref="AddInMemoryTestHarness(EventBusBuilder)"/>
+        /// before resolving instances of <see cref="InMemoryTestHarness"/>.
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static EventBusBuilder AddInMemoryTestHarness(this EventBusBuilder builder)
+        {
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+
+            // Register the harness
+            builder.Services.AddSingleton<InMemoryTestHarness>();
+            return builder;
+        }
     }
 }

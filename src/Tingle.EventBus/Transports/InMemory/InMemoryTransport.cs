@@ -88,6 +88,11 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <inheritdoc/>
         public override Task StartAsync(CancellationToken cancellationToken)
         {
+            if (receiverTasks.Count > 0)
+            {
+                throw new InvalidOperationException("The bus has already been started.");
+            }
+
             var registrations = GetConsumerRegistrations();
             Logger.StartingTransport(registrations.Count);
             foreach (var reg in registrations)

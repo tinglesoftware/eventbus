@@ -4,7 +4,6 @@ using Azure.Messaging.EventHubs.Processor;
 using Azure.Messaging.EventHubs.Producer;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -34,17 +33,15 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="environment"></param>
         /// <param name="serviceScopeFactory"></param>
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public AzureEventHubsTransport(IHostEnvironment environment,
-                                       IServiceScopeFactory serviceScopeFactory,
+        public AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
                                        IOptions<EventBusOptions> busOptionsAccessor,
                                        IOptions<AzureEventHubsTransportOptions> transportOptionsAccessor,
                                        ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
+            : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
         }
 

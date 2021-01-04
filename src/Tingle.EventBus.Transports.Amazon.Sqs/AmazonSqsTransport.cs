@@ -4,7 +4,6 @@ using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -40,17 +39,15 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="environment"></param>
         /// <param name="serviceScopeFactory"></param>
         /// <param name="optionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public AmazonSqsTransport(IHostEnvironment environment,
-                                 IServiceScopeFactory serviceScopeFactory,
-                                 IOptions<EventBusOptions> optionsAccessor,
-                                 IOptions<AmazonSqsTransportOptions> transportOptionsAccessor,
-                                 ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, optionsAccessor, transportOptionsAccessor, loggerFactory)
+        public AmazonSqsTransport(IServiceScopeFactory serviceScopeFactory,
+                                  IOptions<EventBusOptions> optionsAccessor,
+                                  IOptions<AmazonSqsTransportOptions> transportOptionsAccessor,
+                                  ILoggerFactory loggerFactory)
+            : base(serviceScopeFactory, optionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             snsClient = new AmazonSimpleNotificationServiceClient(credentials: TransportOptions.Credentials,
                                                                   clientConfig: TransportOptions.SnsConfig);

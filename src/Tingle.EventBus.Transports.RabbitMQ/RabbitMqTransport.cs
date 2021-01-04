@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly;
@@ -38,17 +37,15 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="environment"></param>
         /// <param name="serviceScopeFactory"></param>
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public RabbitMqTransport(IHostEnvironment environment,
-                                 IServiceScopeFactory serviceScopeFactory,
+        public RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
                                  IOptions<EventBusOptions> busOptionsAccessor,
                                  IOptions<RabbitMqTransportOptions> transportOptionsAccessor,
                                  ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
+            : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             retryPolicy = Policy.Handle<BrokerUnreachableException>()
                                 .Or<SocketException>()

@@ -1,7 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -33,17 +32,15 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="environment"></param>
         /// <param name="serviceScopeFactory"></param>
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public AzureServiceBusTransport(IHostEnvironment environment,
-                                        IServiceScopeFactory serviceScopeFactory,
+        public AzureServiceBusTransport(IServiceScopeFactory serviceScopeFactory,
                                         IOptions<EventBusOptions> busOptionsAccessor,
                                         IOptions<AzureServiceBusTransportOptions> transportOptionsAccessor,
                                         ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
+            : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             var connectionString = TransportOptions.ConnectionString;
             managementClient = new ServiceBusAdministrationClient(connectionString);

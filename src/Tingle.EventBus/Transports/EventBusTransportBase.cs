@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -27,18 +26,15 @@ namespace Tingle.EventBus.Transports
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="environment"></param>
         /// <param name="serviceScopeFactory"></param>
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public EventBusTransportBase(IHostEnvironment environment,
-                                     IServiceScopeFactory serviceScopeFactory,
+        public EventBusTransportBase(IServiceScopeFactory serviceScopeFactory,
                                      IOptions<EventBusOptions> busOptionsAccessor,
                                      IOptions<TTransportOptions> transportOptionsAccessor,
                                      ILoggerFactory loggerFactory)
         {
-            Environment = environment ?? throw new ArgumentNullException(nameof(environment));
             this.serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             BusOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
             TransportOptions = transportOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(transportOptionsAccessor));
@@ -51,11 +47,6 @@ namespace Tingle.EventBus.Transports
             // Get the name of the transport
             Name = EventBusBuilder.GetTransportName(GetType());
         }
-
-        /// <summary>
-        /// The environment in which the application and by extension the bus is running in.
-        /// </summary>
-        protected IHostEnvironment Environment { get; }
 
         /// <summary>
         /// Options for configuring the bus.

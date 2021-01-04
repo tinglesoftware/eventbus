@@ -43,7 +43,7 @@ namespace Tingle.EventBus.Transports.Kafka
                               IOptions<EventBusOptions> busOptionsAccessor,
                               IOptions<KafkaTransportOptions> transportOptionsAccessor,
                               ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
+            : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             // Should be setup the logger?
             adminClient = new AdminClientBuilder(TransportOptions.AdminConfig).Build();

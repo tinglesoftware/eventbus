@@ -1,7 +1,6 @@
 ﻿using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -35,17 +34,15 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="environment"></param>
         /// <param name="serviceScopeFactory"></param>
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public AzureQueueStorageTransport(IHostEnvironment environment,
-                                          IServiceScopeFactory serviceScopeFactory,
+        public AzureQueueStorageTransport(IServiceScopeFactory serviceScopeFactory,
                                           IOptions<EventBusOptions> busOptionsAccessor,
                                           IOptions<AzureQueueStorageTransportOptions> transportOptionsAccessor,
                                           ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
+            : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             serviceClient = new QueueServiceClient(TransportOptions.ConnectionString);
         }

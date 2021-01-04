@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -38,19 +37,17 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="environment"></param>
         /// <param name="serviceScopeFactory"></param>
         /// <param name="sng"></param>
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public InMemoryTransport(IHostEnvironment environment,
-                                 IServiceScopeFactory serviceScopeFactory,
+        public InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
                                  SequenceNumberGenerator sng,
                                  IOptions<EventBusOptions> busOptionsAccessor,
                                  IOptions<InMemoryTransportOptions> transportOptionsAccessor,
                                  ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
+            : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             this.sng = sng;
         }

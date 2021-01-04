@@ -2,7 +2,6 @@
 using Amazon.Kinesis.Model;
 using Amazon.Runtime;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -26,17 +25,15 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="environment"></param>
         /// <param name="serviceScopeFactory"></param>
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public AmazonKinesisTransport(IHostEnvironment environment,
-                                     IServiceScopeFactory serviceScopeFactory,
-                                     IOptions<EventBusOptions> busOptionsAccessor,
-                                     IOptions<AmazonKinesisTransportOptions> transportOptionsAccessor,
-                                     ILoggerFactory loggerFactory)
-            : base(environment, serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
+        public AmazonKinesisTransport(IServiceScopeFactory serviceScopeFactory,
+                                      IOptions<EventBusOptions> busOptionsAccessor,
+                                      IOptions<AmazonKinesisTransportOptions> transportOptionsAccessor,
+                                      ILoggerFactory loggerFactory)
+            : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
             kinesisClient = new AmazonKinesisClient(credentials: TransportOptions.Credentials,
                                                     clientConfig: TransportOptions.KinesisConfig);

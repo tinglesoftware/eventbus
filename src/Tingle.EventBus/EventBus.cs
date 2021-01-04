@@ -104,6 +104,7 @@ namespace Tingle.EventBus
             activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
 
             // Publish on the transport
+            logger.LogInformation("Sending event '{Id}' using '{TransportName}' transport. Scheduled: {Scheduled}", @event.Id, transport.Name, scheduled);
             return await transport.PublishAsync(@event: @event,
                                                 scheduled: scheduled,
                                                 cancellationToken: cancellationToken);
@@ -149,6 +150,11 @@ namespace Tingle.EventBus
             activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
 
             // Publish on the transport
+            logger.LogInformation("Sending {EventsCount} events using '{TransportName}' transport. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
+                                  events.Count,
+                                  transport.Name,
+                                  scheduled,
+                                  string.Join("\r\n- ", events.Select(e => e.Id)));
             return await transport.PublishAsync(events: events,
                                                 scheduled: scheduled,
                                                 cancellationToken: cancellationToken);
@@ -167,6 +173,7 @@ namespace Tingle.EventBus
         {
             // cancel on the transport
             var transport = GetTransportForEvent<TEvent>();
+            logger.LogInformation("Canceling events: {Id} on '{TransportName}' transport", id, transport.Name);
             await transport.CancelAsync<TEvent>(id: id, cancellationToken: cancellationToken);
         }
 
@@ -182,6 +189,10 @@ namespace Tingle.EventBus
         {
             // cancel on the transport
             var transport = GetTransportForEvent<TEvent>();
+            logger.LogInformation("Canceling {EventsCount} events on '{TransportName}':\r\n- {Ids}",
+                                  ids.Count,
+                                  transport.Name,
+                                  string.Join("\r\n- ", ids));
             await transport.CancelAsync<TEvent>(ids: ids, cancellationToken: cancellationToken);
         }
 

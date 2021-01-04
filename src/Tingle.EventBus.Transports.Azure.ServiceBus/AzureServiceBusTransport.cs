@@ -298,7 +298,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             // get the sender and cancel the messages accordingly
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             var sender = await GetSenderAsync(reg, cancellationToken);
-            Logger.LogInformation("Canceling scheduled messages on {EntityPath}:\r\n- {SequenceNumbers}",
+            Logger.LogInformation("Canceling {EventsCount} scheduled messages on {EntityPath}:\r\n- {SequenceNumbers}",
+                                  ids.Count, 
                                   sender.EntityPath,
                                   string.Join("\r\n- ", seqNums));
             await sender.CancelScheduledMessagesAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken);

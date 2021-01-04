@@ -11,6 +11,15 @@ namespace Tingle.EventBus
     public interface IEventPublisher
     {
         /// <summary>
+        /// Create an instance of <see cref="EventContext{T}"/>.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type.</typeparam>
+        /// <param name="event">The event to be nested.</param>
+        /// <param name="correlationId">The identifier of the event from which to create a child event.</param>
+        /// <returns></returns>
+        EventContext<TEvent> CreateEventContext<TEvent>(TEvent @event, string correlationId = null);
+
+        /// <summary>
         /// Publish an event.
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>

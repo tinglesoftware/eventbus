@@ -58,6 +58,16 @@ namespace Tingle.EventBus
         internal EventBus Bus { get; }
 
         /// <inheritdoc/>
+        public EventContext<TEvent> CreateEventContext<TEvent>(TEvent @event, string correlationId = null)
+        {
+            return new EventContext<TEvent>(Bus)
+            {
+                Event = @event,
+                CorrelationId = correlationId ?? Id,
+            };
+        }
+
+        /// <inheritdoc/>
         public Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
                                                  DateTimeOffset? scheduled = null,
                                                  CancellationToken cancellationToken = default)
@@ -81,12 +91,7 @@ namespace Tingle.EventBus
                                                  CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            var context = new EventContext<TEvent>(Bus)
-            {
-                CorrelationId = Id,
-                Event = @event,
-            };
-
+            var context = CreateEventContext(@event);
             return PublishAsync(@event: context, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 
@@ -96,11 +101,7 @@ namespace Tingle.EventBus
                                                         CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            var contexts = events.Select(e => new EventContext<TEvent>(Bus)
-            {
-                CorrelationId = Id,
-                Event = e,
-            }).ToList();
+            var contexts = events.Select(e => CreateEventContext(e)).ToList();
             return PublishAsync(events: contexts, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 

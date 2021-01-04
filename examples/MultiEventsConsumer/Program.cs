@@ -24,11 +24,7 @@ namespace MultiEventsConsumer
                         builder.Subscribe<MultiEventsConsumer>();
 
                         // Transport specific configuration
-                        builder.AddInMemoryTransport(options =>
-                        {
-                            // we need to see results fast, for the example. CPU usage does not matter
-                            options.EmptyResultsDelay = System.TimeSpan.FromSeconds(5);
-                        });
+                        builder.AddInMemoryTransport();
                     });
 
                     services.AddHostedService<DummyProducerService>();

@@ -21,6 +21,9 @@ namespace MultiEventsConsumer
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            // Wait for bus to be ready
+            await Task.Delay(TimeSpan.FromSeconds(8), stoppingToken);
+
             // Generate random vehicle Ids
             var rnd = new Random(DateTimeOffset.UtcNow.Millisecond);
             var vehicles = Enumerable.Range(0, 5).Select(_ => GenerateRandomString(rnd)).ToList();
@@ -38,12 +41,10 @@ namespace MultiEventsConsumer
 
             for (var i = 0; i < times; i++)
             {
-                await Task.Delay(delay, stoppingToken);
-
                 // Select vehicle, door kind and door state randonly
-                var vehicle = vehicles[rnd.Next(0, vehicles.Count - 1)];
-                var kind = kinds[i % kinds.Count];
-                var state = states[i % states.Count];
+                var vehicle = vehicles[rnd.Next(0, combinations) * 1 % vehicles.Count];
+                var kind = kinds[rnd.Next(0, combinations) * i % kinds.Count];
+                var state = states[rnd.Next(0, combinations) * i % states.Count];
 
                 // Publish event depending on the door state
                 if (state == DoorState.Closed)
@@ -68,6 +69,8 @@ namespace MultiEventsConsumer
 
                     await publisher.PublishAsync(evt, cancellationToken: stoppingToken);
                 }
+
+                await Task.Delay(delay, stoppingToken);
             }
 
             logger.LogInformation("Finished producing dummy data!");

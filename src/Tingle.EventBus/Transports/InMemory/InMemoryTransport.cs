@@ -294,19 +294,9 @@ namespace Tingle.EventBus.Transports.InMemory
                 try
                 {
                     var message = await queueEntity.DequeueAsync(cancellationToken);
-                    if (message != null)
-                    {
-                        Logger.LogDebug("Received a message on '{QueueName}'", queueName);
-                        using var scope = CreateScope(); // shared
-                        await (Task)method.Invoke(this, new object[] { reg, queueEntity, message, scope, cancellationToken, });
-                    }
-                    else
-                    {
-                        // if there is nothing to dequeue, introduce a delay
-                        var delay = TransportOptions.EmptyResultsDelay;
-                        Logger.LogTrace("No messages on '{QueueName}', delaying check for {Delay}", queueName, delay);
-                        await Task.Delay(delay, cancellationToken);
-                    }
+                    Logger.LogDebug("Received a message on '{QueueName}'", queueName);
+                    using var scope = CreateScope(); // shared
+                    await (Task)method.Invoke(this, new object[] { reg, queueEntity, message, scope, cancellationToken, });
                 }
                 catch (TaskCanceledException)
                 {

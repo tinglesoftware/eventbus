@@ -29,9 +29,9 @@ namespace Tingle.EventBus.Transports.InMemory
         private readonly CancellationTokenSource stoppingCts = new CancellationTokenSource();
         private readonly List<Task> receiverTasks = new List<Task>();
 
-        private readonly ConcurrentBag<object> published = new ConcurrentBag<object>();
-        private readonly ConcurrentBag<object> consumed = new ConcurrentBag<object>();
-        private readonly ConcurrentBag<object> failed = new ConcurrentBag<object>();
+        private readonly ConcurrentBag<EventContext> published = new ConcurrentBag<EventContext>();
+        private readonly ConcurrentBag<EventContext> consumed = new ConcurrentBag<EventContext>();
+        private readonly ConcurrentBag<EventContext> failed = new ConcurrentBag<EventContext>();
 
         private readonly SequenceNumberGenerator sng;
 
@@ -58,17 +58,17 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <summary>
         /// The published events.
         /// </summary>
-        public IEnumerable<object> Published => published;
+        internal ConcurrentBag<EventContext> Published => published;
 
         /// <summary>
         /// The consumed events.
         /// </summary>
-        public IEnumerable<object> Consumed => consumed;
+        internal ConcurrentBag<EventContext> Consumed => consumed;
 
         /// <summary>
         /// The failed events.
         /// </summary>
-        public IEnumerable<object> Failed => failed;
+        internal ConcurrentBag<EventContext> Failed => failed;
 
         /// <inheritdoc/>
         public override Task<bool> CheckHealthAsync(Dictionary<string, object> data,

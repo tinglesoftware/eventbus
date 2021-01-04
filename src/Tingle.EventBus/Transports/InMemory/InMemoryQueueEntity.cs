@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
     internal class InMemoryQueueEntity
     {
+        private readonly SemaphoreSlim messageAvailable = new SemaphoreSlim(0);
         private readonly ConcurrentQueue<InMemoryQueueMessage> queue = new ConcurrentQueue<InMemoryQueueMessage>();
+        private readonly TimeSpan deliveryDelay = TimeSpan.FromSeconds(1);
 
         public InMemoryQueueEntity(string name)
         {
@@ -15,18 +19,35 @@ namespace Tingle.EventBus.Transports.InMemory
 
         public string Name { get; }
 
-        public void Enqueue(InMemoryQueueMessage item) => queue.Enqueue(item);
-
-        public bool TryDequeue(out InMemoryQueueMessage result) => queue.TryDequeue(out result);
+        public void Enqueue(InMemoryQueueMessage item)
+        {
+            queue.Enqueue(item);
+            messageAvailable.Release(1);
+        }
 
         public void EnqueueBatch(IEnumerable<InMemoryQueueMessage> items)
         {
             if (items is null) throw new ArgumentNullException(nameof(items));
+            foreach (var item in items) Enqueue(item);
+        }
 
-            foreach (var item in items)
+        public async Task<InMemoryQueueMessage> DequeueAsync(CancellationToken cancellationToken = default)
+        {
+            // wait to be notified of an item in the queue
+            await messageAvailable.WaitAsync(cancellationToken);
+
+            if (queue.TryDequeue(out var result))
             {
-                queue.Enqueue(item);
+                // if we have a delivery delay, apply id
+                if (deliveryDelay > TimeSpan.Zero)
+                {
+                    await Task.Delay(deliveryDelay, cancellationToken);
+                }
+
+                return result;
             }
+
+            throw new NotImplementedException("This should not happen!");
         }
     }
 }

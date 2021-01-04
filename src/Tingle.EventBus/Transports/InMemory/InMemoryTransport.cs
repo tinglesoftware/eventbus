@@ -293,7 +293,8 @@ namespace Tingle.EventBus.Transports.InMemory
             {
                 try
                 {
-                    if (queueEntity.TryDequeue(out var message))
+                    var message = await queueEntity.DequeueAsync(cancellationToken);
+                    if (message != null)
                     {
                         Logger.LogDebug("Received a message on '{QueueName}'", queueName);
                         using var scope = CreateScope(); // shared
@@ -342,7 +343,7 @@ namespace Tingle.EventBus.Transports.InMemory
             activity?.AddTag(ActivityTagNames.MessagingDestination, queueEntity.Name);
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
 
-            EventContext<TEvent> context=null;
+            EventContext<TEvent> context = null;
             try
             {
                 Logger.LogDebug("Processing '{MessageId}'", messageId);

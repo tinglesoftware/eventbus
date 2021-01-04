@@ -12,6 +12,7 @@ namespace Tingle.EventBus.Registrations
     public static class RegistrationExtensions
     {
         private static readonly Regex namePattern = new Regex("(?<=[a-z0-9])[A-Z]", RegexOptions.Compiled);
+        private static readonly Regex replacePattern = new Regex("[^a-zA-Z0-9-_]", RegexOptions.Compiled);
 
         internal static ConsumerRegistration SetConsumerName(this ConsumerRegistration reg,
                                                              EventBusOptions options,
@@ -37,7 +38,8 @@ namespace Tingle.EventBus.Registrations
                     cname = AppendScope(cname, options.NamingConvention, options.Scope);
                     cname = ReplaceInvalidCharacters(cname, options.NamingConvention);
                 }
-                reg.ConsumerName = cname;
+                // Append EventName to ensure consumer name is unique
+                reg.ConsumerName = Join(options.NamingConvention, cname, reg.EventName);
             }
 
             return reg;
@@ -143,21 +145,30 @@ namespace Tingle.EventBus.Registrations
         {
             return convention switch
             {
-                NamingConvention.KebabCase => Regex.Replace(raw, "[^a-z0-9-]", "-"),
-                NamingConvention.SnakeCase => Regex.Replace(raw, "[^a-z0-9-]", "_"),
-                _ => Regex.Replace(raw, "[^a-zA-Z0-9-_]", ""),
+                NamingConvention.KebabCase => replacePattern.Replace(raw, "-"),
+                NamingConvention.SnakeCase => replacePattern.Replace(raw, "_"),
+                _ => replacePattern.Replace(raw, ""),
             };
         }
 
         internal static string AppendScope(string unscoped, NamingConvention convention, string scope)
         {
             if (string.IsNullOrWhiteSpace(scope)) return unscoped;
+            return Join(convention, scope, unscoped);
+        }
+
+        internal static string Join(NamingConvention convention, params string[] args)
+        {
+            if (args is null) throw new ArgumentNullException(nameof(args));
+
+            // remove nulls
+            args = args.Where(a => !string.IsNullOrWhiteSpace(a)).ToArray();
 
             return convention switch
             {
-                NamingConvention.KebabCase => string.Join("-", scope, unscoped).ToLowerInvariant(),
-                NamingConvention.SnakeCase => string.Join("_", scope, unscoped).ToLowerInvariant(),
-                _ => throw new ArgumentOutOfRangeException(nameof(convention), $"'{convention}' does not support scoping"),
+                NamingConvention.KebabCase => string.Join("-", args).ToLowerInvariant(),
+                NamingConvention.SnakeCase => string.Join("_", args).ToLowerInvariant(),
+                _ => throw new ArgumentOutOfRangeException(nameof(convention), $"'{convention}' does not support joining"),
             };
         }
     }

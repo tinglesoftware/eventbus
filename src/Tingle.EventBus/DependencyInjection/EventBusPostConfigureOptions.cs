@@ -96,8 +96,9 @@ namespace Microsoft.Extensions.DependencyInjection
             var conflicted = grouped.FirstOrDefault(kvp => kvp.Count() > 1);
             if (conflicted != null)
             {
+                var names = conflicted.Select(r => r.EventType.FullName);
                 throw new InvalidOperationException($"The event name '{conflicted.Key}' cannot be used more than once."
-                                                  + $" Types: - {string.Join("\r\n- ", conflicted.Select(r => r.EventType.FullName))}");
+                                                  + $" Types:\r\n- {string.Join("\r\n- ", names)}");
             }
 
             // ensure there are no consumers with the same name
@@ -105,8 +106,9 @@ namespace Microsoft.Extensions.DependencyInjection
             conflicted = grouped.FirstOrDefault(kvp => kvp.Count() > 1);
             if (conflicted != null)
             {
+                var names = conflicted.Select(r => $"{r.ConsumerType.FullName}[{r.EventType.Name}]");
                 throw new InvalidOperationException($"The consumer name '{conflicted.Key}' cannot be used more than once."
-                                                  + $" Types: - {string.Join("\r\n- ", conflicted.Select(r => r.ConsumerType.FullName))}");
+                                                  + $" Types:\r\n- {string.Join("\r\n- ", names)}");
             }
         }
     }

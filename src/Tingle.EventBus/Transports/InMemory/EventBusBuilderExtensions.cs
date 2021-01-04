@@ -46,8 +46,14 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
 
+            var services = builder.Services;
+
             // Register the harness
-            builder.Services.AddSingleton<InMemoryTestHarness>();
+            services.AddSingleton<InMemoryTestHarness>();
+
+            // Set the delivery delay to zero for instance delivery
+            services.Configure<InMemoryTransportOptions>(o => o.DeliveryDelay = TimeSpan.Zero);
+
             return builder;
         }
     }

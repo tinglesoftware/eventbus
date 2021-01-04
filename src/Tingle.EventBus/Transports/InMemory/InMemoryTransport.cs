@@ -267,7 +267,7 @@ namespace Tingle.EventBus.Transports.InMemory
                     var name = reg.EventName;
                     if (deadletter) name += TransportOptions.DeadLetterSuffix;
 
-                    queue = new InMemoryQueueEntity(name: name);
+                    queue = new InMemoryQueueEntity(name: name, TransportOptions.DeliveryDelay);
 
                     queuesCache[(reg.EventType, deadletter)] = queue;
                 }

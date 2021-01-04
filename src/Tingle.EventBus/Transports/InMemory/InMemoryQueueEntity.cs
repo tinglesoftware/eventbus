@@ -10,11 +10,12 @@ namespace Tingle.EventBus.Transports.InMemory
     {
         private readonly SemaphoreSlim messageAvailable = new SemaphoreSlim(0);
         private readonly ConcurrentQueue<InMemoryQueueMessage> queue = new ConcurrentQueue<InMemoryQueueMessage>();
-        private readonly TimeSpan deliveryDelay = TimeSpan.FromSeconds(1);
+        private readonly TimeSpan deliveryDelay;
 
-        public InMemoryQueueEntity(string name)
+        public InMemoryQueueEntity(string name, TimeSpan deliveryDelay)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            this.deliveryDelay = deliveryDelay;
         }
 
         public string Name { get; }

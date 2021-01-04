@@ -5,7 +5,7 @@
     /// </summary>
     internal static class LogCategoryNames
     {
-        public const string EventBus = "EventBus";
+        public const string EventBus = "Tingle.EventBus";
         public const string Transports = EventBus + ".Transports";
         public const string Serializers = EventBus + ".Serializers";
     }

@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Messaging.EventHubs.Processor" Version="5.2.0" />
-    <PackageReference Include="Microsoft.Azure.Amqp" Version="2.4.8" /> <!--resolves issue with .NET 5-->
+    <PackageReference Include="Microsoft.Azure.Amqp" Version="2.4.9" /> <!--resolves issue with .NET 5-->
   </ItemGroup>
 
   <ItemGroup>

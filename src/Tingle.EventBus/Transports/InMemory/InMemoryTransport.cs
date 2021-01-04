@@ -159,7 +159,6 @@ namespace Tingle.EventBus.Transports.InMemory
 
             // Get the queue and send the message accordingly
             var queueEntity = await GetQueueAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
-            var queue = queueEntity.Queue;
             Logger.LogInformation("Sending {Id} to '{QueueName}'. Scheduled: {Scheduled}",
                                   @event.Id,
                                   queueEntity.Name,
@@ -168,14 +167,14 @@ namespace Tingle.EventBus.Transports.InMemory
             {
                 _ = DelayThenExecuteAsync(scheduled.Value, (msg, ct) =>
                 {
-                    queue.Enqueue(msg);
+                    queueEntity.Enqueue(msg);
                     return Task.CompletedTask;
                 }, message);
                 return sng.Generate();
             }
             else
             {
-                queue.Enqueue(message);
+                queueEntity.Enqueue(message);
                 return null; // no sequence number available
             }
         }
@@ -224,7 +223,6 @@ namespace Tingle.EventBus.Transports.InMemory
 
             // Get the queue and send the message accordingly
             var queueEntity = await GetQueueAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
-            var queue = queueEntity.Queue;
             Logger.LogInformation("Sending {EventsCount} messages to '{EntityPath}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
                                   events.Count,
                                   queueEntity.Name,
@@ -234,14 +232,14 @@ namespace Tingle.EventBus.Transports.InMemory
             {
                 _ = DelayThenExecuteAsync(scheduled.Value, (msgs, ct) =>
                 {
-                    queue.EnqueueBatch(msgs);
+                    queueEntity.EnqueueBatch(msgs);
                     return Task.CompletedTask;
                 }, messages);
                 return events.Select(_ => sng.Generate()).ToList();
             }
             else
             {
-                queue.EnqueueBatch(messages);
+                queueEntity.EnqueueBatch(messages);
                 return Array.Empty<string>(); // no sequence numbers available
             }
         }
@@ -289,14 +287,13 @@ namespace Tingle.EventBus.Transports.InMemory
             var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
 
             var queueEntity = await GetQueueAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
-            var queue = queueEntity.Queue;
             var queueName = queueEntity.Name;
 
             while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    if (queue.TryDequeue(out var message))
+                    if (queueEntity.TryDequeue(out var message))
                     {
                         Logger.LogDebug("Received a message on '{QueueName}'", queueName);
                         using var scope = CreateScope(); // shared
@@ -377,7 +374,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
                 // get the dead letter queue and send the mesage there
                 var dlqEntity = await GetQueueAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
-                dlqEntity.Queue.Enqueue(message);
+                dlqEntity.Enqueue(message);
             }
         }
 

@@ -25,16 +25,16 @@ namespace InMemoryBackgroundProcessing
 
             // Download video locally
             logger.LogInformation("Downloading video from {VideoUrl} ({VideoSize} bytes).", evt.Url, evt.SizeBytes);
-            await Task.Delay(SimulationDuration); // simulate using delay
+            await Task.Delay(SimulationDuration, cancellationToken); // simulate using delay
 
             // Extract thumbnail from video
             logger.LogInformation("Extracting thumbnail from video with Id '{VideoId}'.", videoId);
-            await Task.Delay(SimulationDuration); // simulate using delay
+            await Task.Delay(SimulationDuration, cancellationToken); // simulate using delay
 
             // Upload video thumbnail
             var thumbnailUrl = $"https://localhost:8080/uploads/thumbnails/{videoId}.jpg";
             logger.LogInformation("Uploading thumbnail for video with Id '{VideoId}' to '{ThumbnailUrl}'.", videoId, thumbnailUrl);
-            await Task.Delay(SimulationDuration); // simulate using delay
+            await Task.Delay(SimulationDuration, cancellationToken); // simulate using delay
 
             logger.LogInformation("Processing video with Id '{VideoId}' completed.", videoId);
         }

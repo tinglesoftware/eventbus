@@ -9,7 +9,6 @@ on:
     paths-ignore:
       - README.md
       - LICENSE
-      - RELEASENOTES.md
       - CHANGELOG.md
       - docs/**
   pull_request:
@@ -18,7 +17,6 @@ on:
     paths-ignore:
       - README.md
       - LICENSE
-      - RELEASENOTES.md
       - CHANGELOG.md
       - docs/**
 

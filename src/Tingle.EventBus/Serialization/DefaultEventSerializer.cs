@@ -38,12 +38,19 @@ namespace Tingle.EventBus.Serialization
         }
 
         /// <inheritdoc/>
-        public async Task<ContentType> SerializeAsync<T>(Stream stream,
-                                                         EventContext<T> context,
-                                                         HostInfo hostInfo,
-                                                         CancellationToken cancellationToken = default)
+        public async Task SerializeAsync<T>(Stream stream,
+                                            EventContext<T> context,
+                                            HostInfo hostInfo,
+                                            CancellationToken cancellationToken = default)
              where T : class
         {
+            if (context.ContentType != null && !string.Equals(context.ContentType.MediaType, JsonContentType.MediaType))
+            {
+                throw new NotSupportedException("The ContentType '{}' is nit supported by this serializer");
+            }
+
+            context.ContentType ??= JsonContentType;
+
             var envelope = new MessageEnvelope
             {
                 Id = context.Id,
@@ -61,8 +68,6 @@ namespace Tingle.EventBus.Serialization
                                                 value: envelope,
                                                 options: serializerOptions,
                                                 cancellationToken: cancellationToken);
-
-            return JsonContentType;
         }
 
         /// <inheritdoc/>
@@ -71,6 +76,14 @@ namespace Tingle.EventBus.Serialization
                                                                CancellationToken cancellationToken = default)
             where T : class
         {
+            if (contentType != null)
+            {
+                if (!string.Equals(contentType.MediaType, JsonContentType.MediaType))
+                {
+                    throw new NotSupportedException($"The ContentType '{contentType}' is not supported by this serializer");
+                }
+            }
+
             var envelope = await JsonSerializer.DeserializeAsync<MessageEnvelope>(utf8Json: stream,
                                                                                   options: serializerOptions,
                                                                                   cancellationToken: cancellationToken);
@@ -96,6 +109,7 @@ namespace Tingle.EventBus.Serialization
                 Sent = envelope.Sent,
                 Headers = envelope.Headers,
                 Event = @event,
+                ContentType = contentType,
             };
 
             return context;

@@ -136,16 +136,16 @@ namespace Tingle.EventBus.Transports.InMemory
             using var scope = CreateScope();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
-            var contentType = await SerializeAsync(body: ms,
-                                                   @event: @event,
-                                                   registration: reg,
-                                                   scope: scope,
-                                                   cancellationToken: cancellationToken);
+            await SerializeAsync(body: ms,
+                                 @event: @event,
+                                 registration: reg,
+                                 scope: scope,
+                                 cancellationToken: cancellationToken);
 
             var message = new InMemoryQueueMessage(ms.ToArray())
             {
                 MessageId = @event.Id,
-                ContentType = contentType?.ToString(),
+                ContentType = @event.ContentType.ToString(),
                 CorrelationId = @event.CorrelationId,
             };
 
@@ -197,17 +197,17 @@ namespace Tingle.EventBus.Transports.InMemory
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                var contentType = await SerializeAsync(body: ms,
-                                                       @event: @event,
-                                                       registration: reg,
-                                                       scope: scope,
-                                                       cancellationToken: cancellationToken);
+                await SerializeAsync(body: ms,
+                                     @event: @event,
+                                     registration: reg,
+                                     scope: scope,
+                                     cancellationToken: cancellationToken);
 
                 var message = new InMemoryQueueMessage(ms.ToArray())
                 {
                     MessageId = @event.Id,
                     CorrelationId = @event.CorrelationId,
-                    ContentType = contentType.ToString(),
+                    ContentType = @event.ContentType.ToString(),
                 };
 
                 // Add custom properties

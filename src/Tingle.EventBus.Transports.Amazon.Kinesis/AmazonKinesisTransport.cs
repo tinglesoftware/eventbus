@@ -93,11 +93,11 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             using var scope = CreateScope();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
-            var contentType = await SerializeAsync(body: ms,
-                                                   @event: @event,
-                                                   registration: reg,
-                                                   scope: scope,
-                                                   cancellationToken: cancellationToken);
+            await SerializeAsync(body: ms,
+                                 @event: @event,
+                                 registration: reg,
+                                 scope: scope,
+                                 cancellationToken: cancellationToken);
 
             // prepare the record
             var streamName = reg.EventName;
@@ -136,11 +136,11 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                var contentType = await SerializeAsync(body: ms,
-                                                       @event: @event,
-                                                       registration: reg,
-                                                       scope: scope,
-                                                       cancellationToken: cancellationToken);
+                await SerializeAsync(body: ms,
+                                     @event: @event,
+                                     registration: reg,
+                                     scope: scope,
+                                     cancellationToken: cancellationToken);
 
                 var record = new PutRecordsRequestEntry
                 {

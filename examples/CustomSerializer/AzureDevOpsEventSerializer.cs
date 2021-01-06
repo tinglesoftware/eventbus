@@ -59,10 +59,10 @@ namespace CustomSerializer
         }
 
         /// <inheritdoc/>
-        public Task<ContentType> SerializeAsync<T>(Stream stream,
-                                                   EventContext<T> context,
-                                                   HostInfo hostInfo,
-                                                   CancellationToken cancellationToken = default) where T : class
+        public Task SerializeAsync<T>(Stream stream,
+                                      EventContext<T> context,
+                                      HostInfo hostInfo,
+                                      CancellationToken cancellationToken = default) where T : class
         {
             throw new NotSupportedException("Serialization of AzureDevOps events should never happen.");
         }

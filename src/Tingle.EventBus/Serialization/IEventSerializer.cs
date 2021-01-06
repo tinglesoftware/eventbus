@@ -22,10 +22,10 @@ namespace Tingle.EventBus.Serialization
         /// <param name="hostInfo">The information about the host of the Event Bus.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<ContentType> SerializeAsync<T>(Stream stream,
-                                            EventContext<T> context,
-                                            HostInfo hostInfo,
-                                            CancellationToken cancellationToken = default) where T : class;
+        Task SerializeAsync<T>(Stream stream,
+                               EventContext<T> context,
+                               HostInfo hostInfo,
+                               CancellationToken cancellationToken = default) where T : class;
 
         /// <summary>
         /// Deserialize an event from a stream of bytes.

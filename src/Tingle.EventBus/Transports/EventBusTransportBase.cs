@@ -139,11 +139,11 @@ namespace Tingle.EventBus.Transports
         /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task<ContentType> SerializeAsync<TEvent>(Stream body,
-                                                                 EventContext<TEvent> @event,
-                                                                 EventRegistration registration,
-                                                                 IServiceScope scope,
-                                                                 CancellationToken cancellationToken = default)
+        protected async Task SerializeAsync<TEvent>(Stream body,
+                                                    EventContext<TEvent> @event,
+                                                    EventRegistration registration,
+                                                    IServiceScope scope,
+                                                    CancellationToken cancellationToken = default)
             where TEvent : class
         {
             // Instrumentation
@@ -155,7 +155,7 @@ namespace Tingle.EventBus.Transports
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
 
             // do actual serialization and return the content type
-            return await serializer.SerializeAsync(body, @event, BusOptions.HostInfo, cancellationToken);
+            await serializer.SerializeAsync(body, @event, BusOptions.HostInfo, cancellationToken);
         }
 
         /// <summary>

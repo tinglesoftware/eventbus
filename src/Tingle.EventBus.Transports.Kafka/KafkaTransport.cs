@@ -119,16 +119,16 @@ namespace Tingle.EventBus.Transports.Kafka
             using var scope = CreateScope();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
-            var contentType = await SerializeAsync(body: ms,
-                                                   @event: @event,
-                                                   registration: reg,
-                                                   scope: scope,
-                                                   cancellationToken: cancellationToken);
+            await SerializeAsync(body: ms,
+                                 @event: @event,
+                                 registration: reg,
+                                 scope: scope,
+                                 cancellationToken: cancellationToken);
 
             // prepare the message
             var message = new Message<string, byte[]>();
             message.Headers.AddIfNotNull(AttributeNames.CorrelationId, @event.CorrelationId)
-                           .AddIfNotNull(AttributeNames.ContentType, contentType.ToString())
+                           .AddIfNotNull(AttributeNames.ContentType, @event.ContentType.ToString())
                            .AddIfNotNull(AttributeNames.RequestId, @event.RequestId)
                            .AddIfNotNull(AttributeNames.InitiatorId, @event.InitiatorId)
                            .AddIfNotNull(AttributeNames.ActivityId, Activity.Current?.Id);
@@ -166,16 +166,16 @@ namespace Tingle.EventBus.Transports.Kafka
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                var contentType = await SerializeAsync(body: ms,
-                                                       @event: @event,
-                                                       registration: reg,
-                                                       scope: scope,
-                                                       cancellationToken: cancellationToken);
+                await SerializeAsync(body: ms,
+                                     @event: @event,
+                                     registration: reg,
+                                     scope: scope,
+                                     cancellationToken: cancellationToken);
 
                 // prepare the message
                 var message = new Message<string, byte[]>();
                 message.Headers.AddIfNotNull(AttributeNames.CorrelationId, @event.CorrelationId)
-                               .AddIfNotNull(AttributeNames.ContentType, contentType.ToString())
+                               .AddIfNotNull(AttributeNames.ContentType, @event.ContentType.ToString())
                                .AddIfNotNull(AttributeNames.RequestId, @event.RequestId)
                                .AddIfNotNull(AttributeNames.InitiatorId, @event.InitiatorId)
                                .AddIfNotNull(AttributeNames.ActivityId, Activity.Current?.Id);

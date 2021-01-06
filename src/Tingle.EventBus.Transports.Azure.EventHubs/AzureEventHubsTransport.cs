@@ -139,16 +139,16 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             using var scope = CreateScope();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
-            var contentType = await SerializeAsync(body: ms,
-                                                   @event: @event,
-                                                   registration: reg,
-                                                   scope: scope,
-                                                   cancellationToken: cancellationToken);
+            await SerializeAsync(body: ms,
+                                 @event: @event,
+                                 registration: reg,
+                                 scope: scope,
+                                 cancellationToken: cancellationToken);
 
             var data = new EventData(ms.ToArray());
             data.Properties.AddIfNotDefault(AttributeNames.Id, @event.Id)
                            .AddIfNotDefault(AttributeNames.CorrelationId, @event.CorrelationId)
-                           .AddIfNotDefault(AttributeNames.ContentType, contentType.ToString())
+                           .AddIfNotDefault(AttributeNames.ContentType, @event.ContentType.ToString())
                            .AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
                            .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
                            .AddIfNotDefault(AttributeNames.EventName, reg.EventName)
@@ -190,16 +190,16 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                var contentType = await SerializeAsync(body: ms,
-                                                       @event: @event,
-                                                       registration: reg,
-                                                       scope: scope,
-                                                       cancellationToken: cancellationToken);
+                await SerializeAsync(body: ms,
+                                     @event: @event,
+                                     registration: reg,
+                                     scope: scope,
+                                     cancellationToken: cancellationToken);
 
                 var data = new EventData(ms.ToArray());
                 data.Properties.AddIfNotDefault(AttributeNames.Id, @event.Id)
                                .AddIfNotDefault(AttributeNames.CorrelationId, @event.CorrelationId)
-                               .AddIfNotDefault(AttributeNames.ContentType, contentType.ToString())
+                               .AddIfNotDefault(AttributeNames.ContentType, @event.ContentType.ToString())
                                .AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
                                .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
                                .AddIfNotDefault(AttributeNames.EventName, reg.EventName)

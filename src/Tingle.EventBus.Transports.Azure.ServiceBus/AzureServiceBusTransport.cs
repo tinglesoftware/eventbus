@@ -128,16 +128,16 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             using var scope = CreateScope();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
-            var contentType = await SerializeAsync(body: ms,
-                                                   @event: @event,
-                                                   registration: reg,
-                                                   scope: scope,
-                                                   cancellationToken: cancellationToken);
+            await SerializeAsync(body: ms,
+                                 @event: @event,
+                                 registration: reg,
+                                 scope: scope,
+                                 cancellationToken: cancellationToken);
 
             var message = new ServiceBusMessage(ms.ToArray())
             {
                 MessageId = @event.Id,
-                ContentType = contentType?.ToString(),
+                ContentType = @event.ContentType.ToString(),
             };
 
             // If CorrelationId is present, set it
@@ -195,16 +195,16 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                var contentType = await SerializeAsync(body: ms,
-                                                       @event: @event,
-                                                       registration: reg,
-                                                       scope: scope,
-                                                       cancellationToken: cancellationToken);
+                await SerializeAsync(body: ms,
+                                     @event: @event,
+                                     registration: reg,
+                                     scope: scope,
+                                     cancellationToken: cancellationToken);
 
                 var message = new ServiceBusMessage(ms.ToArray())
                 {
                     MessageId = @event.Id,
-                    ContentType = contentType.ToString(),
+                    ContentType = @event.ContentType.ToString(),
                 };
 
                 // If CorrelationId is present, set it

@@ -99,11 +99,11 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             using var scope = CreateScope();
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
-            var contentType = await SerializeAsync(body: ms,
-                                                   @event: @event,
-                                                   registration: reg,
-                                                   scope: scope,
-                                                   cancellationToken: cancellationToken);
+            await SerializeAsync(body: ms,
+                                 @event: @event,
+                                 registration: reg,
+                                 scope: scope,
+                                 cancellationToken: cancellationToken);
 
 
             // if scheduled for later, calculate the visibility timeout
@@ -142,11 +142,11 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                var contentType = await SerializeAsync(body: ms,
-                                                       @event: @event,
-                                                       registration: reg,
-                                                       scope: scope,
-                                                       cancellationToken: cancellationToken);
+                await SerializeAsync(body: ms,
+                                     @event: @event,
+                                     registration: reg,
+                                     scope: scope,
+                                     cancellationToken: cancellationToken);
                 // if scheduled for later, calculate the visibility timeout
                 var visibilityTimeout = scheduled - DateTimeOffset.UtcNow;
 

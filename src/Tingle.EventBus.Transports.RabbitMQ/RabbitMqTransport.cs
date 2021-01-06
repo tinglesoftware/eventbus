@@ -119,11 +119,11 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             // serialize the event
             using var scope = CreateScope();
             using var ms = new MemoryStream();
-            var contentType = await SerializeAsync(body: ms,
-                                                   @event: @event,
-                                                   registration: reg,
-                                                   scope: scope,
-                                                   cancellationToken: cancellationToken);
+            await SerializeAsync(body: ms,
+                                 @event: @event,
+                                 registration: reg,
+                                 scope: scope,
+                                 cancellationToken: cancellationToken);
 
             // publish message
             string scheduledId = null;
@@ -133,8 +133,8 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 var properties = channel.CreateBasicProperties();
                 properties.MessageId = @event.Id;
                 properties.CorrelationId = @event.CorrelationId;
-                properties.ContentEncoding = contentType.CharSet;
-                properties.ContentType = contentType.MediaType;
+                properties.ContentEncoding = @event.ContentType.CharSet;
+                properties.ContentType = @event.ContentType.MediaType;
 
                 // if scheduled for later, set the delay in the message
                 if (scheduled != null)
@@ -195,12 +195,12 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                var contentType = await SerializeAsync(body: ms,
-                                                       @event: @event,
-                                                       registration: reg,
-                                                       scope: scope,
-                                                       cancellationToken: cancellationToken);
-                serializedEvents.Add((@event, contentType, ms.ToArray()));
+                await SerializeAsync(body: ms,
+                                     @event: @event,
+                                     registration: reg,
+                                     scope: scope,
+                                     cancellationToken: cancellationToken);
+                serializedEvents.Add((@event, @event.ContentType, ms.ToArray()));
             }
 
             retryPolicy.Execute(() =>

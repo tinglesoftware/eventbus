@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -51,6 +52,22 @@ namespace Tingle.EventBus
         /// The headers published alongside the event.
         /// </summary>
         public IDictionary<string, object> Headers { get; set; } = new Dictionary<string, object>();
+
+        /// <summary>
+        /// The content type used to serialize and deserialize the event to/from a stream of bytes.
+        /// Setting a value, instructs the serializer how to write the event content on the transport.
+        /// The serializer used for the event must support the value set.
+        /// When set to <see langword="null"/>, the serializer used for the event has the libery to
+        /// decide what content type/format to use.
+        /// </summary>
+        /// <remarks>
+        /// When the value is <c>*/*</c>, it indicates that the event being deserialized did
+        /// not indicate of the content type usually because the transport does not support extra
+        /// information alongside the contents.
+        /// In this case, the serializer assumes the a default content type depending on its implementation.
+        /// For the default implementation, see <see cref="Serialization.DefaultEventSerializer"/>.
+        /// </remarks>
+        public ContentType ContentType { get; set; }
 
         /// <summary>
         /// The bus in which this context exists.

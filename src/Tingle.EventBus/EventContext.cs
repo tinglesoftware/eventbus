@@ -57,16 +57,10 @@ namespace Tingle.EventBus
         /// The content type used to serialize and deserialize the event to/from a stream of bytes.
         /// Setting a value, instructs the serializer how to write the event content on the transport.
         /// The serializer used for the event must support the value set.
-        /// When set to <see langword="null"/>, the serializer used for the event has the libery to
-        /// decide what content type/format to use.
-        /// </summary>
-        /// <remarks>
-        /// When the value is <c>*/*</c>, it indicates that the event being deserialized did
-        /// not indicate of the content type usually because the transport does not support extra
-        /// information alongside the contents.
-        /// In this case, the serializer assumes the a default content type depending on its implementation.
+        /// When set to <see langword="null"/>, the serializer used for the event decides what
+        /// content type to use depending on its implementation.
         /// For the default implementation, see <see cref="Serialization.DefaultEventSerializer"/>.
-        /// </remarks>
+        /// </summary>
         public ContentType ContentType { get; set; }
 
         /// <summary>

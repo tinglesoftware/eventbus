@@ -375,7 +375,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                 data.SequenceNumber);
                 using var scope = CreateScope();
                 using var ms = new MemoryStream(data.Body.ToArray());
-                var contentType = new ContentType(contentType_str?.ToString() ?? "*/*");
+                var contentType = contentType_str == null ? null : new ContentType(contentType_str.ToString());
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
                                                              registration: reg,

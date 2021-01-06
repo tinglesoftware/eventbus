@@ -15,7 +15,7 @@ namespace Tingle.EventBus.Serialization
     /// </summary>
     internal class DefaultEventSerializer : IEventSerializer
     {
-        private static readonly ContentType JsonContentType = new ContentType("application/json; charset=utf-8");
+        private static readonly ContentType JsonContentType = new ContentType(MediaTypeNames.Application.Json);
 
         private readonly EventBus bus;
         private readonly JsonSerializerOptions serializerOptions;
@@ -44,13 +44,16 @@ namespace Tingle.EventBus.Serialization
                                             CancellationToken cancellationToken = default)
              where T : class
         {
-            if (context.ContentType != null && !string.Equals(context.ContentType.MediaType, JsonContentType.MediaType))
-            {
-                throw new NotSupportedException("The ContentType '{}' is nit supported by this serializer");
-            }
-
+            // Assume JSON content if not specified
             context.ContentType ??= JsonContentType;
 
+            // Ensure the content type is supported
+            if (!string.Equals(context.ContentType.MediaType, JsonContentType.MediaType))
+            {
+                throw new NotSupportedException($"The ContentType '{context.ContentType}' is not supported by this serializer");
+            }
+
+            // Create the envelope and popuate properties
             var envelope = new MessageEnvelope
             {
                 Id = context.Id,
@@ -64,6 +67,7 @@ namespace Tingle.EventBus.Serialization
                 Host = hostInfo,
             };
 
+            // Serialize
             await JsonSerializer.SerializeAsync(utf8Json: stream,
                                                 value: envelope,
                                                 options: serializerOptions,
@@ -76,29 +80,31 @@ namespace Tingle.EventBus.Serialization
                                                                CancellationToken cancellationToken = default)
             where T : class
         {
-            if (contentType != null)
+            // Assume JSON content if not specified
+            contentType ??= JsonContentType;
+
+            // Ensure the content type is supported
+            if (!string.Equals(contentType.MediaType, JsonContentType.MediaType))
             {
-                if (!string.Equals(contentType.MediaType, JsonContentType.MediaType))
-                {
-                    throw new NotSupportedException($"The ContentType '{contentType}' is not supported by this serializer");
-                }
+                throw new NotSupportedException($"The ContentType '{contentType}' is not supported by this serializer");
             }
 
+            // Deserialize
             var envelope = await JsonSerializer.DeserializeAsync<MessageEnvelope>(utf8Json: stream,
                                                                                   options: serializerOptions,
                                                                                   cancellationToken: cancellationToken);
 
-            // ensure we have a JsonElement for the event
+            // Ensure we have a JsonElement for the event
             if (!(envelope.Event is JsonElement eventToken) || eventToken.ValueKind == JsonValueKind.Null)
             {
                 logger.LogWarning("The Event node is not a JsonElement or it is null");
                 eventToken = new JsonElement();
             }
 
-            // get the event from the element
+            // Get the event from the element
             T @event = typeof(T) == typeof(JsonElement) ? eventToken as T : ToObject<T>(eventToken, serializerOptions);
 
-            // create the context with the event and popuate common properties
+            // Create the context with the event and popuate common properties
             var context = new EventContext<T>(bus)
             {
                 Id = envelope.Id,

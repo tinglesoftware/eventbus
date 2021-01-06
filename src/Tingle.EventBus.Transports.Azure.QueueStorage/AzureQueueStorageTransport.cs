@@ -332,9 +332,8 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             {
                 Logger.LogDebug("Processing '{MessageId}|{PopReceipt}'", messageId, message.PopReceipt);
                 using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.MessageText));
-                var contentType = new ContentType("*/*");
                 var context = await DeserializeAsync<TEvent>(body: ms,
-                                                             contentType: contentType,
+                                                             contentType: null, // There is no way to get this yet
                                                              registration: reg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);

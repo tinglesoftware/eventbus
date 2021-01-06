@@ -12,7 +12,8 @@ namespace CustomSerializer
 {
     public class AzureDevOpsEventSerializer : IEventSerializer
     {
-        private const string WildCardContentType = "*/*";
+        private static readonly ContentType JsonContentType = new ContentType(MediaTypeNames.Application.Json);
+
         private readonly JsonSerializer serializer = JsonSerializer.CreateDefault();
         private readonly EventBus bus;
 
@@ -31,9 +32,11 @@ namespace CustomSerializer
                 throw new InvalidOperationException($"Only '{nameof(AzureDevOpsCodePushed)}' events are supported.");
             }
 
-            if (contentType != null
-                && contentType.ToString() != WildCardContentType
-                && !contentType.MediaType.Contains("json", StringComparison.OrdinalIgnoreCase))
+            // Assume JSON content if not specified
+            contentType ??= JsonContentType;
+
+            // Ensure the content type is supported
+            if (!contentType.MediaType.Contains("json", StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException("Only JSON content is supported");
             }

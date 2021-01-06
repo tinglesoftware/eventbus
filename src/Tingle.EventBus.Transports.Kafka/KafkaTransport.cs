@@ -274,7 +274,7 @@ namespace Tingle.EventBus.Transports.Kafka
                 Logger.LogDebug("Processing '{MessageKey}", messageKey);
                 using var scope = CreateScope();
                 using var ms = new MemoryStream(message.Value);
-                var contentType = new ContentType(contentType_str?.ToString() ?? "*/*");
+                var contentType = contentType_str == null ? null : new ContentType(contentType_str.ToString());
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
                                                              registration: reg,

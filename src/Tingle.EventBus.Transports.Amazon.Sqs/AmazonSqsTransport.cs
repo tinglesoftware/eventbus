@@ -372,7 +372,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 Logger.LogDebug("Processing '{MessageId}'", messageId);
                 using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.Body));
                 message.TryGetAttribute("Content-Type", out var contentType_str);
-                var contentType = new ContentType(contentType_str ?? "text/plain");
+                var contentType = contentType_str == null ? null : new ContentType(contentType_str);
 
                 using var scope = CreateScope();
                 var context = await DeserializeAsync<TEvent>(body: ms,

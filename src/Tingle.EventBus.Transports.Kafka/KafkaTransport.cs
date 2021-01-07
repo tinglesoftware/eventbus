@@ -138,7 +138,7 @@ namespace Tingle.EventBus.Transports.Kafka
             // send the event
             var topic = reg.EventName;
             var result = await producer.ProduceAsync(topic: topic, message: message, cancellationToken: cancellationToken);
-            // Should we check persistance status?
+            // Should we check persistence status?
 
             // return the sequence number
             return scheduled != null ? result.Offset.Value.ToString() : null;
@@ -185,7 +185,7 @@ namespace Tingle.EventBus.Transports.Kafka
                 // send the event
                 var topic = reg.EventName;
                 var result = await producer.ProduceAsync(topic: topic, message: message, cancellationToken: cancellationToken);
-                // Should we check persistance status?
+                // Should we check persistence status?
 
                 // collect the sequence number
                 sequenceNumbers.Add(result.Offset.Value.ToString());

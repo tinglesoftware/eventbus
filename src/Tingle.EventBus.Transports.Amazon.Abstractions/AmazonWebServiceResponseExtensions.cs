@@ -9,7 +9,7 @@ namespace Amazon.Runtime
     public static class AmazonWebServiceResponseExtensions
     {
         /// <summary>
-        /// Checks if the request was sucessful.
+        /// Checks if the request was successful.
         /// </summary>
         /// <param name="response">The <see cref="AmazonWebServiceResponse"/> to check.</param>
         /// <returns></returns>

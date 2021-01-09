@@ -14,6 +14,7 @@ namespace SimpleConsumer
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
+                    services.AddSingleton<EventCounter>();
                     services.AddEventBus(builder =>
                     {
                         // Transport agnostic configuration

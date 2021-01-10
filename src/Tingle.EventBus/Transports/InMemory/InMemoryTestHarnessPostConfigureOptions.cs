@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using System;
-using Tingle.EventBus.Transports.InMemory;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

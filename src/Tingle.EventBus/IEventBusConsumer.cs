@@ -22,6 +22,6 @@ namespace Tingle.EventBus
         /// <param name="context">The context of the event</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task ConsumeAsync(EventContext<T> context, CancellationToken cancellationToken = default);
+        Task ConsumeAsync(EventContext<T> context, CancellationToken cancellationToken);
     }
 }

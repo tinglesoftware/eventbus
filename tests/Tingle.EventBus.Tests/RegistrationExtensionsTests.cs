@@ -114,8 +114,10 @@ namespace Tingle.EventBus.Tests
         [MemberData(nameof(SetConsumerNameData))]
         public void SetConsumerName(ConsumerRegistration registration, EventBusOptions options, string applicationName, string expected)
         {
+            options.UseFullTypeNames = false;
             var environment = new DummyEnvironment(applicationName);
-            registration.SetConsumerName(options, environment);
+            registration.SetEventName(options)
+                        .SetConsumerName(options, environment);
             Assert.Equal(expected, registration.ConsumerName);
         }
 
@@ -125,41 +127,41 @@ namespace Tingle.EventBus.Tests
                 new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
                 new EventBusOptions { ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.KebabCase },
                 "app1",
-                "tingle-event-bus-tests-registration-extensions-tests-test-consumer1",
+                "tingle-event-bus-tests-registration-extensions-tests-test-consumer1-test-event1",
             },
 
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
                 new EventBusOptions { ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.SnakeCase },
                 "app1",
-                "tingle_event_bus_tests_registration_extensions_tests_test_consumer1",
+                "tingle_event_bus_tests_registration_extensions_tests_test_consumer1_test_event1",
             },
 
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
                 new EventBusOptions { ConsumerNameSource = ConsumerNameSource.ApplicationName, NamingConvention = NamingConvention.KebabCase },
                 "app1",
-                "app1",
+                "app1-test-event1",
             },
 
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
                 new EventBusOptions { ConsumerNameSource = ConsumerNameSource.ApplicationName, NamingConvention = NamingConvention.SnakeCase },
                 "app1",
-                "app1",
+                "app1_test_event1",
             },
 
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent2), typeof(TestConsumer2)),
                 new EventBusOptions { ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.KebabCase, },
                 "app1",
-                "sample-consumer",
+                "sample-consumer-sample-event",
             },
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent2), typeof(TestConsumer2)),
                 new EventBusOptions { ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.SnakeCase, },
                 "app1",
-                "sample-consumer",
+                "sample-consumer_sample-event",
             },
         };
 

@@ -19,7 +19,7 @@ namespace CustomSerializer
                         // Transport agnostic configuration
                         builder.Configure(options => options.Scope = "dev"); // queues will be prefixed by 'dev'
                         builder.Configure(o => o.UseFullTypeNames = false);
-                        builder.Subscribe<AzureDevOpsEventsConsumer>();
+                        builder.AddConsumer<AzureDevOpsEventsConsumer>();
 
                         // setup extra serializers
                         builder.Services.AddSingleton<AzureDevOpsEventSerializer>();

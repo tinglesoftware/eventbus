@@ -21,7 +21,7 @@ namespace MultiEventsConsumer
                         // Transport agnostic configuration
                         builder.Configure(options => options.Scope = "dev"); // queues will be prefixed by 'dev'
                         builder.Configure(o => o.UseFullTypeNames = false);
-                        builder.Subscribe<MultiEventsConsumer>();
+                        builder.AddConsumer<MultiEventsConsumer>();
 
                         // Transport specific configuration
                         builder.AddInMemoryTransport();

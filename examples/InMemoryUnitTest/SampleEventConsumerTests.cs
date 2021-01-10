@@ -22,7 +22,7 @@ namespace InMemoryUnitTest
                 .AddSingleton<IHostEnvironment, FakeHostEnvironment>()
                 .AddEventBus(builder =>
                 {
-                    builder.Subscribe<SampleEventConsumer>();
+                    builder.AddConsumer<SampleEventConsumer>();
                     builder.AddInMemoryTransport();
                     builder.AddInMemoryTestHarness();
                 });

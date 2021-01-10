@@ -20,7 +20,7 @@ namespace SimpleConsumer
                         // Transport agnostic configuration
                         builder.Configure(options => options.Scope = "dev"); // queues will be prefixed by 'dev'
                         builder.Configure(o => o.UseFullTypeNames = false);
-                        builder.Subscribe<SampleEventConsumer>();
+                        builder.AddConsumer<SampleEventConsumer>();
 
                         // Transport specific configuration
                         builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");

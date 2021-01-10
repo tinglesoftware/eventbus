@@ -19,7 +19,7 @@ namespace InMemoryBackgroundProcessing
                         // Transport agnostic configuration
                         builder.Configure(options => options.Scope = "dev"); // queues will be prefixed by 'dev'
                         builder.Configure(o => o.UseFullTypeNames = false);
-                        builder.Subscribe<VideoUploadedConsumer>();
+                        builder.AddConsumer<VideoUploadedConsumer>();
 
                         // Transport specific configuration
                         builder.AddInMemoryTransport();

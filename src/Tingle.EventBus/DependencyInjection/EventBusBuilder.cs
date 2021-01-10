@@ -118,7 +118,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// design of <typeparamref name="TConsumer"/>.
         /// </param>
         /// <returns></returns>
-        public EventBusBuilder Subscribe<TConsumer>(ServiceLifetime lifetime = ServiceLifetime.Scoped) where TConsumer : class, IEventBusConsumer
+        public EventBusBuilder AddConsumer<TConsumer>(ServiceLifetime lifetime = ServiceLifetime.Scoped) where TConsumer : class, IEventBusConsumer
         {
             var consumerType = typeof(TConsumer);
             if (consumerType.IsAbstract)

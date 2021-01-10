@@ -52,11 +52,8 @@ namespace InMemoryUnitTest
                 // Ensure no faults were published by the consumer
                 Assert.False(harness.Failed<SampleEvent>().Any());
 
-                // Allow consumption to finish as it happens asynchrounsly
-                await Task.Delay(TimeSpan.FromSeconds(1)); // Adjust delay duration to suit your consumer
-
                 // Ensure the message was consumed
-                Assert.True(harness.Consumed<SampleEvent>().Any());
+                Assert.NotEmpty(await harness.ConsumedAsync<SampleEvent>());
 
                 // Now you can ensure data saved to database correctly
 

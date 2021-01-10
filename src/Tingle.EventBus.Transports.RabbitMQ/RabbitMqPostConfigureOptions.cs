@@ -1,13 +1,31 @@
 ﻿using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using System;
+using Tingle.EventBus;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
+    /// <summary>
+    /// A class to finish the configuration of instances of <see cref="RabbitMqTransportOptions"/>.
+    /// </summary>
     internal class RabbitMqPostConfigureOptions : IPostConfigureOptions<RabbitMqTransportOptions>
     {
+        private readonly EventBusOptions busOptions;
+
+        public RabbitMqPostConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+        {
+            busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
+        }
+
         public void PostConfigure(string name, RabbitMqTransportOptions options)
         {
+            // If there are consumers for this transport, they can only use TypeName source
+            var consumers = busOptions.GetConsumerRegistrations(TransportNames.RabbitMq);
+            if (consumers.Count > 0 && busOptions.ConsumerNameSource != ConsumerNameSource.TypeName)
+            {
+                throw new NotSupportedException($"When using RabbitMQ transport '{nameof(busOptions.ConsumerNameSource)}' must be '{ConsumerNameSource.TypeName}'");
+            }
+
             // if we do not have a connection factory, attempt to create one
             if (options.ConnectionFactory == null)
             {

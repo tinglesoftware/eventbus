@@ -26,9 +26,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.Configure(configure);
             services.AddSingleton<IPostConfigureOptions<RabbitMqTransportOptions>, RabbitMqPostConfigureOptions>();
 
-            // The consumer names must be forced in RabbitMQ
-            builder.Configure(options => options.ForceConsumerName = true);
-
             // register the transport
             builder.RegisterTransport<RabbitMqTransport, RabbitMqTransportOptions>();
 

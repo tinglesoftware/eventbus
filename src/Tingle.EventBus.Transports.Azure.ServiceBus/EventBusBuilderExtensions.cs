@@ -33,7 +33,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             // register the transport
-            builder.RegisterTransport<AzureServiceBusTransport, AzureServiceBusTransportOptions>();
+            builder.AddTransport<AzureServiceBusTransport, AzureServiceBusTransportOptions>();
 
             return builder;
         }

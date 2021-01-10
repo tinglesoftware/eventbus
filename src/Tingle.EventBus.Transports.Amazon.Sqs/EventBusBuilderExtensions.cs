@@ -56,7 +56,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             // register the transport
-            builder.RegisterTransport<AmazonSqsTransport, AmazonSqsTransportOptions>();
+            builder.AddTransport<AmazonSqsTransport, AmazonSqsTransportOptions>();
 
             return builder;
         }

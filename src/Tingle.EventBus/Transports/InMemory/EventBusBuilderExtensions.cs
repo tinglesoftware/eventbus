@@ -31,7 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<SequenceNumberGenerator>();
 
             // register the transport
-            builder.RegisterTransport<InMemoryTransport, InMemoryTransportOptions>();
+            builder.AddTransport<InMemoryTransport, InMemoryTransportOptions>();
 
             return builder;
         }

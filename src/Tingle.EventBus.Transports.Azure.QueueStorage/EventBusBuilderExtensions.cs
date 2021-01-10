@@ -33,7 +33,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             // register the transport
-            builder.RegisterTransport<AzureQueueStorageTransport, AzureQueueStorageTransportOptions>();
+            builder.AddTransport<AzureQueueStorageTransport, AzureQueueStorageTransportOptions>();
 
             return builder;
         }

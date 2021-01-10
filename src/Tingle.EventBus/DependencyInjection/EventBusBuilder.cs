@@ -23,8 +23,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
 
-            Services.TryAddEnumerable(
-                ServiceDescriptor.Singleton<IPostConfigureOptions<EventBusOptions>, EventBusPostConfigureOptions>());
+            Services.AddSingleton<IPostConfigureOptions<EventBusOptions>, EventBusPostConfigureOptions>();
         }
 
         /// <summary>
@@ -39,6 +38,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public EventBusBuilder Configure(Action<EventBusOptions> configure)
         {
+            if (configure is null) throw new ArgumentNullException(nameof(configure));
+
             Services.Configure(configure);
             return this;
         }
@@ -49,7 +50,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <typeparam name="TTransport"></typeparam>
         /// <typeparam name="TOptions"></typeparam>
         /// <returns></returns>
-        public EventBusBuilder RegisterTransport<TTransport, TOptions>()
+        public EventBusBuilder AddTransport<TTransport, TOptions>()
             where TTransport : class, IEventBusTransport
             where TOptions : EventBusTransportOptionsBase
         {
@@ -233,6 +234,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
         internal static string GetTransportName(Type type)
         {
+            if (type is null) throw new ArgumentNullException(nameof(type));
+
             // Ensure the type implements IEventBusTransport
             if (!(typeof(IEventBusTransport).IsAssignableFrom(type)))
             {

@@ -27,7 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IPostConfigureOptions<RabbitMqTransportOptions>, RabbitMqPostConfigureOptions>();
 
             // register the transport
-            builder.RegisterTransport<RabbitMqTransport, RabbitMqTransportOptions>();
+            builder.AddTransport<RabbitMqTransport, RabbitMqTransportOptions>();
 
             return builder;
         }

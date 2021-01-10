@@ -53,7 +53,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             // register the transport
-            builder.RegisterTransport<KafkaTransport, KafkaTransportOptions>();
+            builder.AddTransport<KafkaTransport, KafkaTransportOptions>();
 
             return builder;
         }

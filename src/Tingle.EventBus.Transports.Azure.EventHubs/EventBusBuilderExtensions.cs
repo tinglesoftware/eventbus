@@ -27,7 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IPostConfigureOptions<AzureEventHubsTransportOptions>, AzureEventHubsPostConfigureOptions>();
 
             // register the transport
-            builder.RegisterTransport<AzureEventHubsTransport, AzureEventHubsTransportOptions>();
+            builder.AddTransport<AzureEventHubsTransport, AzureEventHubsTransportOptions>();
 
             return builder;
         }

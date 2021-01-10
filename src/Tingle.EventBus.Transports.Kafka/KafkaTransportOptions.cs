@@ -31,7 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// The number of events consumed after which to checkpoint.
         /// For values other than <c>1</c>, the implementations of
-        /// <see cref="IEventBusConsumer{T}"/> for Kafka events must
+        /// <see cref="IEventConsumer{T}"/> for Kafka events must
         /// handle duplicate detection.
         /// </summary>
         /// <remarks>

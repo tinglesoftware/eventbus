@@ -328,7 +328,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
         private async Task OnEventReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, EventProcessorClient processor, ProcessEventArgs args)
             where TEvent : class
-            where TConsumer : IEventBusConsumer<TEvent>
+            where TConsumer : IEventConsumer<TEvent>
         {
             if (!args.HasEvent)
             {

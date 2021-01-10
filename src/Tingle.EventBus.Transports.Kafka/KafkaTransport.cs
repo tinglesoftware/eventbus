@@ -254,7 +254,7 @@ namespace Tingle.EventBus.Transports.Kafka
                                                                    Message<string, byte[]> message,
                                                                    CancellationToken cancellationToken)
             where TEvent : class
-            where TConsumer : IEventBusConsumer<TEvent>
+            where TConsumer : IEventConsumer<TEvent>
         {
             var messageKey = message.Key;
             message.Headers.TryGetValue(AttributeNames.CorrelationId, out var correlationId);

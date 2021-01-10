@@ -349,7 +349,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                                                                      Message message,
                                                                      CancellationToken cancellationToken)
             where TEvent : class
-            where TConsumer : IEventBusConsumer<TEvent>
+            where TConsumer : IEventConsumer<TEvent>
         {
             var messageId = message.MessageId;
             message.TryGetAttribute(AttributeNames.CorrelationId, out var correlationId);

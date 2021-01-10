@@ -6,7 +6,7 @@ using Tingle.EventBus;
 
 namespace InMemoryBackgroundProcessing
 {
-    public class VideoUploadedConsumer : IEventBusConsumer<VideoUploaded>
+    public class VideoUploadedConsumer : IEventConsumer<VideoUploaded>
     {
         private static readonly TimeSpan SimulationDuration = TimeSpan.FromSeconds(3);
 

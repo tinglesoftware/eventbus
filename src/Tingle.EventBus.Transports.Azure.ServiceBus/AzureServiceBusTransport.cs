@@ -497,7 +497,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
         private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, ProcessMessageEventArgs args)
             where TEvent : class
-            where TConsumer : IEventBusConsumer<TEvent>
+            where TConsumer : IEventConsumer<TEvent>
         {
             var message = args.Message;
             var messageId = message.MessageId;

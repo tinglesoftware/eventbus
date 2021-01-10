@@ -6,7 +6,7 @@ namespace Tingle.EventBus
     /// <summary>
     /// Contract describing a consumer of one or more events.
     /// </summary>
-    public interface IEventBusConsumer
+    public interface IEventConsumer
     {
         // Intentionally left blank
     }
@@ -14,7 +14,7 @@ namespace Tingle.EventBus
     /// <summary>
     /// Contract describing a consumer of an event.
     /// </summary>
-    public interface IEventBusConsumer<T> : IEventBusConsumer
+    public interface IEventConsumer<T> : IEventConsumer
     {
         /// <summary>
         /// Consume an event of the provided type.

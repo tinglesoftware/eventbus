@@ -295,7 +295,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
         private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, IModel channel, BasicDeliverEventArgs args, CancellationToken cancellationToken)
             where TEvent : class
-            where TConsumer : IEventBusConsumer<TEvent>
+            where TConsumer : IEventConsumer<TEvent>
         {
             var messageId = args.BasicProperties?.MessageId;
             using var log_scope = Logger.BeginScopeForConsume(id: messageId,

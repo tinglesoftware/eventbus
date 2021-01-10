@@ -6,7 +6,7 @@ using Tingle.EventBus;
 
 namespace SimpleConsumer
 {
-    public class SampleEventConsumer : IEventBusConsumer<SampleEvent>
+    public class SampleEventConsumer : IEventConsumer<SampleEvent>
     {
         private readonly EventCounter counter;
         private readonly ILogger logger;

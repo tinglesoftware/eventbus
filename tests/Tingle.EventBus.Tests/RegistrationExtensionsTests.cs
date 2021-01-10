@@ -201,7 +201,7 @@ namespace Tingle.EventBus.Tests
 
         class DummyEventSerializer2 { } // should not implement IEventSerializer
 
-        class TestConsumer1 : IEventBusConsumer<TestEvent1>
+        class TestConsumer1 : IEventConsumer<TestEvent1>
         {
             public Task ConsumeAsync(EventContext<TestEvent1> context, CancellationToken cancellationToken = default)
             {
@@ -210,7 +210,7 @@ namespace Tingle.EventBus.Tests
         }
 
         [ConsumerName("sample-consumer")]
-        class TestConsumer2 : IEventBusConsumer<TestEvent2>
+        class TestConsumer2 : IEventConsumer<TestEvent2>
         {
             public Task ConsumeAsync(EventContext<TestEvent2> context, CancellationToken cancellationToken = default)
             {

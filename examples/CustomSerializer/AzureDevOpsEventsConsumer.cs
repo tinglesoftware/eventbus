@@ -6,7 +6,7 @@ using Tingle.EventBus;
 
 namespace CustomSerializer
 {
-    internal class AzureDevOpsEventsConsumer : IEventBusConsumer<AzureDevOpsCodePushed>
+    internal class AzureDevOpsEventsConsumer : IEventConsumer<AzureDevOpsCodePushed>
     {
         private readonly ILogger logger;
 

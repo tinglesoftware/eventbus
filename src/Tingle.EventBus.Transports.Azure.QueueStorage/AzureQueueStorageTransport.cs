@@ -310,7 +310,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                                      IServiceScope scope,
                                                                      CancellationToken cancellationToken)
             where TEvent : class
-            where TConsumer : IEventBusConsumer<TEvent>
+            where TConsumer : IEventConsumer<TEvent>
         {
             var messageId = message.MessageId;
             using var log_scope = Logger.BeginScopeForConsume(id: messageId,

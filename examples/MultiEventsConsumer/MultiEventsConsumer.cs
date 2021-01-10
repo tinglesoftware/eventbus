@@ -7,7 +7,7 @@ using Tingle.EventBus;
 
 namespace MultiEventsConsumer
 {
-    public class MultiEventsConsumer : IEventBusConsumer<DoorClosed>, IEventBusConsumer<DoorOpened>
+    public class MultiEventsConsumer : IEventConsumer<DoorClosed>, IEventConsumer<DoorOpened>
     {
         private static readonly TimeSpan SimulationDuration = TimeSpan.FromSeconds(3);
 

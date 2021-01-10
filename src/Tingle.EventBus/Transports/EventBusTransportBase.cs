@@ -170,7 +170,7 @@ namespace Tingle.EventBus.Transports
         protected async Task ConsumeAsync<TEvent, TConsumer>(EventContext<TEvent> @event,
                                                              IServiceScope scope,
                                                              CancellationToken cancellationToken)
-            where TConsumer : IEventBusConsumer<TEvent>
+            where TConsumer : IEventConsumer<TEvent>
         {
             // Resolve the consumer
             var consumer = scope.ServiceProvider.GetRequiredService<TConsumer>();

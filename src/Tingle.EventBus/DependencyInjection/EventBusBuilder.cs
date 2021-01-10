@@ -119,7 +119,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// design of <typeparamref name="TConsumer"/>.
         /// </param>
         /// <returns></returns>
-        public EventBusBuilder AddConsumer<TConsumer>(ServiceLifetime lifetime = ServiceLifetime.Scoped) where TConsumer : class, IEventBusConsumer
+        public EventBusBuilder AddConsumer<TConsumer>(ServiceLifetime lifetime = ServiceLifetime.Scoped) where TConsumer : class, IEventConsumer
         {
             var consumerType = typeof(TConsumer);
             if (consumerType.IsAbstract)
@@ -130,7 +130,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // register the consumer for resolution
             Services.Add(ServiceDescriptor.Describe(consumerType, consumerType, lifetime));
 
-            var genericConsumerType = typeof(IEventBusConsumer<>);
+            var genericConsumerType = typeof(IEventConsumer<>);
             var eventTypes = new List<Type>();
 
             // get events from each implementation of IEventConsumer<TEvent>
@@ -152,7 +152,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // we must have at least one implemented event
             if (eventTypes.Count <= 0)
             {
-                throw new InvalidOperationException($"{consumerType.FullName} must implement '{nameof(IEventBusConsumer)}<TEvent>' at least once.");
+                throw new InvalidOperationException($"{consumerType.FullName} must implement '{nameof(IEventConsumer)}<TEvent>' at least once.");
             }
 
             // add the event types to the registrations
@@ -177,7 +177,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <typeparam name="TConsumer"></typeparam>
         /// <returns></returns>
-        public EventBusBuilder RemoveConsumer<TConsumer>() where TConsumer : class, IEventBusConsumer
+        public EventBusBuilder RemoveConsumer<TConsumer>() where TConsumer : class, IEventConsumer
         {
             // Deregister from services collection
             Services.RemoveAll<TConsumer>();

@@ -56,21 +56,16 @@ namespace Tingle.EventBus
         /// </summary>
         public bool UseFullTypeNames { get; set; } = true;
 
-        ///// <summary>
-        ///// Determines if to prefix entity names with the application name.
-        ///// This is important to enable when the events of a similar type are consumed by the multiple services to avoid conflicts.
-        ///// Defaults to <see langword="true"/>
-        ///// </summary>
-        //public bool PrefixApplicationName { get; set; } = true;
-
         /// <summary>
-        /// Determines if to use the application name for subscriptions and exchanges instead of the name of the consumer.
-        /// When set to true, each subscription to an event will be named the same as the application name, otherwise,
-        /// the name of the consumer is used.
-        /// <br />
-        /// This should always be true if there are multiple consumers in one application for the same event so as not to have same name issues.
-        /// Defaults to <see langword="false"/>
+        /// Determines if to use the application name for subscriptions and exchanges instead of the name of the
+        /// consumer. When set to <see langword="true"/>, each subscription to an event will be named the same
+        /// as the application name, otherwise, the name of the consumer is used.
+        /// Defaults to <see langword="false"/>.
         /// </summary>
+        /// <remarks>
+        /// This should always be true if there are multiple consumers in one application for the same event so
+        /// as not to have same name issues.
+        /// </remarks>
         public bool UseApplicationNameInsteadOfConsumerName { get; set; } = false;
 
         /// <summary>
@@ -103,12 +98,13 @@ namespace Tingle.EventBus
         /// Indicates if the messages/events procuded require guard against duplicate messages.
         /// If <see langword="true"/>, duplicate messages having the same <see cref="EventContext.Id"/>
         /// sent to the same destination within a duration of <see cref="DuplicateDetectionDuration"/> will be discarded.
+        /// Defaults to <see langword="false"/>.
         /// </summary>
         /// <remarks>
         /// Duplicate detection can only be done on the transport layer because it requires peristent storage.
         /// This feature only works if the transport a message is sent on supports duplicate detection.
         /// </remarks>
-        public bool EnableDeduplication { get; set; }
+        public bool EnableDeduplication { get; set; } = false;
 
         /// <summary>
         /// The <see cref="TimeSpan"/> duration of duplicate detection history that is maintained by a transport.

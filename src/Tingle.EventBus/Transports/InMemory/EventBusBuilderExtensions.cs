@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Options;
+using System;
 using Tingle.EventBus.Transports.InMemory;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -53,6 +54,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Set the delivery delay to zero for instance delivery
             services.Configure<InMemoryTransportOptions>(o => o.DeliveryDelay = TimeSpan.Zero);
+            services.AddSingleton<IPostConfigureOptions<InMemoryTestHarnessOptions>, InMemoryTestHarnessPostConfigureOptions>();
 
             return builder;
         }

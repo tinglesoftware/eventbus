@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Options;
 using System;
 using Tingle.EventBus;
 
-namespace Microsoft.Extensions.Options
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// A class to finish the configuration of instances of <see cref="AzureEventHubsTransportOptions"/>.

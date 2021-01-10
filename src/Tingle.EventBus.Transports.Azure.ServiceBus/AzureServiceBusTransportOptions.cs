@@ -45,5 +45,11 @@ namespace Microsoft.Extensions.DependencyInjection
         /// This is only called before creation.
         /// </summary>
         public Action<CreateSubscriptionOptions> SetupSubscriptionOptions { get; set; }
+
+        /// <summary>
+        /// A function to create the processor options instead of using the default options.
+        /// Some options set may still be overriding for proper operation of the the transport and the bus.
+        /// </summary>
+        public Func<ServiceBusProcessorOptions> CreateProcessorOptions { get; set; }
     }
 }

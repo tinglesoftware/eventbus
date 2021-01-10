@@ -296,7 +296,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             var sender = await GetSenderAsync(reg, cancellationToken);
             Logger.LogInformation("Canceling {EventsCount} scheduled messages on {EntityPath}:\r\n- {SequenceNumbers}",
-                                  ids.Count, 
+                                  ids.Count,
                                   sender.EntityPath,
                                   string.Join("\r\n- ", seqNums));
             await sender.CancelScheduledMessagesAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken);
@@ -366,18 +366,18 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                                 cancellationToken: cancellationToken);
                     }
 
+                    // Create the processor options
+                    var sbpo = TransportOptions.CreateProcessorOptions?.Invoke() ?? new ServiceBusProcessorOptions();
+
+                    // Maximum number of concurrent calls to the callback ProcessMessagesAsync(), set to 1 for simplicity.
+                    // Set it according to how many messages the application wants to process in parallel.
+                    sbpo.MaxConcurrentCalls = 1;
+
+                    // Indicates whether MessagePump should automatically complete the messages after returning from User Callback.
+                    // False below indicates the Complete will be handled by the User Callback as in `ProcessMessagesAsync` below.
+                    sbpo.AutoCompleteMessages = false;
+
                     // Create the processor
-                    var sbpo = new ServiceBusProcessorOptions
-                    {
-                        // Maximum number of concurrent calls to the callback ProcessMessagesAsync(), set to 1 for simplicity.
-                        // Set it according to how many messages the application wants to process in parallel.
-                        MaxConcurrentCalls = 1,
-
-                        // Indicates whether MessagePump should automatically complete the messages after returning from User Callback.
-                        // False below indicates the Complete will be handled by the User Callback as in `ProcessMessagesAsync` below.
-                        AutoCompleteMessages = false,
-                    };
-
                     if (TransportOptions.UseBasicTier)
                     {
                         Logger.LogDebug("Creating processor for queue '{QueueName}'", topicName);

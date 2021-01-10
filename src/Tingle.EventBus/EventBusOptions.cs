@@ -57,28 +57,20 @@ namespace Tingle.EventBus
         public bool UseFullTypeNames { get; set; } = true;
 
         /// <summary>
-        /// Determines if to use the application name for subscriptions and exchanges instead of the name of the
-        /// consumer. When set to <see langword="true"/>, each subscription to an event will be named the same
-        /// as the application name, otherwise, the name of the consumer is used.
-        /// Defaults to <see langword="false"/>.
+        /// The source used to generate names for consumers.
+        /// Some transports are versy sensitive to the value used here and thus should be used carefully.
+        /// When set to <see cref="ConsumerNameSource.ApplicationName"/>, each subscription/exchange will
+        /// be named the same as the application before appending the event name.
+        /// For applications with more than one consumer per event type, use <see cref="ConsumerNameSource.TypeName"/>
+        /// to avoid duplicates.
+        /// Defaults to <see cref="ConsumerNameSource.TypeName"/>.
         /// </summary>
-        /// <remarks>
-        /// This should always be true if there are multiple consumers in one application for the same event so
-        /// as not to have same name issues.
-        /// </remarks>
-        public bool UseApplicationNameInsteadOfConsumerName { get; set; } = false;
+        public ConsumerNameSource ConsumerNameSource { get; set; } = ConsumerNameSource.TypeName;
 
         /// <summary>
         /// The information about the host where the EventBus is running.
         /// </summary>
         internal HostInfo HostInfo { get; set; }
-
-        /// <summary>
-        /// Determines if the consumer name must be used in place of the application name.
-        /// This setting overrides <see cref="UseApplicationNameInsteadOfConsumerName"/> and is very critical
-        /// to the behaviour for some brokers/transports. Avoid changing it unless you know what you are doing.
-        /// </summary>
-        public bool ForceConsumerName { get; set; }
 
         internal Dictionary<Type, EventRegistration> EventRegistrations { get; } = new Dictionary<Type, EventRegistration>();
         internal Dictionary<Type, ConsumerRegistration> ConsumerRegistrations { get; } = new Dictionary<Type, ConsumerRegistration>();

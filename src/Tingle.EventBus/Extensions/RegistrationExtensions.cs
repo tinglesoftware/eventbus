@@ -31,9 +31,13 @@ namespace Tingle.EventBus.Registrations
                 if (cname == null)
                 {
                     // for consumers, we always enforce the full type name
-                    cname = (options.UseApplicationNameInsteadOfConsumerName && !options.ForceConsumerName)
-                            ? environment.ApplicationName
-                            : type.FullName;
+                    // for consumerstype name source, we always use the full type name
+                    cname = options.ConsumerNameSource switch
+                    {
+                        ConsumerNameSource.TypeName => type.FullName,
+                        ConsumerNameSource.ApplicationName => environment.ApplicationName,
+                        _ => throw new InvalidOperationException($"'{nameof(options.ConsumerNameSource)}.{options.ConsumerNameSource}' is not supported"),
+                    };
                     cname = ApplyNamingConvention(cname, options.NamingConvention);
                     cname = AppendScope(cname, options.NamingConvention, options.Scope);
                     cname = ReplaceInvalidCharacters(cname, options.NamingConvention);

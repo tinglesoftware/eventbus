@@ -71,7 +71,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <typeparam name="TTransport"></typeparam>
         /// <returns></returns>
-        public EventBusBuilder UnregisterTransport<TTransport>() where TTransport : class, IEventBusTransport
+        public EventBusBuilder RemoveTransport<TTransport>() where TTransport : class, IEventBusTransport
         {
             // remove the service descriptor if it exists
             var target = Services.SingleOrDefault(t => t.ServiceType == typeof(IEventBusTransport) && t.ImplementationType == typeof(TTransport));

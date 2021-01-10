@@ -244,16 +244,17 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                     var name = reg.EventName;
                     if (deadletter) name += TransportOptions.DeadLetterSuffix;
 
-                    // create the producer
+                    // Create the producer options
+                    var epco = TransportOptions.CreateProducerClientOptions?.Invoke() ?? new EventHubProducerClientOptions();
+
+                    // Override values that must be overriden
+                    epco.ConnectionOptions ??= new EventHubConnectionOptions();
+                    epco.ConnectionOptions.TransportType = TransportOptions.TransportType;
+
+                    // Create the producer
                     producer = new EventHubProducerClient(connectionString: TransportOptions.ConnectionString,
                                                           eventHubName: name,
-                                                          clientOptions: new EventHubProducerClientOptions
-                                                          {
-                                                              ConnectionOptions = new EventHubConnectionOptions
-                                                              {
-                                                                  TransportType = TransportOptions.TransportType,
-                                                              },
-                                                          });
+                                                          clientOptions: epco);
 
                     // ensure event hub is created
 
@@ -301,15 +302,14 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                     var blobContainerClient = new BlobContainerClient(connectionString: TransportOptions.BlobStorageConnectionString,
                                                                       blobContainerName: TransportOptions.BlobContainerName);
 
-                    var epco = new EventProcessorClientOptions
-                    {
-                        ConnectionOptions = new EventHubConnectionOptions
-                        {
-                            TransportType = TransportOptions.TransportType,
-                        },
-                    };
+                    // Create the procesor client options
+                    var epco = TransportOptions.CreateProcessorClientOptions?.Invoke() ?? new EventProcessorClientOptions();
 
-                    // create the processor
+                    // Override values that must be overriden
+                    epco.ConnectionOptions ??= new EventHubConnectionOptions();
+                    epco.ConnectionOptions.TransportType = TransportOptions.TransportType;
+
+                    // Create the processor
                     processor = new EventProcessorClient(checkpointStore: blobContainerClient,
                                                          consumerGroup: consumerGroup,
                                                          connectionString: TransportOptions.ConnectionString,

@@ -176,7 +176,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <typeparam name="TConsumer"></typeparam>
         /// <returns></returns>
-        public EventBusBuilder Unsubscribe<TConsumer>() where TConsumer : class, IEventBusConsumer
+        public EventBusBuilder RemoveConsumer<TConsumer>() where TConsumer : class, IEventBusConsumer
         {
             // Deregister from services collection
             Services.RemoveAll<TConsumer>();

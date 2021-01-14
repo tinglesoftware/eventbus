@@ -330,7 +330,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
             try
             {
-                Logger.LogDebug("Processing '{MessageId}|{PopReceipt}'", messageId, message.PopReceipt);
+                Logger.LogDebug("Processing '{MessageId}|{PopReceipt}' from '{QueueName}'", messageId, message.PopReceipt, queueClient.Name);
                 using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.MessageText));
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: null, // There is no way to get this yet
@@ -338,10 +338,11 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
 
-                Logger.LogInformation("Received message: '{MessageId}|{PopReceipt}' containing Event '{Id}'",
+                Logger.LogInformation("Received message: '{MessageId}|{PopReceipt}' containing Event '{Id}' from '{QueueName}'",
                                       messageId,
                                       message.PopReceipt,
-                                      context.Id);
+                                      context.Id,
+                                      queueClient.Name);
 
                 // if the event contains the parent activity id, set it
                 if (context.Headers.TryGetValue(HeaderNames.ActivityId, out var parentActivityId))

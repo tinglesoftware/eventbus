@@ -14,5 +14,10 @@
         /// The name of the hosting application is used.
         /// </summary>
         ApplicationName,
+
+        /// <summary>
+        /// The name of the application and the consumer are combined.
+        /// </summary>
+        ApplicationAndTypeName,
     }
 }

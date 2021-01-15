@@ -36,6 +36,7 @@ namespace Tingle.EventBus.Registrations
                     {
                         ConsumerNameSource.TypeName => type.FullName,
                         ConsumerNameSource.ApplicationName => environment.ApplicationName,
+                        ConsumerNameSource.ApplicationAndTypeName => $"{environment.ApplicationName}.{type.FullName}",
                         _ => throw new InvalidOperationException($"'{nameof(options.ConsumerNameSource)}.{options.ConsumerNameSource}' is not supported"),
                     };
                     cname = ApplyNamingConvention(cname, options.NamingConvention);

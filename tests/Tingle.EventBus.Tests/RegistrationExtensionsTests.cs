@@ -152,6 +152,20 @@ namespace Tingle.EventBus.Tests
             },
 
             new object[] {
+                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                new EventBusOptions { ConsumerNameSource = ConsumerNameSource.ApplicationAndTypeName, NamingConvention = NamingConvention.KebabCase },
+                "app1",
+                "app1-tingle-event-bus-tests-registration-extensions-tests-test-consumer1-test-event1",
+            },
+
+            new object[] {
+                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                new EventBusOptions { ConsumerNameSource = ConsumerNameSource.ApplicationAndTypeName, NamingConvention = NamingConvention.SnakeCase },
+                "app1",
+                "app1_tingle_event_bus_tests_registration_extensions_tests_test_consumer1_test_event1",
+            },
+
+            new object[] {
                 new ConsumerRegistration(typeof(TestEvent2), typeof(TestConsumer2)),
                 new EventBusOptions { ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.KebabCase, },
                 "app1",

@@ -70,7 +70,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = GetConsumerRegistrations();
-            Logger.StartingTransport(registrations.Count);
+            Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
             foreach (var reg in registrations)
             {
                 var queueUrl = await GetQueueUrlAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);

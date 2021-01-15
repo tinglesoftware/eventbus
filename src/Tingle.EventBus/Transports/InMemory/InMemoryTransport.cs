@@ -72,7 +72,6 @@ namespace Tingle.EventBus.Transports.InMemory
                                                     CancellationToken cancellationToken = default)
         {
             var registrations = GetConsumerRegistrations();
-            Logger.StartingTransport(registrations.Count);
             foreach (var reg in registrations)
             {
                 var t = ReceiveAsync(reg: reg, cancellationToken: stoppingCts.Token);
@@ -91,7 +90,7 @@ namespace Tingle.EventBus.Transports.InMemory
             }
 
             var registrations = GetConsumerRegistrations();
-            Logger.StartingTransport(registrations.Count);
+            Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
             foreach (var reg in registrations)
             {
                 var t = ReceiveAsync(reg: reg, cancellationToken: stoppingCts.Token);

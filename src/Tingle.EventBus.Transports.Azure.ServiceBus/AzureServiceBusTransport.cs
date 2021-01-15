@@ -76,7 +76,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = GetConsumerRegistrations();
-            Logger.StartingTransport(registrations.Count);
+            Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
             foreach (var reg in registrations)
             {
                 var processor = await GetProcessorAsync(reg: reg, cancellationToken: cancellationToken);

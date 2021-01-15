@@ -274,7 +274,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             }
 
             var registrations = GetConsumerRegistrations();
-            Logger.StartingTransport(registrations.Count);
+            Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
             foreach (var reg in registrations)
             {
                 var exchangeName = reg.EventName;

@@ -81,7 +81,7 @@ namespace Tingle.EventBus.Transports.Kafka
         public override Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = GetConsumerRegistrations();
-            Logger.StartingTransport(registrations.Count);
+            Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
             var topics = registrations.Select(r => r.EventName).ToList();
             // only consume if there are topics to subscribe to
             if (topics.Count > 0)

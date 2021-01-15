@@ -9,11 +9,11 @@ namespace Microsoft.Extensions.Logging
     /// </summary>
     internal static class ILoggerExtensions
     {
-        private static readonly Action<ILogger, int, Exception> _startingTransport
-            = LoggerMessage.Define<int>(
+        private static readonly Action<ILogger, int, TimeSpan, Exception> _startingTransport
+            = LoggerMessage.Define<int, TimeSpan>(
                 eventId: new EventId(1, nameof(StartingTransport)),
                 logLevel: LogLevel.Debug,
-                formatString: "Starting transport. Consumers: '{Count}'");
+                formatString: "Starting transport. Consumers: {Count}, EmptyResultsDelay: '{EmptyResultsDelay}'");
 
         private static readonly Action<ILogger, Exception> _stoppingTransport
             = LoggerMessage.Define(
@@ -21,7 +21,10 @@ namespace Microsoft.Extensions.Logging
                 logLevel: LogLevel.Debug,
                 formatString: "Stopping transport.");
 
-        public static void StartingTransport(this ILogger logger, int count) => _startingTransport(logger, count, null);
+        public static void StartingTransport(this ILogger logger, int count, TimeSpan emptyResultsDelay)
+        {
+            _startingTransport(logger, count, emptyResultsDelay, null);
+        }
 
         public static void StoppingTransport(this ILogger logger) => _stoppingTransport(logger, null);
 

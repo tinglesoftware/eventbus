@@ -51,7 +51,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         public override Task StartAsync(CancellationToken cancellationToken)
         {
             var registrations = GetConsumerRegistrations();
-            Logger.StartingTransport(registrations.Count);
+            Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
 
             // if there are consumers for this transport, throw exception
             if (registrations.Count > 0)

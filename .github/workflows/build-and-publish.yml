@@ -87,6 +87,7 @@ jobs:
       run: >
         dotnet nuget push "$GITHUB_WORKSPACE/drop/*"
         -k ${{ secrets.GITHUB_TOKEN }}
+        --skip-duplicate
 
   Publish:
     runs-on: ubuntu-latest
@@ -112,3 +113,4 @@ jobs:
       run: >
         dotnet nuget push "$GITHUB_WORKSPACE/drop/*"
         -k ${{ secrets.NUGET_API_KEY }}
+        --skip-duplicate

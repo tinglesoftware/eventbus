@@ -21,9 +21,9 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             // If there are consumers for this transport, they can only use TypeName source
             var consumers = busOptions.GetConsumerRegistrations(TransportNames.RabbitMq);
-            if (consumers.Count > 0 && busOptions.ConsumerNameSource != ConsumerNameSource.TypeName)
+            if (consumers.Count > 0 && !busOptions.UseFullTypeNames)
             {
-                throw new NotSupportedException($"When using RabbitMQ transport '{nameof(busOptions.ConsumerNameSource)}' must be '{ConsumerNameSource.TypeName}'");
+                throw new NotSupportedException($"When using RabbitMQ transport '{nameof(busOptions.UseFullTypeNames)}' must be 'true'");
             }
 
             // if we do not have a connection factory, attempt to create one

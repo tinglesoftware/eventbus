@@ -114,7 +114,6 @@ namespace Tingle.EventBus.Tests
         [MemberData(nameof(SetConsumerNameData))]
         public void SetConsumerName(ConsumerRegistration registration, EventBusOptions options, string applicationName, string expected)
         {
-            options.UseFullTypeNames = false;
             var environment = new DummyEnvironment(applicationName);
             registration.SetEventName(options)
                         .SetConsumerName(options, environment);
@@ -123,57 +122,118 @@ namespace Tingle.EventBus.Tests
 
         public static IEnumerable<object[]> SetConsumerNameData = new List<object[]>
         {
+            // UseFullTypeNames=false
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
-                new EventBusOptions { ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.KebabCase },
+                new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.KebabCase },
                 "app1",
-                "tingle-event-bus-tests-registration-extensions-tests-test-consumer1-test-event1",
+                "test-consumer1-test-event1",
             },
 
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
-                new EventBusOptions { ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.SnakeCase },
+                new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.SnakeCase },
                 "app1",
-                "tingle_event_bus_tests_registration_extensions_tests_test_consumer1_test_event1",
+                "test_consumer1_test_event1",
             },
 
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
-                new EventBusOptions { ConsumerNameSource = ConsumerNameSource.ApplicationName, NamingConvention = NamingConvention.KebabCase },
+                new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.ApplicationName, NamingConvention = NamingConvention.KebabCase },
                 "app1",
                 "app1-test-event1",
             },
 
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
-                new EventBusOptions { ConsumerNameSource = ConsumerNameSource.ApplicationName, NamingConvention = NamingConvention.SnakeCase },
+                new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.ApplicationName, NamingConvention = NamingConvention.SnakeCase },
                 "app1",
                 "app1_test_event1",
             },
 
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
-                new EventBusOptions { ConsumerNameSource = ConsumerNameSource.ApplicationAndTypeName, NamingConvention = NamingConvention.KebabCase },
+                new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.ApplicationAndTypeName, NamingConvention = NamingConvention.KebabCase },
                 "app1",
-                "app1-tingle-event-bus-tests-registration-extensions-tests-test-consumer1-test-event1",
+                "app1-test-consumer1-test-event1",
             },
 
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
-                new EventBusOptions { ConsumerNameSource = ConsumerNameSource.ApplicationAndTypeName, NamingConvention = NamingConvention.SnakeCase },
+                new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.ApplicationAndTypeName, NamingConvention = NamingConvention.SnakeCase },
                 "app1",
-                "app1_tingle_event_bus_tests_registration_extensions_tests_test_consumer1_test_event1",
+                "app1_test_consumer1_test_event1",
+            },
+
+
+            // UseFullTypeNames=false
+            new object[] {
+                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.KebabCase },
+                "app1",
+                "tingle-event-bus-tests-registration-extensions-tests-test-consumer1-tingle-event-bus-tests-registration-extensions-tests-test-event1",
+            },
+
+            new object[] {
+                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.SnakeCase },
+                "app1",
+                "tingle_event_bus_tests_registration_extensions_tests_test_consumer1_tingle_event_bus_tests_registration_extensions_tests_test_event1",
+            },
+
+            new object[] {
+                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.ApplicationName, NamingConvention = NamingConvention.KebabCase },
+                "app1",
+                "app1-tingle-event-bus-tests-registration-extensions-tests-test-event1",
+            },
+
+            new object[] {
+                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.ApplicationName, NamingConvention = NamingConvention.SnakeCase },
+                "app1",
+                "app1_tingle_event_bus_tests_registration_extensions_tests_test_event1",
+            },
+
+            new object[] {
+                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.ApplicationAndTypeName, NamingConvention = NamingConvention.KebabCase },
+                "app1",
+                "app1-tingle-event-bus-tests-registration-extensions-tests-test-consumer1-tingle-event-bus-tests-registration-extensions-tests-test-event1",
+            },
+
+            new object[] {
+                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.ApplicationAndTypeName, NamingConvention = NamingConvention.SnakeCase },
+                "app1",
+                "app1_tingle_event_bus_tests_registration_extensions_tests_test_consumer1_tingle_event_bus_tests_registration_extensions_tests_test_event1",
+            },
+
+            // Override Names
+            new object[] {
+                new ConsumerRegistration(typeof(TestEvent2), typeof(TestConsumer2)),
+                new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.KebabCase, },
+                "app1",
+                "sample-consumer-sample-event",
             },
 
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent2), typeof(TestConsumer2)),
-                new EventBusOptions { ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.KebabCase, },
+                new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.SnakeCase, },
+                "app1",
+                "sample-consumer_sample-event",
+            },
+
+            new object[] {
+                new ConsumerRegistration(typeof(TestEvent2), typeof(TestConsumer2)),
+                new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.KebabCase, },
                 "app1",
                 "sample-consumer-sample-event",
             },
+
             new object[] {
                 new ConsumerRegistration(typeof(TestEvent2), typeof(TestConsumer2)),
-                new EventBusOptions { ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.SnakeCase, },
+                new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.SnakeCase, },
                 "app1",
                 "sample-consumer_sample-event",
             },

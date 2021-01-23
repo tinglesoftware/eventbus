@@ -48,6 +48,16 @@ namespace Tingle.EventBus
         public string Scope { get; set; }
 
         /// <summary>
+        /// Determines if to trim suffixes such as <c>Consumer</c>, <c>Event</c> and <c>EventConsumer</c>
+        /// in names generated from type names.
+        /// For example <c>DoorOpenedEvent</c> would be trimmed to <c>DoorTrimed</c>,
+        /// <c>DoorOpenedEventConsumer</c> would be trimmed to <c>DoorOpened</c>,
+        /// <c>DoorOpenedConsumer</c> would be trimmed to <c>DoorOpened</c>.
+        /// Defaults to <see langword="true"/>
+        /// </summary>
+        public bool TrimTypeNames { get; set; } = true;
+
+        /// <summary>
         /// Determines if to use the full name when generating entity names.
         /// This should always be enabled if there are types with the same names.
         /// For example <see cref="string"/> would produce <c>System.String</c>, <c>system-string</c>,

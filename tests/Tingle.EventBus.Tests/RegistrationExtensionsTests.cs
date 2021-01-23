@@ -112,7 +112,7 @@ namespace Tingle.EventBus.Tests
 
         [Theory]
         [MemberData(nameof(SetConsumerNameData))]
-        public void SetConsumerName(ConsumerRegistration registration, EventBusOptions options, string applicationName, string expected)
+        public void SetConsumerName_Works(ConsumerRegistration registration, EventBusOptions options, string applicationName, string expected)
         {
             var environment = new DummyEnvironment(applicationName);
             registration.SetEventName(options)
@@ -238,6 +238,18 @@ namespace Tingle.EventBus.Tests
                 "sample-consumer_sample-event",
             },
         };
+
+        [Theory]
+        [InlineData("DoorOpenedEvent", "DoorOpened")]
+        [InlineData("DoorOpenedConsumer", "DoorOpened")]
+        [InlineData("DoorOpenedEventConsumer", "DoorOpened")]
+        [InlineData("DoorOpened", "DoorOpened")] // unchanged
+        public void TrimCommonSuffixes_Works(string typeName, string expected)
+        {
+            var options = new EventBusOptions { TrimTypeNames = true, };
+            var actual = options.TrimCommonSuffixes(typeName);
+            Assert.Equal(expected, actual);
+        }
 
         class TestEvent1
         {

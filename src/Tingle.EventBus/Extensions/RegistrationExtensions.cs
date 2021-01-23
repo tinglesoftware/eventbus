@@ -13,6 +13,7 @@ namespace Tingle.EventBus.Registrations
     {
         private static readonly Regex namePattern = new Regex("(?<=[a-z0-9])[A-Z]", RegexOptions.Compiled);
         private static readonly Regex replacePattern = new Regex("[^a-zA-Z0-9-_]", RegexOptions.Compiled);
+        private static readonly Regex trimPattern = new Regex("(Event|Consumer|EventConsumer)$", RegexOptions.Compiled);
 
         internal static ConsumerRegistration SetConsumerName(this ConsumerRegistration reg,
                                                              EventBusOptions options,
@@ -31,6 +32,7 @@ namespace Tingle.EventBus.Registrations
                 if (cname == null)
                 {
                     var typeName = options.UseFullTypeNames ? type.FullName : type.Name;
+                    typeName = options.TrimCommonSuffixes(typeName);
                     cname = options.ConsumerNameSource switch
                     {
                         ConsumerNameSource.TypeName => typeName,
@@ -62,7 +64,9 @@ namespace Tingle.EventBus.Registrations
                 var ename = type.GetCustomAttributes(false).OfType<EventNameAttribute>().SingleOrDefault()?.EventName;
                 if (ename == null)
                 {
-                    ename = options.UseFullTypeNames ? type.FullName : type.Name;
+                    var typeName = options.UseFullTypeNames ? type.FullName : type.Name;
+                    typeName = options.TrimCommonSuffixes(typeName);
+                    ename = typeName;
                     ename = ApplyNamingConvention(ename, options.NamingConvention);
                     ename = AppendScope(ename, options.NamingConvention, options.Scope);
                     ename = ReplaceInvalidCharacters(ename, options.NamingConvention);
@@ -133,6 +137,11 @@ namespace Tingle.EventBus.Registrations
             name = AppendScope(name, options.NamingConvention, options.Scope);
             name = ReplaceInvalidCharacters(name, options.NamingConvention);
             return name;
+        }
+
+        internal static string TrimCommonSuffixes(this EventBusOptions options, string untrimmed)
+        {
+            return options.TrimTypeNames ? trimPattern.Replace(untrimmed, "") : untrimmed;
         }
 
         internal static string ApplyNamingConvention(string raw, NamingConvention convention)

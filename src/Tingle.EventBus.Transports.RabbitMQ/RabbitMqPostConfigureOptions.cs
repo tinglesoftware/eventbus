@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using System;
+using System.Linq;
 using Tingle.EventBus;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -20,8 +21,8 @@ namespace Microsoft.Extensions.DependencyInjection
         public void PostConfigure(string name, RabbitMqTransportOptions options)
         {
             // If there are consumers for this transport, they can only use TypeName source
-            var consumers = busOptions.GetRegistrations(TransportNames.RabbitMq);
-            if (consumers.Count > 0 && !busOptions.UseFullTypeNames)
+            var registrations = busOptions.GetRegistrations(TransportNames.RabbitMq);
+            if (registrations.Any(r => r.Consumers.Count > 0) && !busOptions.UseFullTypeNames)
             {
                 throw new NotSupportedException($"When using RabbitMQ transport '{nameof(busOptions.UseFullTypeNames)}' must be 'true'");
             }

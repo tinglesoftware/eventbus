@@ -13,13 +13,14 @@ namespace Tingle.EventBus
         /// <summary>
         /// Get or create the event registration for a given event type.
         /// </summary>
+        /// <typeparam name="TEvent">The event type to retrieve an <see cref="EventRegistration"/> for.</typeparam>
         /// <param name="options">The instance of <see cref="EventBusOptions"/> to use.</param>
-        /// <param name="eventType">The type of the event.</param>
         /// <returns></returns>
         /// <exception cref="KeyNotFoundException">The given event type does not have any event registered.</exception>
-        internal static EventRegistration GetOrCreateRegistration(this EventBusOptions options, Type eventType)
+        public static EventRegistration GetOrCreateRegistration<TEvent>(this EventBusOptions options)
         {
             // if there's already a registration for the event return it
+            var eventType = typeof(TEvent);
             if (options.Registrations.TryGetValue(key: eventType, out var registration)) return registration;
 
             // at this point, the registration does not exist; create it and add to the registrations for repeated use
@@ -31,21 +32,12 @@ namespace Tingle.EventBus
         }
 
         /// <summary>
-        /// Get or create the event registration for a given event type.
-        /// </summary>
-        /// <typeparam name="TEvent">The event type to retrieve an <see cref="EventRegistration"/> for.</typeparam>
-        /// <param name="options">The instance of <see cref="EventBusOptions"/> to use.</param>
-        /// <returns></returns>
-        /// <exception cref="KeyNotFoundException">The given event type does not have any event registered.</exception>
-        internal static EventRegistration GetOrCreateRegistration<TEvent>(this EventBusOptions options) => options.GetOrCreateRegistration(typeof(TEvent));
-
-        /// <summary>
         /// Gets the consumer registrations for a given transport.
         /// </summary>
         /// <param name="options">The instance of <see cref="EventBusOptions"/> to use.</param>
         /// <param name="transportName">The name of the transport for whom to get registered consumers.</param>
         /// <returns></returns>
-        public static ICollection<EventRegistration> GetRegistrations(this EventBusOptions options, string transportName) // TODO: rename to GetEventRegistrations()?
+        public static ICollection<EventRegistration> GetRegistrations(this EventBusOptions options, string transportName)
         {
             if (string.IsNullOrWhiteSpace(transportName))
             {

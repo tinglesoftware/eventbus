@@ -44,7 +44,13 @@ namespace Tingle.EventBus.Registrations
         /// <remarks>
         /// This is backed by a <see cref="HashSet{T}"/> to ensure no duplicates.
         /// </remarks>
-        internal ICollection<EventConsumerRegistration> Consumers { get; set; } = new HashSet<EventConsumerRegistration>();
+        public ICollection<EventConsumerRegistration> Consumers { get; set; } = new HashSet<EventConsumerRegistration>();
+
+        /// <summary>
+        /// Gets a key/value collection that can be used to organize and share data across components
+        /// of the event bus such as the bus, the transport or the serializer.
+        /// </summary>
+        public IDictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
 
         /// <inheritdoc/>
         public override bool Equals(object obj) => Equals(obj as EventRegistration);

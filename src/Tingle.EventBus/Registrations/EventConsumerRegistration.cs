@@ -27,6 +27,12 @@ namespace Tingle.EventBus.Registrations
         /// </summary>
         public string ConsumerName { get; set; }
 
+        /// <summary>
+        /// Gets a key/value collection that can be used to organize and share data across components
+        /// of the event bus such as the bus, the transport or the serializer.
+        /// </summary>
+        public IDictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
+
         /// <inheritdoc/>
         public override bool Equals(object obj) => Equals(obj as EventConsumerRegistration);
 

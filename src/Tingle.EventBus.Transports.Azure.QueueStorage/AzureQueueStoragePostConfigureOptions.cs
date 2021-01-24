@@ -1,0 +1,38 @@
+﻿using Microsoft.Extensions.Options;
+using System;
+using System.Linq;
+using Tingle.EventBus;
+
+namespace Microsoft.Extensions.DependencyInjection
+{
+    /// <summary>
+    /// A class to finish the configuration of instances of <see cref="AzureQueueStorageTransportOptions"/>.
+    /// </summary>
+    internal class AzureQueueStoragePostConfigureOptions : IPostConfigureOptions<AzureQueueStorageTransportOptions>
+    {
+        private readonly EventBusOptions busOptions;
+
+        public AzureQueueStoragePostConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+        {
+            busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
+        }
+
+        public void PostConfigure(string name, AzureQueueStorageTransportOptions options)
+        {
+            // ensure the connection string
+            if (string.IsNullOrWhiteSpace(options.ConnectionString))
+            {
+                throw new InvalidOperationException($"The '{nameof(options.ConnectionString)}' must be provided");
+            }
+
+            // ensure there's only one consumer per event
+            var registrations = busOptions.GetRegistrations(TransportNames.AzureQueueStorage);
+            var multiple = registrations.FirstOrDefault(r => r.Consumers.Count > 1);
+            if (multiple != null)
+            {
+                throw new InvalidOperationException($"More than one consumer registered for '{multiple.EventType.Name}' yet "
+                                                   + "Azure Queue Storage does not support more than one consumer per event in the same application domain.");
+            }
+        }
+    }
+}

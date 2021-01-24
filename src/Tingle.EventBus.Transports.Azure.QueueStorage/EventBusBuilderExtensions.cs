@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Options;
+using System;
 using Tingle.EventBus.Transports.Azure.QueueStorage;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -23,14 +24,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // configure the options for Azure Queue Storage
             services.Configure(configure);
-            services.PostConfigure<AzureQueueStorageTransportOptions>(options =>
-            {
-                // ensure the connection string
-                if (string.IsNullOrWhiteSpace(options.ConnectionString))
-                {
-                    throw new InvalidOperationException($"The '{nameof(options.ConnectionString)}' must be provided");
-                }
-            });
+            services.AddSingleton<IPostConfigureOptions<AzureQueueStorageTransportOptions>, AzureQueueStoragePostConfigureOptions>();
 
             // register the transport
             builder.AddTransport<AzureQueueStorageTransport, AzureQueueStorageTransportOptions>();

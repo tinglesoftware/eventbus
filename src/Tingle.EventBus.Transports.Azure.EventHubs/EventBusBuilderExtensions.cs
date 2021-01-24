@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             var services = builder.Services;
 
-            // configure the options for Azure Service Bus
+            // configure the options for Azure Event Hubs
             services.Configure(configure);
             services.AddSingleton<IPostConfigureOptions<AzureEventHubsTransportOptions>, AzureEventHubsPostConfigureOptions>();
 

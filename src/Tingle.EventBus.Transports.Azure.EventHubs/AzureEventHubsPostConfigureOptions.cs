@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using System;
+using System.Linq;
 using Tingle.EventBus;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -25,8 +26,8 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             // if there are consumers for this transport, we must check azure blob storage
-            var consumers = busOptions.GetRegistrations(TransportNames.AzureEventHubs);
-            if (consumers.Count > 0)
+            var registrations = busOptions.GetRegistrations(TransportNames.AzureEventHubs);
+            if (registrations.Any(r => r.Consumers.Count > 0))
             {
                 // ensure the connection string for blob storage is valid
                 if (string.IsNullOrWhiteSpace(options.BlobStorageConnectionString))

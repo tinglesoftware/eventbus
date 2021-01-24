@@ -1,6 +1,5 @@
-﻿using Confluent.Kafka;
+﻿using Microsoft.Extensions.Options;
 using System;
-using System.Linq;
 using Tingle.EventBus.Transports.Kafka;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -25,32 +24,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // configure the options for Kafka
             services.Configure(configure);
-            services.PostConfigure<KafkaTransportOptions>(options =>
-            {
-                if (options.BootstrapServers == null && options.AdminConfig == null)
-                {
-                    throw new InvalidOperationException($"Either '{nameof(options.BootstrapServers)}' or '{nameof(options.AdminConfig)}' must be provided");
-                }
-
-                if (options.BootstrapServers != null && options.BootstrapServers.Any(b => string.IsNullOrWhiteSpace(b)))
-                {
-                    throw new ArgumentNullException(nameof(options.BootstrapServers), "A bootstrap server cannot be null or empty");
-                }
-
-                // ensure we have a config
-                options.AdminConfig ??= new AdminClientConfig
-                {
-                    BootstrapServers = string.Join(",", options.BootstrapServers)
-                };
-
-                if (string.IsNullOrWhiteSpace(options.AdminConfig.BootstrapServers))
-                {
-                    throw new InvalidOperationException($"BootstrapServers must be provided via '{nameof(options.BootstrapServers)}' or '{nameof(options.AdminConfig)}'.");
-                }
-
-                // ensure the checkpoint interval is not less than 1
-                options.CheckpointInterval = Math.Max(options.CheckpointInterval, 1);
-            });
+            services.AddSingleton<IPostConfigureOptions<KafkaTransportOptions>, KafkaPostConfigureOptions>();
 
             // register the transport
             builder.AddTransport<KafkaTransport, KafkaTransportOptions>();

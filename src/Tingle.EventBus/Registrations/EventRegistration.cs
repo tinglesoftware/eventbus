@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Tingle.EventBus.Registrations
 {
     /// <summary>
     /// Represents a registration for an event.
     /// </summary>
-    public class EventRegistration
+    public class EventRegistration : IEquatable<EventRegistration>
     {
         /// <summary>
         /// Creates an instance of <see cref="EventRegistration"/>.
@@ -14,19 +15,6 @@ namespace Tingle.EventBus.Registrations
         public EventRegistration(Type eventType)
         {
             EventType = eventType ?? throw new ArgumentNullException(nameof(eventType));
-        }
-
-        /// <summary>
-        /// Creates an instance of <see cref="EventRegistration"/> by copying from another instance.
-        /// </summary>
-        /// <param name="other"></param>
-        internal EventRegistration(EventRegistration other)
-        {
-            if (other is null) throw new ArgumentNullException(nameof(other));
-
-            EventType = other.EventType;
-            EventName = other.EventName;
-            EventSerializerType = other.EventSerializerType;
         }
 
         /// <summary>
@@ -49,5 +37,34 @@ namespace Tingle.EventBus.Registrations
         /// This type must implement <see cref="Serialization.IEventSerializer"/>.
         /// </summary>
         public Type EventSerializerType { get; set; }
+
+        /// <summary>
+        /// The list of consumers registered for this event.
+        /// </summary>
+        /// <remarks>
+        /// This is backed by a <see cref="HashSet{T}"/> to ensure no duplicates.
+        /// </remarks>
+        internal ICollection<EventConsumerRegistration> Consumers { get; set; } = new HashSet<EventConsumerRegistration>();
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj) => Equals(obj as EventRegistration);
+
+        /// <inheritdoc/>
+        public bool Equals(EventRegistration other)
+        {
+            return other != null && EqualityComparer<Type>.Default.Equals(EventType, other.EventType);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode() => EventType.GetHashCode();
+
+        ///
+        public static bool operator ==(EventRegistration left, EventRegistration right)
+        {
+            return EqualityComparer<EventRegistration>.Default.Equals(left, right);
+        }
+
+        ///
+        public static bool operator !=(EventRegistration left, EventRegistration right) => !(left == right);
     }
 }

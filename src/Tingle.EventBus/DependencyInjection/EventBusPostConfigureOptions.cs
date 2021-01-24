@@ -72,7 +72,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             }
 
-            // if the default transport name has not been set, and there is one registered, set it as default
+            // if the default transport name has not been set, and there is only one registered, set it as default
             if (string.IsNullOrWhiteSpace(options.DefaultTransportName))
             {
                 if (options.RegisteredTransportNames.Count == 1)
@@ -81,19 +81,18 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             }
 
-            // for each consumer registration, ensure we have everything set
-            var registrations = options.ConsumerRegistrations.Values;
-            foreach (var reg in registrations)
+            // setup names and transports for each event and its consumers
+            var registrations = options.Registrations.Values.ToList();
+            foreach (var evr in registrations)
             {
-                reg.SetSerializer() // set the serializer
-                   .SetEventName(options) // set the event name
-                   .SetTransportName(options) // set the transport name
-                   .SetConsumerName(options, environment); // set the consumer name
+                evr.SetSerializer() // set serializer
+                   .SetTransportName(options) // set transport name
+                   .SetEventName(options) // set event name
+                   .SetConsumerNames(options, environment); // set the consumer names
             }
 
             // ensure there are no events with the same name
-            var grouped = registrations.GroupBy(r => r.EventName);
-            var conflicted = grouped.FirstOrDefault(kvp => kvp.Count() > 1);
+            var conflicted = registrations.GroupBy(r => r.EventName).FirstOrDefault(kvp => kvp.Count() > 1);
             if (conflicted != null)
             {
                 var names = conflicted.Select(r => r.EventType.FullName);
@@ -101,14 +100,16 @@ namespace Microsoft.Extensions.DependencyInjection
                                                   + $" Types:\r\n- {string.Join("\r\n- ", names)}");
             }
 
-            // ensure there are no consumers with the same name
-            grouped = registrations.GroupBy(r => r.ConsumerName);
-            conflicted = grouped.FirstOrDefault(kvp => kvp.Count() > 1);
-            if (conflicted != null)
+            foreach (var evr in registrations)
             {
-                var names = conflicted.Select(r => $"{r.ConsumerType.FullName}[{r.EventType.Name}]");
-                throw new InvalidOperationException($"The consumer name '{conflicted.Key}' cannot be used more than once."
-                                                  + $" Types:\r\n- {string.Join("\r\n- ", names)}");
+                // ensure there are no consumers with the same name per event
+                var conflict = evr.Consumers.GroupBy(ecr => ecr.ConsumerName).FirstOrDefault(kvp => kvp.Count() > 1);
+                if (conflict != null)
+                {
+                    var names = conflict.Select(r => r.ConsumerType.FullName);
+                    throw new InvalidOperationException($"The consumer name '{conflict.Key}' cannot be used more than once on '{evr.EventType.Name}'."
+                                                      + $" Types:\r\n- {string.Join("\r\n- ", names)}");
+                }
             }
         }
     }

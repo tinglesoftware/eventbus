@@ -102,6 +102,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
         /// <inheritdoc/>
         public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                EventRegistration registration,
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
@@ -112,8 +113,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             // create channel, declare a fanout exchange
             using var channel = connection.CreateModel();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
-            var name = reg.EventName;
+            var name = registration.EventName;
             channel.ExchangeDeclare(exchange: name, type: "fanout");
 
             // serialize the event
@@ -121,7 +121,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             using var ms = new MemoryStream();
             await SerializeAsync(body: ms,
                                  @event: @event,
-                                 registration: reg,
+                                 registration: registration,
                                  scope: scope,
                                  cancellationToken: cancellationToken);
 
@@ -175,6 +175,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
         /// <inheritdoc/>
         public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       EventRegistration registration,
                                                                        DateTimeOffset? scheduled = null,
                                                                        CancellationToken cancellationToken = default)
         {
@@ -185,8 +186,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             // create channel, declare a fanout exchange
             using var channel = connection.CreateModel();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
-            var name = reg.EventName;
+            var name = registration.EventName;
             channel.ExchangeDeclare(exchange: name, type: "fanout");
 
             using var scope = CreateScope();
@@ -197,7 +197,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 using var ms = new MemoryStream();
                 await SerializeAsync(body: ms,
                                      @event: @event,
-                                     registration: reg,
+                                     registration: registration,
                                      scope: scope,
                                      cancellationToken: cancellationToken);
                 serializedEvents.Add((@event, @event.ContentType, ms.ToArray()));
@@ -255,13 +255,17 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        public override Task CancelAsync<TEvent>(string id,
+                                                 EventRegistration registration,
+                                                 CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("RabbitMQ does not support canceling published messages.");
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        public override Task CancelAsync<TEvent>(IList<string> ids,
+                                                 EventRegistration registration,
+                                                 CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("RabbitMQ does not support canceling published messages.");
         }
@@ -273,27 +277,34 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 await TryConnectAsync(cancellationToken);
             }
 
-            var registrations = GetConsumerRegistrations();
+            var registrations = GetRegistrations();
             Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
-            foreach (var reg in registrations)
+            foreach (var ereg in registrations)
             {
-                var exchangeName = reg.EventName;
-                var queueName = reg.ConsumerName;
-
-                var channel = await GetSubscriptionChannelAsync(exchangeName: exchangeName, queueName: queueName, cancellationToken);
-                var consumer = new AsyncEventingBasicConsumer(channel);
-                consumer.Received += delegate (object sender, BasicDeliverEventArgs @event)
+                var exchangeName = ereg.EventName;
+                foreach (var creg in ereg.Consumers)
                 {
-                    var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-                    var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
-                    var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
-                    return (Task)method.Invoke(this, new object[] { reg, channel, @event, CancellationToken.None, }); // do not chain CancellationToken
-                };
-                channel.BasicConsume(queue: queueName, autoAck: false, consumer);
+                    var queueName = creg.ConsumerName;
+
+                    var channel = await GetSubscriptionChannelAsync(exchangeName: exchangeName, queueName: queueName, cancellationToken);
+                    var consumer = new AsyncEventingBasicConsumer(channel);
+                    consumer.Received += delegate (object sender, BasicDeliverEventArgs @event)
+                    {
+                        var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+                        var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
+                        var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
+                        return (Task)method.Invoke(this, new object[] { ereg, creg, channel, @event, CancellationToken.None, }); // do not chain CancellationToken
+                    };
+                    channel.BasicConsume(queue: queueName, autoAck: false, consumer);
+                }
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, IModel channel, BasicDeliverEventArgs args, CancellationToken cancellationToken)
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration ereg,
+                                                                     EventConsumerRegistration creg,
+                                                                     IModel channel,
+                                                                     BasicDeliverEventArgs args,
+                                                                     CancellationToken cancellationToken)
             where TEvent : class
             where TConsumer : IEventConsumer<TEvent>
         {
@@ -313,7 +324,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
-            activity?.AddTag(ActivityTagNames.MessagingDestination, reg.ConsumerName);
+            activity?.AddTag(ActivityTagNames.MessagingDestination, creg.ConsumerName);
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // only queues are possible
 
             try
@@ -324,7 +335,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 var contentType = GetContentType(args.BasicProperties);
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
-                                                             registration: reg,
+                                                             registration: ereg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
                 Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",

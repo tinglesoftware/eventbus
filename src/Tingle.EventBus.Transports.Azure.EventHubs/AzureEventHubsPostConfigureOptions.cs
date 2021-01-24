@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             // if there are consumers for this transport, we must check azure blob storage
-            var consumers = busOptions.GetConsumerRegistrations(TransportNames.AzureEventHubs);
+            var consumers = busOptions.GetRegistrations(TransportNames.AzureEventHubs);
             if (consumers.Count > 0)
             {
                 // ensure the connection string for blob storage is valid

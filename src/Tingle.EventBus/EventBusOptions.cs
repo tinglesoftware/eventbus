@@ -82,8 +82,10 @@ namespace Tingle.EventBus
         /// </summary>
         internal HostInfo HostInfo { get; set; }
 
-        internal Dictionary<Type, EventRegistration> EventRegistrations { get; } = new Dictionary<Type, EventRegistration>();
-        internal Dictionary<Type, ConsumerRegistration> ConsumerRegistrations { get; } = new Dictionary<Type, ConsumerRegistration>();
+        /// <summary>
+        /// The registrations for events and consumers for the EventBus.
+        /// </summary>
+        internal Dictionary<Type, EventRegistration> Registrations { get; } = new Dictionary<Type, EventRegistration>();
 
         /// <summary>
         /// Gets or sets the name of the default transport.
@@ -92,7 +94,7 @@ namespace Tingle.EventBus
         public string DefaultTransportName { get; set; }
 
         /// <summary>
-        /// The list of registered transport names.
+        /// The map of registered transport names to their types.
         /// </summary>
         internal Dictionary<string, Type> RegisteredTransportNames { get; } = new Dictionary<string, Type>();
 

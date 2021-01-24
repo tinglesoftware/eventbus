@@ -7,7 +7,7 @@ using Tingle.EventBus.Serialization;
 namespace Tingle.EventBus.Registrations
 {
     /// <summary>
-    /// Extension methods on <see cref="EventRegistration"/> and <see cref="ConsumerRegistration"/>.
+    /// Extension methods on <see cref="EventRegistration"/> and <see cref="EventConsumerRegistration"/>.
     /// </summary>
     public static class RegistrationExtensions
     {
@@ -15,43 +15,7 @@ namespace Tingle.EventBus.Registrations
         private static readonly Regex replacePattern = new Regex("[^a-zA-Z0-9-_]", RegexOptions.Compiled);
         private static readonly Regex trimPattern = new Regex("(Event|Consumer|EventConsumer)$", RegexOptions.Compiled);
 
-        internal static ConsumerRegistration SetConsumerName(this ConsumerRegistration reg,
-                                                             EventBusOptions options,
-                                                             IHostEnvironment environment)
-        {
-            if (reg is null) throw new ArgumentNullException(nameof(reg));
-            if (options is null) throw new ArgumentNullException(nameof(options));
-            if (environment is null) throw new ArgumentNullException(nameof(environment));
-
-            // set the consumer name, if not set
-            if (string.IsNullOrWhiteSpace(reg.ConsumerName))
-            {
-                var type = reg.ConsumerType;
-                // prioritize the attribute if available, otherwise get the type name
-                var cname = type.GetCustomAttributes(false).OfType<ConsumerNameAttribute>().SingleOrDefault()?.ConsumerName;
-                if (cname == null)
-                {
-                    var typeName = options.UseFullTypeNames ? type.FullName : type.Name;
-                    typeName = options.TrimCommonSuffixes(typeName);
-                    cname = options.ConsumerNameSource switch
-                    {
-                        ConsumerNameSource.TypeName => typeName,
-                        ConsumerNameSource.ApplicationName => environment.ApplicationName,
-                        ConsumerNameSource.ApplicationAndTypeName => $"{environment.ApplicationName}.{typeName}",
-                        _ => throw new InvalidOperationException($"'{nameof(options.ConsumerNameSource)}.{options.ConsumerNameSource}' is not supported"),
-                    };
-                    cname = ApplyNamingConvention(cname, options.NamingConvention);
-                    cname = AppendScope(cname, options.NamingConvention, options.Scope);
-                    cname = ReplaceInvalidCharacters(cname, options.NamingConvention);
-                }
-                // Append EventName to ensure consumer name is unique
-                reg.ConsumerName = Join(options.NamingConvention, cname, reg.EventName);
-            }
-
-            return reg;
-        }
-
-        internal static T SetEventName<T>(this T reg, EventBusOptions options) where T : EventRegistration
+        internal static EventRegistration SetEventName(this EventRegistration reg, EventBusOptions options)
         {
             if (reg is null) throw new ArgumentNullException(nameof(reg));
             if (options is null) throw new ArgumentNullException(nameof(options));
@@ -72,6 +36,51 @@ namespace Tingle.EventBus.Registrations
                     ename = ReplaceInvalidCharacters(ename, options.NamingConvention);
                 }
                 reg.EventName = ename;
+            }
+
+            return reg;
+        }
+
+        internal static EventRegistration SetConsumerNames(this EventRegistration reg,
+                                                           EventBusOptions options,
+                                                           IHostEnvironment environment)
+        {
+            if (reg is null) throw new ArgumentNullException(nameof(reg));
+            if (options is null) throw new ArgumentNullException(nameof(options));
+            if (environment is null) throw new ArgumentNullException(nameof(environment));
+
+            // ensure we have the event name set
+            if (string.IsNullOrWhiteSpace(reg.EventName))
+            {
+                throw new InvalidOperationException($"The {nameof(reg.EventName)} for must be set before setting names of the consumer.");
+            }
+
+            foreach (var creg in reg.Consumers)
+            {
+                // set the consumer name, if not set
+                if (string.IsNullOrWhiteSpace(creg.ConsumerName))
+                {
+                    var type = creg.ConsumerType;
+                    // prioritize the attribute if available, otherwise get the type name
+                    var cname = type.GetCustomAttributes(false).OfType<ConsumerNameAttribute>().SingleOrDefault()?.ConsumerName;
+                    if (cname == null)
+                    {
+                        var typeName = options.UseFullTypeNames ? type.FullName : type.Name;
+                        typeName = options.TrimCommonSuffixes(typeName);
+                        cname = options.ConsumerNameSource switch
+                        {
+                            ConsumerNameSource.TypeName => typeName,
+                            ConsumerNameSource.ApplicationName => environment.ApplicationName,
+                            ConsumerNameSource.ApplicationAndTypeName => $"{environment.ApplicationName}.{typeName}",
+                            _ => throw new InvalidOperationException($"'{nameof(options.ConsumerNameSource)}.{options.ConsumerNameSource}' is not supported"),
+                        };
+                        cname = ApplyNamingConvention(cname, options.NamingConvention);
+                        cname = AppendScope(cname, options.NamingConvention, options.Scope);
+                        cname = ReplaceInvalidCharacters(cname, options.NamingConvention);
+                    }
+                    // Append EventName to ensure consumer name is unique
+                    creg.ConsumerName = Join(options.NamingConvention, cname, reg.EventName);
+                }
             }
 
             return reg;

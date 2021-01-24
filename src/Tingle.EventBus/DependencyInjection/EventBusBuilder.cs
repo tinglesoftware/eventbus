@@ -160,14 +160,14 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 foreach (var et in eventTypes)
                 {
-                    // if the type is already mapped to another consumer, throw meaningful exception
-                    if (options.ConsumerRegistrations.TryGetValue(et, out var ct)
-                        && ct.ConsumerType != consumerType)
+                    // get or create a simple registration
+                    if (!options.Registrations.TryGetValue(et, out var registration))
                     {
-                        throw new InvalidOperationException($"{et.FullName} cannot be mapped to {consumerType.FullName} as it is already mapped to {ct.ConsumerType.FullName}");
+                        registration = options.Registrations[et] = new EventRegistration(et);
                     }
 
-                    options.ConsumerRegistrations[et] = new ConsumerRegistration(eventType: et, consumerType: consumerType);
+                    // add the consumer to the registration
+                    registration.Consumers.Add(new EventConsumerRegistration(consumerType: consumerType));
                 }
             });
         }
@@ -182,31 +182,35 @@ namespace Microsoft.Extensions.DependencyInjection
             // Deregister from services collection
             Services.RemoveAll<TConsumer>();
 
+            // Remove the event types
             return Configure(options =>
             {
-                var types = options.ConsumerRegistrations.Where(kvp => kvp.Value.ConsumerType == typeof(TConsumer))
-                                                      .Select(kvp => kvp.Key)
-                                                      .ToList();
-                foreach (var r in types)
+                var ct = typeof(TConsumer);
+                foreach (var registration in options.Registrations.Values)
                 {
-                    options.ConsumerRegistrations.Remove(r);
+                    var target = registration.Consumers.SingleOrDefault(c => c.ConsumerType == ct);
+                    if (target != null)
+                    {
+                        registration.Consumers.Remove(target);
+                    }
                 }
             });
         }
 
         /// <summary>
-        /// Configure the <see cref="ConsumerRegistration"/> for <typeparamref name="TEvent"/>.
+        /// Configure the <see cref="EventConsumerRegistration"/> for <typeparamref name="TConsumer"/>.
         /// </summary>
-        /// <typeparam name="TEvent">The event to configure for</typeparam>
+        /// <typeparam name="TEvent">The event in the consumer to configure for.</typeparam>
+        /// <typeparam name="TConsumer">The consumer to configure.</typeparam>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public EventBusBuilder ConfigureConsumer<TEvent>(Action<ConsumerRegistration> configure)
+        public EventBusBuilder ConfigureConsumer<TEvent, TConsumer>(Action<EventConsumerRegistration> configure) where TConsumer : class, IEventConsumer
         {
             if (configure is null) throw new ArgumentNullException(nameof(configure));
 
             return Configure(options =>
             {
-                if (options.TryGetConsumerRegistration<TEvent>(out var registration))
+                if (options.TryGetConsumerRegistration<TEvent, TConsumer>(out var registration))
                 {
                     configure(registration);
                 }
@@ -225,7 +229,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return Configure(options =>
             {
-                var registration = options.GetOrCreateEventRegistration<TEvent>();
+                var registration = options.GetOrCreateRegistration<TEvent>();
                 configure(registration);
             });
         }

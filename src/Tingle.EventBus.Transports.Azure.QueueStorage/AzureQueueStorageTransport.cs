@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Mime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,12 +58,15 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         /// <inheritdoc/>
         public override Task StartAsync(CancellationToken cancellationToken)
         {
-            var registrations = GetConsumerRegistrations();
+            var registrations = GetRegistrations();
             Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
-            foreach (var reg in registrations)
+            foreach (var ereg in registrations)
             {
-                var t = ReceiveAsync(reg: reg, cancellationToken: stoppingCts.Token);
-                receiverTasks.Add(t);
+                foreach (var creg in ereg.Consumers)
+                {
+                    var t = ReceiveAsync(ereg: ereg, creg: creg, cancellationToken: stoppingCts.Token);
+                    receiverTasks.Add(t);
+                }
             }
 
             return Task.CompletedTask;
@@ -93,15 +95,15 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
         /// <inheritdoc/>
         public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                EventRegistration registration,
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
             await SerializeAsync(body: ms,
                                  @event: @event,
-                                 registration: reg,
+                                 registration: registration,
                                  scope: scope,
                                  cancellationToken: cancellationToken);
 
@@ -113,7 +115,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             var ttl = @event.Expires - DateTimeOffset.UtcNow;
 
             // get the queue client and send the message
-            var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
             var message = Encoding.UTF8.GetString(ms.ToArray());
             Logger.LogInformation("Sending {Id} to '{QueueName}'. Scheduled: {Scheduled}", @event.Id, queueClient.Name, scheduled);
             var response = await queueClient.SendMessageAsync(messageText: message,
@@ -127,6 +129,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
         /// <inheritdoc/>
         public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       EventRegistration registration,
                                                                        DateTimeOffset? scheduled = null,
                                                                        CancellationToken cancellationToken = default)
         {
@@ -136,15 +139,14 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             using var scope = CreateScope();
 
             // work on each event
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             var sequenceNumbers = new List<string>();
-            var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
                 await SerializeAsync(body: ms,
                                      @event: @event,
-                                     registration: reg,
+                                     registration: registration,
                                      scope: scope,
                                      cancellationToken: cancellationToken);
                 // if scheduled for later, calculate the visibility timeout
@@ -169,15 +171,16 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        public override async Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        public override async Task CancelAsync<TEvent>(string id,
+                                                       EventRegistration registration,
+                                                       CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentException($"'{nameof(id)}' cannot be null or whitespace", nameof(id));
             }
 
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
-            var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
             var parts = id.Split(SequenceNumberSeparator);
             string messageId = parts[0], popReceipt = parts[1];
             Logger.LogInformation("Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'", messageId, popReceipt, queueClient.Name);
@@ -187,7 +190,9 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        public override async Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        public override async Task CancelAsync<TEvent>(IList<string> ids,
+                                                       EventRegistration registration,
+                                                       CancellationToken cancellationToken = default)
         {
             if (ids is null)
             {
@@ -203,8 +208,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             // log warning when doing batch
             Logger.LogWarning("Azure Queue Storage does not support batching. The events will be canceled one by one");
 
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
-            var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
             foreach (var (messageId, popReceipt) in splits)
             {
                 Logger.LogInformation("Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'", messageId, popReceipt, queueClient.Name);
@@ -259,13 +263,13 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             }
         }
 
-        private async Task ReceiveAsync(ConsumerRegistration reg, CancellationToken cancellationToken)
+        private async Task ReceiveAsync(EventRegistration ereg, EventConsumerRegistration creg, CancellationToken cancellationToken)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
             var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
-            var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
+            var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
 
-            var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            var queueClient = await GetQueueClientAsync(reg: ereg, deadletter: false, cancellationToken: cancellationToken);
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -287,7 +291,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                         using var scope = CreateScope(); // shared
                         foreach (var message in messages)
                         {
-                            await (Task)method.Invoke(this, new object[] { reg, queueClient, message, scope, cancellationToken, });
+                            await (Task)method.Invoke(this, new object[] { ereg, queueClient, message, scope, cancellationToken, });
                         }
                     }
                 }
@@ -304,7 +308,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg,
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
                                                                      QueueClient queueClient,
                                                                      QueueMessage message,
                                                                      IServiceScope scope,

@@ -69,13 +69,22 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         /// <inheritdoc/>
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            var registrations = GetConsumerRegistrations();
+            var registrations = GetRegistrations();
             Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
-            foreach (var reg in registrations)
+            foreach (var ereg in registrations)
             {
-                var queueUrl = await GetQueueUrlAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
-                var t = ReceiveAsync(reg: reg, queueUrl: queueUrl, cancellationToken: stoppingCts.Token);
-                receiverTasks.Add(t);
+                foreach (var creg in ereg.Consumers)
+                {
+                    var queueUrl = await GetQueueUrlAsync(ereg: ereg,
+                                                          creg: creg,
+                                                          deadletter: false,
+                                                          cancellationToken: cancellationToken);
+                    var t = ReceiveAsync(ereg: ereg,
+                                         creg: creg,
+                                         queueUrl: queueUrl,
+                                         cancellationToken: stoppingCts.Token);
+                    receiverTasks.Add(t);
+                }
             }
         }
 
@@ -102,6 +111,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
 
         /// <inheritdoc/>
         public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                EventRegistration registration,
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
@@ -112,16 +122,15 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             }
 
             using var scope = CreateScope();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
             await SerializeAsync(body: ms,
                                  @event: @event,
-                                 registration: reg,
+                                 registration: registration,
                                  scope: scope,
                                  cancellationToken: cancellationToken);
 
             // get the topic arn and send the message
-            var topicArn = await GetTopicArnAsync(reg, cancellationToken);
+            var topicArn = await GetTopicArnAsync(registration, cancellationToken);
             var message = Encoding.UTF8.GetString(ms.ToArray());
             var request = new PublishRequest(topicArn: topicArn, message: message);
             request.SetAttribute(AttributeNames.ContentType, @event.ContentType.ToString())
@@ -139,6 +148,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
 
         /// <inheritdoc/>
         public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       EventRegistration registration,
                                                                        DateTimeOffset? scheduled = null,
                                                                        CancellationToken cancellationToken = default)
         {
@@ -152,7 +162,6 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             }
 
             using var scope = CreateScope();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             var sequenceNumbers = new List<string>();
 
             // work on each event
@@ -161,12 +170,12 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 using var ms = new MemoryStream();
                 await SerializeAsync(body: ms,
                                      @event: @event,
-                                     registration: reg,
+                                     registration: registration,
                                      scope: scope,
                                      cancellationToken: cancellationToken);
 
                 // get the topic arn and send the message
-                var topicArn = await GetTopicArnAsync(reg, cancellationToken);
+                var topicArn = await GetTopicArnAsync(registration, cancellationToken);
                 var message = Encoding.UTF8.GetString(ms.ToArray());
                 var request = new PublishRequest(topicArn: topicArn, message: message);
                 request.SetAttribute(AttributeNames.ContentType, @event.ContentType.ToString())
@@ -188,13 +197,17 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
 
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        public override Task CancelAsync<TEvent>(string id,
+                                                 EventRegistration registration,
+                                                 CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("Amazon SNS does not support canceling published messages.");
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        public override Task CancelAsync<TEvent>(IList<string> ids,
+                                                 EventRegistration registration,
+                                                 CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("Amazon SNS does not support canceling published messages.");
         }
@@ -221,14 +234,14 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             }
         }
 
-        private async Task<string> GetQueueUrlAsync(ConsumerRegistration reg, bool deadletter, CancellationToken cancellationToken)
+        private async Task<string> GetQueueUrlAsync(EventRegistration ereg, EventConsumerRegistration creg, bool deadletter, CancellationToken cancellationToken)
         {
             await queueUrlsCacheLock.WaitAsync(cancellationToken);
 
             try
             {
-                var topicName = reg.EventName;
-                var queueName = reg.ConsumerName;
+                var topicName = ereg.EventName;
+                var queueName = creg.ConsumerName;
                 if (deadletter) queueName += TransportOptions.DeadLetterSuffix;
 
                 var key = $"{topicName}/{queueName}";
@@ -300,11 +313,11 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             return response.QueueUrl;
         }
 
-        private async Task ReceiveAsync(ConsumerRegistration reg, string queueUrl, CancellationToken cancellationToken)
+        private async Task ReceiveAsync(EventRegistration ereg, EventConsumerRegistration creg, string queueUrl, CancellationToken cancellationToken)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
             var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
-            var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
+            var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -327,7 +340,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                         using var scope = CreateScope(); // shared
                         foreach (var message in messages)
                         {
-                            await (Task)method.Invoke(this, new object[] { reg, queueUrl, message, cancellationToken, });
+                            await (Task)method.Invoke(this, new object[] { ereg, creg, queueUrl, message, cancellationToken, });
                         }
                     }
                 }
@@ -344,7 +357,8 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg,
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration ereg,
+                                                                     EventConsumerRegistration creg,
                                                                      string queueUrl,
                                                                      Message message,
                                                                      CancellationToken cancellationToken)
@@ -363,7 +377,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
-            activity?.AddTag(ActivityTagNames.MessagingDestination, reg.EventName);
+            activity?.AddTag(ActivityTagNames.MessagingDestination, ereg.EventName);
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
             activity?.AddTag(ActivityTagNames.MessagingUrl, queueUrl);
 
@@ -377,7 +391,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 using var scope = CreateScope();
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
-                                                             registration: reg,
+                                                             registration: ereg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
 
@@ -394,7 +408,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
 
                 // get the queueUrl for the dead letter queue and send the mesage there
-                var dlqQueueUrl = await GetQueueUrlAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
+                var dlqQueueUrl = await GetQueueUrlAsync(ereg: ereg, creg: creg, deadletter: true, cancellationToken: cancellationToken);
                 var dlqRequest = new SendMessageRequest
                 {
                     MessageAttributes = message.MessageAttributes,

@@ -20,14 +20,16 @@ namespace Tingle.EventBus.Transports.Kafka
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Kafka.
     /// </summary>
     [TransportName(TransportNames.Kafka)]
-    public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>
+#pragma warning disable CA1063 // Implement IDisposable Correctly
+    public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDisposable
     {
         // the timeout used for non-async operations
         private static readonly TimeSpan StandardTimeout = TimeSpan.FromSeconds(30);
 
         private readonly IProducer<string, byte[]> producer; // producer instance is thread safe thus can be shared, and across topics
         private readonly IConsumer<string, byte[]> consumer; // consumer instance is thread safe thus can be shared, and across topics
-        private readonly CancellationTokenSource receiveCancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource stoppingCts = new CancellationTokenSource();
+        private readonly List<Task> receiverTasks = new List<Task>();
         private readonly IAdminClient adminClient;
 
         /// <summary>
@@ -80,33 +82,47 @@ namespace Tingle.EventBus.Transports.Kafka
         /// <inheritdoc/>
         public override Task StartAsync(CancellationToken cancellationToken)
         {
-            var registrations = GetConsumerRegistrations();
+            var registrations = GetRegistrations();
             Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
-            var topics = registrations.Select(r => r.EventName).ToList();
+            var topics = registrations.Where(r => r.Consumers.Count > 0) // filter out those with consumers
+                                      .Select(r => r.EventName) // pick the event name which is also the topic name
+                                      .ToList();
             // only consume if there are topics to subscribe to
             if (topics.Count > 0)
             {
                 consumer.Subscribe(topics);
-                _ = ProcessAsync();
+                _ = ProcessAsync(cancellationToken: stoppingCts.Token);
             }
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
-        public override Task StopAsync(CancellationToken cancellationToken)
+        public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            // cancel receivers
             Logger.StoppingTransport();
-            receiveCancellationTokenSource.Cancel();
 
-            // ensure all outstanding produce requests are processed
-            producer.Flush(cancellationToken);
+            // Stop called without start or there was no consumers registered
+            if (receiverTasks.Count == 0) return;
 
-            return Task.CompletedTask;
+            try
+            {
+                // ensure all outstanding produce requests are processed
+                producer.Flush(cancellationToken);
+
+                // Signal cancellation to the executing methods/tasks
+                stoppingCts.Cancel();
+            }
+            finally
+            {
+                // Wait until the tasks complete or the stop token triggers
+                var tasks = receiverTasks.Concat(new[] { Task.Delay(Timeout.Infinite, cancellationToken), });
+                await Task.WhenAny(tasks);
+            }
         }
 
         /// <inheritdoc/>
         public async override Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                EventRegistration registration,
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
@@ -117,11 +133,10 @@ namespace Tingle.EventBus.Transports.Kafka
             }
 
             using var scope = CreateScope();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
             await SerializeAsync(body: ms,
                                  @event: @event,
-                                 registration: reg,
+                                 registration: registration,
                                  scope: scope,
                                  cancellationToken: cancellationToken);
 
@@ -136,7 +151,7 @@ namespace Tingle.EventBus.Transports.Kafka
             message.Value = ms.ToArray();
 
             // send the event
-            var topic = reg.EventName;
+            var topic = registration.EventName;
             var result = await producer.ProduceAsync(topic: topic, message: message, cancellationToken: cancellationToken);
             // Should we check persistence status?
 
@@ -146,6 +161,7 @@ namespace Tingle.EventBus.Transports.Kafka
 
         /// <inheritdoc/>
         public async override Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       EventRegistration registration,
                                                                        DateTimeOffset? scheduled = null,
                                                                        CancellationToken cancellationToken = default)
         {
@@ -159,7 +175,6 @@ namespace Tingle.EventBus.Transports.Kafka
             }
 
             using var scope = CreateScope();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             var sequenceNumbers = new List<string>();
 
             // work on each event
@@ -168,7 +183,7 @@ namespace Tingle.EventBus.Transports.Kafka
                 using var ms = new MemoryStream();
                 await SerializeAsync(body: ms,
                                      @event: @event,
-                                     registration: reg,
+                                     registration: registration,
                                      scope: scope,
                                      cancellationToken: cancellationToken);
 
@@ -183,7 +198,7 @@ namespace Tingle.EventBus.Transports.Kafka
                 message.Value = ms.ToArray();
 
                 // send the event
-                var topic = reg.EventName;
+                var topic = registration.EventName;
                 var result = await producer.ProduceAsync(topic: topic, message: message, cancellationToken: cancellationToken);
                 // Should we check persistence status?
 
@@ -196,61 +211,78 @@ namespace Tingle.EventBus.Transports.Kafka
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        public override Task CancelAsync<TEvent>(string id,
+                                                 EventRegistration registration,
+                                                 CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("Kafka does not support canceling published events.");
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        public override Task CancelAsync<TEvent>(IList<string> ids,
+                                                 EventRegistration registration,
+                                                 CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("Kafka does not support canceling published events.");
         }
 
-        private async Task ProcessAsync()
+        private async Task ProcessAsync(CancellationToken cancellationToken)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
             var mt = GetType().GetMethod(nameof(OnEventReceivedAsync), flags);
-            var cancellationToken = receiveCancellationTokenSource.Token;
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                var result = consumer.Consume(cancellationToken);
-                if (result.IsPartitionEOF)
+                try
                 {
-                    Logger.LogTrace("Reached end of topic {Topic}, Partition:{Partition}, Offset:{Offset}.",
-                                    result.Topic,
-                                    result.Partition,
-                                    result.Offset);
-                    continue;
+                    var result = consumer.Consume(cancellationToken);
+                    if (result.IsPartitionEOF)
+                    {
+                        Logger.LogTrace("Reached end of topic {Topic}, Partition:{Partition}, Offset:{Offset}.",
+                                        result.Topic,
+                                        result.Partition,
+                                        result.Offset);
+                        continue;
+                    }
+
+                    Logger.LogDebug("Received message at {TopicPartitionOffset}", result.TopicPartitionOffset);
+
+                    // get the registration for topic
+                    var topic = result.Topic;
+                    var reg = GetRegistrations().Single(r => r.EventName == topic);
+
+                    // form the generic method
+                    var consumerType = reg.Consumers.Single().ConsumerType; // only one consumer per event
+                    var method = mt.MakeGenericMethod(reg.EventType, consumerType);
+                    await (Task)method.Invoke(this, new object[] { reg, result.Message, cancellationToken, });
+
+
+                    // if configured to checkpoint at intervals, respect it
+                    if ((result.Offset % TransportOptions.CheckpointInterval) == 0)
+                    {
+                        // The Commit method sends a "commit offsets" request to the Kafka
+                        // cluster and synchronously waits for the response. This is very
+                        // slow compared to the rate at which the consumer is capable of
+                        // consuming messages. A high performance application will typically
+                        // commit offsets relatively infrequently and be designed handle
+                        // duplicate messages in the event of failure.
+                        consumer.Commit(result);
+                    }
                 }
-
-                Logger.LogDebug("Received message at {TopicPartitionOffset}", result.TopicPartitionOffset);
-
-                // get the registration for topic
-                var topic = result.Topic;
-                var reg = GetConsumerRegistrations().Single(r => r.EventName == topic);
-
-                // form the generic method
-                var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
-                await (Task)method.Invoke(this, new object[] { reg, result.Message, cancellationToken, });
-
-
-                // if configured to checkpoint at intervals, respect it
-                if ((result.Offset % TransportOptions.CheckpointInterval) == 0)
+                catch (TaskCanceledException)
                 {
-                    // The Commit method sends a "commit offsets" request to the Kafka
-                    // cluster and synchronously waits for the response. This is very
-                    // slow compared to the rate at which the consumer is capable of
-                    // consuming messages. A high performance application will typically
-                    // commit offsets relatively infrequently and be designed handle
-                    // duplicate messages in the event of failure.
-                    consumer.Commit(result);
+                    // Ignore
+                    // Thrown from inside Task.Delay(...) if cancellation token is canceled
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ignore
+                    // Thrown from calls to cancellationToken.ThrowIfCancellationRequested(...)
                 }
             }
         }
 
-        private async Task OnEventReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg,
+        private async Task OnEventReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
                                                                    Message<string, byte[]> message,
                                                                    CancellationToken cancellationToken)
             where TEvent : class
@@ -296,5 +328,12 @@ namespace Tingle.EventBus.Transports.Kafka
                 await producer.ProduceAsync(topic: dlt, message: message, cancellationToken: cancellationToken);
             }
         }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            stoppingCts.Cancel();
+        }
+#pragma warning restore CA1063 // Implement IDisposable Correctly
     }
 }

@@ -71,13 +71,7 @@ namespace Tingle.EventBus.Transports.InMemory
         public override Task<bool> CheckHealthAsync(Dictionary<string, object> data,
                                                     CancellationToken cancellationToken = default)
         {
-            var registrations = GetConsumerRegistrations();
-            foreach (var reg in registrations)
-            {
-                var t = ReceiveAsync(reg: reg, cancellationToken: stoppingCts.Token);
-                receiverTasks.Add(t);
-            }
-
+            // InMemory is always healthy
             return Task.FromResult(true);
         }
 
@@ -89,12 +83,15 @@ namespace Tingle.EventBus.Transports.InMemory
                 throw new InvalidOperationException("The bus has already been started.");
             }
 
-            var registrations = GetConsumerRegistrations();
+            var registrations = GetRegistrations();
             Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
-            foreach (var reg in registrations)
+            foreach (var ereg in registrations)
             {
-                var t = ReceiveAsync(reg: reg, cancellationToken: stoppingCts.Token);
-                receiverTasks.Add(t);
+                foreach (var creg in ereg.Consumers)
+                {
+                    var t = ReceiveAsync(ereg: ereg, creg: creg, cancellationToken: stoppingCts.Token);
+                    receiverTasks.Add(t);
+                }
             }
 
             return Task.CompletedTask;
@@ -123,6 +120,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
         /// <inheritdoc/>
         public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                EventRegistration registration,
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
@@ -133,11 +131,10 @@ namespace Tingle.EventBus.Transports.InMemory
             }
 
             using var scope = CreateScope();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
             await SerializeAsync(body: ms,
                                  @event: @event,
-                                 registration: reg,
+                                 registration: registration,
                                  scope: scope,
                                  cancellationToken: cancellationToken);
 
@@ -157,7 +154,7 @@ namespace Tingle.EventBus.Transports.InMemory
             published.Add(@event);
 
             // Get the queue and send the message accordingly
-            var queueEntity = await GetQueueAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            var queueEntity = await GetQueueAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
             Logger.LogInformation("Sending {Id} to '{QueueName}'. Scheduled: {Scheduled}",
                                   @event.Id,
                                   queueEntity.Name,
@@ -180,6 +177,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
         /// <inheritdoc/>
         public async override Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       EventRegistration registration,
                                                                        DateTimeOffset? scheduled = null,
                                                                        CancellationToken cancellationToken = default)
         {
@@ -191,14 +189,13 @@ namespace Tingle.EventBus.Transports.InMemory
 
             using var scope = CreateScope();
             var messages = new List<InMemoryQueueMessage>();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
 
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
                 await SerializeAsync(body: ms,
                                      @event: @event,
-                                     registration: reg,
+                                     registration: registration,
                                      scope: scope,
                                      cancellationToken: cancellationToken);
 
@@ -221,7 +218,7 @@ namespace Tingle.EventBus.Transports.InMemory
             published.AddBatch(events);
 
             // Get the queue and send the message accordingly
-            var queueEntity = await GetQueueAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            var queueEntity = await GetQueueAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
             Logger.LogInformation("Sending {EventsCount} messages to '{EntityPath}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
                                   events.Count,
                                   queueEntity.Name,
@@ -244,13 +241,17 @@ namespace Tingle.EventBus.Transports.InMemory
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        public override Task CancelAsync<TEvent>(string id,
+                                                 EventRegistration registration,
+                                                 CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("InMemory transport does not support canceling published messages.");
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        public override Task CancelAsync<TEvent>(IList<string> ids,
+                                                 EventRegistration registration,
+                                                 CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("InMemory transport does not support canceling published messages.");
         }
@@ -279,13 +280,13 @@ namespace Tingle.EventBus.Transports.InMemory
             }
         }
 
-        private async Task ReceiveAsync(ConsumerRegistration reg, CancellationToken cancellationToken)
+        private async Task ReceiveAsync(EventRegistration ereg, EventConsumerRegistration creg, CancellationToken cancellationToken)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
             var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
-            var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
+            var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
 
-            var queueEntity = await GetQueueAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            var queueEntity = await GetQueueAsync(reg: ereg, deadletter: false, cancellationToken: cancellationToken);
             var queueName = queueEntity.Name;
 
             while (!cancellationToken.IsCancellationRequested)
@@ -295,7 +296,7 @@ namespace Tingle.EventBus.Transports.InMemory
                     var message = await queueEntity.DequeueAsync(cancellationToken);
                     Logger.LogDebug("Received a message on '{QueueName}'", queueName);
                     using var scope = CreateScope(); // shared
-                    await (Task)method.Invoke(this, new object[] { reg, queueEntity, message, scope, cancellationToken, });
+                    await (Task)method.Invoke(this, new object[] { ereg, queueEntity, message, scope, cancellationToken, });
                 }
                 catch (TaskCanceledException)
                 {
@@ -310,7 +311,7 @@ namespace Tingle.EventBus.Transports.InMemory
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg,
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
                                                                      InMemoryQueueEntity queueEntity,
                                                                      InMemoryQueueMessage message,
                                                                      IServiceScope scope,

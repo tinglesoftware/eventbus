@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Tingle.EventBus.Registrations;
 
@@ -12,27 +13,31 @@ namespace Tingle.EventBus
         /// <summary>
         /// Get or create the event registration for a given event type.
         /// </summary>
+        /// <param name="options">The instance of <see cref="EventBusOptions"/> to use.</param>
+        /// <param name="eventType">The type of the event.</param>
+        /// <returns></returns>
+        /// <exception cref="KeyNotFoundException">The given event type does not have any event registered.</exception>
+        internal static EventRegistration GetOrCreateRegistration(this EventBusOptions options, Type eventType)
+        {
+            // if there's already a registration for the event return it
+            if (options.Registrations.TryGetValue(key: eventType, out var registration)) return registration;
+
+            // at this point, the registration does not exist; create it and add to the registrations for repeated use
+            registration = new EventRegistration(eventType);
+            registration.SetSerializer() // set serializer
+                        .SetEventName(options) // set event name
+                        .SetTransportName(options); // set transport name
+            return options.Registrations[eventType] = registration;
+        }
+
+        /// <summary>
+        /// Get or create the event registration for a given event type.
+        /// </summary>
         /// <typeparam name="TEvent">The event type to retrieve an <see cref="EventRegistration"/> for.</typeparam>
         /// <param name="options">The instance of <see cref="EventBusOptions"/> to use.</param>
         /// <returns></returns>
         /// <exception cref="KeyNotFoundException">The given event type does not have any event registered.</exception>
-        public static EventRegistration GetOrCreateEventRegistration<TEvent>(this EventBusOptions options)
-        {
-            var key = typeof(TEvent);
-
-            // if there's already a registration for the event return it
-            if (options.EventRegistrations.TryGetValue(key: key, out var registration)) return registration;
-
-            // if there's a registration for the consumer with the same event, return it
-            if (options.TryGetConsumerRegistration<TEvent>(out var c_reg)) return c_reg;
-
-            // at this point, the registration does not exist; create it and add to the registrations
-            registration = new EventRegistration(key);
-            registration.SetSerializer() // set serializer
-                        .SetEventName(options) // set event name
-                        .SetTransportName(options); // set transport name
-            return options.EventRegistrations[key] = registration;
-        }
+        internal static EventRegistration GetOrCreateRegistration<TEvent>(this EventBusOptions options) => options.GetOrCreateRegistration(typeof(TEvent));
 
         /// <summary>
         /// Gets the consumer registrations for a given transport.
@@ -40,33 +45,22 @@ namespace Tingle.EventBus
         /// <param name="options">The instance of <see cref="EventBusOptions"/> to use.</param>
         /// <param name="transportName">The name of the transport for whom to get registered consumers.</param>
         /// <returns></returns>
-        public static ICollection<ConsumerRegistration> GetConsumerRegistrations(this EventBusOptions options, string transportName)
+        public static ICollection<EventRegistration> GetRegistrations(this EventBusOptions options, string transportName) // TODO: rename to GetEventRegistrations()?
         {
             if (string.IsNullOrWhiteSpace(transportName))
             {
-                throw new System.ArgumentException($"'{nameof(transportName)}' cannot be null or whitespace", nameof(transportName));
+                throw new ArgumentException($"'{nameof(transportName)}' cannot be null or whitespace", nameof(transportName));
             }
 
             // filter out the consumers where the event is set for the given transport
-            return options.ConsumerRegistrations.Values.Where(r => r.TransportName == transportName).ToList();
+            return options.Registrations.Values.Where(r => r.TransportName == transportName).ToList();
         }
 
         /// <summary>
-        /// Get the consumer registration for a given event type.
+        /// Get the consumer registration in a given event type.
         /// </summary>
-        /// <typeparam name="TEvent">The event type to retrieve a <see cref="ConsumerRegistration"/> for.</typeparam>
-        /// <param name="options">The instance of <see cref="EventBusOptions"/> to use.</param>
-        /// <returns></returns>
-        /// <exception cref="KeyNotFoundException">The given event type does not have any consumer registered.</exception>
-        public static ConsumerRegistration GetConsumerRegistration<TEvent>(this EventBusOptions options)
-        {
-            return options.ConsumerRegistrations[typeof(TEvent)];
-        }
-
-        /// <summary>
-        /// Get the consumer registration for a given event type.
-        /// </summary>
-        /// <typeparam name="TEvent">The event type to retrieve a <see cref="ConsumerRegistration"/> for.</typeparam>
+        /// <typeparam name="TEvent">The event type from wich to retrieve a <see cref="EventConsumerRegistration"/> for.</typeparam>
+        /// <typeparam name="TConsumer">The consumer to configure.</typeparam>
         /// <param name="options">The instance of <see cref="EventBusOptions"/> to use.</param>
         /// <param name="registration">
         /// When this method returns, contains the consumer registration associated with the specified event type,
@@ -74,9 +68,15 @@ namespace Tingle.EventBus
         /// This parameter is passed uninitialized.
         /// </param>
         /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
-        public static bool TryGetConsumerRegistration<TEvent>(this EventBusOptions options, out ConsumerRegistration registration)
+        public static bool TryGetConsumerRegistration<TEvent, TConsumer>(this EventBusOptions options, out EventConsumerRegistration registration)
         {
-            return options.ConsumerRegistrations.TryGetValue(key: typeof(TEvent), out registration);
+            registration = default;
+            if (options.Registrations.TryGetValue(typeof(TEvent), out var ereg))
+            {
+                registration = ereg.Consumers.SingleOrDefault(cr => cr.ConsumerType == typeof(TConsumer));
+                if (registration != null) return true;
+            }
+            return false;
         }
     }
 }

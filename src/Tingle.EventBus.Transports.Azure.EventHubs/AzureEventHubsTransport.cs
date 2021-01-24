@@ -64,35 +64,38 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         /// <inheritdoc/>
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            var registrations = GetConsumerRegistrations();
+            var registrations = GetRegistrations();
             Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
-            foreach (var reg in registrations)
+            foreach (var ereg in registrations)
             {
-                var processor = await GetProcessorAsync(reg: reg, cancellationToken: cancellationToken);
+                foreach (var creg in ereg.Consumers)
+                {
+                    var processor = await GetProcessorAsync(ereg: ereg, creg: creg, cancellationToken: cancellationToken);
 
-                // register handlers for error and processing
-                processor.PartitionClosingAsync += delegate (PartitionClosingEventArgs args)
-                {
-                    return OnPartitionClosingAsync(processor, args);
-                };
-                processor.PartitionInitializingAsync += delegate (PartitionInitializingEventArgs args)
-                {
-                    return OnPartitionInitializingAsync(processor, args);
-                };
-                processor.ProcessErrorAsync += delegate (ProcessErrorEventArgs args)
-                {
-                    return OnProcessErrorAsync(processor, args);
-                };
-                processor.ProcessEventAsync += delegate (ProcessEventArgs args)
-                {
-                    var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-                    var mt = GetType().GetMethod(nameof(OnEventReceivedAsync), flags);
-                    var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
-                    return (Task)method.Invoke(this, new object[] { reg, processor, args, });
-                };
+                    // register handlers for error and processing
+                    processor.PartitionClosingAsync += delegate (PartitionClosingEventArgs args)
+                    {
+                        return OnPartitionClosingAsync(processor, args);
+                    };
+                    processor.PartitionInitializingAsync += delegate (PartitionInitializingEventArgs args)
+                    {
+                        return OnPartitionInitializingAsync(processor, args);
+                    };
+                    processor.ProcessErrorAsync += delegate (ProcessErrorEventArgs args)
+                    {
+                        return OnProcessErrorAsync(processor, args);
+                    };
+                    processor.ProcessEventAsync += delegate (ProcessEventArgs args)
+                    {
+                        var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+                        var mt = GetType().GetMethod(nameof(OnEventReceivedAsync), flags);
+                        var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
+                        return (Task)method.Invoke(this, new object[] { ereg, processor, args, });
+                    };
 
-                // start processing 
-                await processor.StartProcessingAsync(cancellationToken: cancellationToken);
+                    // start processing 
+                    await processor.StartProcessingAsync(cancellationToken: cancellationToken);
+                }
             }
         }
 
@@ -121,6 +124,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
         /// <inheritdoc/>
         public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                EventRegistration registration,
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
@@ -137,11 +141,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
 
             using var scope = CreateScope();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
             await SerializeAsync(body: ms,
                                  @event: @event,
-                                 registration: reg,
+                                 registration: registration,
                                  scope: scope,
                                  cancellationToken: cancellationToken);
 
@@ -151,12 +154,12 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                            .AddIfNotDefault(AttributeNames.ContentType, @event.ContentType.ToString())
                            .AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
                            .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
-                           .AddIfNotDefault(AttributeNames.EventName, reg.EventName)
-                           .AddIfNotDefault(AttributeNames.EventType, reg.EventType.FullName)
+                           .AddIfNotDefault(AttributeNames.EventName, registration.EventName)
+                           .AddIfNotDefault(AttributeNames.EventType, registration.EventType.FullName)
                            .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
 
             // get the producer and send the event accordingly
-            var producer = await GetProducerAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            var producer = await GetProducerAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
             Logger.LogInformation("Sending {Id} to '{EventHubName}'. Scheduled: {Scheduled}",
                                   @event.Id,
                                   producer.EventHubName,
@@ -169,6 +172,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
         /// <inheritdoc/>
         public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       EventRegistration registration,
                                                                        DateTimeOffset? scheduled = null,
                                                                        CancellationToken cancellationToken = default)
         {
@@ -186,13 +190,12 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
             using var scope = CreateScope();
             var datas = new List<EventData>();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
                 await SerializeAsync(body: ms,
                                      @event: @event,
-                                     registration: reg,
+                                     registration: registration,
                                      scope: scope,
                                      cancellationToken: cancellationToken);
 
@@ -202,14 +205,14 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                .AddIfNotDefault(AttributeNames.ContentType, @event.ContentType.ToString())
                                .AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
                                .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
-                               .AddIfNotDefault(AttributeNames.EventName, reg.EventName)
-                               .AddIfNotDefault(AttributeNames.EventType, reg.EventType.FullName)
+                               .AddIfNotDefault(AttributeNames.EventName, registration.EventName)
+                               .AddIfNotDefault(AttributeNames.EventType, registration.EventType.FullName)
                                .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
                 datas.Add(data);
             }
 
             // get the producer and send the events accordingly
-            var producer = await GetProducerAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+            var producer = await GetProducerAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
             Logger.LogInformation("Sending {EventsCount} events to '{EventHubName}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
                                   events.Count,
                                   producer.EventHubName,
@@ -222,13 +225,17 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        public override Task CancelAsync<TEvent>(string id,
+                                                 EventRegistration registration,
+                                                 CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("Azure EventHubs does not support canceling published events.");
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        public override Task CancelAsync<TEvent>(IList<string> ids,
+                                                 EventRegistration registration,
+                                                 CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("Azure EventHubs does not support canceling published events.");
         }
@@ -272,14 +279,14 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
         }
 
-        private async Task<EventProcessorClient> GetProcessorAsync(ConsumerRegistration reg, CancellationToken cancellationToken)
+        private async Task<EventProcessorClient> GetProcessorAsync(EventRegistration ereg, EventConsumerRegistration creg, CancellationToken cancellationToken)
         {
             await processorsCacheLock.WaitAsync(cancellationToken);
 
             try
             {
-                var eventHubName = reg.EventName;
-                var consumerGroup = TransportOptions.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : reg.ConsumerName;
+                var eventHubName = ereg.EventName;
+                var consumerGroup = TransportOptions.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : creg.ConsumerName;
 
                 var key = $"{eventHubName}/{consumerGroup}";
                 if (!processorsCache.TryGetValue(key, out var processor))
@@ -326,7 +333,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
         }
 
-        private async Task OnEventReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, EventProcessorClient processor, ProcessEventArgs args)
+        private async Task OnEventReceivedAsync<TEvent, TConsumer>(EventRegistration ereg, EventProcessorClient processor, ProcessEventArgs args)
             where TEvent : class
             where TConsumer : IEventConsumer<TEvent>
         {
@@ -378,7 +385,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 var contentType = contentType_str == null ? null : new ContentType(contentType_str.ToString());
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
-                                                             registration: reg,
+                                                             registration: ereg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
                 Logger.LogInformation("Received event: '{EventId}|{PartitionKey}|{SequenceNumber}' containing Event '{Id}'",
@@ -396,7 +403,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
 
                 // get the producer for the dead letter event hub and send the event there
-                var dlqProcessor = await GetProducerAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
+                var dlqProcessor = await GetProducerAsync(reg: ereg, deadletter: true, cancellationToken: cancellationToken);
                 await dlqProcessor.SendAsync(new[] { data }, cancellationToken);
             }
 

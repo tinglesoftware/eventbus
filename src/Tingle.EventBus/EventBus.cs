@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Transports;
 
 namespace Tingle.EventBus
@@ -100,12 +101,13 @@ namespace Tingle.EventBus
             activity?.AddTag(ActivityTagNames.MessagingConversationId, @event.CorrelationId);
 
             // Get the transport and add transport specific activity tags
-            var transport = GetTransportForEvent<TEvent>();
+            var (reg, transport) = GetTransportForEvent<TEvent>();
             activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
 
             // Publish on the transport
             logger.LogInformation("Sending event '{Id}' using '{TransportName}' transport. Scheduled: {Scheduled}", @event.Id, transport.Name, scheduled);
             return await transport.PublishAsync(@event: @event,
+                                                registration: reg,
                                                 scheduled: scheduled,
                                                 cancellationToken: cancellationToken);
         }
@@ -146,7 +148,7 @@ namespace Tingle.EventBus
             activity?.AddTag(ActivityTagNames.MessagingConversationId, string.Join(",", events.Select(e => e.CorrelationId)));
 
             // Get the transport and add transport specific activity tags
-            var transport = GetTransportForEvent<TEvent>();
+            var (reg, transport) = GetTransportForEvent<TEvent>();
             activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
 
             // Publish on the transport
@@ -156,6 +158,7 @@ namespace Tingle.EventBus
                                   scheduled,
                                   string.Join("\r\n- ", events.Select(e => e.Id)));
             return await transport.PublishAsync(events: events,
+                                                registration: reg,
                                                 scheduled: scheduled,
                                                 cancellationToken: cancellationToken);
         }
@@ -172,9 +175,9 @@ namespace Tingle.EventBus
             where TEvent : class
         {
             // cancel on the transport
-            var transport = GetTransportForEvent<TEvent>();
+            var (reg, transport) = GetTransportForEvent<TEvent>();
             logger.LogInformation("Canceling events: {Id} on '{TransportName}' transport", id, transport.Name);
-            await transport.CancelAsync<TEvent>(id: id, cancellationToken: cancellationToken);
+            await transport.CancelAsync<TEvent>(id: id, registration: reg, cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -188,12 +191,12 @@ namespace Tingle.EventBus
             where TEvent : class
         {
             // cancel on the transport
-            var transport = GetTransportForEvent<TEvent>();
+            var (reg, transport) = GetTransportForEvent<TEvent>();
             logger.LogInformation("Canceling {EventsCount} events on '{TransportName}':\r\n- {Ids}",
                                   ids.Count,
                                   transport.Name,
                                   string.Join("\r\n- ", ids));
-            await transport.CancelAsync<TEvent>(ids: ids, cancellationToken: cancellationToken);
+            await transport.CancelAsync<TEvent>(ids: ids, registration: reg, cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>
@@ -251,12 +254,13 @@ namespace Tingle.EventBus
             await Task.WhenAll(tasks);
         }
 
-        internal IEventBusTransport GetTransportForEvent<TEvent>()
+        internal (EventRegistration registration, IEventBusTransport transport) GetTransportForEvent<TEvent>()
         {
             // get the transport
-            var reg = options.GetOrCreateEventRegistration<TEvent>();
+            var reg = options.GetOrCreateRegistration<TEvent>();
             var transportType = options.RegisteredTransportNames[reg.TransportName];
-            return transports.Single(t => t.GetType() == transportType);
+            var transport = transports.Single(t => t.GetType() == transportType);
+            return (reg, transport);
         }
     }
 }

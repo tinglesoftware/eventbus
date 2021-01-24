@@ -81,6 +81,7 @@ namespace Tingle.EventBus.Tests
 
         public static IEnumerable<object[]> SetEventNameData = new List<object[]>
         {
+            // UseFullTypeNames=false
             new object[] {
                 new EventRegistration(typeof(TestEvent1)),
                 new EventBusOptions { UseFullTypeNames = false, Scope = "dev", NamingConvention = NamingConvention.KebabCase, },
@@ -92,6 +93,7 @@ namespace Tingle.EventBus.Tests
                 "dev_test_event1",
             },
 
+            // UseFullTypeNames=true
             new object[] {
                 new EventRegistration(typeof(TestEvent1)),
                 new EventBusOptions { UseFullTypeNames = true, Scope = "dev", NamingConvention = NamingConvention.KebabCase, },
@@ -103,6 +105,7 @@ namespace Tingle.EventBus.Tests
                 "dev_tingle_event_bus_tests_registration_extensions_tests_test_event1",
             },
 
+            // Override Names
             new object[] {
                 new EventRegistration(typeof(TestEvent2)),
                 new EventBusOptions { UseFullTypeNames = true, Scope = "dev", NamingConvention = NamingConvention.KebabCase, },
@@ -112,54 +115,55 @@ namespace Tingle.EventBus.Tests
 
         [Theory]
         [MemberData(nameof(SetConsumerNameData))]
-        public void SetConsumerName_Works(ConsumerRegistration registration, EventBusOptions options, string applicationName, string expected)
+        public void SetConsumerName_Works(EventRegistration registration, EventBusOptions options, string applicationName, string expected)
         {
             var environment = new DummyEnvironment(applicationName);
+            var creg = Assert.Single(registration.Consumers);
             registration.SetEventName(options)
-                        .SetConsumerName(options, environment);
-            Assert.Equal(expected, registration.ConsumerName);
+                        .SetConsumerNames(options, environment);
+            Assert.Equal(expected, creg.ConsumerName);
         }
 
         public static IEnumerable<object[]> SetConsumerNameData = new List<object[]>
         {
             // UseFullTypeNames=false
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                CreateRegistration<TestEvent1, TestConsumer1>(),
                 new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.KebabCase },
                 "app1",
                 "test-consumer1-test-event1",
             },
 
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                CreateRegistration<TestEvent1, TestConsumer1>(),
                 new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.SnakeCase },
                 "app1",
                 "test_consumer1_test_event1",
             },
 
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                CreateRegistration<TestEvent1, TestConsumer1>(),
                 new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.ApplicationName, NamingConvention = NamingConvention.KebabCase },
                 "app1",
                 "app1-test-event1",
             },
 
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                CreateRegistration<TestEvent1, TestConsumer1>(),
                 new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.ApplicationName, NamingConvention = NamingConvention.SnakeCase },
                 "app1",
                 "app1_test_event1",
             },
 
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                CreateRegistration<TestEvent1, TestConsumer1>(),
                 new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.ApplicationAndTypeName, NamingConvention = NamingConvention.KebabCase },
                 "app1",
                 "app1-test-consumer1-test-event1",
             },
 
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                CreateRegistration<TestEvent1, TestConsumer1>(),
                 new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.ApplicationAndTypeName, NamingConvention = NamingConvention.SnakeCase },
                 "app1",
                 "app1_test_consumer1_test_event1",
@@ -168,42 +172,42 @@ namespace Tingle.EventBus.Tests
 
             // UseFullTypeNames=false
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                CreateRegistration<TestEvent1, TestConsumer1>(),
                 new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.KebabCase },
                 "app1",
                 "tingle-event-bus-tests-registration-extensions-tests-test-consumer1-tingle-event-bus-tests-registration-extensions-tests-test-event1",
             },
 
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                CreateRegistration<TestEvent1, TestConsumer1>(),
                 new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.SnakeCase },
                 "app1",
                 "tingle_event_bus_tests_registration_extensions_tests_test_consumer1_tingle_event_bus_tests_registration_extensions_tests_test_event1",
             },
 
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                CreateRegistration<TestEvent1, TestConsumer1>(),
                 new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.ApplicationName, NamingConvention = NamingConvention.KebabCase },
                 "app1",
                 "app1-tingle-event-bus-tests-registration-extensions-tests-test-event1",
             },
 
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                CreateRegistration<TestEvent1, TestConsumer1>(),
                 new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.ApplicationName, NamingConvention = NamingConvention.SnakeCase },
                 "app1",
                 "app1_tingle_event_bus_tests_registration_extensions_tests_test_event1",
             },
 
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                CreateRegistration<TestEvent1, TestConsumer1>(),
                 new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.ApplicationAndTypeName, NamingConvention = NamingConvention.KebabCase },
                 "app1",
                 "app1-tingle-event-bus-tests-registration-extensions-tests-test-consumer1-tingle-event-bus-tests-registration-extensions-tests-test-event1",
             },
 
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent1), typeof(TestConsumer1)),
+                CreateRegistration<TestEvent1, TestConsumer1>(),
                 new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.ApplicationAndTypeName, NamingConvention = NamingConvention.SnakeCase },
                 "app1",
                 "app1_tingle_event_bus_tests_registration_extensions_tests_test_consumer1_tingle_event_bus_tests_registration_extensions_tests_test_event1",
@@ -211,33 +215,41 @@ namespace Tingle.EventBus.Tests
 
             // Override Names
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent2), typeof(TestConsumer2)),
+                CreateRegistration<TestEvent2, TestConsumer2>(),
                 new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.KebabCase, },
                 "app1",
                 "sample-consumer-sample-event",
             },
 
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent2), typeof(TestConsumer2)),
+                CreateRegistration<TestEvent2, TestConsumer2>(),
                 new EventBusOptions { UseFullTypeNames = false, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.SnakeCase, },
                 "app1",
                 "sample-consumer_sample-event",
             },
 
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent2), typeof(TestConsumer2)),
+                CreateRegistration<TestEvent2, TestConsumer2>(),
                 new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.KebabCase, },
                 "app1",
                 "sample-consumer-sample-event",
             },
 
             new object[] {
-                new ConsumerRegistration(typeof(TestEvent2), typeof(TestConsumer2)),
+                CreateRegistration<TestEvent2, TestConsumer2>(),
                 new EventBusOptions { UseFullTypeNames = true, ConsumerNameSource = ConsumerNameSource.TypeName, NamingConvention = NamingConvention.SnakeCase, },
                 "app1",
                 "sample-consumer_sample-event",
             },
         };
+
+        private static EventRegistration CreateRegistration<TEvent, TConsumer>()
+        {
+            return new EventRegistration(typeof(TEvent))
+            {
+                Consumers = new HashSet<EventConsumerRegistration>(new[] { new EventConsumerRegistration(typeof(TConsumer)) })
+            };
+        }
 
         [Theory]
         [InlineData("DoorOpenedEvent", "DoorOpened")]

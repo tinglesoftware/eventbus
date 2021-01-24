@@ -70,22 +70,28 @@ namespace Tingle.EventBus.Transports
 
         /// <inheritdoc/>
         public abstract Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                          EventRegistration registration,
                                                           DateTimeOffset? scheduled = null,
                                                           CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <inheritdoc/>
         public abstract Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                 EventRegistration registration,
                                                                  DateTimeOffset? scheduled = null,
                                                                  CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <inheritdoc/>
-        public abstract Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        public abstract Task CancelAsync<TEvent>(string id,
+                                                 EventRegistration registration,
+                                                 CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <inheritdoc/>
-        public abstract Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        public abstract Task CancelAsync<TEvent>(IList<string> ids,
+                                                 EventRegistration registration,
+                                                 CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <inheritdoc/>
@@ -194,6 +200,6 @@ namespace Tingle.EventBus.Transports
         /// Gets the consumer registrations for this transport.
         /// </summary>
         /// <returns></returns>
-        protected ICollection<ConsumerRegistration> GetConsumerRegistrations() => BusOptions.GetConsumerRegistrations(transportName: Name);
+        protected ICollection<EventRegistration> GetRegistrations() => BusOptions.GetRegistrations(transportName: Name);
     }
 }

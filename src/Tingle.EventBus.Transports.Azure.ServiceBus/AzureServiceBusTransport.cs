@@ -75,25 +75,28 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         /// <inheritdoc/>
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            var registrations = GetConsumerRegistrations();
+            var registrations = GetRegistrations();
             Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
-            foreach (var reg in registrations)
+            foreach (var ereg in registrations)
             {
-                var processor = await GetProcessorAsync(reg: reg, cancellationToken: cancellationToken);
-
-                // register handlers for error and processing
-                processor.ProcessErrorAsync += OnMessageFaultedAsync;
-                processor.ProcessMessageAsync += delegate (ProcessMessageEventArgs args)
+                foreach (var creg in ereg.Consumers)
                 {
-                    var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-                    var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
-                    var method = mt.MakeGenericMethod(reg.EventType, reg.ConsumerType);
-                    return (Task)method.Invoke(this, new object[] { reg, args, });
-                };
+                    var processor = await GetProcessorAsync(ereg: ereg, creg: creg, cancellationToken: cancellationToken);
 
-                // start processing
-                Logger.LogInformation("Starting processing on {EntityPath}", processor.EntityPath);
-                await processor.StartProcessingAsync(cancellationToken: cancellationToken);
+                    // register handlers for error and processing
+                    processor.ProcessErrorAsync += OnMessageFaultedAsync;
+                    processor.ProcessMessageAsync += delegate (ProcessMessageEventArgs args)
+                    {
+                        var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+                        var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
+                        var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
+                        return (Task)method.Invoke(this, new object[] { ereg, creg, args, });
+                    };
+
+                    // start processing
+                    Logger.LogInformation("Starting processing on {EntityPath}", processor.EntityPath);
+                    await processor.StartProcessingAsync(cancellationToken: cancellationToken);
+                }
             }
         }
 
@@ -122,15 +125,15 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
         /// <inheritdoc/>
         public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                EventRegistration registration,
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
             await SerializeAsync(body: ms,
                                  @event: @event,
-                                 registration: reg,
+                                 registration: registration,
                                  scope: scope,
                                  cancellationToken: cancellationToken);
 
@@ -165,7 +168,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                          .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
 
             // Get the sender and send the message accordingly
-            var sender = await GetSenderAsync(reg, cancellationToken);
+            var sender = await GetSenderAsync(registration, cancellationToken);
             Logger.LogInformation("Sending {Id} to '{EntityPath}'. Scheduled: {Scheduled}",
                                   @event.Id,
                                   sender.EntityPath,
@@ -186,18 +189,18 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
         /// <inheritdoc/>
         public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       EventRegistration registration,
                                                                        DateTimeOffset? scheduled = null,
                                                                        CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
             var messages = new List<ServiceBusMessage>();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
                 await SerializeAsync(body: ms,
                                      @event: @event,
-                                     registration: reg,
+                                     registration: registration,
                                      scope: scope,
                                      cancellationToken: cancellationToken);
 
@@ -235,7 +238,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
 
             // Get the sender and send the messages accordingly
-            var sender = await GetSenderAsync(reg, cancellationToken);
+            var sender = await GetSenderAsync(registration, cancellationToken);
             Logger.LogInformation("Sending {EventsCount} messages to '{EntityPath}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
                                   events.Count,
                                   sender.EntityPath,
@@ -256,7 +259,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         /// <inheritdoc/>
-        public override async Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        public override async Task CancelAsync<TEvent>(string id,
+                                                       EventRegistration registration,
+                                                       CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -269,14 +274,15 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
 
             // get the sender and cancel the message accordingly
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
-            var sender = await GetSenderAsync(reg, cancellationToken);
+            var sender = await GetSenderAsync(registration, cancellationToken);
             Logger.LogInformation("Canceling scheduled message: {SequenceNumber} on {EntityPath}", seqNum, sender.EntityPath);
             await sender.CancelScheduledMessageAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>
-        public override async Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        public override async Task CancelAsync<TEvent>(IList<string> ids,
+                                                       EventRegistration registration,
+                                                       CancellationToken cancellationToken = default)
         {
             if (ids is null)
             {
@@ -293,8 +299,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }).ToList();
 
             // get the sender and cancel the messages accordingly
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
-            var sender = await GetSenderAsync(reg, cancellationToken);
+            var sender = await GetSenderAsync(registration, cancellationToken);
             Logger.LogInformation("Canceling {EventsCount} scheduled messages on {EntityPath}:\r\n- {SequenceNumbers}",
                                   ids.Count,
                                   sender.EntityPath,
@@ -338,14 +343,14 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
-        private async Task<ServiceBusProcessor> GetProcessorAsync(ConsumerRegistration reg, CancellationToken cancellationToken)
+        private async Task<ServiceBusProcessor> GetProcessorAsync(EventRegistration ereg, EventConsumerRegistration creg, CancellationToken cancellationToken)
         {
             await processorsCacheLock.WaitAsync(cancellationToken);
 
             try
             {
-                var topicName = reg.EventName;
-                var subscriptionName = reg.ConsumerName;
+                var topicName = ereg.EventName;
+                var subscriptionName = creg.ConsumerName;
 
                 var key = $"{topicName}/{subscriptionName}";
                 if (!processorsCache.TryGetValue(key, out var processor))
@@ -495,7 +500,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(ConsumerRegistration reg, ProcessMessageEventArgs args)
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration ereg, EventConsumerRegistration creg, ProcessMessageEventArgs args)
             where TEvent : class
             where TConsumer : IEventConsumer<TEvent>
         {
@@ -518,7 +523,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
-            activity?.AddTag(ActivityTagNames.MessagingDestination, TransportOptions.UseBasicTier ? reg.EventName : reg.ConsumerName); // name of the queue/subscription
+            activity?.AddTag(ActivityTagNames.MessagingDestination, TransportOptions.UseBasicTier ? ereg.EventName : creg.ConsumerName); // name of the queue/subscription
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
 
             try
@@ -529,7 +534,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 var contentType = new ContentType(message.ContentType);
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: contentType,
-                                                             registration: reg,
+                                                             registration: ereg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
 

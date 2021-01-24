@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Amazon.Kinesis
 {
@@ -50,7 +51,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         /// <inheritdoc/>
         public override Task StartAsync(CancellationToken cancellationToken)
         {
-            var registrations = GetConsumerRegistrations();
+            var registrations = GetRegistrations();
             Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
 
             // if there are consumers for this transport, throw exception
@@ -68,7 +69,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         {
             Logger.StoppingTransport();
 
-            var registrations = GetConsumerRegistrations();
+            var registrations = GetRegistrations();
             // if there are consumers for this transport, throw exception
             if (registrations.Count > 0)
             {
@@ -81,6 +82,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
 
         /// <inheritdoc/>
         public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                EventRegistration registration,
                                                                 DateTimeOffset? scheduled = null,
                                                                 CancellationToken cancellationToken = default)
         {
@@ -91,16 +93,15 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             }
 
             using var scope = CreateScope();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             using var ms = new MemoryStream();
             await SerializeAsync(body: ms,
                                  @event: @event,
-                                 registration: reg,
+                                 registration: registration,
                                  scope: scope,
                                  cancellationToken: cancellationToken);
 
             // prepare the record
-            var streamName = reg.EventName;
+            var streamName = registration.EventName;
             var request = new PutRecordRequest
             {
                 Data = ms,
@@ -119,6 +120,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
 
         /// <inheritdoc/>
         public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                       EventRegistration registration,
                                                                        DateTimeOffset? scheduled = null,
                                                                        CancellationToken cancellationToken = default)
         {
@@ -129,7 +131,6 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             }
 
             using var scope = CreateScope();
-            var reg = BusOptions.GetOrCreateEventRegistration<TEvent>();
             var records = new List<PutRecordsRequestEntry>();
 
             // work on each event
@@ -138,7 +139,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
                 using var ms = new MemoryStream();
                 await SerializeAsync(body: ms,
                                      @event: @event,
-                                     registration: reg,
+                                     registration: registration,
                                      scope: scope,
                                      cancellationToken: cancellationToken);
 
@@ -151,7 +152,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             }
 
             // prepare the request
-            var streamName = reg.EventName;
+            var streamName = registration.EventName;
             var request = new PutRecordsRequest
             {
                 StreamName = streamName,
@@ -174,13 +175,17 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        public override Task CancelAsync<TEvent>(string id,
+                                                 EventRegistration registration,
+                                                 CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("Amazon Kinesis does not support canceling published events.");
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        public override Task CancelAsync<TEvent>(IList<string> ids,
+                                                 EventRegistration registration,
+                                                 CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("Amazon Kinesis does not support canceling published events.");
         }

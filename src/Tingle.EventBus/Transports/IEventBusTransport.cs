@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports
 {
@@ -31,6 +32,7 @@ namespace Tingle.EventBus.Transports
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
         /// <param name="event">The event to publish.</param>
+        /// <param name="registration">The registration for the event.</param>
         /// <param name="scheduled">
         /// The time at which the event should be availed for consumption.
         /// Set null for immediate availability.
@@ -38,6 +40,7 @@ namespace Tingle.EventBus.Transports
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                          EventRegistration registration,
                                           DateTimeOffset? scheduled = null,
                                           CancellationToken cancellationToken = default)
             where TEvent : class;
@@ -47,6 +50,7 @@ namespace Tingle.EventBus.Transports
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
         /// <param name="events">The events to publish.</param>
+        /// <param name="registration">The registration for the events.</param>
         /// <param name="scheduled">
         /// The time at which the event should be availed for consumption.
         /// Set null for immediate availability.
@@ -54,6 +58,7 @@ namespace Tingle.EventBus.Transports
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                 EventRegistration registration,
                                                  DateTimeOffset? scheduled = null,
                                                  CancellationToken cancellationToken = default)
             where TEvent : class;
@@ -63,9 +68,12 @@ namespace Tingle.EventBus.Transports
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
         /// <param name="id">The identifier of the scheduled event.</param>
+        /// <param name="registration">The registration for the event.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+        Task CancelAsync<TEvent>(string id,
+                                 EventRegistration registration,
+                                 CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <summary>
@@ -73,9 +81,12 @@ namespace Tingle.EventBus.Transports
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
         /// <param name="ids">The identifiers of the scheduled events.</param>
+        /// <param name="registration">The registration for the events.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+        Task CancelAsync<TEvent>(IList<string> ids,
+                                 EventRegistration registration,
+                                 CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <summary>

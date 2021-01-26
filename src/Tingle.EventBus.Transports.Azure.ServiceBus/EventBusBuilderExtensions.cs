@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Options;
+using System;
 using Tingle.EventBus.Transports.Azure.ServiceBus;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -23,14 +24,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // configure the options for Azure Service Bus
             services.Configure(configure);
-            services.PostConfigure<AzureServiceBusTransportOptions>(options =>
-            {
-                // ensure the connection string is not null
-                if (string.IsNullOrWhiteSpace(options.ConnectionString))
-                {
-                    throw new InvalidOperationException($"The '{nameof(options.ConnectionString)}' must be provided");
-                }
-            });
+            services.AddSingleton<IPostConfigureOptions<AzureServiceBusTransportOptions>, AzureServiceBusPostConfigureOptions>();
 
             // register the transport
             builder.AddTransport<AzureServiceBusTransport, AzureServiceBusTransportOptions>();

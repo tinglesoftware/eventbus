@@ -118,5 +118,43 @@ namespace Tingle.EventBus
         /// This value is only relevant if <see cref="EnableDeduplication"/> is set to <see langword="true"/>.
         /// </remarks>
         public TimeSpan DuplicateDetectionDuration { get; set; } = TimeSpan.FromMinutes(1);
+
+
+        /// <summary>
+        /// Configure the <see cref="EventRegistration"/> for <typeparamref name="TEvent"/>.
+        /// </summary>
+        /// <typeparam name="TEvent">The event to configure for</typeparam>
+        /// <param name="configure"></param>
+        /// <returns></returns>
+        public EventBusOptions ConfigureEvent<TEvent>(Action<EventRegistration> configure)
+        {
+            if (configure is null) throw new ArgumentNullException(nameof(configure));
+
+            var registration = this.GetOrCreateRegistration<TEvent>();
+            configure(registration);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Configure the <see cref="EventConsumerRegistration"/> for <typeparamref name="TConsumer"/>.
+        /// </summary>
+        /// <typeparam name="TEvent">The event in the consumer to configure for.</typeparam>
+        /// <typeparam name="TConsumer">The consumer to configure.</typeparam>
+        /// <param name="configure"></param>
+        /// <returns></returns>
+        public EventBusOptions ConfigureConsumer<TEvent, TConsumer>(Action<EventConsumerRegistration> configure)
+            where TConsumer : class, IEventConsumer
+        {
+            if (configure is null) throw new ArgumentNullException(nameof(configure));
+
+            if (this.TryGetConsumerRegistration<TEvent, TConsumer>(out var registration))
+            {
+                configure(registration);
+            }
+
+            return this;
+        }
+
     }
 }

@@ -197,43 +197,6 @@ namespace Microsoft.Extensions.DependencyInjection
             });
         }
 
-        /// <summary>
-        /// Configure the <see cref="EventConsumerRegistration"/> for <typeparamref name="TConsumer"/>.
-        /// </summary>
-        /// <typeparam name="TEvent">The event in the consumer to configure for.</typeparam>
-        /// <typeparam name="TConsumer">The consumer to configure.</typeparam>
-        /// <param name="configure"></param>
-        /// <returns></returns>
-        public EventBusBuilder ConfigureConsumer<TEvent, TConsumer>(Action<EventConsumerRegistration> configure) where TConsumer : class, IEventConsumer
-        {
-            if (configure is null) throw new ArgumentNullException(nameof(configure));
-
-            return Configure(options =>
-            {
-                if (options.TryGetConsumerRegistration<TEvent, TConsumer>(out var registration))
-                {
-                    configure(registration);
-                }
-            });
-        }
-
-        /// <summary>
-        /// Configure the <see cref="EventRegistration"/> for <typeparamref name="TEvent"/>.
-        /// </summary>
-        /// <typeparam name="TEvent">The event to configure for</typeparam>
-        /// <param name="configure"></param>
-        /// <returns></returns>
-        public EventBusBuilder ConfigureEvent<TEvent>(Action<EventRegistration> configure)
-        {
-            if (configure is null) throw new ArgumentNullException(nameof(configure));
-
-            return Configure(options =>
-            {
-                var registration = options.GetOrCreateRegistration<TEvent>();
-                configure(registration);
-            });
-        }
-
         private static string GetTransportName<TTransport>() where TTransport : IEventBusTransport => GetTransportName(typeof(TTransport));
 
         internal static string GetTransportName(Type type)

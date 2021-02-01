@@ -84,6 +84,11 @@ namespace Tingle.EventBus
                                                        CancellationToken cancellationToken = default)
             where TEvent : class
         {
+            if (scheduled != null && scheduled <= DateTimeOffset.UtcNow)
+            {
+                throw new ArgumentException("Scheduled time cannot be in the past.");
+            }
+
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Publish, ActivityKind.Producer);
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
@@ -128,6 +133,11 @@ namespace Tingle.EventBus
                                                               CancellationToken cancellationToken = default)
             where TEvent : class
         {
+            if (scheduled != null && scheduled <= DateTimeOffset.UtcNow)
+            {
+                throw new ArgumentException("Scheduled time cannot be in the past.");
+            }
+
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Publish, ActivityKind.Producer);
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);

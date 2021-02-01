@@ -38,8 +38,6 @@ namespace InMemoryUnitTest
 
                 // Get the publisher and publish the event
                 var publisher = provider.GetRequiredService<IEventPublisher>();
-                var id = Guid.NewGuid().ToString();
-                var processedOn = DateTimeOffset.UtcNow;
                 await publisher.PublishAsync(new SampleEvent
                 {
                     Make = "TESLA",

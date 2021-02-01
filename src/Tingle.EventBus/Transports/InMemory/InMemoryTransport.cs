@@ -376,7 +376,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 throw new ArgumentNullException(nameof(action));
             }
 
-            var remainder = DateTimeOffset.UtcNow - scheduled;
+            var remainder = scheduled - DateTimeOffset.UtcNow;
             if (remainder > TimeSpan.Zero)
             {
                 await Task.Delay(remainder, cancellationToken);

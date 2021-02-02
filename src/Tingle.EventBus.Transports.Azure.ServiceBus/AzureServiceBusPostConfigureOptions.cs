@@ -28,10 +28,10 @@ namespace Microsoft.Extensions.DependencyInjection
             var registrations = busOptions.GetRegistrations(TransportNames.AzureServiceBus);
             foreach (var ereg in registrations)
             {
-                if (ereg.EventName.Length > 50)
+                if (ereg.EventName.Length > 260)
                 {
                     throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
-                                                       + "Azure Service Bus does not allow more than 50 characters.");
+                                                       + "Azure Service Bus does not allow more than 260 characters for topics and queues.");
                 }
 
                 foreach (var creg in ereg.Consumers)
@@ -39,7 +39,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     if (creg.ConsumerName.Length > 50)
                     {
                         throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
-                                                           + "Azure Service Bus does not allow more than 50 characters.");
+                                                           + "Azure Service Bus does not allow more than 50 characters for subscriptions.");
                     }
                 }
             }

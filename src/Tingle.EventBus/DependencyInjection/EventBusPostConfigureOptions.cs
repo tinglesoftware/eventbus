@@ -81,6 +81,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             }
 
+            // if the ConsumerNameSource is Prefix or requires the prefix, ensure it is set
+            if ((options.ConsumerNameSource == ConsumerNameSource.Prefix || options.ConsumerNameSource == ConsumerNameSource.PrefixAndTypeName)
+                && string.IsNullOrWhiteSpace(options.ConsumerNamePrefix))
+            {
+                throw new InvalidOperationException($"'{options.ConsumerNamePrefix}' when using {nameof(ConsumerNameSource)}.{options.ConsumerNameSource}");
+            }
+
             // setup names and transports for each event and its consumers
             var registrations = options.Registrations.Values.ToList();
             foreach (var evr in registrations)

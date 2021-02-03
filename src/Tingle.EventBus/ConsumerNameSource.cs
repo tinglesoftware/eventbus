@@ -16,8 +16,20 @@
         ApplicationName,
 
         /// <summary>
-        /// The name of the application and the consumer are combined.
+        /// The name of the application
+        /// and the type name of the consumer are combined.
         /// </summary>
         ApplicationAndTypeName,
+
+        /// <summary>
+        /// The prefix provided in the bus options.
+        /// </summary>
+        Prefix,
+
+        /// <summary>
+        /// The prefix provided in the bus options
+        /// and the type name of the consumer are cmobined.
+        /// </summary>
+        PrefixAndTypeName,
     }
 }

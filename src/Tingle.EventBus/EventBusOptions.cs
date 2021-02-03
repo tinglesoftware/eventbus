@@ -79,6 +79,11 @@ namespace Tingle.EventBus
         public ConsumerNameSource ConsumerNameSource { get; set; } = ConsumerNameSource.TypeName;
 
         /// <summary>
+        /// The prefix used with <see cref="ConsumerNameSource.Prefix"/> and <see cref="ConsumerNameSource.PrefixAndTypeName"/>.
+        /// </summary>
+        public string ConsumerNamePrefix { get; set; }
+
+        /// <summary>
         /// The information about the host where the EventBus is running.
         /// </summary>
         internal HostInfo HostInfo { get; set; }

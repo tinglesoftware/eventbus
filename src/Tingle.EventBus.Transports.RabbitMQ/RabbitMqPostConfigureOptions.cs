@@ -53,6 +53,28 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // ensure the retries are not less than zero
             options.RetryCount = Math.Max(options.RetryCount, 0);
+
+            // Ensure the entity names are not longer than the limits
+            // See https://www.rabbitmq.com/queues.html#:~:text=Names,bytes%20of%20UTF%2D8%20characters.
+            foreach (var ereg in registrations)
+            {
+                // Event names become Exchange names and they should not be longer than 255 characters
+                if (ereg.EventName.Length > 255)
+                {
+                    throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
+                                                       + "RabbitMQ does not allow more than 255 characters for Exchange names.");
+                }
+
+                // Consumer names become Queue names and they should not be longer than 255 characters
+                foreach (var creg in ereg.Consumers)
+                {
+                    if (creg.ConsumerName.Length > 255)
+                    {
+                        throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
+                                                           + "RabbitMQ does not allow more than 255 characters for Queue names.");
+                    }
+                }
+            }
         }
     }
 }

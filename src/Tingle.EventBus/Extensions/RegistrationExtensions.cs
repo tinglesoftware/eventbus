@@ -55,6 +55,9 @@ namespace Tingle.EventBus.Registrations
                 throw new InvalidOperationException($"The {nameof(reg.EventName)} for must be set before setting names of the consumer.");
             }
 
+            // prefix is either the one provided or the application name
+            var prefix = options.ConsumerNamePrefix ?? environment.ApplicationName;
+
             foreach (var creg in reg.Consumers)
             {
                 // set the consumer name, if not set
@@ -70,8 +73,8 @@ namespace Tingle.EventBus.Registrations
                         cname = options.ConsumerNameSource switch
                         {
                             ConsumerNameSource.TypeName => typeName,
-                            ConsumerNameSource.ApplicationName => environment.ApplicationName,
-                            ConsumerNameSource.ApplicationAndTypeName => $"{environment.ApplicationName}.{typeName}",
+                            ConsumerNameSource.Prefix => prefix,
+                            ConsumerNameSource.PrefixAndTypeName => $"{prefix}.{typeName}",
                             _ => throw new InvalidOperationException($"'{nameof(options.ConsumerNameSource)}.{options.ConsumerNameSource}' is not supported"),
                         };
                         cname = ApplyNamingConvention(cname, options.NamingConvention);

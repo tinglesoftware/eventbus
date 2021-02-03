@@ -70,13 +70,19 @@ namespace Tingle.EventBus
         /// <summary>
         /// The source used to generate names for consumers.
         /// Some transports are versy sensitive to the value used here and thus should be used carefully.
-        /// When set to <see cref="ConsumerNameSource.ApplicationName"/>, each subscription/exchange will
-        /// be named the same as the application before appending the event name.
+        /// When set to <see cref="ConsumerNameSource.Prefix"/>, each subscription/exchange will
+        /// be named the same as <see cref="ConsumerNamePrefix"/> before appending the event name.
         /// For applications with more than one consumer per event type, use <see cref="ConsumerNameSource.TypeName"/>
         /// to avoid duplicates.
         /// Defaults to <see cref="ConsumerNameSource.TypeName"/>.
         /// </summary>
         public ConsumerNameSource ConsumerNameSource { get; set; } = ConsumerNameSource.TypeName;
+
+        /// <summary>
+        /// The prefix used with <see cref="ConsumerNameSource.Prefix"/> and <see cref="ConsumerNameSource.PrefixAndTypeName"/>.
+        /// Defaults to <see cref="Microsoft.Extensions.Hosting.IHostEnvironment.ApplicationName"/>.
+        /// </summary>
+        public string ConsumerNamePrefix { get; set; }
 
         /// <summary>
         /// The information about the host where the EventBus is running.

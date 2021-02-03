@@ -1,5 +1,4 @@
 ﻿using System;
-using Tingle.EventBus;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -9,25 +8,29 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class IServiceCollectionExtensions
     {
         /// <summary>
-        /// Add Event bus services.
+        /// Add Event Bus services.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance to add services to.</param>
+        /// <returns>An <see cref="EventBusBuilder"/> to continue setting up the Event Bus.</returns>
+        public static EventBusBuilder AddEventBus(this IServiceCollection services)
+        {
+            if (services == null) throw new ArgumentNullException(nameof(services));
+
+            return new EventBusBuilder(services)
+                .UseDefaultSerializer();
+        }
+
+        /// <summary>
+        /// Add Event Bus services.
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> instance to add services to.</param>
         /// <param name="setupAction">An optional action for setting up the bus.</param>
         /// <returns></returns>
         public static IServiceCollection AddEventBus(this IServiceCollection services, Action<EventBusBuilder> setupAction = null)
         {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
+            if (services == null) throw new ArgumentNullException(nameof(services));
 
-            var builder = new EventBusBuilder(services)
-                .UseDefaultSerializer();
-
-            // register necessary services
-            services.AddTransient<IEventPublisher, EventPublisher>();
-            services.AddSingleton<EventBus>();
-            services.AddHostedService(p => p.GetRequiredService<EventBus>());
+            var builder = services.AddEventBus();
 
             setupAction?.Invoke(builder);
 

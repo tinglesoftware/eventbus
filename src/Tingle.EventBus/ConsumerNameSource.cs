@@ -11,13 +11,14 @@
         TypeName,
 
         /// <summary>
-        /// The name of the hosting application is used.
+        /// The prefix provided in the bus options.
         /// </summary>
-        ApplicationName,
+        Prefix,
 
         /// <summary>
-        /// The name of the application and the consumer are combined.
+        /// The prefix provided in the bus options
+        /// and the type name of the consumer are cmobined.
         /// </summary>
-        ApplicationAndTypeName,
+        PrefixAndTypeName,
     }
 }

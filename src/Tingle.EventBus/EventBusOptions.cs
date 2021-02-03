@@ -80,6 +80,7 @@ namespace Tingle.EventBus
 
         /// <summary>
         /// The prefix used with <see cref="ConsumerNameSource.Prefix"/> and <see cref="ConsumerNameSource.PrefixAndTypeName"/>.
+        /// Defaults to <see cref="Microsoft.Extensions.Hosting.IHostEnvironment.ApplicationName"/>.
         /// </summary>
         public string ConsumerNamePrefix { get; set; }
 

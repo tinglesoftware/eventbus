@@ -23,9 +23,11 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
 
+            // Configure the options
+            Services.AddSingleton<IConfigureOptions<EventBusOptions>, EventBusConfigureOptions>();
             Services.AddSingleton<IPostConfigureOptions<EventBusOptions>, EventBusPostConfigureOptions>();
 
-            // register necessary services
+            // Register necessary services
             Services.AddTransient<IEventPublisher, EventPublisher>();
             Services.AddSingleton<EventBus>();
             Services.AddHostedService(p => p.GetRequiredService<EventBus>());

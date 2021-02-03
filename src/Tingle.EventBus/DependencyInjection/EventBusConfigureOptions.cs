@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using System;
 using Tingle.EventBus;
+using Tingle.EventBus.Serialization;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -22,6 +23,21 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             // Set the default ConsumerNamePrefix
             options.ConsumerNamePrefix ??= environment.ApplicationName;
+
+            // Setup HostInfo
+            if (options.HostInfo == null)
+            {
+                var entry = System.Reflection.Assembly.GetEntryAssembly() ?? System.Reflection.Assembly.GetCallingAssembly();
+                options.HostInfo = new HostInfo
+                {
+                    ApplicationName = environment.ApplicationName,
+                    ApplicationVersion = entry.GetName().Version.ToString(),
+                    EnvironmentName = environment.EnvironmentName,
+                    LibraryVersion = typeof(EventBus).Assembly.GetName().Version.ToString(),
+                    MachineName = Environment.MachineName,
+                    OperatingSystem = Environment.OSVersion.ToString(),
+                };
+            }
         }
     }
 }

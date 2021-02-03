@@ -44,6 +44,28 @@ namespace Microsoft.Extensions.DependencyInjection
                 // ensure the prefix is always lower case.
                 options.BlobContainerName = options.BlobContainerName.ToLower();
             }
+
+            // Ensure the entity names are not longer than the limits
+            // See https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-quotas#common-limits-for-all-tiers
+            foreach (var ereg in registrations)
+            {
+                // Event names become Event Hub names and they should not be longer than 256 characters
+                if (ereg.EventName.Length > 256)
+                {
+                    throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
+                                                       + "Azure Event Hubs does not allow more than 256 characters for Event Hub names.");
+                }
+
+                // Consumer names become Consumer Group names and they should not be longer than 256 characters
+                foreach (var creg in ereg.Consumers)
+                {
+                    if (creg.ConsumerName.Length > 256)
+                    {
+                        throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
+                                                           + "Azure Event Hubs does not allow more than 256 characters for Consumer Group names.");
+                    }
+                }
+            }
         }
     }
 }

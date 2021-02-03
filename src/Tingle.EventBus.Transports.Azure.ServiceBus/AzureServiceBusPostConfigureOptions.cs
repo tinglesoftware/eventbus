@@ -29,14 +29,14 @@ namespace Microsoft.Extensions.DependencyInjection
             var registrations = busOptions.GetRegistrations(TransportNames.AzureServiceBus);
             foreach (var ereg in registrations)
             {
-                // Event names become topic names and they should not be longer than 260 characters
+                // Event names become Topic and Queue names and they should not be longer than 260 characters
                 if (ereg.EventName.Length > 260)
                 {
                     throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
                                                        + "Azure Service Bus does not allow more than 260 characters for Topic and Queue names.");
                 }
 
-                // Consumer names become subscription names and they should not be longer than 50 characters
+                // Consumer names become Subscription names and they should not be longer than 50 characters
                 foreach (var creg in ereg.Consumers)
                 {
                     if (creg.ConsumerName.Length > 50)

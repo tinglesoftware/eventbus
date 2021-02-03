@@ -1,6 +1,4 @@
-﻿using Amazon;
-using Amazon.SimpleNotificationService;
-using Amazon.SQS;
+﻿using Microsoft.Extensions.Options;
 using System;
 using Tingle.EventBus.Transports.Amazon.Sqs;
 
@@ -26,34 +24,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // configure the options for Amazon SQS and SNS option
             services.Configure(configure);
-            services.PostConfigure<AmazonSqsTransportOptions>(options =>
-            {
-                // ensure the region is provided
-                if (string.IsNullOrWhiteSpace(options.RegionName) && options.Region == null)
-                {
-                    throw new InvalidOperationException($"Either '{nameof(options.RegionName)}' or '{nameof(options.Region)}' must be provided");
-                }
-
-                options.Region ??= RegionEndpoint.GetBySystemName(options.RegionName);
-
-                // ensure the access key is specified
-                if (string.IsNullOrWhiteSpace(options.AccessKey))
-                {
-                    throw new InvalidOperationException($"The '{nameof(options.AccessKey)}' must be provided");
-                }
-
-                // ensure the secret is specified
-                if (string.IsNullOrWhiteSpace(options.SecretKey))
-                {
-                    throw new InvalidOperationException($"The '{nameof(options.SecretKey)}' must be provided");
-                }
-
-                // ensure we have options for SQS and SNS and their regions are set
-                options.SqsConfig ??= new AmazonSQSConfig();
-                options.SqsConfig.RegionEndpoint ??= options.Region;
-                options.SnsConfig ??= new AmazonSimpleNotificationServiceConfig();
-                options.SnsConfig.RegionEndpoint ??= options.Region;
-            });
+            services.AddSingleton<IPostConfigureOptions<AmazonSqsTransportOptions>, AmazonSqsPostConfigureOptions>();
 
             // register the transport
             builder.AddTransport<AmazonSqsTransport, AmazonSqsTransportOptions>();

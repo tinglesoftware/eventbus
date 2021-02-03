@@ -19,13 +19,13 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public void PostConfigure(string name, AzureEventHubsTransportOptions options)
         {
-            // ensure the connection string
+            // Ensure the connection string
             if (string.IsNullOrWhiteSpace(options.ConnectionString))
             {
                 throw new InvalidOperationException($"The '{nameof(options.ConnectionString)}' must be provided");
             }
 
-            // if there are consumers for this transport, we must check azure blob storage
+            // If there are consumers for this transport, we must check azure blob storage
             var registrations = busOptions.GetRegistrations(TransportNames.AzureEventHubs);
             if (registrations.Any(r => r.Consumers.Count > 0))
             {

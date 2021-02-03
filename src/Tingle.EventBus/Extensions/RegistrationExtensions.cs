@@ -89,56 +89,6 @@ namespace Tingle.EventBus.Registrations
             return reg;
         }
 
-        internal static T SetSerializer<T>(this T reg) where T : EventRegistration
-        {
-            if (reg is null) throw new ArgumentNullException(nameof(reg));
-
-            // if the event serializer has not been specified, attempt to get from the attribute
-            var attrs = reg.EventType.GetCustomAttributes(false);
-            reg.EventSerializerType ??= attrs.OfType<EventSerializerAttribute>().SingleOrDefault()?.SerializerType;
-            reg.EventSerializerType ??= typeof(IEventSerializer); // use the default when not provided
-
-            // ensure the serializer is either default or it implements IEventSerializer
-            if (reg.EventSerializerType != typeof(IEventSerializer)
-                && !typeof(IEventSerializer).IsAssignableFrom(reg.EventSerializerType))
-            {
-                throw new InvalidOperationException($"The type '{reg.EventSerializerType.FullName}' is used as a serializer "
-                                                  + $"but does not implement '{typeof(IEventSerializer).FullName}'");
-            }
-
-            return reg;
-        }
-
-        internal static T SetTransportName<T>(this T reg, EventBusOptions options) where T : EventRegistration
-        {
-            if (reg is null) throw new ArgumentNullException(nameof(reg));
-            if (options is null) throw new ArgumentNullException(nameof(options));
-
-            var type = reg.EventType;
-
-            // if the event transport name has not been specified, attempt to get from the attribute
-            reg.TransportName ??= type.GetCustomAttributes(false).OfType<EventTransportNameAttribute>().SingleOrDefault()?.Name;
-
-            // if the event transport name has not been set, try the default one
-            reg.TransportName ??= options.DefaultTransportName;
-
-            // set the transport name from the default, if not set
-            if (string.IsNullOrWhiteSpace(reg.TransportName))
-            {
-                throw new InvalidOperationException($"Unable to set the transport for event '{type.FullName}'."
-                                                  + $" Either set the '{nameof(options.DefaultTransportName)}' option"
-                                                  + $" or use the '{typeof(EventTransportNameAttribute).FullName}' on the event.");
-            }
-
-            // ensure the transport name set has been registered
-            if (!options.RegisteredTransportNames.ContainsKey(reg.TransportName))
-            {
-                throw new InvalidOperationException($"Transport '{reg.TransportName}' on event '{type.FullName}' must be registered.");
-            }
-
-            return reg;
-        }
-
         internal static string GetApplicationName(this EventBusOptions options, IHostEnvironment environment)
         {
             if (options is null) throw new ArgumentNullException(nameof(options));

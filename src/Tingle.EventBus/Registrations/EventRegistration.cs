@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Registrations
 {
@@ -51,6 +53,52 @@ namespace Tingle.EventBus.Registrations
         /// of the event bus such as the bus, the transport or the serializer.
         /// </summary>
         public IDictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
+
+        internal EventRegistration SetSerializer()
+        {
+            // If the event serializer has not been specified, attempt to get from the attribute
+            var attrs = EventType.GetCustomAttributes(false);
+            EventSerializerType ??= attrs.OfType<EventSerializerAttribute>().SingleOrDefault()?.SerializerType;
+            EventSerializerType ??= typeof(IEventSerializer); // use the default when not provided
+
+            // Ensure the serializer is either default or it implements IEventSerializer
+            if (EventSerializerType != typeof(IEventSerializer)
+                && !typeof(IEventSerializer).IsAssignableFrom(EventSerializerType))
+            {
+                throw new InvalidOperationException($"The type '{EventSerializerType.FullName}' is used as a serializer "
+                                                  + $"but does not implement '{typeof(IEventSerializer).FullName}'");
+            }
+
+            return this;
+        }
+
+        internal EventRegistration SetTransportName(EventBusOptions options)
+        {
+            if (options is null) throw new ArgumentNullException(nameof(options));
+
+            // If the event transport name has not been specified, attempt to get from the attribute
+            var type = EventType;
+            TransportName ??= type.GetCustomAttributes(false).OfType<EventTransportNameAttribute>().SingleOrDefault()?.Name;
+
+            // If the event transport name has not been set, try the default one
+            TransportName ??= options.DefaultTransportName;
+
+            // Set the transport name from the default, if not set
+            if (string.IsNullOrWhiteSpace(TransportName))
+            {
+                throw new InvalidOperationException($"Unable to set the transport for event '{type.FullName}'."
+                                                  + $" Either set the '{nameof(options.DefaultTransportName)}' option"
+                                                  + $" or use the '{typeof(EventTransportNameAttribute).FullName}' on the event.");
+            }
+
+            // Ensure the transport name set has been registered
+            if (!options.RegisteredTransportNames.ContainsKey(TransportName))
+            {
+                throw new InvalidOperationException($"Transport '{TransportName}' on event '{type.FullName}' must be registered.");
+            }
+
+            return this;
+        }
 
         /// <inheritdoc/>
         public override bool Equals(object obj) => Equals(obj as EventRegistration);

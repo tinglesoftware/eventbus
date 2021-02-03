@@ -11,17 +11,6 @@
         TypeName,
 
         /// <summary>
-        /// The name of the hosting application is used.
-        /// </summary>
-        ApplicationName,
-
-        /// <summary>
-        /// The name of the application
-        /// and the type name of the consumer are combined.
-        /// </summary>
-        ApplicationAndTypeName,
-
-        /// <summary>
         /// The prefix provided in the bus options.
         /// </summary>
         Prefix,

@@ -20,6 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
         }
 
+        /// <inheritdoc/>
         public void PostConfigure(string name, EventBusOptions options)
         {
             // check bounds for startup delay, if provided

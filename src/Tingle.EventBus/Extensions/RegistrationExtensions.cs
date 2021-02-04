@@ -81,8 +81,8 @@ namespace Tingle.EventBus.Registrations
                         cname = AppendScope(cname, options.NamingConvention, options.Scope);
                         cname = ReplaceInvalidCharacters(cname, options.NamingConvention);
                     }
-                    // Append EventName to ensure consumer name is unique
-                    creg.ConsumerName = Join(options.NamingConvention, cname, reg.EventName);
+                    // Appending the EventName to the consumer name can ensure it is unique
+                    creg.ConsumerName = options.SuffixConsumerNameWithEventName ? Join(options.NamingConvention, cname, reg.EventName) : cname;
                 }
             }
 

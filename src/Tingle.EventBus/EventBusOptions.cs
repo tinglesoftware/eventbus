@@ -85,6 +85,15 @@ namespace Tingle.EventBus
         public string ConsumerNamePrefix { get; set; }
 
         /// <summary>
+        /// Indicates if the consumer name generated should be suffixed with the event name.
+        /// Some transports require this value to be <see langword="true"/>.
+        /// Setting to false can reduce the length of the consumer name hence being useful in scenarios
+        /// where the transport allow same name for two consumers so long as they are for different events.
+        /// Defaults to <see langword="true"/>
+        /// </summary>
+        public bool SuffixConsumerNameWithEventName { get; set; } = true;
+
+        /// <summary>
         /// The information about the host where the EventBus is running.
         /// </summary>
         internal HostInfo HostInfo { get; set; }

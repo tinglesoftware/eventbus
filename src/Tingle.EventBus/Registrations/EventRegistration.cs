@@ -36,7 +36,7 @@ namespace Tingle.EventBus.Registrations
 
         /// <summary>
         /// The type used for serializing and deserializing events.
-        /// This type must implement <see cref="Serialization.IEventSerializer"/>.
+        /// This type must implement <see cref="IEventSerializer"/>.
         /// </summary>
         public Type EventSerializerType { get; set; }
 
@@ -100,6 +100,8 @@ namespace Tingle.EventBus.Registrations
             return this;
         }
 
+        #region Equality Overrides
+
         /// <inheritdoc/>
         public override bool Equals(object obj) => Equals(obj as EventRegistration);
 
@@ -120,5 +122,7 @@ namespace Tingle.EventBus.Registrations
 
         ///
         public static bool operator !=(EventRegistration left, EventRegistration right) => !(left == right);
+
+        #endregion
     }
 }

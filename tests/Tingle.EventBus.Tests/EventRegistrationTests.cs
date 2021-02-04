@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Tingle.EventBus.Tests
 {
-    public class RegistrationExtensionsTests
+    public class EventRegistrationTests
     {
         [Theory]
         [InlineData("SampleEvent", NamingConvention.KebabCase, "sample-event")]

@@ -61,7 +61,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                                                           CancellationToken cancellationToken = default)
         {
             _ = await snsClient.ListTopicsAsync(cancellationToken);
-            var prefix = BusOptions.Scope ?? "";
+            var prefix = BusOptions.Naming.Scope ?? "";
             _ = await sqsClient.ListQueuesAsync(prefix, cancellationToken);
             return true;
         }

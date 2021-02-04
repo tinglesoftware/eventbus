@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
@@ -71,7 +72,8 @@ namespace Tingle.EventBus.Tests
         [InlineData("DoorOpened", "DoorOpened")] // unchanged
         public void TrimCommonSuffixes_Works(string typeName, string expected)
         {
-            var options = new EventBusOptions { TrimTypeNames = true, };
+            var options = new EventBusOptions { };
+            options.Naming.TrimTypeNames = true;
             var actual = options.TrimCommonSuffixes(typeName);
             Assert.Equal(expected, actual);
         }
@@ -84,12 +86,10 @@ namespace Tingle.EventBus.Tests
         [InlineData(typeof(TestEvent2), true, "dev", NamingConvention.KebabCase, "sample-event")]
         public void SetEventName_Works(Type eventType, bool useFullTypeNames, string scope, NamingConvention namingConvention, string expected)
         {
-            var options = new EventBusOptions
-            {
-                UseFullTypeNames = useFullTypeNames,
-                Scope = scope,
-                NamingConvention = namingConvention,
-            };
+            var options = new EventBusOptions { };
+            options.Naming.Scope = scope;
+            options.Naming.Convention = namingConvention;
+            options.Naming.UseFullTypeNames = useFullTypeNames;
             var registration = new EventRegistration(eventType);
             registration.SetEventName(options);
             Assert.Equal(expected, registration.EventName);
@@ -150,14 +150,12 @@ namespace Tingle.EventBus.Tests
                                           string expected)
         {
             var environment = new FakeHostEnvironment("app1");
-            var options = new EventBusOptions
-            {
-                NamingConvention = namingConvention,
-                UseFullTypeNames = useFullTypeNames,
-                ConsumerNamePrefix = prefix,
-                ConsumerNameSource = consumerNameSource,
-                SuffixConsumerNameWithEventName = suffixEventName,
-            };
+            var options = new EventBusOptions { };
+            options.Naming.Convention = namingConvention;
+            options.Naming.UseFullTypeNames = useFullTypeNames;
+            options.Naming.ConsumerNameSource = consumerNameSource;
+            options.Naming.ConsumerNamePrefix = prefix;
+            options.Naming.SuffixConsumerName = suffixEventName;
 
             var registration = new EventRegistration(eventType);
             registration.Consumers.Add(new EventConsumerRegistration(consumerType));

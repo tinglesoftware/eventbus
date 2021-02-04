@@ -2,7 +2,6 @@
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Registrations
 {
@@ -28,12 +27,12 @@ namespace Tingle.EventBus.Registrations
                 var ename = type.GetCustomAttributes(false).OfType<EventNameAttribute>().SingleOrDefault()?.EventName;
                 if (ename == null)
                 {
-                    var typeName = options.UseFullTypeNames ? type.FullName : type.Name;
+                    var typeName = options.Naming.UseFullTypeNames ? type.FullName : type.Name;
                     typeName = options.TrimCommonSuffixes(typeName);
                     ename = typeName;
-                    ename = ApplyNamingConvention(ename, options.NamingConvention);
-                    ename = AppendScope(ename, options.NamingConvention, options.Scope);
-                    ename = ReplaceInvalidCharacters(ename, options.NamingConvention);
+                    ename = ApplyNamingConvention(ename, options.Naming.Convention);
+                    ename = AppendScope(ename, options.Naming.Convention, options.Naming.Scope);
+                    ename = ReplaceInvalidCharacters(ename, options.Naming.Convention);
                 }
                 reg.EventName = ename;
             }
@@ -56,7 +55,7 @@ namespace Tingle.EventBus.Registrations
             }
 
             // prefix is either the one provided or the application name
-            var prefix = options.ConsumerNamePrefix ?? environment.ApplicationName;
+            var prefix = options.Naming.ConsumerNamePrefix ?? environment.ApplicationName;
 
             foreach (var creg in reg.Consumers)
             {
@@ -68,21 +67,21 @@ namespace Tingle.EventBus.Registrations
                     var cname = type.GetCustomAttributes(false).OfType<ConsumerNameAttribute>().SingleOrDefault()?.ConsumerName;
                     if (cname == null)
                     {
-                        var typeName = options.UseFullTypeNames ? type.FullName : type.Name;
+                        var typeName = options.Naming.UseFullTypeNames ? type.FullName : type.Name;
                         typeName = options.TrimCommonSuffixes(typeName);
-                        cname = options.ConsumerNameSource switch
+                        cname = options.Naming.ConsumerNameSource switch
                         {
                             ConsumerNameSource.TypeName => typeName,
                             ConsumerNameSource.Prefix => prefix,
                             ConsumerNameSource.PrefixAndTypeName => $"{prefix}.{typeName}",
-                            _ => throw new InvalidOperationException($"'{nameof(options.ConsumerNameSource)}.{options.ConsumerNameSource}' is not supported"),
+                            _ => throw new InvalidOperationException($"'{nameof(options.Naming.ConsumerNameSource)}.{options.Naming.ConsumerNameSource}' is not supported"),
                         };
-                        cname = ApplyNamingConvention(cname, options.NamingConvention);
-                        cname = AppendScope(cname, options.NamingConvention, options.Scope);
-                        cname = ReplaceInvalidCharacters(cname, options.NamingConvention);
+                        cname = ApplyNamingConvention(cname, options.Naming.Convention);
+                        cname = AppendScope(cname, options.Naming.Convention, options.Naming.Scope);
+                        cname = ReplaceInvalidCharacters(cname, options.Naming.Convention);
                     }
                     // Appending the EventName to the consumer name can ensure it is unique
-                    creg.ConsumerName = options.SuffixConsumerNameWithEventName ? Join(options.NamingConvention, cname, reg.EventName) : cname;
+                    creg.ConsumerName = options.Naming.SuffixConsumerName ? Join(options.Naming.Convention, cname, reg.EventName) : cname;
                 }
             }
 
@@ -95,15 +94,15 @@ namespace Tingle.EventBus.Registrations
             if (environment is null) throw new ArgumentNullException(nameof(environment));
 
             var name = environment.ApplicationName;
-            name = ApplyNamingConvention(name, options.NamingConvention);
-            name = AppendScope(name, options.NamingConvention, options.Scope);
-            name = ReplaceInvalidCharacters(name, options.NamingConvention);
+            name = ApplyNamingConvention(name, options.Naming.Convention);
+            name = AppendScope(name, options.Naming.Convention, options.Naming.Scope);
+            name = ReplaceInvalidCharacters(name, options.Naming.Convention);
             return name;
         }
 
         internal static string TrimCommonSuffixes(this EventBusOptions options, string untrimmed)
         {
-            return options.TrimTypeNames ? trimPattern.Replace(untrimmed, "") : untrimmed;
+            return options.Naming.TrimTypeNames ? trimPattern.Replace(untrimmed, "") : untrimmed;
         }
 
         internal static string ApplyNamingConvention(string raw, NamingConvention convention)

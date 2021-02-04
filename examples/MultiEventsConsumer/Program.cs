@@ -19,8 +19,11 @@ namespace MultiEventsConsumer
                     services.AddEventBus(builder =>
                     {
                         // Transport agnostic configuration
-                        builder.Configure(options => options.Scope = "dev"); // queues will be prefixed by 'dev'
-                        builder.Configure(o => o.UseFullTypeNames = false);
+                        builder.Configure(o =>
+                        {
+                            o.Naming.Scope = "dev"; // queues will be prefixed by 'dev'
+                            o.Naming.UseFullTypeNames = false;
+                        });
                         builder.AddConsumer<MultiEventsConsumer>();
 
                         // Transport specific configuration

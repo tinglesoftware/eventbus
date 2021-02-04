@@ -20,11 +20,21 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public void PostConfigure(string name, RabbitMqTransportOptions options)
         {
-            // If there are consumers for this transport, they can only use TypeName source
+            // If there are consumers for this transport, confirm the right Bus options
             var registrations = busOptions.GetRegistrations(TransportNames.RabbitMq);
-            if (registrations.Any(r => r.Consumers.Count > 0) && !busOptions.UseFullTypeNames)
+            if (registrations.Any(r => r.Consumers.Count > 0))
             {
-                throw new NotSupportedException($"When using RabbitMQ transport '{nameof(busOptions.UseFullTypeNames)}' must be 'true'");
+                // we need full type names
+                if (!busOptions.Naming.UseFullTypeNames)
+                {
+                    throw new NotSupportedException($"When using RabbitMQ transport '{nameof(busOptions.Naming.UseFullTypeNames)}' must be 'true'");
+                }
+
+                // consumer names must be suffixed
+                if (!busOptions.Naming.SuffixConsumerName)
+                {
+                    throw new NotSupportedException($"When using RabbitMQ transport '{nameof(busOptions.Naming.SuffixConsumerName)}' must be 'true'");
+                }
             }
 
             // if we do not have a connection factory, attempt to create one

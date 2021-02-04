@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public void Configure(EventBusOptions options)
         {
             // Set the default ConsumerNamePrefix
-            options.ConsumerNamePrefix ??= environment.ApplicationName;
+            options.Naming.ConsumerNamePrefix ??= environment.ApplicationName;
 
             // Setup HostInfo
             if (options.HostInfo == null)

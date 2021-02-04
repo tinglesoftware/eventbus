@@ -36,13 +36,16 @@ namespace Microsoft.Extensions.DependencyInjection
                                                        + "Azure Service Bus does not allow more than 260 characters for Topic and Queue names.");
                 }
 
-                // Consumer names become Subscription names and they should not be longer than 50 characters
-                foreach (var creg in ereg.Consumers)
+                // Consumer names become Subscription names and they should not be longer than 50 characters                
+                if (!options.UseBasicTier) // When not using basic tier, ConsumerName -> SubscriptionName does not happen
                 {
-                    if (creg.ConsumerName.Length > 50)
+                    foreach (var creg in ereg.Consumers)
                     {
-                        throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
-                                                           + "Azure Service Bus does not allow more than 50 characters for Subscription names.");
+                        if (creg.ConsumerName.Length > 50)
+                        {
+                            throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
+                                                               + "Azure Service Bus does not allow more than 50 characters for Subscription names.");
+                        }
                     }
                 }
             }

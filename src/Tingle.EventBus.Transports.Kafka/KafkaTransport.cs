@@ -59,7 +59,7 @@ namespace Tingle.EventBus.Transports.Kafka
             // create the shared consumer instance
             var c_config = new ConsumerConfig(TransportOptions.AdminConfig)
             {
-                GroupId = BusOptions.GetApplicationName(environment),
+                GroupId = BusOptions.Naming.GetApplicationName(environment),
                 //EnableAutoCommit = false,
                 //StatisticsIntervalMs = 5000,
                 //SessionTimeoutMs = 6000,

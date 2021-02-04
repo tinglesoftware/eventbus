@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
@@ -8,33 +7,6 @@ namespace Tingle.EventBus.Tests
 {
     public class EventRegistrationTests
     {
-        [Theory]
-        [InlineData("SampleEvent", NamingConvention.KebabCase, "sample-event")]
-        [InlineData("SampleConsumer", NamingConvention.SnakeCase, "sample_consumer")]
-        public void ApplyNamingConvention_Works(string raw, NamingConvention convention, string expected)
-        {
-            var actual = RegistrationExtensions.ApplyNamingConvention(raw: raw, convention: convention);
-            Assert.Equal(expected, actual);
-        }
-
-        [Theory]
-        [InlineData("sample-event", NamingConvention.KebabCase, "dev", "dev-sample-event")]
-        [InlineData("sample_event", NamingConvention.SnakeCase, "prd", "prd_sample_event")]
-        public void AppendScope_Works(string unscoped, NamingConvention convention, string scope, string expected)
-        {
-            var actual = RegistrationExtensions.AppendScope(unscoped: unscoped, convention: convention, scope: scope);
-            Assert.Equal(expected, actual);
-        }
-
-        [Theory]
-        [InlineData("dev-sample.event", NamingConvention.KebabCase, "dev-sample-event")]
-        [InlineData("prd_sample+event", NamingConvention.SnakeCase, "prd_sample_event")]
-        public void ReplaceInvalidCharacters_Works(string raw, NamingConvention convention, string expected)
-        {
-            var actual = RegistrationExtensions.ReplaceInvalidCharacters(raw: raw, convention: convention);
-            Assert.Equal(expected, actual);
-        }
-
         [Fact]
         public void SetSerializer_UsesDefault()
         {
@@ -66,19 +38,6 @@ namespace Tingle.EventBus.Tests
         }
 
         [Theory]
-        [InlineData("DoorOpenedEvent", "DoorOpened")]
-        [InlineData("DoorOpenedConsumer", "DoorOpened")]
-        [InlineData("DoorOpenedEventConsumer", "DoorOpened")]
-        [InlineData("DoorOpened", "DoorOpened")] // unchanged
-        public void TrimCommonSuffixes_Works(string typeName, string expected)
-        {
-            var options = new EventBusOptions { };
-            options.Naming.TrimTypeNames = true;
-            var actual = options.TrimCommonSuffixes(typeName);
-            Assert.Equal(expected, actual);
-        }
-
-        [Theory]
         [InlineData(typeof(TestEvent1), false, "dev", NamingConvention.KebabCase, "dev-test-event1")]
         [InlineData(typeof(TestEvent1), false, "dev", NamingConvention.SnakeCase, "dev_test_event1")]
         [InlineData(typeof(TestEvent1), true, "dev", NamingConvention.KebabCase, "dev-tingle-event-bus-tests-test-event1")]
@@ -91,7 +50,7 @@ namespace Tingle.EventBus.Tests
             options.Naming.Convention = namingConvention;
             options.Naming.UseFullTypeNames = useFullTypeNames;
             var registration = new EventRegistration(eventType);
-            registration.SetEventName(options);
+            registration.SetEventName(options.Naming);
             Assert.Equal(expected, registration.EventName);
         }
 
@@ -161,8 +120,8 @@ namespace Tingle.EventBus.Tests
             registration.Consumers.Add(new EventConsumerRegistration(consumerType));
 
             var creg = Assert.Single(registration.Consumers);
-            registration.SetEventName(options)
-                        .SetConsumerNames(options, environment);
+            registration.SetEventName(options.Naming)
+                        .SetConsumerNames(options.Naming, environment);
             Assert.Equal(expected, creg.ConsumerName);
         }
     }

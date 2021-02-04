@@ -1,4 +1,8 @@
-﻿using Tingle.EventBus;
+﻿using Microsoft.Extensions.Hosting;
+using System;
+using System.Linq;
+using System.Text.RegularExpressions;
+using Tingle.EventBus;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -7,6 +11,10 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     public class EventBusNamingOptions
     {
+        private static readonly Regex namePattern = new Regex("(?<=[a-z0-9])[A-Z]", RegexOptions.Compiled);
+        private static readonly Regex replacePattern = new Regex("[^a-zA-Z0-9-_]", RegexOptions.Compiled);
+        private static readonly Regex trimPattern = new Regex("(Event|Consumer|EventConsumer)$", RegexOptions.Compiled);
+
         /// <summary>
         /// The scope to use for queues and subscriptions.
         /// Set to <see langword="null"/> to disable scoping of entities.
@@ -51,7 +59,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         /// <summary>
         /// The prefix used with <see cref="ConsumerNameSource.Prefix"/> and <see cref="ConsumerNameSource.PrefixAndTypeName"/>.
-        /// Defaults to <see cref="Hosting.IHostEnvironment.ApplicationName"/>.
+        /// Defaults to <see cref="IHostEnvironment.ApplicationName"/>.
         /// </summary>
         public string ConsumerNamePrefix { get; set; }
 
@@ -63,5 +71,55 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Defaults to <see langword="true"/>
         /// </summary>
         public bool SuffixConsumerName { get; set; } = true;
+
+        internal string GetApplicationName(IHostEnvironment environment)
+        {
+            if (environment is null) throw new ArgumentNullException(nameof(environment));
+
+            var name = environment.ApplicationName;
+            name = ApplyNamingConvention(name);
+            name = AppendScope(name);
+            name = ReplaceInvalidCharacters(name);
+            return name;
+        }
+
+        internal string TrimCommonSuffixes(string untrimmed) => TrimTypeNames ? trimPattern.Replace(untrimmed, "") : untrimmed;
+
+        internal string ApplyNamingConvention(string raw)
+        {
+            return Convention switch
+            {
+                NamingConvention.KebabCase => namePattern.Replace(raw, m => "-" + m.Value).ToLowerInvariant(),
+                NamingConvention.SnakeCase => namePattern.Replace(raw, m => "_" + m.Value).ToLowerInvariant(),
+                _ => raw,
+            };
+        }
+
+        internal string ReplaceInvalidCharacters(string raw)
+        {
+            return Convention switch
+            {
+                NamingConvention.KebabCase => replacePattern.Replace(raw, "-"),
+                NamingConvention.SnakeCase => replacePattern.Replace(raw, "_"),
+                _ => replacePattern.Replace(raw, ""),
+            };
+        }
+
+        internal string AppendScope(string unscoped) => string.IsNullOrWhiteSpace(Scope) ? unscoped : Join(Scope, unscoped);
+
+        internal string Join(params string[] args)
+        {
+            if (args is null) throw new ArgumentNullException(nameof(args));
+
+            // remove nulls
+            args = args.Where(a => !string.IsNullOrWhiteSpace(a)).ToArray();
+
+            return Convention switch
+            {
+                NamingConvention.KebabCase => string.Join("-", args).ToLowerInvariant(),
+                NamingConvention.SnakeCase => string.Join("_", args).ToLowerInvariant(),
+                _ => throw new ArgumentOutOfRangeException(nameof(Convention), $"'{Convention}' does not support joining"),
+            };
+        }
     }
 }

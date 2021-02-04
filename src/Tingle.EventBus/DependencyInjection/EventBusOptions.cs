@@ -45,7 +45,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// The information about the host where the EventBus is running.
         /// </summary>
-        internal HostInfo HostInfo { get; set; }
+        public HostInfo HostInfo { get; set; }
 
         /// <summary>
         /// Indicates if the messages/events procuded require guard against duplicate messages.

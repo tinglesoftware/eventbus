@@ -1,12 +1,12 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using Tingle.EventBus;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Represents all the transport-agnostic options you can use to configure the Event Bus.

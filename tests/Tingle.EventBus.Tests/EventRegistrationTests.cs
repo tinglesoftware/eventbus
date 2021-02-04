@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;

@@ -152,7 +152,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             // If scheduled for later, set the value in the message
             if (scheduled != null && scheduled > DateTimeOffset.UtcNow)
             {
-                message.ScheduledEnqueueTime = scheduled.Value.DateTime;
+                message.ScheduledEnqueueTime = scheduled.Value.UtcDateTime;
             }
 
             // If expiry is set in the future, set the ttl in the message
@@ -219,7 +219,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 // If scheduled for later, set the value in the message
                 if (scheduled != null && scheduled > DateTimeOffset.UtcNow)
                 {
-                    message.ScheduledEnqueueTime = scheduled.Value.DateTime;
+                    message.ScheduledEnqueueTime = scheduled.Value.UtcDateTime;
                 }
 
                 // If expiry is set in the future, set the ttl in the message

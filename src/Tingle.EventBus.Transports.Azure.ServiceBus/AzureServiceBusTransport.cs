@@ -317,9 +317,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 {
                     var name = reg.EventName;
 
-                    if (TransportOptions.UseBasicTier)
+                    if (TransportOptions.UseBasicTier || reg.UseQueueInsteadOfTopic())
                     {
-                        // ensure queue is created, for basic tier
+                        // ensure queue is created, for basic tier or when not mapped to Queue
                         Logger.LogDebug("Creating sender for queue '{QueueName}'", name);
                         await CreateQueueIfNotExistsAsync(name: name, cancellationToken: cancellationToken);
                     }
@@ -355,14 +355,14 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 var key = $"{topicName}/{subscriptionName}";
                 if (!processorsCache.TryGetValue(key, out var processor))
                 {
-                    if (TransportOptions.UseBasicTier)
+                    if (TransportOptions.UseBasicTier || ereg.UseQueueInsteadOfTopic())
                     {
-                        // Ensure queue is created for basic tier
+                        // Ensure queue is created for basic tier or when not mapped to Queue
                         await CreateQueueIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
                     }
                     else
                     {
-                        // Ensure topic is created before creating the subscription, for non-basic tier
+                        // Ensure topic is created before creating the subscription, for non-basic tier or when not mapped to Queue
                         await CreateTopicIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
 
                         // Ensure subscription is created
@@ -383,7 +383,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     sbpo.AutoCompleteMessages = false;
 
                     // Create the processor
-                    if (TransportOptions.UseBasicTier)
+                    if (TransportOptions.UseBasicTier || ereg.UseQueueInsteadOfTopic())
                     {
                         Logger.LogDebug("Creating processor for queue '{QueueName}'", topicName);
                         processor = serviceBusClient.CreateProcessor(queueName: topicName, options: sbpo);
@@ -523,7 +523,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
-            activity?.AddTag(ActivityTagNames.MessagingDestination, TransportOptions.UseBasicTier ? ereg.EventName : creg.ConsumerName); // name of the queue/subscription
+            var destination = TransportOptions.UseBasicTier || ereg.UseQueueInsteadOfTopic() ? ereg.EventName : creg.ConsumerName;
+            activity?.AddTag(ActivityTagNames.MessagingDestination, destination); // name of the queue/subscription
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
 
             try

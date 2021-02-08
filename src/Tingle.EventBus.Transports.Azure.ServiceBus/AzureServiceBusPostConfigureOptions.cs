@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using System;
 using Tingle.EventBus;
+using Tingle.EventBus.Registrations;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -36,8 +37,9 @@ namespace Microsoft.Extensions.DependencyInjection
                                                        + "Azure Service Bus does not allow more than 260 characters for Topic and Queue names.");
                 }
 
-                // Consumer names become Subscription names and they should not be longer than 50 characters                
-                if (!options.UseBasicTier) // When not using basic tier, ConsumerName -> SubscriptionName does not happen
+                // Consumer names become Subscription names and they should not be longer than 50 characters
+                // When not using basic tier or mapped to Queue, ConsumerName -> SubscriptionName does not happen
+                if (!options.UseBasicTier && !ereg.UseQueueInsteadOfTopic())
                 {
                     foreach (var creg in ereg.Consumers)
                     {

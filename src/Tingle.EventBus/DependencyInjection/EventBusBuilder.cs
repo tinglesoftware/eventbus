@@ -52,6 +52,19 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
+        /// Post configure options for EventBus
+        /// </summary>
+        /// <param name="configure"></param>
+        /// <returns></returns>
+        public EventBusBuilder PostConfigure(Action<EventBusOptions> configure)
+        {
+            if (configure is null) throw new ArgumentNullException(nameof(configure));
+
+            Services.PostConfigure(configure);
+            return this;
+        }
+
+        /// <summary>
         /// Register a transport to be used by the bus.
         /// </summary>
         /// <typeparam name="TTransport"></typeparam>

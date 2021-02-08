@@ -8,6 +8,7 @@ namespace Tingle.EventBus.Tests
         [Theory]
         [InlineData("Tingle.EventBus.Sample1", NamingConvention.KebabCase, "dev", "dev-tingle-event-bus-sample1")]
         [InlineData("Tingle.EventBus.Sample1", NamingConvention.SnakeCase, "prod", "prod_tingle_event_bus_sample1")]
+        [InlineData("Tingle.EventBus.Sample1", NamingConvention.DotCase, "dev", "dev.tingle.event.bus.sample1")]
         public void GetApplicationName_Works(string applicationName, NamingConvention convention, string scope, string expected)
         {
             var options = new EventBusNamingOptions { Scope = scope, Convention = convention, };
@@ -32,6 +33,7 @@ namespace Tingle.EventBus.Tests
         [Theory]
         [InlineData("SampleEvent", NamingConvention.KebabCase, "sample-event")]
         [InlineData("SampleConsumer", NamingConvention.SnakeCase, "sample_consumer")]
+        [InlineData("SampleEvent", NamingConvention.DotCase, "sample.event")]
         public void ApplyNamingConvention_Works(string raw, NamingConvention convention, string expected)
         {
             var options = new EventBusNamingOptions { Convention = convention, };
@@ -42,6 +44,7 @@ namespace Tingle.EventBus.Tests
         [Theory]
         [InlineData("dev-sample.event", NamingConvention.KebabCase, "dev-sample-event")]
         [InlineData("prd_sample+event", NamingConvention.SnakeCase, "prd_sample_event")]
+        [InlineData("dev-sample+event", NamingConvention.DotCase, "dev.sample.event")]
         public void ReplaceInvalidCharacters_Works(string raw, NamingConvention convention, string expected)
         {
             var options = new EventBusNamingOptions { Convention = convention, };
@@ -52,6 +55,7 @@ namespace Tingle.EventBus.Tests
         [Theory]
         [InlineData("sample-event", NamingConvention.KebabCase, "dev", "dev-sample-event")]
         [InlineData("sample_event", NamingConvention.SnakeCase, "prd", "prd_sample_event")]
+        [InlineData("sample.event", NamingConvention.DotCase, "dev", "dev.sample.event")]
         public void AppendScope_Works(string unscoped, NamingConvention convention, string scope, string expected)
         {
             var options = new EventBusNamingOptions { Convention = convention, Scope = scope, };

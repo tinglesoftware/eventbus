@@ -11,9 +11,12 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     public class EventBusNamingOptions
     {
-        private static readonly Regex namePattern = new Regex("(?<=[a-z0-9])[A-Z]", RegexOptions.Compiled);
-        private static readonly Regex replacePattern = new Regex("[^a-zA-Z0-9-_]", RegexOptions.Compiled);
         private static readonly Regex trimPattern = new Regex("(Event|Consumer|EventConsumer)$", RegexOptions.Compiled);
+        private static readonly Regex namePattern = new Regex("(?<=[a-z0-9])[A-Z]", RegexOptions.Compiled);
+        private static readonly Regex replacePatternKebabCase = new Regex("[^a-zA-Z0-9-]", RegexOptions.Compiled);
+        private static readonly Regex replacePatternSnakeCase = new Regex("[^a-zA-Z0-9_]", RegexOptions.Compiled);
+        private static readonly Regex replacePatternDotCase = new Regex("[^a-zA-Z0-9\\.]", RegexOptions.Compiled);
+        private static readonly Regex replacePatternDefault = new Regex("[^a-zA-Z0-9-_\\.]", RegexOptions.Compiled);
 
         /// <summary>
         /// The scope to use for queues and subscriptions.
@@ -91,6 +94,7 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 NamingConvention.KebabCase => namePattern.Replace(raw, m => "-" + m.Value).ToLowerInvariant(),
                 NamingConvention.SnakeCase => namePattern.Replace(raw, m => "_" + m.Value).ToLowerInvariant(),
+                NamingConvention.DotCase => namePattern.Replace(raw, m => "." + m.Value).ToLowerInvariant(),
                 _ => raw,
             };
         }
@@ -99,9 +103,10 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             return Convention switch
             {
-                NamingConvention.KebabCase => replacePattern.Replace(raw, "-"),
-                NamingConvention.SnakeCase => replacePattern.Replace(raw, "_"),
-                _ => replacePattern.Replace(raw, ""),
+                NamingConvention.KebabCase => replacePatternKebabCase.Replace(raw, "-"),
+                NamingConvention.SnakeCase => replacePatternSnakeCase.Replace(raw, "_"),
+                NamingConvention.DotCase => replacePatternDotCase.Replace(raw, "."),
+                _ => replacePatternDefault.Replace(raw, ""),
             };
         }
 
@@ -118,6 +123,7 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 NamingConvention.KebabCase => string.Join("-", args).ToLowerInvariant(),
                 NamingConvention.SnakeCase => string.Join("_", args).ToLowerInvariant(),
+                NamingConvention.DotCase => string.Join(".", args).ToLowerInvariant(),
                 _ => throw new ArgumentOutOfRangeException(nameof(Convention), $"'{Convention}' does not support joining"),
             };
         }

@@ -317,21 +317,23 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 {
                     var name = reg.EventName;
 
+                    // Create the entity. Queues are used in the basic tier or when explicitly mapped to Queue.
+                    // Otherwise, Topics are used.
                     if (TransportOptions.UseBasicTier || reg.UseQueueInsteadOfTopic())
                     {
-                        // ensure queue is created, for basic tier or when not mapped to Queue
+                        // Ensure Queue is created
                         Logger.LogDebug("Creating sender for queue '{QueueName}'", name);
                         await CreateQueueIfNotExistsAsync(name: name, cancellationToken: cancellationToken);
                     }
                     else
                     {
-                        // ensure topic is created, for non-basic tier
+                        // Ensure topic is created
                         Logger.LogDebug("Creating sender for topic '{TopicName}'", name);
                         await CreateTopicIfNotExistsAsync(name: name, cancellationToken: cancellationToken);
                     }
 
-                    // create the sender
-                    sender = serviceBusClient.CreateSender(name);
+                    // Create the sender
+                    sender = serviceBusClient.CreateSender(queueOrTopicName: name);
                     sendersCache[reg.EventType] = sender;
                 }
 
@@ -355,22 +357,6 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 var key = $"{topicName}/{subscriptionName}";
                 if (!processorsCache.TryGetValue(key, out var processor))
                 {
-                    if (TransportOptions.UseBasicTier || ereg.UseQueueInsteadOfTopic())
-                    {
-                        // Ensure queue is created for basic tier or when not mapped to Queue
-                        await CreateQueueIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
-                    }
-                    else
-                    {
-                        // Ensure topic is created before creating the subscription, for non-basic tier or when not mapped to Queue
-                        await CreateTopicIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
-
-                        // Ensure subscription is created
-                        await CreateSubscriptionIfNotExistsAsync(topicName: topicName,
-                                                                subscriptionName: subscriptionName,
-                                                                cancellationToken: cancellationToken);
-                    }
-
                     // Create the processor options
                     var sbpo = TransportOptions.CreateProcessorOptions?.Invoke() ?? new ServiceBusProcessorOptions();
 
@@ -382,14 +368,28 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     // False below indicates the Complete will be handled by the User Callback as in `ProcessMessagesAsync` below.
                     sbpo.AutoCompleteMessages = false;
 
-                    // Create the processor
+                    // Create the processor. Queues are used in the basic tier or when explicitly mapped to Queue.
+                    // Otherwise, Topics and Subscriptions are used.
                     if (TransportOptions.UseBasicTier || ereg.UseQueueInsteadOfTopic())
                     {
+                        // Ensure Queue is created
+                        await CreateQueueIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
+
+                        // Create the processor for the Queue
                         Logger.LogDebug("Creating processor for queue '{QueueName}'", topicName);
                         processor = serviceBusClient.CreateProcessor(queueName: topicName, options: sbpo);
                     }
                     else
                     {
+                        // Ensure Topic is created before creating the Subscription
+                        await CreateTopicIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
+
+                        // Ensure Subscription is created
+                        await CreateSubscriptionIfNotExistsAsync(topicName: topicName,
+                                                                subscriptionName: subscriptionName,
+                                                                cancellationToken: cancellationToken);
+
+                        // Create the processor for the Subscription
                         Logger.LogDebug("Creating processor for topic '{TopicName}' and subscription '{Subscription}'",
                                         topicName,
                                         subscriptionName);
@@ -397,6 +397,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                                      subscriptionName: subscriptionName,
                                                                      options: sbpo);
                     }
+
                     processorsCache[key] = processor;
                 }
 

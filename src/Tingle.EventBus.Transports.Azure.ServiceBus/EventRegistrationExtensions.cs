@@ -7,7 +7,7 @@ namespace Tingle.EventBus.Registrations
     /// </summary>
     public static class EventRegistrationExtensions
     {
-        internal const string MetadataKeyMapToQueue = "azure.servicebus.maptoqueue";
+        internal const string MetadataKeyMapToQueue = "azure.servicebus.map-to-queue";
 
         /// <summary>
         /// Change mapping from topic (default) to queue and vice-versa.

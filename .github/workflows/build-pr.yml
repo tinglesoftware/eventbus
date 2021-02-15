@@ -1,0 +1,44 @@
+name: Build PR
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+      - docs/**
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    env:
+      buildConfiguration: 'Release'
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup .NET 5.0 SDK
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '5.0.x'
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: >
+        dotnet build
+        --configuration $buildConfiguration
+        --no-restore
+
+    - name: Test
+      run: >
+        dotnet test
+        --configuration $buildConfiguration
+        --no-restore
+        --verbosity normal
+        --collect "Code coverage"

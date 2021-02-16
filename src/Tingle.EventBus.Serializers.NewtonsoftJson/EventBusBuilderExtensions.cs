@@ -34,10 +34,14 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Use the included NewtonsoftJson serializer as the default.
         /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configure"></param>
         /// <returns></returns>
-        public static EventBusBuilder UseDefaultNewtonsoftJsonSerializer(this EventBusBuilder builder)
+        public static EventBusBuilder UseDefaultNewtonsoftJsonSerializer(this EventBusBuilder builder,
+                                                                         Action<NewtonsoftJsonSerializerOptions> configure = null)
         {
-            return builder.UseDefaultSerializer<NewtonsoftJsonSerializer>();
+            return builder.AddNewtonsoftJsonSerializer(configure)
+                          .UseDefaultSerializer<NewtonsoftJsonSerializer>();
         }
     }
 }

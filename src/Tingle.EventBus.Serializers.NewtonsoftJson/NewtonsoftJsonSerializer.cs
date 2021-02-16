@@ -1,48 +1,50 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.IO;
 using System.Net.Mime;
-using System.Text.Json;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus.Serialization
+namespace Tingle.EventBus.Serializers
 {
     /// <summary>
-    /// The default implementation of <see cref="IEventSerializer"/> that uses <c>System.Text.Json</c>.
+    /// Implementation of <see cref="IEventSerializer"/> that uses <c>Newtonsoft.Json</c>.
     /// </summary>
-    internal class DefaultEventSerializer : IEventSerializer
+    public class NewtonsoftJsonSerializer : IEventSerializer
     {
         private static readonly ContentType JsonContentType = new ContentType(MediaTypeNames.Application.Json);
 
         private readonly EventBus bus;
-        private readonly JsonSerializerOptions serializerOptions;
         private readonly ILogger logger;
+        private readonly JsonSerializer serializer;
 
         /// <summary>
-        /// Creates an instance of <see cref="DefaultEventSerializer"/>.
+        /// Creates an instance of <see cref="NewtonsoftJsonSerializer"/>.
         /// </summary>
         /// <param name="bus"></param>
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
-        /// <param name="loggerFactory"></param>
-        public DefaultEventSerializer(EventBus bus, IOptions<EventBusOptions> optionsAccessor, ILoggerFactory loggerFactory)
+        /// <param name="logger"></param>
+        public NewtonsoftJsonSerializer(EventBus bus,
+                                             IOptions<NewtonsoftJsonSerializerOptions> optionsAccessor,
+                                             ILogger<NewtonsoftJsonSerializer> logger)
         {
             this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
-            serializerOptions = optionsAccessor?.Value?.SerializerOptions ?? throw new ArgumentNullException(nameof(optionsAccessor));
-
-            // Create a well-scoped logger
-            var categoryName = $"{LogCategoryNames.Serializers}.Default";
-            logger = loggerFactory?.CreateLogger(categoryName) ?? throw new ArgumentNullException(nameof(loggerFactory));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            var settings = optionsAccessor?.Value?.SerializerSettings ?? throw new ArgumentNullException(nameof(optionsAccessor));
+            serializer = JsonSerializer.Create(settings);
         }
 
         /// <inheritdoc/>
-        public async Task SerializeAsync<T>(Stream stream,
-                                            EventContext<T> context,
-                                            HostInfo hostInfo,
-                                            CancellationToken cancellationToken = default)
+        public Task SerializeAsync<T>(Stream stream,
+                                      EventContext<T> context,
+                                      HostInfo hostInfo,
+                                      CancellationToken cancellationToken = default)
              where T : class
         {
             // Assume JSON content if not specified
@@ -69,14 +71,15 @@ namespace Tingle.EventBus.Serialization
             };
 
             // Serialize
-            await JsonSerializer.SerializeAsync(utf8Json: stream,
-                                                value: envelope,
-                                                options: serializerOptions,
-                                                cancellationToken: cancellationToken);
+            using var sw = new StreamWriter(stream);
+            using var jw = new JsonTextWriter(sw);
+            serializer.Serialize(jw, envelope);
+
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
-        public async Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
+        public Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
                                                                ContentType contentType,
                                                                CancellationToken cancellationToken = default)
             where T : class
@@ -90,20 +93,23 @@ namespace Tingle.EventBus.Serialization
                 throw new NotSupportedException($"The ContentType '{contentType}' is not supported by this serializer");
             }
 
-            // Deserialize
-            var envelope = await JsonSerializer.DeserializeAsync<MessageEnvelope>(utf8Json: stream,
-                                                                                  options: serializerOptions,
-                                                                                  cancellationToken: cancellationToken);
+            // get the encoding and always default to UTF-8
+            var encoding = Encoding.GetEncoding(contentType?.CharSet ?? Encoding.UTF8.BodyName);
 
-            // Ensure we have a JsonElement for the event
-            if (!(envelope.Event is JsonElement eventToken) || eventToken.ValueKind == JsonValueKind.Null)
+            // Deserialize
+            using var sr = new StreamReader(stream, encoding);
+            using var jr = new JsonTextReader(sr);
+            var envelope = serializer.Deserialize<MessageEnvelope>(jr);
+
+            // Ensure we have a JToken for the event
+            if (!(envelope.Event is JToken eventToken) || eventToken.Type == JTokenType.Null)
             {
-                logger.LogWarning("The Event node is not a JsonElement or it is null");
-                eventToken = new JsonElement();
+                logger.LogWarning("The Event node is not a JToken or it is null");
+                eventToken = typeof(IEnumerable).IsAssignableFrom(typeof(T)) ? new JArray() : (JToken)new JObject();
             }
 
-            // Get the event from the element
-            T @event = typeof(T) == typeof(JsonElement) ? eventToken as T : ToObject<T>(eventToken, serializerOptions);
+            // Get the event from the token
+            T @event = typeof(T) == typeof(JToken) ? eventToken as T : eventToken.ToObject<T>(serializer);
 
             // Create the context with the event and popuate common properties
             var context = new EventContext<T>(bus)
@@ -119,18 +125,7 @@ namespace Tingle.EventBus.Serialization
                 ContentType = contentType,
             };
 
-            return context;
-        }
-
-        private static T ToObject<T>(JsonElement element, JsonSerializerOptions options = null)
-        {
-            var bufferWriter = new System.Buffers.ArrayBufferWriter<byte>();
-            using (var writer = new Utf8JsonWriter(bufferWriter))
-            {
-                element.WriteTo(writer);
-            }
-
-            return JsonSerializer.Deserialize<T>(bufferWriter.WrittenSpan, options);
+            return Task.FromResult(context);
         }
     }
 }

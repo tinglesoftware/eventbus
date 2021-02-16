@@ -31,6 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
             Services.AddTransient<IEventPublisher, EventPublisher>();
             Services.AddSingleton<EventBus>();
             Services.AddHostedService(p => p.GetRequiredService<EventBus>());
+            Services.AddSingleton<DefaultEventSerializer>();
         }
 
         /// <summary>
@@ -112,7 +113,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public EventBusBuilder UseDefaultSerializer<TEventSerializer>() where TEventSerializer : class, IEventSerializer
         {
-            Services.AddSingleton<IEventSerializer, TEventSerializer>();
+            Services.AddSingleton<IEventSerializer>(p => p.GetRequiredService<TEventSerializer>());
             return this;
         }
 

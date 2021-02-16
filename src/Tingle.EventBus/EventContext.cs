@@ -50,8 +50,9 @@ namespace Tingle.EventBus
 
         /// <summary>
         /// The headers published alongside the event.
+        /// The keys are case insensitive.
         /// </summary>
-        public IDictionary<string, object> Headers { get; set; } = new Dictionary<string, object>();
+        public IDictionary<string, object> Headers { get; set; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// The content type used to serialize and deserialize the event to/from a stream of bytes.

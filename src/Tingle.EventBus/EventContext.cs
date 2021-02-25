@@ -65,6 +65,14 @@ namespace Tingle.EventBus
         public ContentType ContentType { get; set; }
 
         /// <summary>
+        /// Gets or sets a key/value collection that can be used to share data within the scope of this context.
+        /// </summary>
+        /// <remarks>
+        /// This information should not be passed on to serialization.
+        /// </remarks>
+        public IDictionary<string, object> Items { get; set; } = new Dictionary<string, object>();
+
+        /// <summary>
         /// The bus in which this context exists.
         /// </summary>
         internal EventBus Bus { get; }

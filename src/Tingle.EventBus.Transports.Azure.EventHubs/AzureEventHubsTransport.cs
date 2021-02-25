@@ -394,6 +394,11 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                       data.SequenceNumber,
                                       context.Id);
 
+                // set the extras
+                context.SetConsumerGroup(processor.ConsumerGroup)
+                       .SetPartitionContext(args.Partition)
+                       .SetEventData(data);
+
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
@@ -408,7 +413,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
 
             // update the checkpoint store so that the app receives only new events the next time it's run
-            Logger.LogDebug("Checkpointing {PartitionKey}, at {SequenceNumber}. Event: '{Id}'.",
+            Logger.LogDebug("Checkpointing {Partition}, at {SequenceNumber}. Event: '{Id}'.",
                             args.Partition,
                             data.SequenceNumber,
                             eventId);

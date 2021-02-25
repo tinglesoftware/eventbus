@@ -19,7 +19,7 @@ namespace Tingle.EventBus
     /// </summary>
     public class EventBus : IHostedService
     {
-        private readonly List<IEventBusTransport> transports;
+        private readonly IList<IEventBusTransport> transports;
         private readonly EventBusOptions options;
         private readonly ILogger logger;
 
@@ -56,7 +56,7 @@ namespace Tingle.EventBus
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Get the name of the transport
-                var name = Microsoft.Extensions.DependencyInjection.EventBusBuilder.GetTransportName(t.GetType());
+                var name = EventBusBuilder.GetTransportName(t.GetType());
 
                 // Check the health on the transport
                 var tdata = new Dictionary<string, object>();
@@ -111,7 +111,7 @@ namespace Tingle.EventBus
             activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
 
             // Publish on the transport
-            logger.LogInformation("Sending event '{Id}' using '{TransportName}' transport. Scheduled: {Scheduled}", @event.Id, transport.Name, scheduled);
+            logger.SendingEvent(@event, transport.Name, scheduled);
             return await transport.PublishAsync(@event: @event,
                                                 registration: reg,
                                                 scheduled: scheduled,
@@ -163,11 +163,7 @@ namespace Tingle.EventBus
             activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
 
             // Publish on the transport
-            logger.LogInformation("Sending {EventsCount} events using '{TransportName}' transport. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
-                                  events.Count,
-                                  transport.Name,
-                                  scheduled,
-                                  string.Join("\r\n- ", events.Select(e => e.Id)));
+            logger.SendingEvents(events, transport.Name, scheduled);
             return await transport.PublishAsync(events: events,
                                                 registration: reg,
                                                 scheduled: scheduled,
@@ -187,7 +183,7 @@ namespace Tingle.EventBus
         {
             // cancel on the transport
             var (reg, transport) = GetTransportForEvent<TEvent>();
-            logger.LogInformation("Canceling events: {Id} on '{TransportName}' transport", id, transport.Name);
+            logger.CancelingEvent(id, transport.Name);
             await transport.CancelAsync<TEvent>(id: id, registration: reg, cancellationToken: cancellationToken);
         }
 
@@ -203,10 +199,7 @@ namespace Tingle.EventBus
         {
             // cancel on the transport
             var (reg, transport) = GetTransportForEvent<TEvent>();
-            logger.LogInformation("Canceling {EventsCount} events on '{TransportName}':\r\n- {Ids}",
-                                  ids.Count,
-                                  transport.Name,
-                                  string.Join("\r\n- ", ids));
+            logger.CancelingEvents(ids, transport.Name);
             await transport.CancelAsync<TEvent>(ids: ids, registration: reg, cancellationToken: cancellationToken);
         }
 
@@ -235,21 +228,21 @@ namespace Tingle.EventBus
             // The appropriate logging needs to be done.
             try
             {
-                logger.LogInformation("Delaying bus startup for '{Delay}'", delay);
+                logger.DelayedBusStartup(delay);
                 await Task.Delay(delay, cancellationToken);
                 await StartTransports(cancellationToken);
             }
             catch (Exception ex)
                 when (!(ex is OperationCanceledException || ex is TaskCanceledException)) // skip operation cancel
             {
-                logger.LogError(ex, "Starting bus delayed error.");
+                logger.DelayedBusStartupError(ex);
             }
         }
 
         private async Task StartTransports(CancellationToken cancellationToken)
         {
             // Start the bus and its transports
-            logger.LogDebug("Starting bus with {TransportsCount} transports.", transports.Count());
+            logger.StartingBus(transports.Count);
             foreach (var t in transports)
             {
                 await t.StartAsync(cancellationToken);
@@ -260,7 +253,7 @@ namespace Tingle.EventBus
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             // Stop the bus and its transports in parallel
-            logger.LogDebug("Stopping bus.");
+            logger.StoppingBus();
             var tasks = transports.Select(t => t.StopAsync(cancellationToken));
             await Task.WhenAll(tasks);
         }

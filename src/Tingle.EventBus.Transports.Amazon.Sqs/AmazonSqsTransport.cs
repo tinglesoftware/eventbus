@@ -69,8 +69,9 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         /// <inheritdoc/>
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
+            await base.StartAsync(cancellationToken);
+
             var registrations = GetRegistrations();
-            Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
             foreach (var ereg in registrations)
             {
                 foreach (var creg in ereg.Consumers)
@@ -91,7 +92,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         /// <inheritdoc/>
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            Logger.StoppingTransport();
+            await base.StopAsync(cancellationToken);
 
             // Stop called without start or there was no consumers registered
             if (receiverTasks.Count == 0) return;
@@ -370,7 +371,9 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             message.TryGetAttribute(AttributeNames.SequenceNumber, out var sequenceNumber);
             message.TryGetAttribute(AttributeNames.ActivityId, out var parentActivityId);
 
-            using var log_scope = Logger.BeginScopeForConsume(id: messageId, correlationId: correlationId, sequenceNumber: sequenceNumber);
+            using var log_scope = BeginLoggingScopeForConsume(id: messageId,
+                                                              correlationId: correlationId,
+                                                              sequenceNumber: sequenceNumber);
 
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId);

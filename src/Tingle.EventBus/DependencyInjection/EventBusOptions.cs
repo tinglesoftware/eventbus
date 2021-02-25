@@ -101,6 +101,22 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
+        /// Gets the number of consumer registrations for a given transport.
+        /// </summary>
+        /// <param name="transportName">The name of the transport for whom to get registered consumers.</param>
+        /// <returns></returns>
+        public int GetRegistrationsCount(string transportName)
+        {
+            if (string.IsNullOrWhiteSpace(transportName))
+            {
+                throw new ArgumentException($"'{nameof(transportName)}' cannot be null or whitespace", nameof(transportName));
+            }
+
+            // filter out the consumers where the event is set for the given transport
+            return Registrations.Values.Count(r => r.TransportName == transportName);
+        }
+
+        /// <summary>
         /// Get or create the event registration for a given event type.
         /// </summary>
         /// <typeparam name="TEvent">The event type to retrieve an <see cref="EventRegistration"/> for.</typeparam>

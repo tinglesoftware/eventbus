@@ -56,10 +56,11 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        public override Task StartAsync(CancellationToken cancellationToken)
+        public override async Task StartAsync(CancellationToken cancellationToken)
         {
+            await base.StartAsync(cancellationToken);
+
             var registrations = GetRegistrations();
-            Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
             foreach (var ereg in registrations)
             {
                 foreach (var creg in ereg.Consumers)
@@ -68,14 +69,12 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                     receiverTasks.Add(t);
                 }
             }
-
-            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            Logger.StoppingTransport();
+            await base.StopAsync(cancellationToken);
 
             // Stop called without start or there was no consumers registered
             if (receiverTasks.Count == 0) return;
@@ -317,7 +316,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             where TConsumer : IEventConsumer<TEvent>
         {
             var messageId = message.MessageId;
-            using var log_scope = Logger.BeginScopeForConsume(id: messageId,
+            using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                               correlationId: null,
                                                               extras: new Dictionary<string, string>
                                                               {

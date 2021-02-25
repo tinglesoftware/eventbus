@@ -71,12 +71,18 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         }
 
         /// <inheritdoc/>
-        public override async Task StartAsync(CancellationToken cancellationToken) => await ConnectConsumersAsync(cancellationToken);
+        public override async Task StartAsync(CancellationToken cancellationToken)
+        {
+            await base.StartAsync(cancellationToken);
+
+            await ConnectConsumersAsync(cancellationToken);
+        }
 
         /// <inheritdoc/>
-        public override Task StopAsync(CancellationToken cancellationToken)
+        public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            Logger.StoppingTransport();
+            await base.StopAsync(cancellationToken);
+
             var channels = subscriptionChannelsCache.Select(kvp => (key: kvp.Key, sc: kvp.Value)).ToList();
             foreach (var (key, channel) in channels)
             {
@@ -97,7 +103,6 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     Logger.LogWarning(exception, "Close channel faulted for {Subscription}", key);
                 }
             }
-            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
@@ -278,7 +283,6 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             }
 
             var registrations = GetRegistrations();
-            Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
             foreach (var ereg in registrations)
             {
                 var exchangeName = ereg.EventName;
@@ -309,7 +313,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             where TConsumer : IEventConsumer<TEvent>
         {
             var messageId = args.BasicProperties?.MessageId;
-            using var log_scope = Logger.BeginScopeForConsume(id: messageId,
+            using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                               correlationId: args.BasicProperties?.CorrelationId,
                                                               extras: new Dictionary<string, string>
                                                               {

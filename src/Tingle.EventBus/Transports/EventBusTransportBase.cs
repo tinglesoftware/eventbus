@@ -95,10 +95,18 @@ namespace Tingle.EventBus.Transports
             where TEvent : class;
 
         /// <inheritdoc/>
-        public abstract Task StartAsync(CancellationToken cancellationToken);
+        public virtual Task StartAsync(CancellationToken cancellationToken)
+        {
+            Logger.StartingTransport(GetRegistrationsCount(), TransportOptions.EmptyResultsDelay);
+            return Task.CompletedTask;
+        }
 
         /// <inheritdoc/>
-        public abstract Task StopAsync(CancellationToken cancellationToken);
+        public virtual Task StopAsync(CancellationToken cancellationToken)
+        {
+            Logger.StoppingTransport();
+            return Task.CompletedTask;
+        }
 
         /// <summary>
         /// Deserialize an event from a stream of bytes.
@@ -196,10 +204,73 @@ namespace Tingle.EventBus.Transports
         /// </returns>
         protected IServiceScope CreateScope() => serviceScopeFactory.CreateScope();
 
+        #region Registrations
+
         /// <summary>
         /// Gets the consumer registrations for this transport.
         /// </summary>
         /// <returns></returns>
         protected ICollection<EventRegistration> GetRegistrations() => BusOptions.GetRegistrations(transportName: Name);
+
+        /// <summary>
+        /// Gets the number of consumer registrations for this transport.
+        /// </summary>
+        /// <returns></returns>
+        protected int GetRegistrationsCount() => BusOptions.GetRegistrationsCount(transportName: Name);
+
+        #endregion
+
+        #region Logging
+        /// <summary>
+        /// Begins a logical operation scope for logging.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="correlationId"></param>
+        /// <param name="sequenceNumber"></param>
+        /// <param name="extras">The extras to put in the scope. (Optional)</param>
+        /// <returns>A disposable object that ends the logical operation scope on dispose.</returns>
+        protected IDisposable BeginLoggingScopeForConsume(string id,
+                                                          string correlationId,
+                                                          string sequenceNumber = null,
+                                                          IDictionary<string, string> extras = null)
+        {
+            var state = new Dictionary<string, string>();
+            state.AddIfNotDefault(AttributeNames.Id, id);
+            state.AddIfNotDefault(AttributeNames.CorrelationId, correlationId);
+            state.AddIfNotDefault(AttributeNames.SequenceNumber, sequenceNumber);
+
+            // if there are extras, add them
+            if (extras != null)
+            {
+                foreach (var kvp in extras)
+                {
+                    state.AddIfNotDefault(kvp.Key, kvp.Value);
+                }
+            }
+
+            // create the scope
+            return Logger.BeginScope(state);
+        }
+
+        /// <summary>
+        /// Begins a logical operation scope for logging.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="correlationId"></param>
+        /// <param name="sequenceNumber"></param>
+        /// <param name="extras">The extras to put in the scope. (Optional)</param>
+        /// <returns>A disposable object that ends the logical operation scope on dispose.</returns>
+        protected IDisposable BeginLoggingScopeForConsume(string id,
+                                                          string correlationId,
+                                                          long sequenceNumber,
+                                                          IDictionary<string, string> extras = null)
+        {
+            return BeginLoggingScopeForConsume(id: id,
+                                               correlationId: correlationId,
+                                               sequenceNumber: sequenceNumber.ToString(),
+                                               extras: extras);
+        }
+
+        #endregion
     }
 }

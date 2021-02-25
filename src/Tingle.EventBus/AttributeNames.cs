@@ -3,8 +3,9 @@
     /// <summary>
     /// Attribute and property names added alongside a message/event if the transport supports
     /// </summary>
-    internal static class AttributeNames
+    public static class AttributeNames
     {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string Id = "Id";
         public const string ContentType = "Content-Type";
         public const string SequenceNumber = "SequenceNumber";
@@ -15,5 +16,6 @@
         public const string ActivityId = "EventBus.ActivityId";
         public const string EventType = "EventBus.EventType";
         public const string EventName = "EventBus.EventName";
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 }

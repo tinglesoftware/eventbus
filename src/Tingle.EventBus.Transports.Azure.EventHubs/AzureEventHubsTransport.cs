@@ -64,8 +64,9 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         /// <inheritdoc/>
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
+            await base.StartAsync(cancellationToken);
+
             var registrations = GetRegistrations();
-            Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
             foreach (var ereg in registrations)
             {
                 foreach (var creg in ereg.Consumers)
@@ -102,7 +103,8 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         /// <inheritdoc/>
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            Logger.StoppingTransport();
+            await base.StopAsync(cancellationToken);
+
             var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
             foreach (var (key, proc) in clients)
             {
@@ -358,7 +360,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             data.Properties.TryGetValue(AttributeNames.EventType, out var eventType);
             data.Properties.TryGetValue(AttributeNames.ActivityId, out var parentActivityId);
 
-            using var log_scope = Logger.BeginScopeForConsume(id: eventId?.ToString(),
+            using var log_scope = BeginLoggingScopeForConsume(id: eventId?.ToString(),
                                                               correlationId: correlationId?.ToString(),
                                                               sequenceNumber: data.SequenceNumber,
                                                               extras: new Dictionary<string, string>

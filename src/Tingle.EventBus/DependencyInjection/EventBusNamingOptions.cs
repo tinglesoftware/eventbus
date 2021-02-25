@@ -75,7 +75,13 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         public bool SuffixConsumerName { get; set; } = true;
 
-        internal string GetApplicationName(IHostEnvironment environment)
+        /// <summary>
+        /// Gets the application name from <see cref="IHostEnvironment.ApplicationName"/>
+        /// and applies the naming settings in this options.
+        /// </summary>
+        /// <param name="environment"></param>
+        /// <returns></returns>
+        public string GetApplicationName(IHostEnvironment environment)
         {
             if (environment is null) throw new ArgumentNullException(nameof(environment));
 

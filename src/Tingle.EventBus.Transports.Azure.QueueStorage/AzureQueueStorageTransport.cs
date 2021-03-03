@@ -333,7 +333,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
             try
             {
-                Logger.LogDebug("Processing '{MessageId}|{PopReceipt}' from '{QueueName}'", messageId, message.PopReceipt, queueClient.Name);
+                Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueClient.Name);
                 using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.MessageText));
                 var context = await DeserializeAsync<TEvent>(body: ms,
                                                              contentType: null, // There is no way to get this yet
@@ -341,9 +341,8 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
 
-                Logger.LogInformation("Received message: '{MessageId}|{PopReceipt}' containing Event '{Id}' from '{QueueName}'",
+                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueName}'",
                                       messageId,
-                                      message.PopReceipt,
                                       context.Id,
                                       queueClient.Name);
 
@@ -367,10 +366,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             }
 
             // always delete the message from the current queue
-            Logger.LogTrace("Deleting '{MessageId}|{PopReceipt}' on '{QueueName}'",
-                            messageId,
-                            message.PopReceipt,
-                            queueClient.Name);
+            Logger.LogTrace("Deleting '{MessageId}' on '{QueueName}'", messageId, queueClient.Name);
             await queueClient.DeleteMessageAsync(messageId: messageId,
                                                  popReceipt: message.PopReceipt,
                                                  cancellationToken: cancellationToken);

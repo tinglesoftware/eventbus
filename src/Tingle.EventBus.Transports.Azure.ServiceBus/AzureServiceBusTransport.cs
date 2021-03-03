@@ -83,6 +83,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 foreach (var creg in ereg.Consumers)
                 {
                     var processor = await GetProcessorAsync(ereg: ereg, creg: creg, cancellationToken: cancellationToken);
+                    var entityPath = processor.EntityPath;
 
                     // register handlers for error and processing
                     processor.ProcessErrorAsync += OnMessageFaultedAsync;
@@ -91,11 +92,11 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                         var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
                         var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
                         var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
-                        return (Task)method.Invoke(this, new object[] { ereg, creg, args, });
+                        return (Task)method.Invoke(this, new object[] { ereg, creg, entityPath, args, });
                     };
 
                     // start processing
-                    Logger.LogInformation("Starting processing on {EntityPath}", processor.EntityPath);
+                    Logger.LogInformation("Starting processing on {EntityPath}", entityPath);
                     await processor.StartProcessingAsync(cancellationToken: cancellationToken);
                 }
             }
@@ -503,7 +504,10 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration ereg, EventConsumerRegistration creg, ProcessMessageEventArgs args)
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration ereg,
+                                                                     EventConsumerRegistration creg,
+                                                                     string entityPath,
+                                                                     ProcessMessageEventArgs args)
             where TEvent : class
             where TConsumer : IEventConsumer<TEvent>
         {
@@ -532,7 +536,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             try
             {
-                Logger.LogDebug("Processing '{MessageId}'", messageId);
+                Logger.LogDebug("Processing '{MessageId}' from '{EntityPath}'", messageId, entityPath);
                 using var scope = CreateScope();
                 using var ms = message.Body.ToStream();
                 var contentType = new ContentType(message.ContentType);
@@ -542,9 +546,10 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
 
-                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
+                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{EntityPath}'",
                                       messageId,
-                                      context.Id);
+                                      context.Id,
+                                      entityPath);
 
                 // set the extras
                 context.SetServiceBusMessage(message);
@@ -554,7 +559,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                       cancellationToken: cancellationToken);
 
                 // Complete the message
-                Logger.LogDebug("Completing message: {MessageId}.", messageId);
+                Logger.LogDebug("Completing message: {MessageId} from '{EntityPath}'.", messageId);
                 await args.CompleteMessageAsync(message: message, cancellationToken: cancellationToken);
             }
             catch (Exception ex)

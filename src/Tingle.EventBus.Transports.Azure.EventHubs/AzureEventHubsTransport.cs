@@ -378,10 +378,12 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
             try
             {
-                Logger.LogDebug("Processing '{EventId}|{PartitionKey}|{SequenceNumber}'",
+                Logger.LogDebug("Processing '{EventId}|{PartitionKey}|{SequenceNumber}' from '{EventHubName}/{ConsumerGroup}'",
                                 eventId,
                                 data.PartitionKey,
-                                data.SequenceNumber);
+                                data.SequenceNumber,
+                                processor.EventHubName,
+                                processor.ConsumerGroup);
                 using var scope = CreateScope();
                 using var ms = new MemoryStream(data.Body.ToArray());
                 var contentType = contentType_str == null ? null : new ContentType(contentType_str.ToString());
@@ -390,11 +392,13 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                              registration: ereg,
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
-                Logger.LogInformation("Received event: '{EventId}|{PartitionKey}|{SequenceNumber}' containing Event '{Id}'",
+                Logger.LogInformation("Received event: '{EventId}|{PartitionKey}|{SequenceNumber}' containing Event '{Id}' from '{EventHubName}/{ConsumerGroup}'",
                                       eventId,
                                       data.PartitionKey,
                                       data.SequenceNumber,
-                                      context.Id);
+                                      context.Id,
+                                      processor.EventHubName,
+                                      processor.ConsumerGroup);
 
                 // set the extras
                 context.SetConsumerGroup(processor.ConsumerGroup)
@@ -415,8 +419,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
 
             // update the checkpoint store so that the app receives only new events the next time it's run
-            Logger.LogDebug("Checkpointing {Partition}, at {SequenceNumber}. Event: '{Id}'.",
+            Logger.LogDebug("Checkpointing {Partition} of '{EventHubName}/{ConsumerGroup}', at {SequenceNumber}. Event: '{Id}'.",
                             args.Partition,
+                            processor.EventHubName,
+                            processor.ConsumerGroup,
                             data.SequenceNumber,
                             eventId);
             await args.UpdateCheckpointAsync(args.CancellationToken);

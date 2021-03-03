@@ -386,7 +386,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
 
             try
             {
-                Logger.LogDebug("Processing '{MessageId}'", messageId);
+                Logger.LogDebug("Processing '{MessageId}' from '{QueueUrl}'", messageId, queueUrl);
                 using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.Body));
                 message.TryGetAttribute("Content-Type", out var contentType_str);
                 var contentType = contentType_str == null ? null : new ContentType(contentType_str);
@@ -398,9 +398,10 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                                                              scope: scope,
                                                              cancellationToken: cancellationToken);
 
-                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
+                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueUrl}'",
                                       messageId,
-                                      context.Id);
+                                      context.Id,
+                                      queueUrl);
 
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,

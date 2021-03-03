@@ -15,7 +15,6 @@ using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
-#pragma warning disable CA1063 // Implement IDisposable Correctly
     /// <summary>
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using an in-memory transport.
     /// This implementation should only be used for unit testing or similar scenarios as it does not offer persistence.
@@ -335,7 +334,7 @@ namespace Tingle.EventBus.Transports.InMemory
             EventContext<TEvent> context = null;
             try
             {
-                Logger.LogDebug("Processing '{MessageId}'", messageId);
+                Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueEntity.Name);
                 using var ms = new MemoryStream(message.Body.ToArray());
                 var contentType = new ContentType(message.ContentType);
                 context = await DeserializeAsync<TEvent>(body: ms,
@@ -344,9 +343,10 @@ namespace Tingle.EventBus.Transports.InMemory
                                                          scope: scope,
                                                          cancellationToken: cancellationToken);
 
-                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
+                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueName}'",
                                       messageId,
-                                      context.Id);
+                                      context.Id,
+                                      queueEntity.Name);
 
                 await ConsumeAsync<TEvent, TConsumer>(@event: context,
                                                       scope: scope,
@@ -389,6 +389,5 @@ namespace Tingle.EventBus.Transports.InMemory
         {
             stoppingCts.Cancel();
         }
-#pragma warning restore CA1063 // Implement IDisposable Correctly
     }
 }

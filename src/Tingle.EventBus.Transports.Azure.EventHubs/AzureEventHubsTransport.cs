@@ -367,6 +367,9 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                               {
                                                                   [AttributeNames.EventName] = eventName?.ToString(),
                                                                   [AttributeNames.EventType] = eventType?.ToString(),
+                                                                  ["PartitionKey"] = data.PartitionKey,
+                                                                  ["EventHubName"] = processor.EventHubName,
+                                                                  ["ConsumerGroup"] = processor.ConsumerGroup,
                                                               });
 
             // Instrumentation

@@ -373,7 +373,14 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
 
             using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                               correlationId: correlationId,
-                                                              sequenceNumber: sequenceNumber);
+                                                              sequenceNumber: sequenceNumber,
+                                                              extras: new Dictionary<string, string>
+                                                              {
+                                                                  ["QueueUrl"] = queueUrl,
+                                                                  ["ReceiptHandle"] = message.ReceiptHandle,
+                                                                  [nameof(message.MD5OfBody)] = message.MD5OfBody,
+                                                                  [nameof(message.MD5OfMessageAttributes)] = message.MD5OfMessageAttributes,
+                                                              });
 
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId);

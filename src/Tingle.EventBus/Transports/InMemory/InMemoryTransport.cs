@@ -321,7 +321,12 @@ namespace Tingle.EventBus.Transports.InMemory
 
             message.Properties.TryGetValue(AttributeNames.ActivityId, out var parentActivityId);
 
-            using var log_scope = BeginLoggingScopeForConsume(id: messageId, correlationId: null);
+            using var log_scope = BeginLoggingScopeForConsume(id: messageId,
+                                                              correlationId: null,
+                                                              extras: new Dictionary<string, string>
+                                                              {
+                                                                  ["QueueName"] = queueEntity.Name,
+                                                              });
 
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());

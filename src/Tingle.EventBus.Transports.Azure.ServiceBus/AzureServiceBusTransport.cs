@@ -522,6 +522,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                               sequenceNumber: message.SequenceNumber,
                                                               extras: new Dictionary<string, string>
                                                               {
+                                                                  ["EntityPath"] = entityPath,
                                                                   ["EnqueuedSequenceNumber"] = message.EnqueuedSequenceNumber.ToString(),
                                                               });
 

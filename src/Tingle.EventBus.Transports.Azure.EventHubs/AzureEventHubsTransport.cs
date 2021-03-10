@@ -268,7 +268,6 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                     // ensure event hub is created
 
                     // EventHubs can only be create via Azure portal or using Resource Manager which needs different credentials
-                    // TODO: consider optionally allowing for credentials to perform ARM operations?
 
                     producersCache[(reg.EventType, deadletter)] = producer;
                 }
@@ -305,8 +304,6 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                      * EventHubs and ConsumerGroups can only be create via Azure portal or using Resource Manager
                      * which needs different credentials.
                      */
-
-                    // TODO: consider optionally allowing for credentials to perform ARM operations?
 
                     var blobContainerClient = new BlobContainerClient(connectionString: TransportOptions.BlobStorageConnectionString,
                                                                       blobContainerName: TransportOptions.BlobContainerName);

@@ -41,7 +41,7 @@ namespace InMemoryUnitTest
                     Assert.False(harness.Failed().Any());
 
                     // Ensure only one was published
-                    var context = Assert.Single(harness.Published<OrderProcessedEvent>());
+                    var context = Assert.Single(await harness.PublishedAsync<OrderProcessedEvent>(TimeSpan.FromSeconds(0.5f)));
                     var evt = context.Event;
                     Assert.Equal(2021 + orderNumber, evt.Year);
                 }

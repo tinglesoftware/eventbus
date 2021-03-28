@@ -51,6 +51,9 @@ namespace Microsoft.Extensions.DependencyInjection
             var registrations = busOptions.GetRegistrations(TransportNames.AmazonSqs);
             foreach (var ereg in registrations)
             {
+                // Ensure the entity type is allowed
+                options.EnsureAllowedEntityKind(ereg, EntityTypePreference.Topic, EntityTypePreference.Queue);
+
                 // Event names become Topic names and they should not be longer than 256 characters
                 // See https://aws.amazon.com/sns/faqs/#:~:text=Features%20and%20functionality,and%20underscores%20(_)%20are%20allowed.
                 if (ereg.EventName.Length > 256)

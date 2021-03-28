@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports
@@ -39,5 +40,27 @@ namespace Tingle.EventBus.Transports
         /// To specify a value per event, use the <see cref="EventRegistration.EntityType"/> option.
         /// </summary>
         public virtual EntityTypePreference DefaultEntityType { get; set; } = EntityTypePreference.Queue;
+
+        /// <summary>
+        /// Ensures the value set for <see cref="EventRegistration.EntityType"/> is among the allowed values.
+        /// If no value is set, the default value (set via <see cref="DefaultEntityType"/>) is set before checking.
+        /// </summary>
+        /// <param name="ereg">The <see cref="EventRegistration"/> to check.</param>
+        /// <param name="allowedKinds">The allowed values for <see cref="EntityTypePreference"/>.</param>
+        public void EnsureAllowedEntityKind(EventRegistration ereg, params EntityTypePreference[] allowedKinds)
+        {
+            if (ereg is null) throw new ArgumentNullException(nameof(ereg));
+            if (allowedKinds is null) throw new ArgumentNullException(nameof(allowedKinds));
+
+            // ensure there is a value (use default if none)
+            ereg.EntityType ??= DefaultEntityType;
+
+            // ensure the value is allowed
+            var et = ereg.EntityType.Value;
+            if (!allowedKinds.Contains(et))
+            {
+                throw new InvalidOperationException($"'{nameof(EntityTypePreference)}.{et}' is not permitted for '{ereg.TransportName}' transport.");
+            }
+        }
     }
 }

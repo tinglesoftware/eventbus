@@ -38,6 +38,9 @@ namespace Microsoft.Extensions.DependencyInjection
             // See https://docs.microsoft.com/en-us/rest/api/storageservices/naming-queues-and-metadata#queue-names
             foreach (var ereg in registrations)
             {
+                // Ensure the entity type is allowed
+                options.EnsureAllowedEntityKind(ereg, EntityTypePreference.Queue);
+
                 // Event names become topic names and they should not be longer than 63 characters
                 if (ereg.EventName.Length > 63)
                 {

@@ -1,9 +1,7 @@
 ﻿using Confluent.Kafka;
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Tingle.EventBus;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -59,6 +57,9 @@ namespace Microsoft.Extensions.DependencyInjection
             // See https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-quotas#common-limits-for-all-tiers
             foreach (var ereg in registrations)
             {
+                // Ensure the entity type is allowed
+                options.EnsureAllowedEntityKind(ereg, EntityTypePreference.Topic);
+
                 // Event names become Topic names and they should not be longer than 255 characters
                 // https://www.ibm.com/support/knowledgecenter/SSMKHH_10.0.0/com.ibm.etools.mft.doc/bz91041_.html
                 if (ereg.EventName.Length > 255)

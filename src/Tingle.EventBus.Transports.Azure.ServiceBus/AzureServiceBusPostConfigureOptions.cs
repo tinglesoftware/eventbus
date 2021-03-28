@@ -30,6 +30,9 @@ namespace Microsoft.Extensions.DependencyInjection
             var registrations = busOptions.GetRegistrations(TransportNames.AzureServiceBus);
             foreach (var ereg in registrations)
             {
+                // Ensure the entity type is allowed
+                options.EnsureAllowedEntityKind(ereg, EntityTypePreference.Topic, EntityTypePreference.Queue);
+
                 // Event names become Topic and Queue names and they should not be longer than 260 characters
                 if (ereg.EventName.Length > 260)
                 {

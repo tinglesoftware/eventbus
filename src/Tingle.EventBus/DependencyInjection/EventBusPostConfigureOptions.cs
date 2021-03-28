@@ -78,6 +78,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 evr.SetSerializer() // set serializer
                    .SetTransportName(options) // set transport name
                    .SetEventName(options.Naming) // set event name
+                   .SetEntityKind()
                    .SetConsumerNames(options.Naming, environment); // set the consumer names
             }
 

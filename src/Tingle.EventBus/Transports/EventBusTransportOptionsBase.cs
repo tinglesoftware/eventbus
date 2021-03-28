@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports
 {
@@ -32,5 +34,33 @@ namespace Tingle.EventBus.Transports
         /// Defaults to <c>-dedletter</c>.
         /// </summary>
         public string DeadLetterSuffix { get; set; } = "-deadleter";
+
+        /// <summary>
+        /// The default value to use for <see cref="EntityKind"/> for events where not specified.
+        /// To specify a value per event, use the <see cref="EventRegistration.EntityKind"/> option.
+        /// </summary>
+        public virtual EntityKind DefaultEntityKind { get; set; } = EntityKind.Queue;
+
+        /// <summary>
+        /// Ensures the value set for <see cref="EventRegistration.EntityKind"/> is among the allowed values.
+        /// If no value is set, the default value (set via <see cref="DefaultEntityKind"/>) is set before checking.
+        /// </summary>
+        /// <param name="ereg">The <see cref="EventRegistration"/> to check.</param>
+        /// <param name="allowed">The allowed values for <see cref="EntityKind"/>.</param>
+        public void EnsureAllowedEntityKind(EventRegistration ereg, params EntityKind[] allowed)
+        {
+            if (ereg is null) throw new ArgumentNullException(nameof(ereg));
+            if (allowed is null) throw new ArgumentNullException(nameof(allowed));
+
+            // ensure there is a value (use default if none)
+            ereg.EntityKind ??= DefaultEntityKind;
+
+            // ensure the value is allowed
+            var ek = ereg.EntityKind.Value;
+            if (!allowed.Contains(ek))
+            {
+                throw new InvalidOperationException($"'{nameof(EntityKind)}.{ek}' is not permitted for '{ereg.TransportName}' transport.");
+            }
+        }
     }
 }

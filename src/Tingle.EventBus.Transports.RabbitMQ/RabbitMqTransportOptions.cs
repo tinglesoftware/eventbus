@@ -1,4 +1,5 @@
 ﻿using RabbitMQ.Client;
+using Tingle.EventBus;
 using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -8,6 +9,9 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     public class RabbitMqTransportOptions : EventBusTransportOptionsBase
     {
+        /// <inheritdoc/>
+        public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Broadcast;
+
         /// <summary>
         /// The number of retries to make.
         /// </summary>

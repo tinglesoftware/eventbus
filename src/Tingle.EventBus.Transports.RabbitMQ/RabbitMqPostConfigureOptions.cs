@@ -68,6 +68,9 @@ namespace Microsoft.Extensions.DependencyInjection
             // See https://www.rabbitmq.com/queues.html#:~:text=Names,bytes%20of%20UTF%2D8%20characters.
             foreach (var ereg in registrations)
             {
+                // Ensure the entity type is allowed
+                options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast, EntityKind.Queue);
+
                 // Event names become Exchange names and they should not be longer than 255 characters
                 if (ereg.EventName.Length > 255)
                 {

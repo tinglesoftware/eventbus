@@ -11,7 +11,7 @@ namespace Tingle.EventBus
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="eventName">The event name to use for the event type</param>
+        /// <param name="eventName">The event name to use for the event.</param>
         public EventNameAttribute(string eventName)
         {
             if (string.IsNullOrWhiteSpace(eventName))

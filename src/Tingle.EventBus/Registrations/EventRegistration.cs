@@ -31,6 +31,13 @@ namespace Tingle.EventBus.Registrations
         public string EventName { get; set; }
 
         /// <summary>
+        /// The preferred type of entity to use for the event.
+        /// When set to <see langword="null"/>, the transport chooses a suitable one.
+        /// Defaults to <see langword="null"/>.
+        /// </summary>
+        public EntityKind? EntityKind { get; set; }
+
+        /// <summary>
         /// The name of the transport used for the event.
         /// </summary>
         public string TransportName { get; set; }

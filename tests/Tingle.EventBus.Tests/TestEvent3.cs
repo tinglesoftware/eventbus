@@ -1,5 +1,6 @@
 ﻿namespace Tingle.EventBus.Tests
 {
+    [EntityKind(EntityKind.Broadcast)]
     [EventSerializer(typeof(FakeEventSerializer2))]
     internal class TestEvent3
     {

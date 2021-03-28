@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 
-namespace InMemoryUnitTest
+namespace Tingle.EventBus.Tests.InMemoryHarness
 {
     class FakeHostEnvironment : IHostEnvironment
     {

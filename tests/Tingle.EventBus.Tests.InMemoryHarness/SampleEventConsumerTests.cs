@@ -4,11 +4,10 @@ using SimpleConsumer;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Tingle.EventBus;
 using Tingle.EventBus.Transports.InMemory;
 using Xunit;
 
-namespace InMemoryUnitTest
+namespace Tingle.EventBus.Tests.InMemoryHarness
 {
     public class SampleEventConsumerTests
     {
@@ -51,7 +50,7 @@ namespace InMemoryUnitTest
                 Assert.False(harness.Failed<SampleEvent>().Any());
 
                 // Ensure the message was consumed
-                Assert.NotEmpty(await harness.ConsumedAsync<SampleEvent>());
+                Assert.NotEmpty(await harness.ConsumedAsync<SampleEvent>(TimeSpan.FromSeconds(0.5f)));
 
                 // Now you can ensure data saved to database correctly
 

@@ -1,6 +1,7 @@
 ﻿using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using System;
+using Tingle.EventBus;
 using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -10,17 +11,13 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     public class AzureServiceBusTransportOptions : EventBusTransportOptionsBase
     {
+        /// <inheritdoc/>
+        public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Broadcast;
+
         /// <summary>
         /// The connection string to Azure Service Bus.
         /// </summary>
         public string ConnectionString { get; set; }
-
-        /// <summary>
-        /// Gets or sets value indicating if the Service Bus namespace is in the Basic tier.
-        /// The Basic tier does not support topics. In this case, the transport would make use of queues only.
-        /// Defaults to <see langword="false"/>.
-        /// </summary>
-        public bool UseBasicTier { get; set; } = false;
 
         /// <summary>
         /// The type of transport to use.

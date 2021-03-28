@@ -49,6 +49,9 @@ namespace Microsoft.Extensions.DependencyInjection
             // See https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-quotas#common-limits-for-all-tiers
             foreach (var ereg in registrations)
             {
+                // Ensure the entity type is allowed
+                options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast);
+
                 // Event names become Event Hub names and they should not be longer than 256 characters
                 if (ereg.EventName.Length > 256)
                 {

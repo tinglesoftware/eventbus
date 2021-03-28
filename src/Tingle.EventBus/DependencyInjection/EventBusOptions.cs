@@ -132,6 +132,7 @@ namespace Microsoft.Extensions.DependencyInjection
             registration = new EventRegistration(eventType);
             registration.SetSerializer() // set serializer
                         .SetEventName(Naming) // set event name
+                        .SetEntityKind()
                         .SetTransportName(this); // set transport name
             return Registrations[eventType] = registration;
         }

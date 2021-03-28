@@ -36,6 +36,24 @@ namespace Tingle.EventBus.Registrations
             return reg;
         }
 
+        internal static EventRegistration SetEntityKind(this EventRegistration reg)
+        {
+            if (reg is null) throw new ArgumentNullException(nameof(reg));
+
+            // set the entity kind, if not set and there is an attribute
+            if (reg.EntityKind == null)
+            {
+                var type = reg.EventType;
+                var kind = type.GetCustomAttributes(false).OfType<EntityKindAttribute>().SingleOrDefault()?.Kind;
+                if (kind != null)
+                {
+                    reg.EntityKind = kind;
+                }
+            }
+
+            return reg;
+        }
+
         internal static EventRegistration SetConsumerNames(this EventRegistration reg,
                                                            EventBusNamingOptions options,
                                                            IHostEnvironment environment)

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using System;
 using Tingle.EventBus;
-using Tingle.EventBus.Registrations;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -30,6 +29,9 @@ namespace Microsoft.Extensions.DependencyInjection
             var registrations = busOptions.GetRegistrations(TransportNames.AzureServiceBus);
             foreach (var ereg in registrations)
             {
+                // Ensure the entity type is allowed
+                options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast, EntityKind.Queue);
+
                 // Event names become Topic and Queue names and they should not be longer than 260 characters
                 if (ereg.EventName.Length > 260)
                 {
@@ -38,8 +40,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
 
                 // Consumer names become Subscription names and they should not be longer than 50 characters
-                // When not using basic tier or when mapped to Queue, ConsumerName -> SubscriptionName does not happen
-                if (!options.UseBasicTier && !ereg.UseQueueInsteadOfTopic())
+                // When not using Queues, ConsumerName -> SubscriptionName does not happen
+                if (ereg.EntityKind == EntityKind.Broadcast)
                 {
                     foreach (var creg in ereg.Consumers)
                     {

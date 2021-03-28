@@ -149,5 +149,16 @@ namespace Tingle.EventBus.Tests
                         .SetConsumerNames(options.Naming, environment);
             Assert.Equal(expected, creg.ConsumerName);
         }
+
+        [Theory]
+        [InlineData(typeof(TestEvent1), null)]
+        [InlineData(typeof(TestEvent2), null)]
+        [InlineData(typeof(TestEvent3), EntityKind.Broadcast)]
+        public void SetEntityKind_Works(Type eventType, EntityKind? expected)
+        {
+            var registration = new EventRegistration(eventType);
+            registration.SetEntityKind();
+            Assert.Equal(expected, registration.EntityKind);
+        }
     }
 }

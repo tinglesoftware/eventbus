@@ -1,15 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Tingle.EventBus;
 using Tingle.EventBus.Transports.InMemory;
 using Xunit;
 
-namespace InMemoryUnitTest
+namespace Tingle.EventBus.Tests.InMemoryHarness
 {
     public class SimplePublisherTests
     {

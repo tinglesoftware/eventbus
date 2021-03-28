@@ -12,7 +12,7 @@ namespace Microsoft.Extensions.DependencyInjection
     public class AzureServiceBusTransportOptions : EventBusTransportOptionsBase
     {
         /// <inheritdoc/>
-        public override EntityTypePreference DefaultEntityType { get; set; } = EntityTypePreference.Topic;
+        public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Topic;
 
         /// <summary>
         /// The connection string to Azure Service Bus.

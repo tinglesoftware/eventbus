@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection
     public class AzureQueueStorageTransportOptions : EventBusTransportOptionsBase
     {
         /// <inheritdoc/>
-        public override EntityTypePreference DefaultEntityType { get; set; } = EntityTypePreference.Queue;
+        public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Queue;
 
         /// <summary>
         /// The connection string to Azure Queue Storage.

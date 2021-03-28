@@ -58,7 +58,7 @@ namespace Microsoft.Extensions.DependencyInjection
             foreach (var ereg in registrations)
             {
                 // Ensure the entity type is allowed
-                options.EnsureAllowedEntityKind(ereg, EntityTypePreference.Topic);
+                options.EnsureAllowedEntityKind(ereg, EntityKind.Topic);
 
                 // Event names become Topic names and they should not be longer than 255 characters
                 // https://www.ibm.com/support/knowledgecenter/SSMKHH_10.0.0/com.ibm.etools.mft.doc/bz91041_.html

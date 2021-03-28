@@ -13,7 +13,7 @@ namespace Microsoft.Extensions.DependencyInjection
     public class AmazonKinesisTransportOptions : EventBusTransportOptionsBase
     {
         /// <inheritdoc/>
-        public override EntityTypePreference DefaultEntityType { get; set; } = EntityTypePreference.Stream;
+        public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Stream;
 
         /// <summary>
         /// The system name of the region to connect to.

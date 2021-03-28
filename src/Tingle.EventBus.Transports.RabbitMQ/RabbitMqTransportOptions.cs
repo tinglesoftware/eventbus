@@ -10,7 +10,7 @@ namespace Microsoft.Extensions.DependencyInjection
     public class RabbitMqTransportOptions : EventBusTransportOptionsBase
     {
         /// <inheritdoc/>
-        public override EntityTypePreference DefaultEntityType { get; set; } = EntityTypePreference.Topic;
+        public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Topic;
 
         /// <summary>
         /// The number of retries to make.

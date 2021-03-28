@@ -50,7 +50,7 @@ namespace Microsoft.Extensions.DependencyInjection
             foreach (var ereg in registrations)
             {
                 // Ensure the entity type is allowed
-                options.EnsureAllowedEntityKind(ereg, EntityTypePreference.Stream);
+                options.EnsureAllowedEntityKind(ereg, EntityKind.Stream);
 
                 // Event names become Event Hub names and they should not be longer than 256 characters
                 if (ereg.EventName.Length > 256)

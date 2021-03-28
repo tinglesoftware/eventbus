@@ -13,7 +13,7 @@ namespace Microsoft.Extensions.DependencyInjection
     public class KafkaTransportOptions: EventBusTransportOptionsBase
     {
         /// <inheritdoc/>
-        public override EntityTypePreference DefaultEntityType { get; set; } = EntityTypePreference.Topic;
+        public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Topic;
 
         /// <summary>
         /// The initial list of brokers indicated as <c>host</c> or <c>host:port</c>

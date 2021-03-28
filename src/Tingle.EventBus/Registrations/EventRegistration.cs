@@ -35,7 +35,7 @@ namespace Tingle.EventBus.Registrations
         /// When set to <see langword="null"/>, the transport chooses a suitable one.
         /// Defaults to <see langword="null"/>.
         /// </summary>
-        public EntityTypePreference? EntityType { get; set; }
+        public EntityKind? EntityKind { get; set; }
 
         /// <summary>
         /// The name of the transport used for the event.

@@ -36,30 +36,30 @@ namespace Tingle.EventBus.Transports
         public string DeadLetterSuffix { get; set; } = "-deadleter";
 
         /// <summary>
-        /// The default value to use for <see cref="EntityTypePreference"/> for events where not specified.
-        /// To specify a value per event, use the <see cref="EventRegistration.EntityType"/> option.
+        /// The default value to use for <see cref="EntityKind"/> for events where not specified.
+        /// To specify a value per event, use the <see cref="EventRegistration.EntityKind"/> option.
         /// </summary>
-        public virtual EntityTypePreference DefaultEntityType { get; set; } = EntityTypePreference.Queue;
+        public virtual EntityKind DefaultEntityKind { get; set; } = EntityKind.Queue;
 
         /// <summary>
-        /// Ensures the value set for <see cref="EventRegistration.EntityType"/> is among the allowed values.
-        /// If no value is set, the default value (set via <see cref="DefaultEntityType"/>) is set before checking.
+        /// Ensures the value set for <see cref="EventRegistration.EntityKind"/> is among the allowed values.
+        /// If no value is set, the default value (set via <see cref="DefaultEntityKind"/>) is set before checking.
         /// </summary>
         /// <param name="ereg">The <see cref="EventRegistration"/> to check.</param>
-        /// <param name="allowedKinds">The allowed values for <see cref="EntityTypePreference"/>.</param>
-        public void EnsureAllowedEntityKind(EventRegistration ereg, params EntityTypePreference[] allowedKinds)
+        /// <param name="allowed">The allowed values for <see cref="EntityKind"/>.</param>
+        public void EnsureAllowedEntityKind(EventRegistration ereg, params EntityKind[] allowed)
         {
             if (ereg is null) throw new ArgumentNullException(nameof(ereg));
-            if (allowedKinds is null) throw new ArgumentNullException(nameof(allowedKinds));
+            if (allowed is null) throw new ArgumentNullException(nameof(allowed));
 
             // ensure there is a value (use default if none)
-            ereg.EntityType ??= DefaultEntityType;
+            ereg.EntityKind ??= DefaultEntityKind;
 
             // ensure the value is allowed
-            var et = ereg.EntityType.Value;
-            if (!allowedKinds.Contains(et))
+            var ek = ereg.EntityKind.Value;
+            if (!allowed.Contains(ek))
             {
-                throw new InvalidOperationException($"'{nameof(EntityTypePreference)}.{et}' is not permitted for '{ereg.TransportName}' transport.");
+                throw new InvalidOperationException($"'{nameof(EntityKind)}.{ek}' is not permitted for '{ereg.TransportName}' transport.");
             }
         }
     }

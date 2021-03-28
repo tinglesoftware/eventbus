@@ -3,7 +3,7 @@
     /// <summary>
     /// The preferred entity type for events.
     /// </summary>
-    public enum EntityTypePreference
+    public enum EntityKind
     {
         ///
         Topic,

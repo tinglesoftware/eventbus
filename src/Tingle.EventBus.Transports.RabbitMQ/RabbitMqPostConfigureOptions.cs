@@ -69,7 +69,7 @@ namespace Microsoft.Extensions.DependencyInjection
             foreach (var ereg in registrations)
             {
                 // Ensure the entity type is allowed
-                options.EnsureAllowedEntityKind(ereg, EntityTypePreference.Topic, EntityTypePreference.Queue);
+                options.EnsureAllowedEntityKind(ereg, EntityKind.Topic, EntityKind.Queue);
 
                 // Event names become Exchange names and they should not be longer than 255 characters
                 if (ereg.EventName.Length > 255)

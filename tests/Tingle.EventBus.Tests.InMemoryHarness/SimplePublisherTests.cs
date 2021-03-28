@@ -15,7 +15,7 @@ namespace Tingle.EventBus.Tests.InMemoryHarness
         [Theory]
         [InlineData(1)]
         [InlineData(6)]
-        public async Task EventIsPublishedOnBysAsync(int orderNumber)
+        public async Task EventIsPublishedOnBusAsync(int orderNumber)
         {
             var services = new ServiceCollection()
                 .AddLogging()
@@ -38,7 +38,7 @@ namespace Tingle.EventBus.Tests.InMemoryHarness
                     Assert.False(harness.Failed().Any());
 
                     // Ensure only one was published
-                    var context = Assert.Single(await harness.PublishedAsync<OrderProcessedEvent>(TimeSpan.FromSeconds(0.5f)));
+                    var context = Assert.Single(harness.Published<OrderProcessedEvent>());
                     var evt = context.Event;
                     Assert.Equal(2021 + orderNumber, evt.Year);
                 }

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SimpleConsumer;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Tingle.EventBus.Transports.InMemory;
@@ -49,7 +50,7 @@ namespace Tingle.EventBus.Tests.InMemoryHarness
                 Assert.False(harness.Failed<SampleEvent>().Any());
 
                 // Ensure the message was consumed
-                Assert.NotEmpty(await harness.ConsumedAsync<SampleEvent>());
+                Assert.NotEmpty(await harness.ConsumedAsync<SampleEvent>(TimeSpan.FromSeconds(0.5f)));
 
                 // Now you can ensure data saved to database correctly
 

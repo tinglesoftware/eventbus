@@ -55,7 +55,7 @@ namespace Microsoft.Extensions.DependencyInjection
             foreach (var ereg in registrations)
             {
                 // Ensure the entity type is allowed
-                options.EnsureAllowedEntityKind(ereg, EntityKind.Stream);
+                options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast);
 
                 // Event names become Stream names and they should not be longer than 128 characters
                 // See https://docs.aws.amazon.com/kinesis/latest/APIReference/API_CreateStream.html

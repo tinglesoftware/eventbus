@@ -13,7 +13,7 @@ namespace Microsoft.Extensions.DependencyInjection
     public class AzureEventHubsTransportOptions : EventBusTransportOptionsBase
     {
         /// <inheritdoc/>
-        public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Stream;
+        public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Broadcast;
 
         /// <summary>
         /// The connection string to Azure EventHubs.

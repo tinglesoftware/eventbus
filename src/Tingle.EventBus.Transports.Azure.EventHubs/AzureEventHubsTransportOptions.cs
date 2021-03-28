@@ -2,6 +2,7 @@
 using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Producer;
 using System;
+using Tingle.EventBus;
 using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -11,6 +12,9 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     public class AzureEventHubsTransportOptions : EventBusTransportOptionsBase
     {
+        /// <inheritdoc/>
+        public override EntityTypePreference DefaultEntityType { get; set; } = EntityTypePreference.Stream;
+
         /// <summary>
         /// The connection string to Azure EventHubs.
         /// </summary>

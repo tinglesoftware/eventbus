@@ -1,6 +1,7 @@
 ﻿using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using System;
+using Tingle.EventBus;
 using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -10,6 +11,9 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     public class AzureServiceBusTransportOptions : EventBusTransportOptionsBase
     {
+        /// <inheritdoc/>
+        public override EntityTypePreference DefaultEntityType { get; set; } = EntityTypePreference.Topic;
+
         /// <summary>
         /// The connection string to Azure Service Bus.
         /// </summary>

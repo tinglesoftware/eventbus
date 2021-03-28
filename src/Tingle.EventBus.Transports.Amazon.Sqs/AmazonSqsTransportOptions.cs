@@ -5,6 +5,7 @@ using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using System;
+using Tingle.EventBus;
 using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -14,6 +15,9 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     public class AmazonSqsTransportOptions : EventBusTransportOptionsBase
     {
+        /// <inheritdoc/>
+        public override EntityTypePreference DefaultEntityType { get; set; } = EntityTypePreference.Queue;
+
         /// <summary>
         /// The system name of the region to connect to.
         /// For example <c>eu-west-1</c>.

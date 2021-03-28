@@ -1,4 +1,5 @@
 ﻿using System;
+using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports
 {
@@ -32,5 +33,11 @@ namespace Tingle.EventBus.Transports
         /// Defaults to <c>-dedletter</c>.
         /// </summary>
         public string DeadLetterSuffix { get; set; } = "-deadleter";
+
+        /// <summary>
+        /// The default value to use for <see cref="EntityTypePreference"/> for events where not specified.
+        /// To specify a value per event, use the <see cref="EventRegistration.EntityType"/> option.
+        /// </summary>
+        public virtual EntityTypePreference DefaultEntityType { get; set; } = EntityTypePreference.Queue;
     }
 }

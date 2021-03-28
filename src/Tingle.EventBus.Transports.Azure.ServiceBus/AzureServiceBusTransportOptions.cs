@@ -20,13 +20,6 @@ namespace Microsoft.Extensions.DependencyInjection
         public string ConnectionString { get; set; }
 
         /// <summary>
-        /// Gets or sets value indicating if the Service Bus namespace is in the Basic tier.
-        /// The Basic tier does not support topics. In this case, the transport would make use of queues only.
-        /// Defaults to <see langword="false"/>.
-        /// </summary>
-        public bool UseBasicTier { get; set; } = false;
-
-        /// <summary>
         /// The type of transport to use.
         /// Defaults to <see cref="ServiceBusTransportType.AmqpTcp"/>.
         /// </summary>

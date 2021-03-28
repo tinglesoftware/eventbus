@@ -56,7 +56,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             Logger.LogDebug("Listing Queues ...");
             var queues = managementClient.GetQueuesRuntimePropertiesAsync(cancellationToken).AsPages();
             await foreach (var _ in queues) ; // there's nothing to do
-            if (!TransportOptions.UseBasicTier)
+            var registrations = GetRegistrations();
+            if (registrations.Any(r => r.EntityType == EntityTypePreference.Topic))
             {
                 Logger.LogDebug("Listing Topics ...");
                 var topics = managementClient.GetTopicsRuntimePropertiesAsync(cancellationToken);
@@ -322,7 +323,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
                     // Create the entity. Queues are used in the basic tier or when explicitly mapped to Queue.
                     // Otherwise, Topics are used.
-                    if (TransportOptions.UseBasicTier || reg.UseQueueInsteadOfTopic())
+                    if (reg.EntityType == EntityTypePreference.Queue)
                     {
                         // Ensure Queue is created
                         Logger.LogDebug("Creating sender for queue '{QueueName}'", name);
@@ -373,7 +374,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
                     // Create the processor. Queues are used in the basic tier or when explicitly mapped to Queue.
                     // Otherwise, Topics and Subscriptions are used.
-                    if (TransportOptions.UseBasicTier || ereg.UseQueueInsteadOfTopic())
+                    if (ereg.EntityType == EntityTypePreference.Queue)
                     {
                         // Ensure Queue is created
                         await CreateQueueIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
@@ -531,7 +532,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
-            var destination = TransportOptions.UseBasicTier || ereg.UseQueueInsteadOfTopic() ? ereg.EventName : creg.ConsumerName;
+            var destination = ereg.EntityType == EntityTypePreference.Queue ? ereg.EventName : creg.ConsumerName;
             activity?.AddTag(ActivityTagNames.MessagingDestination, destination); // name of the queue/subscription
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
 

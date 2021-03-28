@@ -52,7 +52,7 @@ namespace Microsoft.Extensions.DependencyInjection
             foreach (var ereg in registrations)
             {
                 // Ensure the entity type is allowed
-                options.EnsureAllowedEntityKind(ereg, EntityKind.Topic, EntityKind.Queue);
+                options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast, EntityKind.Queue);
 
                 // Event names become Topic names and they should not be longer than 256 characters
                 // See https://aws.amazon.com/sns/faqs/#:~:text=Features%20and%20functionality,and%20underscores%20(_)%20are%20allowed.

@@ -6,7 +6,7 @@
     public enum EntityKind
     {
         ///
-        Topic,
+        Broadcast,
 
         ///
         Queue,

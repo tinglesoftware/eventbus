@@ -57,7 +57,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             var queues = managementClient.GetQueuesRuntimePropertiesAsync(cancellationToken).AsPages();
             await foreach (var _ in queues) ; // there's nothing to do
             var registrations = GetRegistrations();
-            if (registrations.Any(r => r.EntityKind == EntityKind.Topic))
+            if (registrations.Any(r => r.EntityKind == EntityKind.Broadcast))
             {
                 Logger.LogDebug("Listing Topics ...");
                 var topics = managementClient.GetTopicsRuntimePropertiesAsync(cancellationToken);

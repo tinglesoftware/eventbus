@@ -33,13 +33,15 @@ namespace Tingle.EventBus.Registrations
         /// This is an outter wrapper around the <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, System.Threading.CancellationToken)"/>
         /// method.
         /// When set to <see langword="null"/>, the method is only invoked once.
+        /// Defaults to <see langword="null"/>.
+        /// When this value is set, it overrides the default value set on the transport or the bus.
+        /// </summary>
+        /// <remarks>
         /// When a value is provided, the transport may extend the lock for the
         /// message until the execution with with retry policy completes successfully or not.
         /// In such a case, ensure the execution timeout (sometimes called the visibility timeout
-        /// or lock duration) is set to accomodate the longest duration of a stage in the retry policy
-        /// or the total possible duration.
-        /// Defaults to <see langword="null"/>.
-        /// </summary>
+        /// or lock duration) is set to accomodate the longest possible duration of the retry policy.
+        /// </remarks>
         public AsyncRetryPolicy RetryPolicy { get; set; }
 
         /// <summary>

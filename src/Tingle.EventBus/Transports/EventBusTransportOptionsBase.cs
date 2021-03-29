@@ -1,4 +1,5 @@
-﻿using Polly.Retry;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Polly.Retry;
 using System;
 using System.Linq;
 using Tingle.EventBus.Registrations;
@@ -44,9 +45,8 @@ namespace Tingle.EventBus.Transports
 
         /// <summary>
         /// Optional default retry policy to use for consumers where it is not specified.
+        /// This value overrides the default value set on the bus via <see cref="EventBusOptions.DefaultConsumerRetryPolicy"/>.
         /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.RetryPolicy"/> option.
-        /// When set to <see langword="null"/> the value on the bus is used.
-        /// Defaults to <see langword="null"/>.
         /// </summary>
         public AsyncRetryPolicy DefaultConsumerRetryPolicy { get; set; }
 

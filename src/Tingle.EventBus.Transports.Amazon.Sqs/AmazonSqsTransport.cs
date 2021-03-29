@@ -410,7 +410,8 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                                       context.Id,
                                       queueUrl);
 
-                await ConsumeAsync<TEvent, TConsumer>(@event: context,
+                await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+                                                      @event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
             }

@@ -556,7 +556,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 // set the extras
                 context.SetServiceBusMessage(message);
 
-                await ConsumeAsync<TEvent, TConsumer>(@event: context,
+                await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+                                                      @event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
 

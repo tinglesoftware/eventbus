@@ -294,7 +294,7 @@ namespace Tingle.EventBus.Transports.InMemory
                     var message = await queueEntity.DequeueAsync(cancellationToken);
                     Logger.LogDebug("Received a message on '{QueueName}'", queueName);
                     using var scope = CreateScope(); // shared
-                    await (Task)method.Invoke(this, new object[] { ereg, queueEntity, message, scope, cancellationToken, });
+                    await (Task)method.Invoke(this, new object[] { ereg, creg, queueEntity, message, scope, cancellationToken, });
                 }
                 catch (TaskCanceledException)
                 {
@@ -310,6 +310,7 @@ namespace Tingle.EventBus.Transports.InMemory
         }
 
         private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
+                                                                     EventConsumerRegistration creg,
                                                                      InMemoryQueueEntity queueEntity,
                                                                      InMemoryQueueMessage message,
                                                                      IServiceScope scope,
@@ -353,7 +354,8 @@ namespace Tingle.EventBus.Transports.InMemory
                                       context.Id,
                                       queueEntity.Name);
 
-                await ConsumeAsync<TEvent, TConsumer>(@event: context,
+                await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+                                                      @event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
 

@@ -249,12 +249,12 @@ namespace Tingle.EventBus.Transports.Kafka
 
                     // get the registration for topic
                     var topic = result.Topic;
-                    var reg = GetRegistrations().Single(r => r.EventName == topic);
+                    var ereg = GetRegistrations().Single(r => r.EventName == topic);
 
                     // form the generic method
-                    var consumerType = reg.Consumers.Single().ConsumerType; // only one consumer per event
-                    var method = mt.MakeGenericMethod(reg.EventType, consumerType);
-                    await (Task)method.Invoke(this, new object[] { reg, result.Message, cancellationToken, });
+                    var creg = ereg.Consumers.Single(); // only one consumer per event
+                    var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
+                    await (Task)method.Invoke(this, new object[] { ereg, creg, result.Message, cancellationToken, });
 
 
                     // if configured to checkpoint at intervals, respect it
@@ -283,6 +283,7 @@ namespace Tingle.EventBus.Transports.Kafka
         }
 
         private async Task OnEventReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
+                                                                   EventConsumerRegistration creg,
                                                                    Message<string, byte[]> message,
                                                                    CancellationToken cancellationToken)
             where TEvent : class
@@ -315,7 +316,8 @@ namespace Tingle.EventBus.Transports.Kafka
                 Logger.LogInformation("Received event: '{MessageKey}' containing Event '{Id}'",
                                       messageKey,
                                       context.Id);
-                await ConsumeAsync<TEvent, TConsumer>(@event: context,
+                await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+                                                      @event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
             }

@@ -176,12 +176,14 @@ namespace Tingle.EventBus.Transports
         /// Push an incoming event to the consumer responsible for it.
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
-        /// <typeparam name="TConsumer">The type of consumer</typeparam>
-        /// <param name="event">The context containing the event</param>
+        /// <typeparam name="TConsumer">The type of consumer.</typeparam>
+        /// <param name="creg">The <see cref="EventConsumerRegistration"/> for the current event.</param>
+        /// <param name="event">The context containing the event.</param>
         /// <param name="scope">The scope in which to resolve required services.</param>
-        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task ConsumeAsync<TEvent, TConsumer>(EventContext<TEvent> @event,
+        /// <param name="cancellationToken"></param>
+        protected async Task ConsumeAsync<TEvent, TConsumer>(EventConsumerRegistration creg,
+                                                             EventContext<TEvent> @event,
                                                              IServiceScope scope,
                                                              CancellationToken cancellationToken)
             where TConsumer : IEventConsumer<TEvent>

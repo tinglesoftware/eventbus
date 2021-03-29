@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Polly.Retry;
+using System;
 using System.Collections.Generic;
 
 namespace Tingle.EventBus.Registrations
@@ -26,6 +27,20 @@ namespace Tingle.EventBus.Registrations
         /// The name generated for the consumer.
         /// </summary>
         public string ConsumerName { get; set; }
+
+        /// <summary>
+        /// The retry policy to apply when consuming events.
+        /// This is an outter wrapper around the <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, System.Threading.CancellationToken)"/>
+        /// method.
+        /// When set to <see langword="null"/>, the method is only invoked once.
+        /// When a value is provided, the transport may extend the locak for the
+        /// message until the execution with with retry policy completes successfully or not.
+        /// In such a case, ensure the execution timeout (sometimes called the visibility timeout
+        /// or lock duration) is set to accomodate the longest duration of a stage in the retry policy
+        /// or the total possible duration.
+        /// Defaults to <see langword="null"/>.
+        /// </summary>
+        public AsyncRetryPolicy RetryPolicy { get; set; }
 
         /// <summary>
         /// Gets a key/value collection that can be used to organize and share data across components

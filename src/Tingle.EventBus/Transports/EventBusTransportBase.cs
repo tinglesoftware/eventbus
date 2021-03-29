@@ -191,8 +191,16 @@ namespace Tingle.EventBus.Transports
             // Resolve the consumer
             var consumer = scope.ServiceProvider.GetRequiredService<TConsumer>();
 
-            // Invoke handler method
-            await consumer.ConsumeAsync(@event, cancellationToken).ConfigureAwait(false);
+            // Invoke handler method, with try if specified
+            var retryPolicy = creg.RetryPolicy;
+            if (retryPolicy != null)
+            {
+                await retryPolicy.ExecuteAsync(ct => consumer.ConsumeAsync(@event, ct), cancellationToken);
+            }
+            else
+            {
+                await consumer.ConsumeAsync(@event, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         /// <summary>

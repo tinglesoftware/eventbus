@@ -128,7 +128,8 @@ namespace Microsoft.Extensions.DependencyInjection
             var eventType = typeof(TEvent);
             if (Registrations.TryGetValue(key: eventType, out var registration)) return registration;
 
-            // at this point, the registration does not exist; create it and add to the registrations for repeated use
+            // at this point, the registration does not exist;
+            // create it and add to the registrations for repeated use
             registration = new EventRegistration(eventType);
             registration.SetSerializer() // set serializer
                         .SetEventName(Naming) // set event name

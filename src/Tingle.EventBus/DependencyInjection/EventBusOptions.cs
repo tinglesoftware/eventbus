@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Polly.Retry;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Tingle.EventBus;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
+using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -69,6 +71,14 @@ namespace Microsoft.Extensions.DependencyInjection
         public TimeSpan DuplicateDetectionDuration { get; set; } = TimeSpan.FromMinutes(1);
 
         /// <summary>
+        /// Optional default retry policy to use for consumers where it is not specified.
+        /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.RetryPolicy"/> option.
+        /// To specify a value per transport, use the <see cref="EventBusTransportOptionsBase.DefaultConsumerRetryPolicy"/> option on the specific transport.
+        /// Defaults to <see langword="null"/>.
+        /// </summary>
+        public AsyncRetryPolicy DefaultConsumerRetryPolicy { get; set; }
+
+        /// <summary>
         /// Gets or sets the name of the default transport.
         /// When there is only one transport registered, setting this value is not necessary, as it is used as the default.
         /// </summary>
@@ -98,22 +108,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // filter out the consumers where the event is set for the given transport
             return Registrations.Values.Where(r => r.TransportName == transportName).ToList();
-        }
-
-        /// <summary>
-        /// Gets the number of consumer registrations for a given transport.
-        /// </summary>
-        /// <param name="transportName">The name of the transport for whom to get registered consumers.</param>
-        /// <returns></returns>
-        public int GetRegistrationsCount(string transportName)
-        {
-            if (string.IsNullOrWhiteSpace(transportName))
-            {
-                throw new ArgumentException($"'{nameof(transportName)}' cannot be null or whitespace", nameof(transportName));
-            }
-
-            // filter out the consumers where the event is set for the given transport
-            return Registrations.Values.Count(r => r.TransportName == transportName);
         }
 
         /// <summary>

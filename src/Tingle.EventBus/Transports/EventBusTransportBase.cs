@@ -97,7 +97,17 @@ namespace Tingle.EventBus.Transports
         /// <inheritdoc/>
         public virtual Task StartAsync(CancellationToken cancellationToken)
         {
-            Logger.StartingTransport(GetRegistrationsCount(), TransportOptions.EmptyResultsDelay);
+            // Set the rety policy if not set by giving priority to the transport default then the bus default.
+            var registrations = GetRegistrations();
+            foreach (var ereg in registrations)
+            {
+                foreach (var creg in ereg.Consumers)
+                {
+                    creg.RetryPolicy ??= TransportOptions.DefaultConsumerRetryPolicy;
+                    creg.RetryPolicy ??= BusOptions.DefaultConsumerRetryPolicy;
+                }
+            }
+            Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
             return Task.CompletedTask;
         }
 
@@ -221,12 +231,6 @@ namespace Tingle.EventBus.Transports
         /// </summary>
         /// <returns></returns>
         protected ICollection<EventRegistration> GetRegistrations() => BusOptions.GetRegistrations(transportName: Name);
-
-        /// <summary>
-        /// Gets the number of consumer registrations for this transport.
-        /// </summary>
-        /// <returns></returns>
-        protected int GetRegistrationsCount() => BusOptions.GetRegistrationsCount(transportName: Name);
 
         #endregion
 

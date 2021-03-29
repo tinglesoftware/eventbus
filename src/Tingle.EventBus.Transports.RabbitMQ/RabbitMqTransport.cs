@@ -345,7 +345,8 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
                                       messageId,
                                       context.Id);
-                await ConsumeAsync<TEvent, TConsumer>(@event: context,
+                await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+                                                      @event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
 

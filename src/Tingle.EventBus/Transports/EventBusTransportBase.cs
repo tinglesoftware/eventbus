@@ -97,7 +97,17 @@ namespace Tingle.EventBus.Transports
         /// <inheritdoc/>
         public virtual Task StartAsync(CancellationToken cancellationToken)
         {
-            Logger.StartingTransport(GetRegistrationsCount(), TransportOptions.EmptyResultsDelay);
+            // Set the rety policy if not set by giving priority to the transport default then the bus default.
+            var registrations = GetRegistrations();
+            foreach (var ereg in registrations)
+            {
+                foreach (var creg in ereg.Consumers)
+                {
+                    creg.RetryPolicy ??= TransportOptions.DefaultConsumerRetryPolicy;
+                    creg.RetryPolicy ??= BusOptions.DefaultConsumerRetryPolicy;
+                }
+            }
+            Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
             return Task.CompletedTask;
         }
 
@@ -176,12 +186,14 @@ namespace Tingle.EventBus.Transports
         /// Push an incoming event to the consumer responsible for it.
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
-        /// <typeparam name="TConsumer">The type of consumer</typeparam>
-        /// <param name="event">The context containing the event</param>
+        /// <typeparam name="TConsumer">The type of consumer.</typeparam>
+        /// <param name="creg">The <see cref="EventConsumerRegistration"/> for the current event.</param>
+        /// <param name="event">The context containing the event.</param>
         /// <param name="scope">The scope in which to resolve required services.</param>
-        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task ConsumeAsync<TEvent, TConsumer>(EventContext<TEvent> @event,
+        /// <param name="cancellationToken"></param>
+        protected async Task ConsumeAsync<TEvent, TConsumer>(EventConsumerRegistration creg,
+                                                             EventContext<TEvent> @event,
                                                              IServiceScope scope,
                                                              CancellationToken cancellationToken)
             where TConsumer : IEventConsumer<TEvent>
@@ -189,8 +201,16 @@ namespace Tingle.EventBus.Transports
             // Resolve the consumer
             var consumer = scope.ServiceProvider.GetRequiredService<TConsumer>();
 
-            // Invoke handler method
-            await consumer.ConsumeAsync(@event, cancellationToken).ConfigureAwait(false);
+            // Invoke handler method, with try if specified
+            var retryPolicy = creg.RetryPolicy;
+            if (retryPolicy != null)
+            {
+                await retryPolicy.ExecuteAsync(ct => consumer.ConsumeAsync(@event, ct), cancellationToken);
+            }
+            else
+            {
+                await consumer.ConsumeAsync(@event, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         /// <summary>
@@ -211,12 +231,6 @@ namespace Tingle.EventBus.Transports
         /// </summary>
         /// <returns></returns>
         protected ICollection<EventRegistration> GetRegistrations() => BusOptions.GetRegistrations(transportName: Name);
-
-        /// <summary>
-        /// Gets the number of consumer registrations for this transport.
-        /// </summary>
-        /// <returns></returns>
-        protected int GetRegistrationsCount() => BusOptions.GetRegistrationsCount(transportName: Name);
 
         #endregion
 

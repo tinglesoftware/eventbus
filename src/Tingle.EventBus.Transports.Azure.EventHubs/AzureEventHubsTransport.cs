@@ -91,7 +91,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                         var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
                         var mt = GetType().GetMethod(nameof(OnEventReceivedAsync), flags);
                         var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
-                        return (Task)method.Invoke(this, new object[] { ereg, processor, args, });
+                        return (Task)method.Invoke(this, new object[] { ereg, creg, processor, args, });
                     };
 
                     // start processing 
@@ -332,7 +332,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
         }
 
-        private async Task OnEventReceivedAsync<TEvent, TConsumer>(EventRegistration ereg, EventProcessorClient processor, ProcessEventArgs args)
+        private async Task OnEventReceivedAsync<TEvent, TConsumer>(EventRegistration ereg,
+                                                                   EventConsumerRegistration creg,
+                                                                   EventProcessorClient processor,
+                                                                   ProcessEventArgs args)
             where TEvent : class
             where TConsumer : IEventConsumer<TEvent>
         {
@@ -405,7 +408,8 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                        .SetPartitionContext(args.Partition)
                        .SetEventData(data);
 
-                await ConsumeAsync<TEvent, TConsumer>(@event: context,
+                await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+                                                      @event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
             }

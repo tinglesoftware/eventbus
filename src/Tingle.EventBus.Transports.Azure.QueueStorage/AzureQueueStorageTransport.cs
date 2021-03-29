@@ -290,7 +290,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                         using var scope = CreateScope(); // shared
                         foreach (var message in messages)
                         {
-                            await (Task)method.Invoke(this, new object[] { ereg, queueClient, message, scope, cancellationToken, });
+                            await (Task)method.Invoke(this, new object[] { ereg, creg, queueClient, message, scope, cancellationToken, });
                         }
                     }
                 }
@@ -308,6 +308,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
+                                                                     EventConsumerRegistration creg,
                                                                      QueueClient queueClient,
                                                                      QueueMessage message,
                                                                      IServiceScope scope,
@@ -352,7 +353,8 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                     activity?.SetParentId(parentId: parentActivityId.ToString());
                 }
 
-                await ConsumeAsync<TEvent, TConsumer>(@event: context,
+                await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+                                                      @event: context,
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
             }

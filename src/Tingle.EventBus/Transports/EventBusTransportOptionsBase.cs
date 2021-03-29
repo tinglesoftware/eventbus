@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Polly.Retry;
+using System;
 using System.Linq;
 using Tingle.EventBus.Registrations;
 
@@ -36,10 +38,17 @@ namespace Tingle.EventBus.Transports
         public string DeadLetterSuffix { get; set; } = "-deadleter";
 
         /// <summary>
-        /// The default value to use for <see cref="EntityKind"/> for events where not specified.
+        /// The default value to use for <see cref="EntityKind"/> for events where it is not specified.
         /// To specify a value per event, use the <see cref="EventRegistration.EntityKind"/> option.
         /// </summary>
         public virtual EntityKind DefaultEntityKind { get; set; } = EntityKind.Queue;
+
+        /// <summary>
+        /// Optional default retry policy to use for consumers where it is not specified.
+        /// This value overrides the default value set on the bus via <see cref="EventBusOptions.DefaultConsumerRetryPolicy"/>.
+        /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.RetryPolicy"/> option.
+        /// </summary>
+        public AsyncRetryPolicy DefaultConsumerRetryPolicy { get; set; }
 
         /// <summary>
         /// Ensures the value set for <see cref="EventRegistration.EntityKind"/> is among the allowed values.

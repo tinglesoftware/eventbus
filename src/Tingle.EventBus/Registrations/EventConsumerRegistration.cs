@@ -40,7 +40,7 @@ namespace Tingle.EventBus.Registrations
         /// When a value is provided, the transport may extend the lock for the
         /// message until the execution with with retry policy completes successfully or not.
         /// In such a case, ensure the execution timeout (sometimes called the visibility timeout
-        /// or lock duration) is set to accomodate the longest possible duration of the retry policy.
+        /// or lock duration) is set to accommodate the longest possible duration of the retry policy.
         /// </remarks>
         public AsyncRetryPolicy RetryPolicy { get; set; }
 

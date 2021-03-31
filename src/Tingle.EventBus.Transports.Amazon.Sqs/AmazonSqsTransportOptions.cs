@@ -4,6 +4,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using System;
 using Tingle.EventBus;
+using Tingle.EventBus.Registrations;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -29,12 +30,12 @@ namespace Microsoft.Extensions.DependencyInjection
         /// A setup function for setting up settings for a topic.
         /// This is only called before creation.
         /// </summary>
-        public Action<CreateTopicRequest> SetupCreateTopicRequest { get; set; }
+        public Action<EventRegistration, CreateTopicRequest> SetupCreateTopicRequest { get; set; }
 
         /// <summary>
         /// A setup function for setting up settings for a queue.
         /// This is only called before creation.
         /// </summary>
-        public Action<CreateQueueRequest> SetupCreateQueueRequest { get; set; }
+        public Action<EventConsumerRegistration, CreateQueueRequest> SetupCreateQueueRequest { get; set; }
     }
 }

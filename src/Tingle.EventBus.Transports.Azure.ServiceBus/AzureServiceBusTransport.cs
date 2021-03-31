@@ -327,13 +327,13 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     {
                         // Ensure Queue is created
                         Logger.LogDebug("Creating sender for queue '{QueueName}'", name);
-                        await CreateQueueIfNotExistsAsync(name: name, cancellationToken: cancellationToken);
+                        await CreateQueueIfNotExistsAsync(ereg: reg, name: name, cancellationToken: cancellationToken);
                     }
                     else
                     {
                         // Ensure topic is created
                         Logger.LogDebug("Creating sender for topic '{TopicName}'", name);
-                        await CreateTopicIfNotExistsAsync(name: name, cancellationToken: cancellationToken);
+                        await CreateTopicIfNotExistsAsync(ereg: reg, name: name, cancellationToken: cancellationToken);
                     }
 
                     // Create the sender
@@ -377,7 +377,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     if (ereg.EntityKind == EntityKind.Queue)
                     {
                         // Ensure Queue is created
-                        await CreateQueueIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
+                        await CreateQueueIfNotExistsAsync(ereg: ereg, name: topicName, cancellationToken: cancellationToken);
 
                         // Create the processor for the Queue
                         Logger.LogDebug("Creating processor for queue '{QueueName}'", topicName);
@@ -386,12 +386,13 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     else
                     {
                         // Ensure Topic is created before creating the Subscription
-                        await CreateTopicIfNotExistsAsync(name: topicName, cancellationToken: cancellationToken);
+                        await CreateTopicIfNotExistsAsync(ereg: ereg, name: topicName, cancellationToken: cancellationToken);
 
                         // Ensure Subscription is created
-                        await CreateSubscriptionIfNotExistsAsync(topicName: topicName,
-                                                                subscriptionName: subscriptionName,
-                                                                cancellationToken: cancellationToken);
+                        await CreateSubscriptionIfNotExistsAsync(creg: creg,
+                                                                 topicName: topicName,
+                                                                 subscriptionName: subscriptionName,
+                                                                 cancellationToken: cancellationToken);
 
                         // Create the processor for the Subscription
                         Logger.LogDebug("Creating processor for topic '{TopicName}' and subscription '{Subscription}'",
@@ -413,7 +414,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
-        private async Task CreateQueueIfNotExistsAsync(string name, CancellationToken cancellationToken)
+        private async Task CreateQueueIfNotExistsAsync(EventRegistration ereg, string name, CancellationToken cancellationToken)
         {
             // if entity creation is not enabled, just return
             if (!TransportOptions.EnableEntityCreation)
@@ -435,13 +436,13 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 };
 
                 // Allow for the defaults to be overriden
-                TransportOptions.SetupQueueOptions?.Invoke(options);
+                TransportOptions.SetupQueueOptions?.Invoke(ereg, options);
                 Logger.LogInformation("Creating queue '{QueueName}'", name);
                 _ = await managementClient.CreateQueueAsync(options: options, cancellationToken: cancellationToken);
             }
         }
 
-        private async Task CreateTopicIfNotExistsAsync(string name, CancellationToken cancellationToken)
+        private async Task CreateTopicIfNotExistsAsync(EventRegistration ereg, string name, CancellationToken cancellationToken)
         {
             // if entity creation is not enabled, just return
             if (!TransportOptions.EnableEntityCreation)
@@ -465,13 +466,13 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 };
 
                 // Allow for the defaults to be overriden
-                TransportOptions.SetupTopicOptions?.Invoke(options);
+                TransportOptions.SetupTopicOptions?.Invoke(ereg, options);
                 Logger.LogInformation("Creating topic '{TopicName}'", name);
                 _ = await managementClient.CreateTopicAsync(options: options, cancellationToken: cancellationToken);
             }
         }
 
-        private async Task CreateSubscriptionIfNotExistsAsync(string topicName, string subscriptionName, CancellationToken cancellationToken)
+        private async Task CreateSubscriptionIfNotExistsAsync(EventConsumerRegistration creg, string topicName, string subscriptionName, CancellationToken cancellationToken)
         {
             // if entity creation is not enabled, just return
             if (!TransportOptions.EnableEntityCreation)
@@ -497,7 +498,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 };
 
                 // Allow for the defaults to be overriden
-                TransportOptions.SetupSubscriptionOptions?.Invoke(options);
+                TransportOptions.SetupSubscriptionOptions?.Invoke(creg, options);
                 Logger.LogInformation("Creating subscription '{SubscriptionName}' under topic '{TopicName}'",
                                       subscriptionName,
                                       topicName);

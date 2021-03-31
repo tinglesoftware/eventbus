@@ -254,7 +254,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                     if (deadletter) name += TransportOptions.DeadLetterSuffix;
 
                     // Create the producer options
-                    var epco = TransportOptions.CreateProducerClientOptions?.Invoke() ?? new EventHubProducerClientOptions();
+                    var epco = TransportOptions.CreateProducerClientOptions?.Invoke(reg) ?? new EventHubProducerClientOptions();
 
                     // Override values that must be overriden
                     epco.ConnectionOptions ??= new EventHubConnectionOptions();
@@ -309,7 +309,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                                       blobContainerName: TransportOptions.BlobContainerName);
 
                     // Create the procesor client options
-                    var epco = TransportOptions.CreateProcessorClientOptions?.Invoke() ?? new EventProcessorClientOptions();
+                    var epco = TransportOptions.CreateProcessorClientOptions?.Invoke(creg) ?? new EventProcessorClientOptions();
 
                     // Override values that must be overriden
                     epco.ConnectionOptions ??= new EventHubConnectionOptions();

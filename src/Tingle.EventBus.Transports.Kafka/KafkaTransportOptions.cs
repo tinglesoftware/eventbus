@@ -3,6 +3,7 @@ using Confluent.Kafka.Admin;
 using System;
 using System.Collections.Generic;
 using Tingle.EventBus;
+using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -10,7 +11,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// Options for configuring Kafka based event bus.
     /// </summary>
-    public class KafkaTransportOptions: EventBusTransportOptionsBase
+    public class KafkaTransportOptions : EventBusTransportOptionsBase
     {
         /// <inheritdoc/>
         public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Broadcast;
@@ -29,7 +30,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// A setup function for setting up specifications for a topic.
         /// This is only called before creation.
         /// </summary>
-        public Action<TopicSpecification> SetupTopicSpecification { get; set; }
+        public Action<EventRegistration, TopicSpecification> SetupTopicSpecification { get; set; }
 
         /// <summary>
         /// The number of events consumed after which to checkpoint.

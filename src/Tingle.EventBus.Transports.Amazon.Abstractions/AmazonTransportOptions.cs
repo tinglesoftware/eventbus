@@ -34,7 +34,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
         /// <summary>
         /// Credentials for accessing AWS services.
+        /// This can be used inplace of <see cref="AccessKey"/> and <see cref="SecretKey"/>.
         /// </summary>
-        internal AWSCredentials Credentials { get; set; } // TODO: this should be populated in PostConfugre
+        public AWSCredentials Credentials { get; set; }
     }
 }

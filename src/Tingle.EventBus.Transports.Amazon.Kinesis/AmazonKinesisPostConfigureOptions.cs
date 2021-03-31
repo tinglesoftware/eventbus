@@ -1,5 +1,4 @@
-﻿using Amazon;
-using Amazon.Kinesis;
+﻿using Amazon.Kinesis;
 using Microsoft.Extensions.Options;
 using System;
 using Tingle.EventBus;
@@ -9,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// A class to finish the configuration of instances of <see cref="AmazonKinesisTransportOptions"/>.
     /// </summary>
-    internal class AmazonKinesisPostConfigureOptions : IPostConfigureOptions<AmazonKinesisTransportOptions>
+    internal class AmazonKinesisPostConfigureOptions : AmazonTransportPostConfigureOptions<AmazonKinesisTransportOptions>
     {
         private readonly EventBusOptions busOptions;
 
@@ -18,27 +17,9 @@ namespace Microsoft.Extensions.DependencyInjection
             busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
         }
 
-        public void PostConfigure(string name, AmazonKinesisTransportOptions options)
+        public override void PostConfigure(string name, AmazonKinesisTransportOptions options)
         {
-            // Ensure the region is provided
-            if (string.IsNullOrWhiteSpace(options.RegionName) && options.Region == null)
-            {
-                throw new InvalidOperationException($"Either '{nameof(options.RegionName)}' or '{nameof(options.Region)}' must be provided");
-            }
-
-            options.Region ??= RegionEndpoint.GetBySystemName(options.RegionName);
-
-            // Ensure the access key is specified
-            if (string.IsNullOrWhiteSpace(options.AccessKey))
-            {
-                throw new InvalidOperationException($"The '{nameof(options.AccessKey)}' must be provided");
-            }
-
-            // Ensure the secret is specified
-            if (string.IsNullOrWhiteSpace(options.SecretKey))
-            {
-                throw new InvalidOperationException($"The '{nameof(options.SecretKey)}' must be provided");
-            }
+            base.PostConfigure(name, options);
 
             // Ensure we have options for Kinesis and the region is set
             options.KinesisConfig ??= new AmazonKinesisConfig();

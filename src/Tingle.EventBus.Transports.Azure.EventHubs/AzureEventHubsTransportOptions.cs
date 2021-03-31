@@ -57,12 +57,12 @@ namespace Microsoft.Extensions.DependencyInjection
         /// A function to create the producer options instead of using the default options.
         /// Some options set may still be overriding for proper operation of the the transport and the bus.
         /// </summary>
-        public Func<EventRegistration, EventHubProducerClientOptions> CreateProducerClientOptions { get; set; }
+        public Action<EventRegistration, EventHubProducerClientOptions> CreateProducerClientOptions { get; set; }
 
         /// <summary>
         /// A function to create the processor options instead of using the default options.
         /// Some options set may still be overriding for proper operation of the the transport and the bus.
         /// </summary>
-        public Func<EventConsumerRegistration, EventProcessorClientOptions> CreateProcessorClientOptions { get; set; }
+        public Action<EventConsumerRegistration, EventProcessorClientOptions> CreateProcessorClientOptions { get; set; }
     }
 }

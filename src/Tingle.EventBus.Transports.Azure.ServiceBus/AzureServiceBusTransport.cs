@@ -378,7 +378,6 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     // Allow for the defaults to be overriden
                     TransportOptions.SetupProcessorOptions?.Invoke(ereg, creg, sbpo);
 
-
                     // Create the processor. Queues are used in the basic tier or when explicitly mapped to Queue.
                     // Otherwise, Topics and Subscriptions are used.
                     if (ereg.EntityKind == EntityKind.Queue)

@@ -254,20 +254,26 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                     if (deadletter) name += TransportOptions.DeadLetterSuffix;
 
                     // Create the producer options
-                    var epco = TransportOptions.CreateProducerClientOptions?.Invoke(reg) ?? new EventHubProducerClientOptions();
+                    var epco = new EventHubProducerClientOptions
+                    {
+                        ConnectionOptions = new EventHubConnectionOptions
+                        {
+                            TransportType = TransportOptions.TransportType,
+                        },
+                    };
+
+                    // Allow for the defaults to be overriden
+                    TransportOptions.CreateProducerClientOptions?.Invoke(reg, epco);
 
                     // Override values that must be overriden
-                    epco.ConnectionOptions ??= new EventHubConnectionOptions();
-                    epco.ConnectionOptions.TransportType = TransportOptions.TransportType;
 
                     // Create the producer
                     producer = new EventHubProducerClient(connectionString: TransportOptions.ConnectionString,
                                                           eventHubName: name,
                                                           clientOptions: epco);
 
-                    // ensure event hub is created
-
-                    // EventHubs can only be create via Azure portal or using Resource Manager which needs different credentials
+                    // How to ensure event hub is created?
+                    // EventHubs can only be create via Azure portal or using Resource Manager which need different credentials
 
                     producersCache[(reg.EventType, deadletter)] = producer;
                 }
@@ -308,12 +314,20 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                     var blobContainerClient = new BlobContainerClient(connectionString: TransportOptions.BlobStorageConnectionString,
                                                                       blobContainerName: TransportOptions.BlobContainerName);
 
-                    // Create the procesor client options
-                    var epco = TransportOptions.CreateProcessorClientOptions?.Invoke(creg) ?? new EventProcessorClientOptions();
+                    // Create the processor client options
+                    var epco = new EventProcessorClientOptions
+                    {
+                        ConnectionOptions = new EventHubConnectionOptions
+                        {
+                            TransportType = TransportOptions.TransportType,
+                        },
+                    };
 
-                    // Override values that must be overriden
-                    epco.ConnectionOptions ??= new EventHubConnectionOptions();
-                    epco.ConnectionOptions.TransportType = TransportOptions.TransportType;
+                    // Allow for the defaults to be overriden
+                    TransportOptions.CreateProcessorClientOptions?.Invoke(creg, epco);
+
+                    // How to ensure consumer is created in the event hub?
+                    // EventHubs and ConsumerGroups can only be create via Azure portal or using Resource Manager which need different credentials
 
                     // Create the processor
                     processor = new EventProcessorClient(checkpointStore: blobContainerClient,

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -9,6 +9,11 @@
     <PackageTags>$(PackageTags);Amazon;AWS</PackageTags>
     <IsPackable>false</IsPackable> <!-- still in development -->
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tingle.EventBus.Transports.Amazon.Kinesis" />
+    <InternalsVisibleTo Include="Tingle.EventBus.Transports.Amazon.Sqs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.Core" Version="3.7.0.2" />

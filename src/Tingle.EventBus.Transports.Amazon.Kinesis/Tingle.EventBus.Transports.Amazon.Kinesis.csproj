@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Tingle.EventBus.Transports.Amazon.Abstractions\Tingle.EventBus.Transports.Amazon.Abstractions.csproj" />
-    <ProjectReference Include="..\Tingle.EventBus\Tingle.EventBus.csproj" />
   </ItemGroup>
 
 </Project>

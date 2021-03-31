@@ -223,7 +223,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 {
                     // ensure topic is created, then add it's arn to the cache
                     var name = reg.EventName;
-                    topicArn = await CreateTopicIfNotExistsAsync(topicName: name, cancellationToken: cancellationToken);
+                    topicArn = await CreateTopicIfNotExistsAsync(ereg: reg, topicName: name, cancellationToken: cancellationToken);
                     topicArnsCache[reg.EventType] = topicArn;
                 }
 
@@ -249,13 +249,13 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 if (!queueUrlsCache.TryGetValue((key, deadletter), out var queueUrl))
                 {
                     // ensure queue is created before creating subscription
-                    queueUrl = await CreateQueueIfNotExistsAsync(queueName: queueName, cancellationToken: cancellationToken);
+                    queueUrl = await CreateQueueIfNotExistsAsync(creg: creg, queueName: queueName, cancellationToken: cancellationToken);
 
                     // for non deadletter, we need to ensure the topic exists and the queue is subscribed to it
                     if (!deadletter)
                     {
                         // ensure topic is created before creating the subscription
-                        var topicArn = await CreateTopicIfNotExistsAsync(topicName: topicName, cancellationToken: cancellationToken);
+                        var topicArn = await CreateTopicIfNotExistsAsync(ereg: ereg, topicName: topicName, cancellationToken: cancellationToken);
 
                         // create subscription from the topic to the queue
                         await snsClient.SubscribeQueueAsync(topicArn: topicArn, sqsClient, queueUrl);
@@ -272,7 +272,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             }
         }
 
-        private async Task<string> CreateTopicIfNotExistsAsync(string topicName, CancellationToken cancellationToken)
+        private async Task<string> CreateTopicIfNotExistsAsync(EventRegistration ereg, string topicName, CancellationToken cancellationToken)
         {
             // check if the topic exists
             var topic = await snsClient.FindTopicAsync(topicName: topicName);
@@ -286,14 +286,14 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
 
             // create the topic
             var request = new CreateTopicRequest(name: topicName);
-            TransportOptions.SetupCreateTopicRequest?.Invoke(request);
+            TransportOptions.SetupCreateTopicRequest?.Invoke(ereg, request);
             var response = await snsClient.CreateTopicAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
 
             return response.TopicArn;
         }
 
-        private async Task<string> CreateQueueIfNotExistsAsync(string queueName, CancellationToken cancellationToken)
+        private async Task<string> CreateQueueIfNotExistsAsync(EventConsumerRegistration creg, string queueName, CancellationToken cancellationToken)
         {
             // check if the queue exists
             var urlResponse = await sqsClient.GetQueueUrlAsync(queueName: queueName, cancellationToken);
@@ -307,7 +307,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
 
             // create the queue
             var request = new CreateQueueRequest(queueName: queueName);
-            TransportOptions.SetupCreateQueueRequest?.Invoke(request);
+            TransportOptions.SetupCreateQueueRequest?.Invoke(creg, request);
             var response = await sqsClient.CreateQueueAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
 

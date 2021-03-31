@@ -3,6 +3,7 @@ using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Producer;
 using System;
 using Tingle.EventBus;
+using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -53,15 +54,15 @@ namespace Microsoft.Extensions.DependencyInjection
         public bool UseBasicTier { get; set; } = true;
 
         /// <summary>
-        /// A function to create the processor options instead of using the default options.
-        /// Some options set may still be overriding for proper operation of the the transport and the bus.
-        /// </summary>
-        public Func<EventProcessorClientOptions> CreateProcessorClientOptions { get; set; }
-
-        /// <summary>
         /// A function to create the producer options instead of using the default options.
         /// Some options set may still be overriding for proper operation of the the transport and the bus.
         /// </summary>
-        public Func<EventHubProducerClientOptions> CreateProducerClientOptions { get; set; }
+        public Action<EventRegistration, EventHubProducerClientOptions> SetupProducerClientOptions { get; set; }
+
+        /// <summary>
+        /// A function to create the processor options instead of using the default options.
+        /// Some options set may still be overriding for proper operation of the the transport and the bus.
+        /// </summary>
+        public Action<EventRegistration, EventConsumerRegistration, EventProcessorClientOptions> SetupProcessorClientOptions { get; set; }
     }
 }

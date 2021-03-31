@@ -14,6 +14,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         public static int MaxDeliveryCount = 5;
 
         public static TimeSpan AutoDeleteOnIdle => TimeSpan.FromDays(427);
+        public static TimeSpan MaxAutoLockRenewDuration => TimeSpan.FromMinutes(5);
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 }

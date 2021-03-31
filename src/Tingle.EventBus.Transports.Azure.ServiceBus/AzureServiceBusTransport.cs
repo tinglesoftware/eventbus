@@ -372,6 +372,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     // False below indicates the Complete will be handled by the User Callback as in `ProcessMessagesAsync` below.
                     sbpo.AutoCompleteMessages = false;
 
+                    // Set the period of time for which to keep renewing the lock token
+                    sbpo.MaxAutoLockRenewalDuration = Defaults.MaxAutoLockRenewDuration;
+
                     // Create the processor. Queues are used in the basic tier or when explicitly mapped to Queue.
                     // Otherwise, Topics and Subscriptions are used.
                     if (ereg.EntityKind == EntityKind.Queue)

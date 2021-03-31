@@ -84,7 +84,6 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 foreach (var creg in ereg.Consumers)
                 {
                     var processor = await GetProcessorAsync(ereg: ereg, creg: creg, cancellationToken: cancellationToken);
-                    var entityPath = processor.EntityPath;
 
                     // register handlers for error and processing
                     processor.ProcessErrorAsync += OnMessageFaultedAsync;
@@ -93,11 +92,11 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                         var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
                         var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
                         var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
-                        return (Task)method.Invoke(this, new object[] { ereg, creg, entityPath, args, });
+                        return (Task)method.Invoke(this, new object[] { ereg, creg, processor, args, });
                     };
 
                     // start processing
-                    Logger.LogInformation("Starting processing on {EntityPath}", entityPath);
+                    Logger.LogInformation("Starting processing on {EntityPath}", processor.EntityPath);
                     await processor.StartProcessingAsync(cancellationToken: cancellationToken);
                 }
             }
@@ -530,11 +529,12 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
         private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration ereg,
                                                                      EventConsumerRegistration creg,
-                                                                     string entityPath,
+                                                                     ServiceBusProcessor processor,
                                                                      ProcessMessageEventArgs args)
             where TEvent : class
             where TConsumer : IEventConsumer<TEvent>
         {
+            var entityPath = processor.EntityPath;
             var message = args.Message;
             var messageId = message.MessageId;
             var cancellationToken = args.CancellationToken;
@@ -584,9 +584,12 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                       scope: scope,
                                                       cancellationToken: cancellationToken);
 
-                // Complete the message
-                Logger.LogDebug("Completing message: {MessageId} from '{EntityPath}'.", messageId);
-                await args.CompleteMessageAsync(message: message, cancellationToken: cancellationToken);
+                // Complete the message if it does not auto-complete
+                if (!processor.AutoCompleteMessages)
+                {
+                    Logger.LogDebug("Completing message: {MessageId} from '{EntityPath}'.", messageId);
+                    await args.CompleteMessageAsync(message: message, cancellationToken: cancellationToken);
+                }
             }
             catch (Exception ex)
             {

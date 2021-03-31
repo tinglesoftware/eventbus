@@ -29,7 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
                            | System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString,
-            WriteIndented = true,
+            WriteIndented = false, // less data used
             DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault
                                    | System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
 

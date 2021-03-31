@@ -13,7 +13,7 @@ namespace Tingle.EventBus.Serializers
         /// </summary>
         public JsonSerializerSettings SerializerSettings { get; set; } = new JsonSerializerSettings
         {
-            Formatting = Formatting.Indented,
+            Formatting = Formatting.None, // less data used
             NullValueHandling = NullValueHandling.Ignore,
 
             ContractResolver = new CamelCasePropertyNamesContractResolver(),

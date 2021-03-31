@@ -48,6 +48,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// A function to create the processor options instead of using the default options.
         /// Some options set may still be overriding for proper operation of the the transport and the bus.
         /// </summary>
-        public Func<EventRegistration, EventConsumerRegistration, ServiceBusProcessorOptions> CreateProcessorOptions { get; set; }
+        public Action<EventRegistration, EventConsumerRegistration, ServiceBusProcessorOptions> SetupProcessorOptions { get; set; }
     }
 }

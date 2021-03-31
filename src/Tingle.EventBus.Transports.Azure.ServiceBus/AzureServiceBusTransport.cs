@@ -362,18 +362,23 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 if (!processorsCache.TryGetValue(key, out var processor))
                 {
                     // Create the processor options
-                    var sbpo = TransportOptions.CreateProcessorOptions?.Invoke(ereg, creg) ?? new ServiceBusProcessorOptions();
+                    var sbpo = new ServiceBusProcessorOptions
+                    {
+                        // Maximum number of concurrent calls to the callback ProcessMessagesAsync(), set to 1 for simplicity.
+                        // Set it according to how many messages the application wants to process in parallel.
+                        MaxConcurrentCalls = 1,
 
-                    // Maximum number of concurrent calls to the callback ProcessMessagesAsync(), set to 1 for simplicity.
-                    // Set it according to how many messages the application wants to process in parallel.
-                    sbpo.MaxConcurrentCalls = 1;
+                        // Indicates whether MessagePump should automatically complete the messages after returning from User Callback.
+                        // False below indicates the Complete will be handled by the User Callback as in `ProcessMessagesAsync` below.
+                        AutoCompleteMessages = false,
 
-                    // Indicates whether MessagePump should automatically complete the messages after returning from User Callback.
-                    // False below indicates the Complete will be handled by the User Callback as in `ProcessMessagesAsync` below.
-                    sbpo.AutoCompleteMessages = false;
+                        // Set the period of time for which to keep renewing the lock token
+                        MaxAutoLockRenewalDuration = Defaults.MaxAutoLockRenewDuration,
+                    };
 
-                    // Set the period of time for which to keep renewing the lock token
-                    sbpo.MaxAutoLockRenewalDuration = Defaults.MaxAutoLockRenewDuration;
+                    // Allow for the defaults to be overriden
+                    TransportOptions.SetupProcessorOptions?.Invoke(ereg, creg, sbpo);
+
 
                     // Create the processor. Queues are used in the basic tier or when explicitly mapped to Queue.
                     // Otherwise, Topics and Subscriptions are used.

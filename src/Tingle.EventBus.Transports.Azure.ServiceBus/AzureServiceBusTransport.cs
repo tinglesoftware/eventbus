@@ -432,7 +432,15 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 {
                     // set the defaults for a queue here
                     Status = EntityStatus.Active,
-                    MaxDeliveryCount = 10,
+                    EnablePartitioning = false,
+                    RequiresDuplicateDetection = BusOptions.EnableDeduplication,
+                    DuplicateDetectionHistoryTimeWindow = BusOptions.DuplicateDetectionDuration,
+                    AutoDeleteOnIdle = Defaults.AutoDeleteOnIdle,
+                    DefaultMessageTimeToLive = Defaults.DefaultMessageTimeToLive,
+                    EnableBatchedOperations = true,
+                    DeadLetteringOnMessageExpiration = true,
+                    LockDuration = Defaults.LockDuration,
+                    MaxDeliveryCount = Defaults.MaxDeliveryCount,
                 };
 
                 // Allow for the defaults to be overriden
@@ -458,11 +466,13 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 Logger.LogTrace("Topic '{TopicName}' does not exist, preparing creation.", name);
                 var options = new CreateTopicOptions(name: name)
                 {
-                    // set the defaults for a topic here
                     Status = EntityStatus.Active,
                     EnablePartitioning = false,
                     RequiresDuplicateDetection = BusOptions.EnableDeduplication,
                     DuplicateDetectionHistoryTimeWindow = BusOptions.DuplicateDetectionDuration,
+                    AutoDeleteOnIdle = Defaults.AutoDeleteOnIdle,
+                    DefaultMessageTimeToLive = Defaults.DefaultMessageTimeToLive,
+                    EnableBatchedOperations = true,
                 };
 
                 // Allow for the defaults to be overriden
@@ -492,9 +502,13 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                 topicName);
                 var options = new CreateSubscriptionOptions(topicName: topicName, subscriptionName: subscriptionName)
                 {
-                    // set the defaults for a subscription here
                     Status = EntityStatus.Active,
-                    MaxDeliveryCount = 10,
+                    AutoDeleteOnIdle = Defaults.AutoDeleteOnIdle,
+                    DefaultMessageTimeToLive = Defaults.DefaultMessageTimeToLive,
+                    EnableBatchedOperations = true,
+                    DeadLetteringOnMessageExpiration = true,
+                    LockDuration = Defaults.LockDuration,
+                    MaxDeliveryCount = Defaults.MaxDeliveryCount,
                 };
 
                 // Allow for the defaults to be overriden

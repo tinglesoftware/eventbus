@@ -362,7 +362,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 if (!processorsCache.TryGetValue(key, out var processor))
                 {
                     // Create the processor options
-                    var sbpo = TransportOptions.CreateProcessorOptions?.Invoke() ?? new ServiceBusProcessorOptions();
+                    var sbpo = TransportOptions.CreateProcessorOptions?.Invoke(ereg, creg) ?? new ServiceBusProcessorOptions();
 
                     // Maximum number of concurrent calls to the callback ProcessMessagesAsync(), set to 1 for simplicity.
                     // Set it according to how many messages the application wants to process in parallel.

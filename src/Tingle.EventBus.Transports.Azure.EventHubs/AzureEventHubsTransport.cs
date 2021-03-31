@@ -263,7 +263,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                     };
 
                     // Allow for the defaults to be overriden
-                    TransportOptions.CreateProducerClientOptions?.Invoke(reg, epco);
+                    TransportOptions.SetupProducerClientOptions?.Invoke(reg, epco);
 
                     // Override values that must be overriden
 
@@ -324,7 +324,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                     };
 
                     // Allow for the defaults to be overriden
-                    TransportOptions.CreateProcessorClientOptions?.Invoke(creg, epco);
+                    TransportOptions.SetupProcessorClientOptions?.Invoke(ereg, creg, epco);
 
                     // How to ensure consumer is created in the event hub?
                     // EventHubs and ConsumerGroups can only be create via Azure portal or using Resource Manager which need different credentials

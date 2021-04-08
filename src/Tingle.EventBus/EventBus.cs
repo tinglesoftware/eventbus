@@ -183,8 +183,17 @@ namespace Tingle.EventBus
         public async Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // cancel on the transport
+            // Instrumentation
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Cancel, ActivityKind.Client);
+            activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTagNames.EventBusEventsCount, 1);
+            activity?.AddTag(ActivityTagNames.MessagingMessageId, id);
+
+            // Get the transport and add transport specific activity tags
             var (reg, transport) = GetTransportForEvent<TEvent>();
+            activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
+
+            // Cancel on the transport
             logger.CancelingEvent(id, transport.Name);
             await transport.CancelAsync<TEvent>(id: id, registration: reg, cancellationToken: cancellationToken);
         }
@@ -199,8 +208,17 @@ namespace Tingle.EventBus
         public async Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // cancel on the transport
+            // Instrumentation
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Cancel, ActivityKind.Client);
+            activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTagNames.EventBusEventsCount, ids.Count);
+            activity?.AddTag(ActivityTagNames.MessagingMessageId, string.Join(",", ids));
+
+            // Get the transport and add transport specific activity tags
             var (reg, transport) = GetTransportForEvent<TEvent>();
+            activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
+
+            // Cancel on the transport
             logger.CancelingEvents(ids, transport.Name);
             await transport.CancelAsync<TEvent>(ids: ids, registration: reg, cancellationToken: cancellationToken);
         }

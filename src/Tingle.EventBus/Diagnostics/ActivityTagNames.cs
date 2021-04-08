@@ -22,6 +22,7 @@
         public const string EventBusEventType = "eventbus.event_type";
         public const string EventBusSerializerType = "eventbus.serializer_type";
         public const string EventBusConsumerType = "eventbus.consumer_type";
+        public const string EventBusEventsCount = "eventbus.events_count";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 }

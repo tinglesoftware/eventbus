@@ -93,6 +93,7 @@ namespace Tingle.EventBus
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Publish, ActivityKind.Producer);
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTagNames.EventBusEventsCount, 1);
 
             // Add diagnostics headers to event
             @event.Headers.AddIfNotDefault(HeaderNames.EventType, typeof(TEvent).FullName);
@@ -142,6 +143,7 @@ namespace Tingle.EventBus
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Publish, ActivityKind.Producer);
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
+            activity?.AddTag(ActivityTagNames.EventBusEventsCount, events.Count);
 
             foreach (var @event in events)
             {

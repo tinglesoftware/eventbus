@@ -138,13 +138,8 @@ namespace Tingle.EventBus.Transports
                                                                             CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // Instrumentation
-            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Deserialize);
-            activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
-
             // Get the serializer
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
-            activity?.AddTag(ActivityTagNames.EventBusSerializerType, serializer.GetType().FullName);
 
             // Deserialize the content into a context
             return await serializer.DeserializeAsync<TEvent>(body, contentType, cancellationToken);
@@ -170,15 +165,10 @@ namespace Tingle.EventBus.Transports
                                                     CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            // Instrumentation
-            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Serialize);
-            activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
-
             // Get the serializer
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
-            activity?.AddTag(ActivityTagNames.EventBusSerializerType, serializer.GetType().FullName);
 
-            // do actual serialization and return the content type
+            // Serialize
             await serializer.SerializeAsync(body, @event, BusOptions.HostInfo, cancellationToken);
         }
 

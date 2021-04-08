@@ -8,8 +8,6 @@
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string Consume = "EventBus.Consume";
         public const string Publish = "EventBus.Publish";
-        public const string Serialize = "EventBus.Serialize";
-        public const string Deserialize = "EventBus.Deserialize";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 }

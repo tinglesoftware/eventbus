@@ -28,6 +28,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         private readonly SemaphoreSlim processorsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
         private readonly ServiceBusAdministrationClient managementClient;
         private readonly ServiceBusClient serviceBusClient;
+        private NamespaceProperties namespaceProperties;
 
         /// <summary>
         /// 
@@ -77,6 +78,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             await base.StartAsync(cancellationToken);
+
+            // Get the namespace properties once at the start
+            namespaceProperties = await managementClient.GetNamespacePropertiesAsync(cancellationToken);
 
             var registrations = GetRegistrations();
             foreach (var ereg in registrations)
@@ -320,9 +324,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 {
                     var name = reg.EventName;
 
-                    // Create the entity. Queues are used in the basic tier or when explicitly mapped to Queue.
-                    // Otherwise, Topics are used.
-                    if (reg.EntityKind == EntityKind.Queue)
+                    // Create the entity.
+                    if (ShouldUseQueue(reg))
                     {
                         // Ensure Queue is created
                         Logger.LogDebug("Creating sender for queue '{QueueName}'", name);
@@ -378,9 +381,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     // Allow for the defaults to be overriden
                     TransportOptions.SetupProcessorOptions?.Invoke(ereg, creg, sbpo);
 
-                    // Create the processor. Queues are used in the basic tier or when explicitly mapped to Queue.
-                    // Otherwise, Topics and Subscriptions are used.
-                    if (ereg.EntityKind == EntityKind.Queue)
+                    // Create the processor.
+                    if (ShouldUseQueue(ereg))
                     {
                         // Ensure Queue is created
                         await CreateQueueIfNotExistsAsync(ereg: ereg, name: topicName, cancellationToken: cancellationToken);
@@ -554,7 +556,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
-            var destination = ereg.EntityKind == EntityKind.Queue ? ereg.EventName : creg.ConsumerName;
+            var destination = ShouldUseQueue(ereg) ? ereg.EventName : creg.ConsumerName;
             activity?.AddTag(ActivityTagNames.MessagingDestination, destination); // name of the queue/subscription
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
 
@@ -606,5 +608,16 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                             args.ErrorSource);
             return Task.CompletedTask;
         }
+
+        private bool ShouldUseQueue(EventRegistration reg)
+        {
+            /*
+             * Queues are used in the basic tier or when explicitly mapped to Queue.
+             * Otherwise, Topics and Subscriptions are used.
+            */
+            return reg.EntityKind == EntityKind.Queue || IsBasicTier;
+        }
+
+        private bool IsBasicTier => namespaceProperties.MessagingSku == MessagingSku.Basic;
     }
 }

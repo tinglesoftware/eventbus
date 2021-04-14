@@ -441,15 +441,20 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     // set the defaults for a queue here
                     Status = EntityStatus.Active,
                     EnablePartitioning = false,
-                    RequiresDuplicateDetection = BusOptions.EnableDeduplication,
-                    DuplicateDetectionHistoryTimeWindow = BusOptions.DuplicateDetectionDuration,
-                    AutoDeleteOnIdle = Defaults.AutoDeleteOnIdle,
                     DefaultMessageTimeToLive = Defaults.DefaultMessageTimeToLive,
                     EnableBatchedOperations = true,
                     DeadLetteringOnMessageExpiration = true,
                     LockDuration = Defaults.LockDuration,
                     MaxDeliveryCount = Defaults.MaxDeliveryCount,
                 };
+
+                // Certain properties are not allowed in Basic Tier
+                if (!IsBasicTier)
+                {
+                    options.RequiresDuplicateDetection = BusOptions.EnableDeduplication;
+                    options.DuplicateDetectionHistoryTimeWindow = BusOptions.DuplicateDetectionDuration;
+                    options.AutoDeleteOnIdle = Defaults.AutoDeleteOnIdle;
+                }
 
                 // Allow for the defaults to be overriden
                 TransportOptions.SetupQueueOptions?.Invoke(ereg, options);

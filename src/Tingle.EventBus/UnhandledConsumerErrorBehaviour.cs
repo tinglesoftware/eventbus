@@ -11,7 +11,7 @@
         /// Move the event to dead-letter entity.
         /// Handling of deadletter is transport specific.
         /// </summary>
-        DeadletterImmediately,
+        Deadletter,
 
         /// <summary>
         /// Discard the event.

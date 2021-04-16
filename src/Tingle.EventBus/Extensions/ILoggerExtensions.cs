@@ -175,7 +175,7 @@ namespace Microsoft.Extensions.Logging
         {
             Action<ILogger, string, Exception> action = behaviour switch
             {
-                UnhandledConsumerErrorBehaviour.DeadletterImmediately => _consumeFailedDeadletter,
+                UnhandledConsumerErrorBehaviour.Deadletter => _consumeFailedDeadletter,
                 UnhandledConsumerErrorBehaviour.Discard => _consumeFailedDiscard,
                 _ => _consumeFailedTransportHandling,
             };

@@ -368,7 +368,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 failed.Add(context);
 
                 // Deadletter if needed
-                if (creg.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.DeadletterImmediately)
+                if (creg.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
                 {
                     // get the dead letter queue and send the mesage there
                     var dlqEntity = await GetQueueAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);

@@ -97,14 +97,22 @@ namespace Tingle.EventBus.Transports
         /// <inheritdoc/>
         public virtual Task StartAsync(CancellationToken cancellationToken)
         {
-            // Set the rety policy if not set by giving priority to the transport default then the bus default.
+            /*
+             * Set the retry policy and unhandled error behaviour if not set.
+             * Give priority to the transport default then the bus default.
+            */
             var registrations = GetRegistrations();
             foreach (var ereg in registrations)
             {
                 foreach (var creg in ereg.Consumers)
                 {
+                    // Set retry policy
                     creg.RetryPolicy ??= TransportOptions.DefaultConsumerRetryPolicy;
                     creg.RetryPolicy ??= BusOptions.DefaultConsumerRetryPolicy;
+
+                    // Set unhandled error behaviour
+                    creg.UnhandledErrorBehaviour ??= TransportOptions.DefaultUnhandledConsumerErrorBehaviour;
+                    creg.UnhandledErrorBehaviour ??= BusOptions.DefaultUnhandledConsumerErrorBehaviour;
                 }
             }
             Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
@@ -191,7 +199,7 @@ namespace Tingle.EventBus.Transports
             // Resolve the consumer
             var consumer = scope.ServiceProvider.GetRequiredService<TConsumer>();
 
-            // Invoke handler method, with try if specified
+            // Invoke handler method, with retry if specified
             var retryPolicy = creg.RetryPolicy;
             if (retryPolicy != null)
             {

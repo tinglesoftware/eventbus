@@ -126,6 +126,8 @@ namespace Tingle.EventBus.Transports
             return Task.CompletedTask;
         }
 
+        #region Serialization
+
         /// <summary>
         /// Deserialize an event from a stream of bytes.
         /// </summary>
@@ -180,6 +182,10 @@ namespace Tingle.EventBus.Transports
             await serializer.SerializeAsync(body, @event, BusOptions.HostInfo, cancellationToken);
         }
 
+        #endregion
+
+        #region Consuming
+
         /// <summary>
         /// Push an incoming event to the consumer responsible for it.
         /// </summary>
@@ -188,8 +194,8 @@ namespace Tingle.EventBus.Transports
         /// <param name="creg">The <see cref="EventConsumerRegistration"/> for the current event.</param>
         /// <param name="event">The context containing the event.</param>
         /// <param name="scope">The scope in which to resolve required services.</param>
-        /// <returns></returns>
         /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         protected async Task ConsumeAsync<TEvent, TConsumer>(EventConsumerRegistration creg,
                                                              EventContext<TEvent> @event,
                                                              IServiceScope scope,
@@ -210,6 +216,8 @@ namespace Tingle.EventBus.Transports
                 await consumer.ConsumeAsync(@event, cancellationToken).ConfigureAwait(false);
             }
         }
+
+        #endregion
 
         /// <summary>
         /// Create an <see cref="IServiceScope"/> which contains an <see cref="IServiceProvider"/>
@@ -233,6 +241,7 @@ namespace Tingle.EventBus.Transports
         #endregion
 
         #region Logging
+
         /// <summary>
         /// Begins a logical operation scope for logging.
         /// </summary>

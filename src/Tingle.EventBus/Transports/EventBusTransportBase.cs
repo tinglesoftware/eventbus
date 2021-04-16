@@ -195,25 +195,35 @@ namespace Tingle.EventBus.Transports
         /// <param name="event">The context containing the event.</param>
         /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        protected async Task ConsumeAsync<TEvent, TConsumer>(EventConsumerRegistration creg,
-                                                             EventContext<TEvent> @event,
-                                                             IServiceScope scope,
-                                                             CancellationToken cancellationToken)
+        /// <returns>An <see cref="EventConsumeResult"/> representing the state of the action.</returns>
+        protected async Task<EventConsumeResult> ConsumeAsync<TEvent, TConsumer>(EventConsumerRegistration creg,
+                                                                                 EventContext<TEvent> @event,
+                                                                                 IServiceScope scope,
+                                                                                 CancellationToken cancellationToken)
             where TConsumer : IEventConsumer<TEvent>
         {
             // Resolve the consumer
             var consumer = scope.ServiceProvider.GetRequiredService<TConsumer>();
 
-            // Invoke handler method, with retry if specified
-            var retryPolicy = creg.RetryPolicy;
-            if (retryPolicy != null)
+            try
             {
-                await retryPolicy.ExecuteAsync(ct => consumer.ConsumeAsync(@event, ct), cancellationToken);
+                // Invoke handler method, with retry if specified
+                var retryPolicy = creg.RetryPolicy;
+                if (retryPolicy != null)
+                {
+                    await retryPolicy.ExecuteAsync(ct => consumer.ConsumeAsync(@event, ct), cancellationToken);
+                }
+                else
+                {
+                    await consumer.ConsumeAsync(@event, cancellationToken).ConfigureAwait(false);
+                }
+
+                return new EventConsumeResult(successful: true, exception: null);
             }
-            else
+            catch (Exception ex)
             {
-                await consumer.ConsumeAsync(@event, cancellationToken).ConfigureAwait(false);
+                Logger.ConsumeFailed(@event.Id, creg.UnhandledErrorBehaviour, ex);
+                return new EventConsumeResult(successful: false, exception: ex);
             }
         }
 

@@ -565,42 +565,51 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             activity?.AddTag(ActivityTagNames.MessagingDestination, destination); // name of the queue/subscription
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
 
-            try
+            Logger.LogDebug("Processing '{MessageId}' from '{EntityPath}'", messageId, entityPath);
+            using var scope = CreateScope();
+            using var ms = message.Body.ToStream();
+            var contentType = new ContentType(message.ContentType);
+            var context = await DeserializeAsync<TEvent>(body: ms,
+                                                         contentType: contentType,
+                                                         registration: ereg,
+                                                         scope: scope,
+                                                         cancellationToken: cancellationToken);
+
+            Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{EntityPath}'",
+                                  messageId,
+                                  context.Id,
+                                  entityPath);
+
+            // set the extras
+            context.SetServiceBusMessage(message);
+
+            var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+                                                                         @event: context,
+                                                                         scope: scope,
+                                                                         cancellationToken: cancellationToken);
+
+            // Decide the action to execute then execute
+            var action = DecideAction(successful, creg.UnhandledErrorBehaviour, processor.AutoCompleteMessages);
+            Logger.LogDebug("Post Consume action: {Action} for message: {MessageId} from '{EntityPath}' containing Event: {EventId}.",
+                            action,
+                            messageId,
+                            context.Id);
+
+            if (action == PostConsumeAction.Complete)
             {
-                Logger.LogDebug("Processing '{MessageId}' from '{EntityPath}'", messageId, entityPath);
-                using var scope = CreateScope();
-                using var ms = message.Body.ToStream();
-                var contentType = new ContentType(message.ContentType);
-                var context = await DeserializeAsync<TEvent>(body: ms,
-                                                             contentType: contentType,
-                                                             registration: ereg,
-                                                             scope: scope,
-                                                             cancellationToken: cancellationToken);
-
-                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{EntityPath}'",
-                                      messageId,
-                                      context.Id,
-                                      entityPath);
-
-                // set the extras
-                context.SetServiceBusMessage(message);
-
-                await ConsumeAsync<TEvent, TConsumer>(creg: creg,
-                                                      @event: context,
-                                                      scope: scope,
-                                                      cancellationToken: cancellationToken);
-
-                // Complete the message if it does not auto-complete
-                if (!processor.AutoCompleteMessages)
-                {
-                    Logger.LogDebug("Completing message: {MessageId} from '{EntityPath}'.", messageId);
-                    await args.CompleteMessageAsync(message: message, cancellationToken: cancellationToken);
-                }
+                await args.CompleteMessageAsync(message: message, cancellationToken: cancellationToken);
             }
-            catch (Exception ex)
+            else if (action == PostConsumeAction.Throw)
             {
-                Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
-                await args.DeadLetterMessageAsync(message: message, cancellationToken: cancellationToken);
+                throw ex; // Any better way to do this?
+            }
+            else if (action == PostConsumeAction.Deadletter)
+            {
+                await args.DeadLetterMessageAsync(message, cancellationToken: cancellationToken);
+            }
+            else if (action == PostConsumeAction.Abandon)
+            {
+                await args.AbandonMessageAsync(message, cancellationToken: cancellationToken);
             }
         }
 
@@ -624,5 +633,55 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         private bool IsBasicTier => namespaceProperties.MessagingSku == MessagingSku.Basic;
+
+        internal static PostConsumeAction? DecideAction(bool successful, UnhandledConsumerErrorBehaviour? behaviour, bool autoComplete) // TODO: unit test this
+        {
+            /*
+             * Possible actions
+             * |-------------------------------------------------------------|
+             * |--Successful--|--Behaviour--|--Auto Complete--|----Action----|
+             * |    false     |    null     |     false       |    Abandon   |
+             * |    false     |    null     |     true        |   throw ex   |
+             * |    false     |  Deadletter |     false       |  Deadletter  |
+             * |    false     |  Deadletter |     true        |   throw ex   |
+             * |    false     |   Discard   |     false       |   Complete   |
+             * |    false     |   Discard   |     true        |    Nothing   |
+             * 
+             * |    true      |    null     |     false       |   Complete   |
+             * |    true      |    null     |     true        |    Nothing   |
+             * |    true      |  Deadletter |     false       |   Complete   |
+             * |    true      |  Deadletter |     true        |    Nothing   |
+             * |    true      |   Discard   |     false       |   Complete   |
+             * |    true      |   Discard   |     true        |    Nothing   |
+             * |-------------------------------------------------------------|
+             * 
+             * Conclusion:
+             * - When Successful = true the action is either null or Complete, controlled by AutoComplete
+             * - When Successful = false, the action will be throw if AutoComplete=true
+             * */
+
+            if (successful) return autoComplete ? null : (PostConsumeAction?)PostConsumeAction.Complete;
+
+            // At this point it is not successful
+            if (autoComplete)
+                return behaviour == UnhandledConsumerErrorBehaviour.Discard
+                        ? null
+                        : (PostConsumeAction?)PostConsumeAction.Throw;
+
+            return behaviour switch
+            {
+                UnhandledConsumerErrorBehaviour.Deadletter => PostConsumeAction.Deadletter,
+                UnhandledConsumerErrorBehaviour.Discard => PostConsumeAction.Complete,
+                _ => PostConsumeAction.Abandon,
+            };
+        }
+    }
+
+    internal enum PostConsumeAction
+    {
+        Throw,
+        Complete,
+        Abandon,
+        Deadletter
     }
 }

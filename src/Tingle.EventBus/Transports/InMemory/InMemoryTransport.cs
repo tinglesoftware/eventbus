@@ -338,40 +338,42 @@ namespace Tingle.EventBus.Transports.InMemory
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
 
             EventContext<TEvent> context = null;
-            try
+            Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueEntity.Name);
+            using var ms = new MemoryStream(message.Body.ToArray());
+            var contentType = new ContentType(message.ContentType);
+            context = await DeserializeAsync<TEvent>(body: ms,
+                                                     contentType: contentType,
+                                                     registration: reg,
+                                                     scope: scope,
+                                                     cancellationToken: cancellationToken);
+
+            Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueName}'",
+                                  messageId,
+                                  context.Id,
+                                  queueEntity.Name);
+
+            var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+                                                                        @event: context,
+                                                                        scope: scope,
+                                                                        cancellationToken: cancellationToken);
+
+            if (successful)
             {
-                Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueEntity.Name);
-                using var ms = new MemoryStream(message.Body.ToArray());
-                var contentType = new ContentType(message.ContentType);
-                context = await DeserializeAsync<TEvent>(body: ms,
-                                                         contentType: contentType,
-                                                         registration: reg,
-                                                         scope: scope,
-                                                         cancellationToken: cancellationToken);
-
-                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueName}'",
-                                      messageId,
-                                      context.Id,
-                                      queueEntity.Name);
-
-                await ConsumeAsync<TEvent, TConsumer>(creg: creg,
-                                                      @event: context,
-                                                      scope: scope,
-                                                      cancellationToken: cancellationToken);
-
                 // Add to Consumed list
                 consumed.Add(context);
             }
-            catch (Exception ex)
+            else
             {
-                Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
-
                 // Add to failed list
                 failed.Add(context);
 
-                // get the dead letter queue and send the mesage there
-                var dlqEntity = await GetQueueAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
-                dlqEntity.Enqueue(message);
+                // Deadletter if needed
+                if (creg.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.DeadletterImmediately)
+                {
+                    // get the dead letter queue and send the mesage there
+                    var dlqEntity = await GetQueueAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
+                    dlqEntity.Enqueue(message);
+                }
             }
         }
 

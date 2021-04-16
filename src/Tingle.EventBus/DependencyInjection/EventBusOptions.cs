@@ -79,6 +79,15 @@ namespace Microsoft.Extensions.DependencyInjection
         public AsyncRetryPolicy DefaultConsumerRetryPolicy { get; set; }
 
         /// <summary>
+        /// Optional default behaviour for errors encountered in a consumer but are not handled.
+        /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.UnhandledErrorBehaviour"/> option.
+        /// To specify a value per transport, use the <see cref="EventBusTransportOptionsBase.DefaultUnhandledConsumerErrorBehaviour"/> option on the specific transport.
+        /// When an <see cref="AsyncRetryPolicy"/> is in force, only errors that are not handled by it will be subject to the value set here.
+        /// Defaults to <see langword="null"/>.
+        /// </summary>
+        public UnhandledConsumerErrorBehaviour? DefaultUnhandledConsumerErrorBehaviour { get; set; }
+
+        /// <summary>
         /// Gets or sets the name of the default transport.
         /// When there is only one transport registered, setting this value is not necessary, as it is used as the default.
         /// </summary>

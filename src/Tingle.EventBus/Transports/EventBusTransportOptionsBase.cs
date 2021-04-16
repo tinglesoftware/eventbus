@@ -51,6 +51,15 @@ namespace Tingle.EventBus.Transports
         public AsyncRetryPolicy DefaultConsumerRetryPolicy { get; set; }
 
         /// <summary>
+        /// Optional default behaviour for errors encountered in a consumer but are not handled.
+        /// This value overrides the default value set on the bus via <see cref="EventBusOptions.DefaultUnhandledConsumerErrorBehaviour"/>.
+        /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.UnhandledErrorBehaviour"/> option.
+        /// When an <see cref="AsyncRetryPolicy"/> is in force, only errors that are not handled by it will be subject to the value set here.
+        /// Defaults to <see langword="null"/>.
+        /// </summary>
+        public UnhandledConsumerErrorBehaviour? DefaultUnhandledConsumerErrorBehaviour { get; set; }
+
+        /// <summary>
         /// Ensures the value set for <see cref="EventRegistration.EntityKind"/> is among the allowed values.
         /// If no value is set, the default value (set via <see cref="DefaultEntityKind"/>) is set before checking.
         /// </summary>

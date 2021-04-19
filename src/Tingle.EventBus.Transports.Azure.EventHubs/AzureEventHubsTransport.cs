@@ -393,57 +393,59 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
             activity?.AddTag(ActivityTagNames.MessagingDestination, processor.EventHubName);
 
-            try
+            Logger.LogDebug("Processing '{EventId}|{PartitionKey}|{SequenceNumber}' from '{EventHubName}/{ConsumerGroup}'",
+                            eventId,
+                            data.PartitionKey,
+                            data.SequenceNumber,
+                            processor.EventHubName,
+                            processor.ConsumerGroup);
+            using var scope = CreateScope();
+            using var ms = new MemoryStream(data.Body.ToArray());
+            var contentType = contentType_str == null ? null : new ContentType(contentType_str.ToString());
+            var context = await DeserializeAsync<TEvent>(body: ms,
+                                                         contentType: contentType,
+                                                         registration: ereg,
+                                                         scope: scope,
+                                                         cancellationToken: cancellationToken);
+            Logger.LogInformation("Received event: '{EventId}|{PartitionKey}|{SequenceNumber}' containing Event '{Id}' from '{EventHubName}/{ConsumerGroup}'",
+                                  eventId,
+                                  data.PartitionKey,
+                                  data.SequenceNumber,
+                                  context.Id,
+                                  processor.EventHubName,
+                                  processor.ConsumerGroup);
+
+            // set the extras
+            context.SetConsumerGroup(processor.ConsumerGroup)
+                   .SetPartitionContext(args.Partition)
+                   .SetEventData(data);
+
+            var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+                                                                        @event: context,
+                                                                        scope: scope,
+                                                                        cancellationToken: cancellationToken);
+
+            if (!successful && creg.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
             {
-                Logger.LogDebug("Processing '{EventId}|{PartitionKey}|{SequenceNumber}' from '{EventHubName}/{ConsumerGroup}'",
-                                eventId,
-                                data.PartitionKey,
-                                data.SequenceNumber,
-                                processor.EventHubName,
-                                processor.ConsumerGroup);
-                using var scope = CreateScope();
-                using var ms = new MemoryStream(data.Body.ToArray());
-                var contentType = contentType_str == null ? null : new ContentType(contentType_str.ToString());
-                var context = await DeserializeAsync<TEvent>(body: ms,
-                                                             contentType: contentType,
-                                                             registration: ereg,
-                                                             scope: scope,
-                                                             cancellationToken: cancellationToken);
-                Logger.LogInformation("Received event: '{EventId}|{PartitionKey}|{SequenceNumber}' containing Event '{Id}' from '{EventHubName}/{ConsumerGroup}'",
-                                      eventId,
-                                      data.PartitionKey,
-                                      data.SequenceNumber,
-                                      context.Id,
-                                      processor.EventHubName,
-                                      processor.ConsumerGroup);
-
-                // set the extras
-                context.SetConsumerGroup(processor.ConsumerGroup)
-                       .SetPartitionContext(args.Partition)
-                       .SetEventData(data);
-
-                await ConsumeAsync<TEvent, TConsumer>(creg: creg,
-                                                      @event: context,
-                                                      scope: scope,
-                                                      cancellationToken: cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
-
                 // get the producer for the dead letter event hub and send the event there
                 var dlqProcessor = await GetProducerAsync(reg: ereg, deadletter: true, cancellationToken: cancellationToken);
                 await dlqProcessor.SendAsync(new[] { data }, cancellationToken);
             }
 
-            // update the checkpoint store so that the app receives only new events the next time it's run
-            Logger.LogDebug("Checkpointing {Partition} of '{EventHubName}/{ConsumerGroup}', at {SequenceNumber}. Event: '{Id}'.",
-                            args.Partition,
-                            processor.EventHubName,
-                            processor.ConsumerGroup,
-                            data.SequenceNumber,
-                            eventId);
-            await args.UpdateCheckpointAsync(args.CancellationToken);
+            /* 
+             * Update the checkpoint store if needed so that the app receives
+             * only newer events the next time it's run.
+            */
+            if (ShouldCheckpoint(successful, creg.UnhandledErrorBehaviour))
+            {
+                Logger.LogDebug("Checkpointing {Partition} of '{EventHubName}/{ConsumerGroup}', at {SequenceNumber}. Event: '{Id}'.",
+                                args.Partition,
+                                processor.EventHubName,
+                                processor.ConsumerGroup,
+                                data.SequenceNumber,
+                                eventId);
+                await args.UpdateCheckpointAsync(args.CancellationToken);
+            }
         }
 
         private Task OnPartitionClosingAsync(EventProcessorClient processor, PartitionClosingEventArgs args)
@@ -475,6 +477,17 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                             processor.ConsumerGroup,
                             args.PartitionId);
             return Task.CompletedTask;
+        }
+
+        internal static bool ShouldCheckpoint(bool successful, UnhandledConsumerErrorBehaviour? behaviour)
+        {
+            /*
+             * We should only checkpoint if successful or we are discarding or deadlettering.
+             * Otherwise the consumer should be allowed to handle the event again.
+             * */
+            return successful
+                   || behaviour == UnhandledConsumerErrorBehaviour.Deadletter
+                   || behaviour == UnhandledConsumerErrorBehaviour.Discard;
         }
     }
 }

@@ -634,7 +634,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
         private bool IsBasicTier => namespaceProperties.MessagingSku == MessagingSku.Basic;
 
-        internal static PostConsumeAction? DecideAction(bool successful, UnhandledConsumerErrorBehaviour? behaviour, bool autoComplete) // TODO: unit test this
+        internal static PostConsumeAction? DecideAction(bool successful, UnhandledConsumerErrorBehaviour? behaviour, bool autoComplete)
         {
             /*
              * Possible actions

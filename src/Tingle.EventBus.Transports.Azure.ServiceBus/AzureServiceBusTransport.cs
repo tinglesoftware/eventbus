@@ -442,16 +442,16 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     // set the defaults for a queue here
                     Status = EntityStatus.Active,
                     EnablePartitioning = false,
-                    DefaultMessageTimeToLive = Defaults.DefaultMessageTimeToLive,
                     EnableBatchedOperations = true,
                     DeadLetteringOnMessageExpiration = true,
                     LockDuration = Defaults.LockDuration,
                     MaxDeliveryCount = Defaults.MaxDeliveryCount,
                 };
 
-                // Certain properties are not allowed in Basic Tier
+                // Certain properties are not allowed in Basic Tier or have lower limits
                 if (!await IsBasicTierAsync(cancellationToken))
                 {
+                    options.DefaultMessageTimeToLive = Defaults.DefaultMessageTimeToLive; // defaults to 14days in basic tier
                     options.RequiresDuplicateDetection = BusOptions.EnableDeduplication;
                     options.DuplicateDetectionHistoryTimeWindow = BusOptions.DuplicateDetectionDuration;
                     options.AutoDeleteOnIdle = Defaults.AutoDeleteOnIdle;

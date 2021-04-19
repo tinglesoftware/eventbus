@@ -26,9 +26,10 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         private readonly SemaphoreSlim sendersCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
         private readonly Dictionary<string, ServiceBusProcessor> processorsCache = new Dictionary<string, ServiceBusProcessor>();
         private readonly SemaphoreSlim processorsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
+        private readonly SemaphoreSlim propertiesCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
         private readonly ServiceBusAdministrationClient managementClient;
         private readonly ServiceBusClient serviceBusClient;
-        private NamespaceProperties namespaceProperties;
+        private NamespaceProperties properties;
 
         /// <summary>
         /// 
@@ -80,7 +81,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             await base.StartAsync(cancellationToken);
 
             // Get the namespace properties once at the start
-            namespaceProperties = await managementClient.GetNamespacePropertiesAsync(cancellationToken);
+            _ = await GetNamespacePropertiesAsync(cancellationToken);
 
             var registrations = GetRegistrations();
             foreach (var ereg in registrations)
@@ -325,7 +326,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     var name = reg.EventName;
 
                     // Create the entity.
-                    if (ShouldUseQueue(reg))
+                    if (await ShouldUseQueueAsync(reg, cancellationToken))
                     {
                         // Ensure Queue is created
                         Logger.LogDebug("Creating sender for queue '{QueueName}'", name);
@@ -382,7 +383,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     TransportOptions.SetupProcessorOptions?.Invoke(ereg, creg, sbpo);
 
                     // Create the processor.
-                    if (ShouldUseQueue(ereg))
+                    if (await ShouldUseQueueAsync(ereg, cancellationToken))
                     {
                         // Ensure Queue is created
                         await CreateQueueIfNotExistsAsync(ereg: ereg, name: topicName, cancellationToken: cancellationToken);
@@ -449,7 +450,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 };
 
                 // Certain properties are not allowed in Basic Tier
-                if (!IsBasicTier)
+                if (!await IsBasicTierAsync(cancellationToken))
                 {
                     options.RequiresDuplicateDetection = BusOptions.EnableDeduplication;
                     options.DuplicateDetectionHistoryTimeWindow = BusOptions.DuplicateDetectionDuration;
@@ -561,7 +562,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
-            var destination = ShouldUseQueue(ereg) ? ereg.EventName : creg.ConsumerName;
+            var destination = await ShouldUseQueueAsync(ereg, cancellationToken) ? ereg.EventName : creg.ConsumerName;
             activity?.AddTag(ActivityTagNames.MessagingDestination, destination); // name of the queue/subscription
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
 
@@ -624,16 +625,39 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             return Task.CompletedTask;
         }
 
-        private bool ShouldUseQueue(EventRegistration reg)
+        private async Task<bool> ShouldUseQueueAsync(EventRegistration reg, CancellationToken cancellationToken)
         {
             /*
              * Queues are used in the basic tier or when explicitly mapped to Queue.
              * Otherwise, Topics and Subscriptions are used.
             */
-            return reg.EntityKind == EntityKind.Queue || IsBasicTier;
+            return reg.EntityKind == EntityKind.Queue || await IsBasicTierAsync(cancellationToken);
         }
 
-        private bool IsBasicTier => namespaceProperties.MessagingSku == MessagingSku.Basic;
+        private async Task<bool> IsBasicTierAsync(CancellationToken cancellationToken)
+        {
+            var np = await GetNamespacePropertiesAsync(cancellationToken);
+            return np.MessagingSku == MessagingSku.Basic;
+        }
+
+        private async Task<NamespaceProperties> GetNamespacePropertiesAsync(CancellationToken cancellationToken)
+        {
+            await propertiesCacheLock.WaitAsync(cancellationToken);
+
+            try
+            {
+                if (properties is null)
+                {
+                    properties = await managementClient.GetNamespacePropertiesAsync(cancellationToken);
+                }
+            }
+            finally
+            {
+                propertiesCacheLock.Release();
+            }
+
+            return properties;
+        }
 
         internal static PostConsumeAction? DecideAction(bool successful, UnhandledConsumerErrorBehaviour? behaviour, bool autoComplete)
         {

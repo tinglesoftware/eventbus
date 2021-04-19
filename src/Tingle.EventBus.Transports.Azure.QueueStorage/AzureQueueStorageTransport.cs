@@ -332,42 +332,38 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             activity?.AddTag(ActivityTagNames.MessagingDestination, queueClient.Name);
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
 
-            try
+            Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueClient.Name);
+            using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.MessageText));
+            var context = await DeserializeAsync<TEvent>(body: ms,
+                                                         contentType: null, // There is no way to get this yet
+                                                         registration: reg,
+                                                         scope: scope,
+                                                         cancellationToken: cancellationToken);
+
+            Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueName}'",
+                                  messageId,
+                                  context.Id,
+                                  queueClient.Name);
+
+            // if the event contains the parent activity id, set it
+            if (context.Headers.TryGetValue(HeaderNames.ActivityId, out var parentActivityId))
             {
-                Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueClient.Name);
-                using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.MessageText));
-                var context = await DeserializeAsync<TEvent>(body: ms,
-                                                             contentType: null, // There is no way to get this yet
-                                                             registration: reg,
-                                                             scope: scope,
-                                                             cancellationToken: cancellationToken);
-
-                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueName}'",
-                                      messageId,
-                                      context.Id,
-                                      queueClient.Name);
-
-                // if the event contains the parent activity id, set it
-                if (context.Headers.TryGetValue(HeaderNames.ActivityId, out var parentActivityId))
-                {
-                    activity?.SetParentId(parentId: parentActivityId.ToString());
-                }
-
-                await ConsumeAsync<TEvent, TConsumer>(creg: creg,
-                                                      @event: context,
-                                                      scope: scope,
-                                                      cancellationToken: cancellationToken);
+                activity?.SetParentId(parentId: parentActivityId.ToString());
             }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
 
+            var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+                                                                        @event: context,
+                                                                        scope: scope,
+                                                                        cancellationToken: cancellationToken);
+
+            if (!successful && creg.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
+            {
                 // get the client for the dead letter queue and send the mesage there
                 var dlqClient = await GetQueueClientAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
                 await dlqClient.SendMessageAsync(message.MessageText, cancellationToken);
             }
 
-            // always delete the message from the current queue
+            // whether or not successful, always delete the message from the current queue
             Logger.LogTrace("Deleting '{MessageId}' on '{QueueName}'", messageId, queueClient.Name);
             await queueClient.DeleteMessageAsync(messageId: messageId,
                                                  popReceipt: message.PopReceipt,

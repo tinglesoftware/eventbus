@@ -302,33 +302,31 @@ namespace Tingle.EventBus.Transports.Kafka
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
 
-            try
-            {
-                Logger.LogDebug("Processing '{MessageKey}", messageKey);
-                using var scope = CreateScope();
-                using var ms = new MemoryStream(message.Value);
-                var contentType = contentType_str == null ? null : new ContentType(contentType_str.ToString());
-                var context = await DeserializeAsync<TEvent>(body: ms,
-                                                             contentType: contentType,
-                                                             registration: reg,
-                                                             scope: scope,
-                                                             cancellationToken: cancellationToken);
-                Logger.LogInformation("Received event: '{MessageKey}' containing Event '{Id}'",
-                                      messageKey,
-                                      context.Id);
-                await ConsumeAsync<TEvent, TConsumer>(creg: creg,
-                                                      @event: context,
-                                                      scope: scope,
-                                                      cancellationToken: cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
+            Logger.LogDebug("Processing '{MessageKey}", messageKey);
+            using var scope = CreateScope();
+            using var ms = new MemoryStream(message.Value);
+            var contentType = contentType_str == null ? null : new ContentType(contentType_str.ToString());
+            var context = await DeserializeAsync<TEvent>(body: ms,
+                                                         contentType: contentType,
+                                                         registration: reg,
+                                                         scope: scope,
+                                                         cancellationToken: cancellationToken);
+            Logger.LogInformation("Received event: '{MessageKey}' containing Event '{Id}'",
+                                  messageKey,
+                                  context.Id);
+            var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+                                                                        @event: context,
+                                                                        scope: scope,
+                                                                        cancellationToken: cancellationToken);
 
+            if (!successful && creg.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
+            {
                 // produce message on deadletter topic
                 var dlt = reg.EventName += TransportOptions.DeadLetterSuffix;
                 await producer.ProduceAsync(topic: dlt, message: message, cancellationToken: cancellationToken);
             }
+
+            // TODO: find a better way to handle the checkpointing when there is an error
         }
 
         /// <inheritdoc/>

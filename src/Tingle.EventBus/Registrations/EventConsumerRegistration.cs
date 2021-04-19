@@ -30,7 +30,8 @@ namespace Tingle.EventBus.Registrations
 
         /// <summary>
         /// The retry policy to apply when consuming events.
-        /// This is an outter wrapper around the <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, System.Threading.CancellationToken)"/>
+        /// This is an outter wrapper around the
+        /// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, System.Threading.CancellationToken)"/>
         /// method.
         /// When set to <see langword="null"/>, the method is only invoked once.
         /// Defaults to <see langword="null"/>.
@@ -43,6 +44,20 @@ namespace Tingle.EventBus.Registrations
         /// or lock duration) is set to accommodate the longest possible duration of the retry policy.
         /// </remarks>
         public AsyncRetryPolicy RetryPolicy { get; set; }
+
+        /// <summary>
+        /// The behaviour for unhandled errors when consuming events via the
+        /// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, System.Threading.CancellationToken)"/>
+        /// method.
+        /// When set to <see langword="null"/>, the transport's default behaviour is used.
+        /// Depending on the transport, the event may be delayed for reconsumtion
+        /// or added back to the entity or availed to another processor/consumer instnance.
+        /// Defaults to <see langword="null"/>.
+        /// When this value is set, it overrides the default value set on the transport or the bus.
+        /// <br/>
+        /// When a <see cref="RetryPolicy"/> is in force, only errors not handled by it will be subject to the value set here.
+        /// </summary>
+        public UnhandledConsumerErrorBehaviour? UnhandledErrorBehaviour { get; set; }
 
         /// <summary>
         /// Gets a key/value collection that can be used to organize and share data across components

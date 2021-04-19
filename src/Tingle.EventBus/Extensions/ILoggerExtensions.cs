@@ -102,6 +102,24 @@ namespace Microsoft.Extensions.Logging
                 logLevel: LogLevel.Information,
                 formatString: "Canceling {EventsCount} events on '{TransportName}' transport.\r\nEvents: {EventIds}");
 
+        private static readonly Action<ILogger, string, Exception> _consumeFailedTransportHandling
+            = LoggerMessage.Define<string>(
+                eventId: new EventId(304, nameof(ConsumeFailed)),
+                logLevel: LogLevel.Error,
+                formatString: "Event processing failed. Transport specific handling in play. (EventId:{EventId})");
+
+        private static readonly Action<ILogger, string, Exception> _consumeFailedDeadletter
+            = LoggerMessage.Define<string>(
+                eventId: new EventId(304, nameof(ConsumeFailed)),
+                logLevel: LogLevel.Error,
+                formatString: "Event processing failed. Moving to deadletter. (EventId:{EventId})");
+
+        private static readonly Action<ILogger, string, Exception> _consumeFailedDiscard
+            = LoggerMessage.Define<string>(
+                eventId: new EventId(304, nameof(ConsumeFailed)),
+                logLevel: LogLevel.Error,
+                formatString: "Event processing failed. Discarding event. (EventId:{EventId})");
+
         public static void SendingEvent(this ILogger logger, string eventId, string transportName, DateTimeOffset? scheduled = null)
         {
             if (scheduled == null)
@@ -151,6 +169,18 @@ namespace Microsoft.Extensions.Logging
         public static void CancelingEvents(this ILogger logger, IList<string> eventIds, string transportName)
         {
             _cancelingEvents(logger, eventIds.Count, transportName, eventIds, null);
+        }
+
+        public static void ConsumeFailed(this ILogger logger, string eventId, UnhandledConsumerErrorBehaviour? behaviour, Exception ex)
+        {
+            Action<ILogger, string, Exception> action = behaviour switch
+            {
+                UnhandledConsumerErrorBehaviour.Deadletter => _consumeFailedDeadletter,
+                UnhandledConsumerErrorBehaviour.Discard => _consumeFailedDiscard,
+                _ => _consumeFailedTransportHandling,
+            };
+
+            action?.Invoke(logger, eventId, ex);
         }
 
         private static (string readableDelay, TimeSpan delay) GetDelay(DateTimeOffset scheduled)

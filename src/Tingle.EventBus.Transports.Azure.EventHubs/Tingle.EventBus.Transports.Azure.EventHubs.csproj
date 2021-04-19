@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Tingle.EventBus.Transports.Azure.EventHubs.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Azure.Messaging.EventHubs.Processor" Version="5.4.0" />
   </ItemGroup>
 

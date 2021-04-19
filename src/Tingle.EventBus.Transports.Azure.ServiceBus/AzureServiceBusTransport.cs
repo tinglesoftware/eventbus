@@ -593,6 +593,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             Logger.LogDebug("Post Consume action: {Action} for message: {MessageId} from '{EntityPath}' containing Event: {EventId}.",
                             action,
                             messageId,
+                            entityPath,
                             context.Id);
 
             if (action == PostConsumeAction.Complete)

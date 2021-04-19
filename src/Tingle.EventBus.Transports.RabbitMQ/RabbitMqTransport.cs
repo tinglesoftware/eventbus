@@ -331,33 +331,44 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             activity?.AddTag(ActivityTagNames.MessagingDestination, creg.ConsumerName);
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // only queues are possible
 
-            try
-            {
-                Logger.LogDebug("Processing '{MessageId}'", messageId);
-                using var scope = CreateScope();
-                using var ms = new MemoryStream(args.Body.ToArray());
-                var contentType = GetContentType(args.BasicProperties);
-                var context = await DeserializeAsync<TEvent>(body: ms,
-                                                             contentType: contentType,
-                                                             registration: ereg,
-                                                             scope: scope,
-                                                             cancellationToken: cancellationToken);
-                Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
-                                      messageId,
-                                      context.Id);
-                await ConsumeAsync<TEvent, TConsumer>(creg: creg,
-                                                      @event: context,
-                                                      scope: scope,
-                                                      cancellationToken: cancellationToken);
+            Logger.LogDebug("Processing '{MessageId}'", messageId);
+            using var scope = CreateScope();
+            using var ms = new MemoryStream(args.Body.ToArray());
+            var contentType = GetContentType(args.BasicProperties);
+            var context = await DeserializeAsync<TEvent>(body: ms,
+                                                         contentType: contentType,
+                                                         registration: ereg,
+                                                         scope: scope,
+                                                         cancellationToken: cancellationToken);
+            Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
+                                  messageId,
+                                  context.Id);
+            var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+                                                  @event: context,
+                                                  scope: scope,
+                                                  cancellationToken: cancellationToken);
 
+            // Decide the action to execute then execute
+            var action = DecideAction(successful, creg.UnhandledErrorBehaviour);
+            Logger.LogDebug("Post Consume action: {Action} for message: {MessageId} containing Event: {EventId}.",
+                            action,
+                            messageId,
+                            context.Id);
+
+            if (action == PostConsumeAction.Acknowledge)
+            {
                 // Acknowlege the message
                 Logger.LogDebug("Completing message: {MessageId}, {DeliveryTag}.", messageId, args.DeliveryTag);
                 channel.BasicAck(deliveryTag: args.DeliveryTag, multiple: false);
             }
-            catch (Exception ex)
+            else if (action == PostConsumeAction.Deadletter || action == PostConsumeAction.Reject)
             {
-                Logger.LogError(ex, "Event processing failed. Moving to deadletter.");
-                channel.BasicNack(deliveryTag: args.DeliveryTag, multiple: false, requeue: false);
+                /*
+                 * requeue=false is the action that results in moving to a deadletter queue
+                 * requeue=true will allow consumption later or by another consumer instance
+                 */
+                var requeue = action == PostConsumeAction.Reject;
+                channel.BasicNack(deliveryTag: args.DeliveryTag, multiple: false, requeue: requeue);
             }
         }
 
@@ -505,5 +516,42 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+
+        internal static PostConsumeAction? DecideAction(bool successful, UnhandledConsumerErrorBehaviour? behaviour)
+        {
+            /*
+             * Possible actions
+             * |-------------------------------------------------------------|
+             * |--Successful--|--Behaviour--|----Action----|
+             * |    false     |    null     |    Reject    |
+             * |    false     |  Deadletter |  Deadletter  |
+             * |    false     |   Discard   |  Acknowledge |
+             * 
+             * |    true      |    null     |  Acknowledge |
+             * |    true      |  Deadletter |  Acknowledge |
+             * |    true      |   Discard   |  Acknowledge |
+             * |-------------------------------------------------------------|
+             * 
+             * Conclusion:
+             * - When Successful = true the action is always Acknowledge
+             * - When Successful = false, the action will be throw if AutoComplete=true
+             * */
+
+            if (successful) return PostConsumeAction.Acknowledge;
+
+            return behaviour switch
+            {
+                UnhandledConsumerErrorBehaviour.Deadletter => PostConsumeAction.Deadletter,
+                UnhandledConsumerErrorBehaviour.Discard => PostConsumeAction.Acknowledge,
+                _ => PostConsumeAction.Reject,
+            };
+        }
+    }
+
+    internal enum PostConsumeAction
+    {
+        Acknowledge,
+        Reject,
+        Deadletter
     }
 }

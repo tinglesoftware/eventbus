@@ -64,7 +64,7 @@
         {
             Values.Value1 => value1,
             Values.Value2 => value2,
-            _ => throw new InvalidOperationException($"Unexpected state, setValue={setValue}"),
+            _ => null,
         };
 
         /// <summary>Gets the type of the current <see cref="AnyOf{T1, T2}"/> object.</summary>
@@ -73,7 +73,7 @@
         {
             Values.Value1 => typeof(T1),
             Values.Value2 => typeof(T2),
-            _ => throw new InvalidOperationException($"Unexpected state, setValue={setValue}"),
+            _ => null,
         };
 
         /// <summary>
@@ -175,7 +175,7 @@
             Values.Value1 => value1,
             Values.Value2 => value2,
             Values.Value3 => value3,
-            _ => throw new InvalidOperationException($"Unexpected state, setValue={setValue}"),
+            _ => null,
         };
 
         /// <summary>Gets the type of the current <see cref="AnyOf{T1, T2, T3}"/> object.</summary>
@@ -185,7 +185,7 @@
             Values.Value1 => typeof(T1),
             Values.Value2 => typeof(T2),
             Values.Value3 => typeof(T3),
-            _ => throw new InvalidOperationException($"Unexpected state, setValue={setValue}"),
+            _ => null,
         };
 
         /// <summary>

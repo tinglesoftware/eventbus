@@ -38,6 +38,11 @@ namespace Tingle.EventBus.Registrations
         public EntityKind? EntityKind { get; set; }
 
         /// <summary>
+        /// THe preferred format to use when generating identifiers for the event.
+        /// </summary>
+        public EventIdFormat? IdFormat { get; set; }
+
+        /// <summary>
         /// The name of the transport used for the event.
         /// </summary>
         public string TransportName { get; set; }

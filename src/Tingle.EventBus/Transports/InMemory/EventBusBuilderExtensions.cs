@@ -28,6 +28,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 services.Configure(configure);
             }
 
+            services.AddSingleton<IPostConfigureOptions<InMemoryTransportOptions>, InMemoryTransportPostConfigureOptions>();
             services.AddSingleton<SequenceNumberGenerator>();
 
             // register the transport

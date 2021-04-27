@@ -71,6 +71,14 @@ namespace Microsoft.Extensions.DependencyInjection
         public TimeSpan DuplicateDetectionDuration { get; set; } = TimeSpan.FromMinutes(1);
 
         /// <summary>
+        /// Optional default format to use for generated event identifiers when for events where it is not specified.
+        /// To specify a value per consumer, use the <see cref="EventRegistration.IdFormat"/> option.
+        /// To specify a value per transport, use the <see cref="EventBusTransportOptionsBase.DefaultEventIdFormat"/> option on the specific transport.
+        /// Defaults to <see cref="EventIdFormat.Guid"/>.
+        /// </summary>
+        public EventIdFormat DefaultEventIdFormat { get; set; } = EventIdFormat.Guid;
+
+        /// <summary>
         /// Optional default retry policy to use for consumers where it is not specified.
         /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.RetryPolicy"/> option.
         /// To specify a value per transport, use the <see cref="EventBusTransportOptionsBase.DefaultConsumerRetryPolicy"/> option on the specific transport.

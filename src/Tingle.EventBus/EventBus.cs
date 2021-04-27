@@ -90,8 +90,12 @@ namespace Tingle.EventBus
                 throw new ArgumentException("Scheduled time cannot be in the past.");
             }
 
+            // Get the transport and add transport specific activity tags
+            var (reg, transport) = GetTransportForEvent<TEvent>();
+
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Publish, ActivityKind.Producer);
+            activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusEventsCount, 1);
 
@@ -100,16 +104,12 @@ namespace Tingle.EventBus
             @event.Headers.AddIfNotDefault(HeaderNames.ActivityId, activity?.Id);
 
             // Set properties that may be missing
-            @event.Id ??= Guid.NewGuid().ToString();
+            @event.Id ??= GenerateEventId(reg);
             @event.Sent ??= DateTimeOffset.UtcNow;
 
             // Add message specific activity tags
             activity?.AddTag(ActivityTagNames.MessagingMessageId, @event.Id);
             activity?.AddTag(ActivityTagNames.MessagingConversationId, @event.CorrelationId);
-
-            // Get the transport and add transport specific activity tags
-            var (reg, transport) = GetTransportForEvent<TEvent>();
-            activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
 
             // Publish on the transport
             logger.SendingEvent(@event, transport.Name, scheduled);
@@ -140,8 +140,12 @@ namespace Tingle.EventBus
                 throw new ArgumentException("Scheduled time cannot be in the past.");
             }
 
+            // Get the transport and add transport specific activity tags
+            var (reg, transport) = GetTransportForEvent<TEvent>();
+
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Publish, ActivityKind.Producer);
+            activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusEventsCount, events.Count);
 
@@ -152,17 +156,13 @@ namespace Tingle.EventBus
                 @event.Headers.AddIfNotDefault(HeaderNames.ActivityId, Activity.Current?.Id);
 
                 // Set properties that may be missing
-                @event.Id ??= Guid.NewGuid().ToString();
+                @event.Id ??= GenerateEventId(reg);
                 @event.Sent ??= DateTimeOffset.UtcNow;
             }
 
             // Add message specific activity tags
             activity?.AddTag(ActivityTagNames.MessagingMessageId, string.Join(",", events.Select(e => e.Id)));
             activity?.AddTag(ActivityTagNames.MessagingConversationId, string.Join(",", events.Select(e => e.CorrelationId)));
-
-            // Get the transport and add transport specific activity tags
-            var (reg, transport) = GetTransportForEvent<TEvent>();
-            activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
 
             // Publish on the transport
             logger.SendingEvents(events, transport.Name, scheduled);
@@ -284,7 +284,36 @@ namespace Tingle.EventBus
             var reg = options.GetOrCreateRegistration<TEvent>();
             var transportType = options.RegisteredTransportNames[reg.TransportName];
             var transport = transports.Single(t => t.GetType() == transportType);
+
+            // For events that were not configured (e.g. publish only applications),
+            // the IdFormat will still be null, we have to set it
+            if (reg.IdFormat is null && transport is IEventBusTransportWithOptions ebtwo)
+            {
+                var to = ebtwo.GetOptions();
+                reg.IdFormat = to.DefaultEventIdFormat ?? options.DefaultEventIdFormat;
+            }
+
             return (reg, transport);
+        }
+
+        internal static string GenerateEventId(EventRegistration reg)
+        {
+            if (reg is null) throw new ArgumentNullException(nameof(reg));
+
+            var id = Guid.NewGuid();
+            var bytes = id.ToByteArray();
+
+            return reg.IdFormat switch
+            {
+                EventIdFormat.Guid => id.ToString(),
+                EventIdFormat.GuidNoDashes => id.ToString("n"),
+                EventIdFormat.Long => BitConverter.ToUInt64(bytes, 0).ToString(),
+                EventIdFormat.LongHex => BitConverter.ToUInt64(bytes, 0).ToString("x"),
+                EventIdFormat.DoubleLong => $"{BitConverter.ToUInt64(bytes, 0)}{BitConverter.ToUInt64(bytes, 8)}",
+                EventIdFormat.DoubleLongHex => $"{BitConverter.ToUInt64(bytes, 0):x}{BitConverter.ToUInt64(bytes, 8):x}",
+                EventIdFormat.Random => Convert.ToBase64String(bytes),
+                _ => throw new NotSupportedException($"'{nameof(EventIdFormat)}.{reg.IdFormat}' set on event '{reg.EventType.FullName}' is not supported."),
+            };
         }
     }
 }

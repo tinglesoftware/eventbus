@@ -15,10 +15,10 @@ using Tingle.EventBus.Serialization;
 namespace Tingle.EventBus.Transports
 {
     /// <summary>
-    /// The abstractions for an event bus
+    /// Abstract implementation for an event bus transport.
     /// </summary>
     /// <typeparam name="TTransportOptions">The type used for configuring options of the transport</typeparam>
-    public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransport where TTransportOptions : EventBusTransportOptionsBase, new()
+    public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransportWithOptions, IEventBusTransport where TTransportOptions : EventBusTransportOptionsBase, new()
     {
         private static readonly Regex CategoryNamePattern = new Regex(@"Transport$", RegexOptions.Compiled);
         private readonly IServiceScopeFactory serviceScopeFactory;
@@ -63,6 +63,9 @@ namespace Tingle.EventBus.Transports
 
         ///
         protected ILogger Logger { get; }
+
+        /// <inheritdoc/>
+        EventBusTransportOptionsBase IEventBusTransportWithOptions.GetOptions() => TransportOptions;
 
         /// <inheritdoc/>
         public abstract Task<bool> CheckHealthAsync(Dictionary<string, object> data,

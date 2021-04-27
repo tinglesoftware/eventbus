@@ -68,6 +68,9 @@ namespace Microsoft.Extensions.DependencyInjection
             // See https://www.rabbitmq.com/queues.html#:~:text=Names,bytes%20of%20UTF%2D8%20characters.
             foreach (var ereg in registrations)
             {
+                // Set the IdFormat
+                options.SetEventIdFormat(ereg, busOptions);
+
                 // Ensure the entity type is allowed
                 options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast, EntityKind.Queue);
 

@@ -38,6 +38,9 @@ namespace Microsoft.Extensions.DependencyInjection
             // See https://docs.microsoft.com/en-us/rest/api/storageservices/naming-queues-and-metadata#queue-names
             foreach (var ereg in registrations)
             {
+                // Set the IdFormat
+                options.SetEventIdFormat(ereg, busOptions);
+
                 // Ensure the entity type is allowed
                 options.EnsureAllowedEntityKind(ereg, EntityKind.Queue);
 

@@ -57,6 +57,9 @@ namespace Microsoft.Extensions.DependencyInjection
             // See https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-quotas#common-limits-for-all-tiers
             foreach (var ereg in registrations)
             {
+                // Set the IdFormat
+                options.SetEventIdFormat(ereg, busOptions);
+
                 // Ensure the entity type is allowed
                 options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast);
 

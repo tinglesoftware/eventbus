@@ -8,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// A class to finish the configuration of instances of <see cref="AzureEventHubsTransportOptions"/>.
     /// </summary>
-    internal class AzureEventHubsPostConfigureOptions : AzureTransportPostConfigureOptions<AzureEventHubsTransportOptions>
+    internal class AzureEventHubsPostConfigureOptions : AzureTransportPostConfigureOptions<AzureEventHubsTransportCredentials, AzureEventHubsTransportOptions>
     {
         private readonly EventBusOptions busOptions;
 
@@ -22,20 +22,14 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             base.PostConfigure(name, options);
 
-            // Ensure the connection string
-            if (string.IsNullOrWhiteSpace(options.ConnectionString))
-            {
-                throw new InvalidOperationException($"The '{nameof(options.ConnectionString)}' must be provided");
-            }
-
             // If there are consumers for this transport, we must check azure blob storage
             var registrations = busOptions.GetRegistrations(TransportNames.AzureEventHubs);
             if (registrations.Any(r => r.Consumers.Count > 0))
             {
-                // ensure the connection string for blob storage is valid
-                if (string.IsNullOrWhiteSpace(options.BlobStorageConnectionString))
+                // ensure the connection string for blob storage or token credential is provided
+                if (options.BlobStorageCredentials is null || options.BlobStorageCredentials.Value is null)
                 {
-                    throw new InvalidOperationException($"The '{nameof(options.BlobStorageConnectionString)}' must be provided");
+                    throw new InvalidOperationException($"'{nameof(options.BlobStorageCredentials)}' must be provided in form a connection string or an instance of '{typeof(AzureBlobStorageCredenetial).Name}'.");
                 }
 
                 // ensure the blob container name is provided

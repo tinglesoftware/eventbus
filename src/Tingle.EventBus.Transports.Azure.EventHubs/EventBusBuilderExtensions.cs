@@ -38,7 +38,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder"></param>
         /// <param name="connectionString">
         /// The connection string to the Azure EventHubs namespace.
-        /// Maps to <see cref="AzureEventHubsTransportOptions.ConnectionString"/>.
         /// </param>
         /// <param name="configure"></param>
         /// <returns></returns>
@@ -55,7 +54,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder.AddAzureEventHubsTransport(options =>
             {
-                options.ConnectionString = connectionString;
+                options.Credentials = connectionString;
                 configure?.Invoke(options);
             });
         }

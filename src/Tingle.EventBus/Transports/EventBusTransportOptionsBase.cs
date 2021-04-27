@@ -44,6 +44,13 @@ namespace Tingle.EventBus.Transports
         public virtual EntityKind DefaultEntityKind { get; set; } = EntityKind.Queue;
 
         /// <summary>
+        /// Optional default format to use for generated event identifiers when for events where it is not specified.
+        /// This value overrides the default value set on the bus via <see cref="EventBusOptions.DefaultEventIdFormat"/>.
+        /// To specify a value per consumer, use the <see cref="EventRegistration.IdFormat"/> option.
+        /// </summary>
+        public EventIdFormat? DefaultEventIdFormat { get; set; }
+
+        /// <summary>
         /// Optional default retry policy to use for consumers where it is not specified.
         /// This value overrides the default value set on the bus via <see cref="EventBusOptions.DefaultConsumerRetryPolicy"/>.
         /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.RetryPolicy"/> option.

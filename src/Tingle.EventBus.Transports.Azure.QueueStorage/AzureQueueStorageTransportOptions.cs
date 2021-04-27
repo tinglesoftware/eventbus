@@ -1,12 +1,11 @@
 ﻿using Tingle.EventBus;
-using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Options for configuring Azure Queue Storage based event bus.
     /// </summary>
-    public class AzureQueueStorageTransportOptions : EventBusTransportOptionsBase
+    public class AzureQueueStorageTransportOptions : AzureTransportOptions
     {
         /// <inheritdoc/>
         public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Queue;

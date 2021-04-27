@@ -4,14 +4,13 @@ using Azure.Messaging.EventHubs.Producer;
 using System;
 using Tingle.EventBus;
 using Tingle.EventBus.Registrations;
-using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Options for configuring Azure EventHubs based event bus.
     /// </summary>
-    public class AzureEventHubsTransportOptions : EventBusTransportOptionsBase
+    public class AzureEventHubsTransportOptions : AzureTransportOptions
     {
         /// <inheritdoc/>
         public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Broadcast;
@@ -40,7 +39,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         /// <summary>
         /// The type of transport to use.
-        /// Defaults to <see cref="EventHubsTransportType.AmqpTcp"/>
+        /// Defaults to <see cref="EventHubsTransportType.AmqpTcp"/>.
         /// </summary>
         public EventHubsTransportType TransportType { get; set; } = EventHubsTransportType.AmqpTcp;
 

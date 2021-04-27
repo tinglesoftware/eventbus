@@ -22,6 +22,12 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             base.PostConfigure(name, options);
 
+            // ensure we have a ServiceUrl when using AzureQueueStorageTransportCredentials
+            if (options.Credentials.Value is AzureQueueStorageTransportCredentials asbtc && asbtc.ServiceUrl is null)
+            {
+                throw new InvalidOperationException($"'{nameof(AzureQueueStorageTransportCredentials.ServiceUrl)}' must be provided when using '{nameof(AzureQueueStorageTransportCredentials)}'.");
+            }
+
             // Ensure there's only one consumer per event
             var registrations = busOptions.GetRegistrations(TransportNames.AzureQueueStorage);
             var multiple = registrations.FirstOrDefault(r => r.Consumers.Count > 1);

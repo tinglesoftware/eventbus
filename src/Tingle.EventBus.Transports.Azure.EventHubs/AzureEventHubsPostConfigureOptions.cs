@@ -22,6 +22,12 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             base.PostConfigure(name, options);
 
+            // ensure we have a FullyQualifiedNamespace when using AzureEventHubsTransportCredentials
+            if (options.Credentials.Value is AzureEventHubsTransportCredentials aehtc && aehtc.FullyQualifiedNamespace is null)
+            {
+                throw new InvalidOperationException($"'{nameof(AzureEventHubsTransportCredentials.FullyQualifiedNamespace)}' must be provided when using '{nameof(AzureEventHubsTransportCredentials)}'.");
+            }
+
             // If there are consumers for this transport, we must check azure blob storage
             var registrations = busOptions.GetRegistrations(TransportNames.AzureEventHubs);
             if (registrations.Any(r => r.Consumers.Count > 0))
@@ -29,7 +35,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 // ensure the connection string for blob storage or token credential is provided
                 if (options.BlobStorageCredentials is null || options.BlobStorageCredentials.Value is null)
                 {
-                    throw new InvalidOperationException($"'{nameof(options.BlobStorageCredentials)}' must be provided in form a connection string or an instance of '{typeof(AzureBlobStorageCredenetial).Name}'.");
+                    throw new InvalidOperationException($"'{nameof(options.BlobStorageCredentials)}' must be provided in form a connection string or an instance of '{nameof(AzureBlobStorageCredenetial)}'.");
+                }
+
+                // ensure we have a BlobServiceUrl when using AzureBlobStorageCredenetial
+                if (options.BlobStorageCredentials.Value is AzureBlobStorageCredenetial absc && absc.BlobServiceUrl is null)
+                {
+                    throw new InvalidOperationException($"'{nameof(AzureBlobStorageCredenetial.BlobServiceUrl)}' must be provided when using '{nameof(AzureBlobStorageCredenetial)}'.");
                 }
 
                 // ensure the blob container name is provided

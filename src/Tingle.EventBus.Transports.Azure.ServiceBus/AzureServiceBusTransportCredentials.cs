@@ -1,7 +1,9 @@
-﻿namespace Microsoft.Extensions.DependencyInjection
+﻿using Azure.Core;
+
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
-    /// Credentials for Azure Service Bus transport backed by a credential.
+    /// Credentials for Azure Service Bus transport backed by a <see cref="TokenCredential"/>.
     /// </summary>
     public class AzureServiceBusTransportCredentials : AzureTransportCredentials
     {

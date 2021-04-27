@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Azure.Core;
+using System;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
-    /// Credentials for Azure Queue Storage transport backed by a credential.
+    /// Credentials for Azure Queue Storage transport backed by a <see cref="TokenCredential"/>.
     /// </summary>
     public class AzureQueueStorageTransportCredentials : AzureTransportCredentials
     {

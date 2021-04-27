@@ -9,8 +9,8 @@ namespace Microsoft.Extensions.DependencyInjection
     public abstract class AzureTransportOptions<TCredenetial> : EventBusTransportOptionsBase where TCredenetial : AzureTransportCredentials
     {
         /// <summary>
-        /// Authencation credentials.
-        /// This can either be a connection string or <<typeparamref name="TCredenetial"/>.
+        /// Authentication credentials.
+        /// This can either be a connection string or <typeparamref name="TCredenetial"/>.
         /// </summary>
         public AnyOf<TCredenetial, string> Credentials { get; set; }
     }

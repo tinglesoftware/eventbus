@@ -18,6 +18,12 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 throw new InvalidOperationException($"'{nameof(options.Credentials)}' must be provided in form a connection string or an instance of '{typeof(TCredenetial).Name}'.");
             }
+
+            // We must have TokenCredential if using TCredential
+            if (options.Credentials.Value is TCredenetial tc && tc.TokenCredential is null)
+            {
+                throw new InvalidOperationException($"'{nameof(tc.TokenCredential)}' must be provided when using '{typeof(TCredenetial).Name}'.");
+            }
         }
     }
 }

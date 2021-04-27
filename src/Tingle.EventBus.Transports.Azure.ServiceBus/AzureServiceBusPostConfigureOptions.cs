@@ -21,6 +21,12 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             base.PostConfigure(name, options);
 
+            // ensure we have a FullyQualifiedNamespace when using AzureServiceBusTransportCredentials
+            if (options.Credentials.Value is AzureServiceBusTransportCredentials asbtc && asbtc.FullyQualifiedNamespace is null)
+            {
+                throw new InvalidOperationException($"'{nameof(AzureServiceBusTransportCredentials.FullyQualifiedNamespace)}' must be provided when using '{nameof(AzureServiceBusTransportCredentials)}'.");
+            }
+
             // Ensure the entity names are not longer than the limits
             // See https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas#messaging-quotas
             var registrations = busOptions.GetRegistrations(TransportNames.AzureServiceBus);

@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// A class to finish the configuration of instances of <see cref="AzureServiceBusTransportOptions"/>.
     /// </summary>
-    internal class AzureServiceBusPostConfigureOptions : AzureTransportPostConfigureOptions<AzureServiceBusTransportOptions>
+    internal class AzureServiceBusPostConfigureOptions : AzureTransportPostConfigureOptions<AzureServiceBusTransportCredentials, AzureServiceBusTransportOptions>
     {
         private readonly EventBusOptions busOptions;
 
@@ -20,12 +20,6 @@ namespace Microsoft.Extensions.DependencyInjection
         public override void PostConfigure(string name, AzureServiceBusTransportOptions options)
         {
             base.PostConfigure(name, options);
-
-            // Ensure the connection string is not null
-            if (string.IsNullOrWhiteSpace(options.ConnectionString))
-            {
-                throw new InvalidOperationException($"The '{nameof(options.ConnectionString)}' must be provided");
-            }
 
             // Ensure the entity names are not longer than the limits
             // See https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas#messaging-quotas

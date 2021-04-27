@@ -8,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// A class to finish the configuration of instances of <see cref="AzureEventHubsTransportOptions"/>.
     /// </summary>
-    internal class AzureEventHubsPostConfigureOptions : IPostConfigureOptions<AzureEventHubsTransportOptions>
+    internal class AzureEventHubsPostConfigureOptions : AzureTransportPostConfigureOptions<AzureEventHubsTransportOptions>
     {
         private readonly EventBusOptions busOptions;
 
@@ -17,8 +17,11 @@ namespace Microsoft.Extensions.DependencyInjection
             busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
         }
 
-        public void PostConfigure(string name, AzureEventHubsTransportOptions options)
+        /// <inheritdoc/>
+        public override void PostConfigure(string name, AzureEventHubsTransportOptions options)
         {
+            base.PostConfigure(name, options);
+
             // Ensure the connection string
             if (string.IsNullOrWhiteSpace(options.ConnectionString))
             {

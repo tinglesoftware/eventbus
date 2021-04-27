@@ -21,7 +21,8 @@ namespace Microsoft.Extensions.DependencyInjection
             var registrations = busOptions.GetRegistrations(TransportNames.InMemory);
             foreach (var ereg in registrations)
             {
-                // Do anything necessary here
+                // Set the IdFormat
+                options.SetEventIdFormat(ereg, busOptions);
             }
         }
     }

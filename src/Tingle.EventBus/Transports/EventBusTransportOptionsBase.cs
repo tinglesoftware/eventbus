@@ -87,5 +87,17 @@ namespace Tingle.EventBus.Transports
                 throw new InvalidOperationException($"'{nameof(EntityKind)}.{ek}' is not permitted for '{ereg.TransportName}' transport.");
             }
         }
+
+        /// <summary>
+        /// Set value for <see cref="EventRegistration.IdFormat"/> with prioritization of the transport default over the bus default.
+        /// </summary>
+        /// <param name="ereg"></param>
+        /// <param name="busOptions"></param>
+        public void SetEventIdFormat(EventRegistration ereg, EventBusOptions busOptions)
+        {
+            // prioritize the transport
+            ereg.IdFormat ??= DefaultEventIdFormat;
+            ereg.IdFormat ??= busOptions.DefaultEventIdFormat;
+        }
     }
 }

@@ -32,6 +32,9 @@ namespace Microsoft.Extensions.DependencyInjection
             var registrations = busOptions.GetRegistrations(TransportNames.AmazonSqs);
             foreach (var ereg in registrations)
             {
+                // Set the IdFormat
+                options.SetEventIdFormat(ereg, busOptions);
+
                 // Ensure the entity type is allowed
                 options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast, EntityKind.Queue);
 

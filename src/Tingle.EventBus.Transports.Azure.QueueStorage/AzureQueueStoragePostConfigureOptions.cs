@@ -8,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// A class to finish the configuration of instances of <see cref="AzureQueueStorageTransportOptions"/>.
     /// </summary>
-    internal class AzureQueueStoragePostConfigureOptions : AzureTransportPostConfigureOptions<AzureQueueStorageTransportOptions>
+    internal class AzureQueueStoragePostConfigureOptions : AzureTransportPostConfigureOptions<AzureQueueStorageTransportCredentials, AzureQueueStorageTransportOptions>
     {
         private readonly EventBusOptions busOptions;
 
@@ -21,12 +21,6 @@ namespace Microsoft.Extensions.DependencyInjection
         public override void PostConfigure(string name, AzureQueueStorageTransportOptions options)
         {
             base.PostConfigure(name, options);
-
-            // Ensure the connection string
-            if (string.IsNullOrWhiteSpace(options.ConnectionString))
-            {
-                throw new InvalidOperationException($"The '{nameof(options.ConnectionString)}' must be provided");
-            }
 
             // Ensure there's only one consumer per event
             var registrations = busOptions.GetRegistrations(TransportNames.AzureQueueStorage);

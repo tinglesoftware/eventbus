@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// A class to finish the configuration of instances of <see cref="AzureServiceBusTransportOptions"/>.
     /// </summary>
-    internal class AzureServiceBusPostConfigureOptions : IPostConfigureOptions<AzureServiceBusTransportOptions>
+    internal class AzureServiceBusPostConfigureOptions : AzureTransportPostConfigureOptions<AzureServiceBusTransportCredentials, AzureServiceBusTransportOptions>
     {
         private readonly EventBusOptions busOptions;
 
@@ -16,12 +16,15 @@ namespace Microsoft.Extensions.DependencyInjection
             busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
         }
 
-        public void PostConfigure(string name, AzureServiceBusTransportOptions options)
+        /// <inheritdoc/>
+        public override void PostConfigure(string name, AzureServiceBusTransportOptions options)
         {
-            // Ensure the connection string is not null
-            if (string.IsNullOrWhiteSpace(options.ConnectionString))
+            base.PostConfigure(name, options);
+
+            // ensure we have a FullyQualifiedNamespace when using AzureServiceBusTransportCredentials
+            if (options.Credentials.Value is AzureServiceBusTransportCredentials asbtc && asbtc.FullyQualifiedNamespace is null)
             {
-                throw new InvalidOperationException($"The '{nameof(options.ConnectionString)}' must be provided");
+                throw new InvalidOperationException($"'{nameof(AzureServiceBusTransportCredentials.FullyQualifiedNamespace)}' must be provided when using '{nameof(AzureServiceBusTransportCredentials)}'.");
             }
 
             // Ensure the entity names are not longer than the limits

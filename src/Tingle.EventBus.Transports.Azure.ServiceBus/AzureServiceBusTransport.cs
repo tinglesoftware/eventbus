@@ -44,11 +44,21 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                         ILoggerFactory loggerFactory)
             : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            var connectionString = TransportOptions.ConnectionString;
-            managementClient = new ServiceBusAdministrationClient(connectionString);
-
+            var cred = TransportOptions.Credentials.Value;
             var sbcOptions = new ServiceBusClientOptions { TransportType = TransportOptions.TransportType, };
-            serviceBusClient = new ServiceBusClient(connectionString, sbcOptions);
+            if (cred is AzureServiceBusTransportCredentials asbtc)
+            {
+                managementClient = new ServiceBusAdministrationClient(fullyQualifiedNamespace: asbtc.FullyQualifiedNamespace,
+                                                                      credential: asbtc.TokenCredential);
+                serviceBusClient = new ServiceBusClient(fullyQualifiedNamespace: asbtc.FullyQualifiedNamespace,
+                                                        credential: asbtc.TokenCredential,
+                                                        options: sbcOptions);
+            }
+            else
+            {
+                managementClient = new ServiceBusAdministrationClient(connectionString: (string)cred);
+                serviceBusClient = new ServiceBusClient(connectionString: (string)cred, options: sbcOptions);
+            }
         }
 
         /// <inheritdoc/>

@@ -3,22 +3,16 @@ using Azure.Messaging.ServiceBus.Administration;
 using System;
 using Tingle.EventBus;
 using Tingle.EventBus.Registrations;
-using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Options for configuring Azure Service Bus based event bus.
     /// </summary>
-    public class AzureServiceBusTransportOptions : EventBusTransportOptionsBase
+    public class AzureServiceBusTransportOptions : AzureTransportOptions<AzureServiceBusTransportCredentials>
     {
         /// <inheritdoc/>
         public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Broadcast;
-
-        /// <summary>
-        /// The connection string to Azure Service Bus.
-        /// </summary>
-        public string ConnectionString { get; set; }
 
         /// <summary>
         /// The type of transport to use.

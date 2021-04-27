@@ -8,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// A class to finish the configuration of instances of <see cref="AzureEventHubsTransportOptions"/>.
     /// </summary>
-    internal class AzureEventHubsPostConfigureOptions : IPostConfigureOptions<AzureEventHubsTransportOptions>
+    internal class AzureEventHubsPostConfigureOptions : AzureTransportPostConfigureOptions<AzureEventHubsTransportCredentials, AzureEventHubsTransportOptions>
     {
         private readonly EventBusOptions busOptions;
 
@@ -17,22 +17,31 @@ namespace Microsoft.Extensions.DependencyInjection
             busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
         }
 
-        public void PostConfigure(string name, AzureEventHubsTransportOptions options)
+        /// <inheritdoc/>
+        public override void PostConfigure(string name, AzureEventHubsTransportOptions options)
         {
-            // Ensure the connection string
-            if (string.IsNullOrWhiteSpace(options.ConnectionString))
+            base.PostConfigure(name, options);
+
+            // ensure we have a FullyQualifiedNamespace when using AzureEventHubsTransportCredentials
+            if (options.Credentials.Value is AzureEventHubsTransportCredentials aehtc && aehtc.FullyQualifiedNamespace is null)
             {
-                throw new InvalidOperationException($"The '{nameof(options.ConnectionString)}' must be provided");
+                throw new InvalidOperationException($"'{nameof(AzureEventHubsTransportCredentials.FullyQualifiedNamespace)}' must be provided when using '{nameof(AzureEventHubsTransportCredentials)}'.");
             }
 
             // If there are consumers for this transport, we must check azure blob storage
             var registrations = busOptions.GetRegistrations(TransportNames.AzureEventHubs);
             if (registrations.Any(r => r.Consumers.Count > 0))
             {
-                // ensure the connection string for blob storage is valid
-                if (string.IsNullOrWhiteSpace(options.BlobStorageConnectionString))
+                // ensure the connection string for blob storage or token credential is provided
+                if (options.BlobStorageCredentials is null || options.BlobStorageCredentials.Value is null)
                 {
-                    throw new InvalidOperationException($"The '{nameof(options.BlobStorageConnectionString)}' must be provided");
+                    throw new InvalidOperationException($"'{nameof(options.BlobStorageCredentials)}' must be provided in form a connection string or an instance of '{nameof(AzureBlobStorageCredenetial)}'.");
+                }
+
+                // ensure we have a BlobServiceUrl when using AzureBlobStorageCredenetial
+                if (options.BlobStorageCredentials.Value is AzureBlobStorageCredenetial absc && absc.BlobServiceUrl is null)
+                {
+                    throw new InvalidOperationException($"'{nameof(AzureBlobStorageCredenetial.BlobServiceUrl)}' must be provided when using '{nameof(AzureBlobStorageCredenetial)}'.");
                 }
 
                 // ensure the blob container name is provided

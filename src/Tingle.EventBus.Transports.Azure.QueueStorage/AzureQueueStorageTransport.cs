@@ -1,4 +1,5 @@
-﻿using Azure.Storage.Queues;
+﻿using Azure.Core;
+using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -43,7 +44,10 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                           ILoggerFactory loggerFactory)
             : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            serviceClient = new QueueServiceClient(TransportOptions.ConnectionString);
+            var cred = TransportOptions.Credentials.Value;
+            serviceClient = cred is AzureQueueStorageTransportCredentials aqstc
+                    ? new QueueServiceClient(serviceUri: aqstc.ServiceUrl, credential: aqstc.TokenCredential)
+                    : new QueueServiceClient(connectionString: (string)cred);
         }
 
         /// <inheritdoc/>
@@ -228,16 +232,21 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                     var name = reg.EventName;
                     if (deadletter) name += TransportOptions.DeadLetterSuffix;
 
+                    // create the queue client options
+                    var qco = new QueueClientOptions
+                    {
+                        // Using base64 encoding allows for complex data like JSON
+                        // to be embedded in the generated XML request body
+                        // https://github.com/Azure-Samples/storage-queue-dotnet-getting-started/issues/4
+                        MessageEncoding = QueueMessageEncoding.Base64,
+                    };
+
                     // create the queue client
-                    queueClient = new QueueClient(connectionString: TransportOptions.ConnectionString,
-                                                  queueName: name,
-                                                  options: new QueueClientOptions
-                                                  {
-                                                      // Using base64 encoding allows for complex data like JSON
-                                                      // to be embedded in the generated XML request body
-                                                      // https://github.com/Azure-Samples/storage-queue-dotnet-getting-started/issues/4
-                                                      MessageEncoding = QueueMessageEncoding.Base64,
-                                                  });
+                    // queueUri has the format "https://{account_name}.queue.core.windows.net/{queue_name}" which can be made using "{serviceClient.Uri}/{queue_name}"
+                    var cred = TransportOptions.Credentials.Value;
+                    queueClient = cred is AzureQueueStorageTransportCredentials aqstc
+                        ? new QueueClient(queueUri: new Uri($"{serviceClient.Uri}/{name}"), credential: aqstc.TokenCredential, options: qco)
+                        : new QueueClient(connectionString: (string)cred, queueName: name, options: qco);
 
                     // if entity creation is enabled, ensure queue is created
                     if (TransportOptions.EnableEntityCreation)

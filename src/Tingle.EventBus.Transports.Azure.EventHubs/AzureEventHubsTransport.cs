@@ -267,10 +267,16 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
                     // Override values that must be overriden
 
-                    // Create the producer
-                    producer = new EventHubProducerClient(connectionString: TransportOptions.ConnectionString,
-                                                          eventHubName: name,
-                                                          clientOptions: epco);
+                    // Create the producer client
+                    var cred = TransportOptions.Credentials.Value;
+                    producer = cred is AzureEventHubsTransportCredentials aehtc
+                            ? new EventHubProducerClient(fullyQualifiedNamespace: aehtc.FullyQualifiedNamespace,
+                                                         eventHubName: name,
+                                                         credential: aehtc.TokenCredential,
+                                                         clientOptions: epco)
+                            : new EventHubProducerClient(connectionString: (string)cred,
+                                                         eventHubName: name,
+                                                         clientOptions: epco);
 
                     // How to ensure event hub is created?
                     // EventHubs can only be create via Azure portal or using Resource Manager which need different credentials
@@ -311,7 +317,12 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                      * which needs different credentials.
                      */
 
-                    var blobContainerClient = new BlobContainerClient(connectionString: TransportOptions.BlobStorageConnectionString,
+                    // blobContainerUri has the format "https://{account_name}.blob.core.windows.net/{container_name}" which can be made using "{BlobServiceUri}/{container_name}".
+                    var cred_bs = TransportOptions.BlobStorageCredentials.Value;
+                    var blobContainerClient = cred_bs is AzureBlobStorageCredenetial abstc
+                        ? new BlobContainerClient(blobContainerUri: new Uri($"{abstc.BlobServiceUrl}/{TransportOptions.BlobContainerName}"),
+                                                  credential: abstc.TokenCredential)
+                        : new BlobContainerClient(connectionString: (string)cred_bs,
                                                                       blobContainerName: TransportOptions.BlobContainerName);
 
                     // Create the processor client options
@@ -329,12 +340,22 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                     // How to ensure consumer is created in the event hub?
                     // EventHubs and ConsumerGroups can only be create via Azure portal or using Resource Manager which need different credentials
 
-                    // Create the processor
-                    processor = new EventProcessorClient(checkpointStore: blobContainerClient,
+
+                    // Create the processor client
+                    var cred = TransportOptions.Credentials.Value;
+                    processor = cred is AzureEventHubsTransportCredentials aehtc
+                        ? new EventProcessorClient(checkpointStore: blobContainerClient,
                                                          consumerGroup: consumerGroup,
-                                                         connectionString: TransportOptions.ConnectionString,
+                                                         fullyQualifiedNamespace: aehtc.FullyQualifiedNamespace,
                                                          eventHubName: eventHubName,
-                                                         clientOptions: epco);
+                                                         credential: aehtc.TokenCredential,
+                                                         clientOptions: epco)
+                        : new EventProcessorClient(checkpointStore: blobContainerClient,
+                                                             consumerGroup: consumerGroup,
+                                                             connectionString: (string)cred,
+                                                             eventHubName: eventHubName,
+                                                             clientOptions: epco);
+
                     processorsCache[key] = processor;
                 }
 

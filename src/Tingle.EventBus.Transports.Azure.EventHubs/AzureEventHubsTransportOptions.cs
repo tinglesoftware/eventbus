@@ -4,30 +4,25 @@ using Azure.Messaging.EventHubs.Producer;
 using System;
 using Tingle.EventBus;
 using Tingle.EventBus.Registrations;
-using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Options for configuring Azure EventHubs based event bus.
     /// </summary>
-    public class AzureEventHubsTransportOptions : EventBusTransportOptionsBase
+    public class AzureEventHubsTransportOptions : AzureTransportOptions<AzureEventHubsTransportCredentials>
     {
         /// <inheritdoc/>
         public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Broadcast;
 
         /// <summary>
-        /// The connection string to Azure EventHubs.
-        /// </summary>
-        public string ConnectionString { get; set; }
-
-        /// <summary>
-        /// The connection string to Azure Blob Storage.
+        /// Authentication credentials for Azure Blob Storage.
+        /// This can either be a connection string or <see cref="AzureBlobStorageCredenetial"/>.
         /// Azure Blob Storage is used by the EventHubs processor to store the events stream offset
         /// which allows the events to be processed from a certain point.
         /// It is also used to create a lease per partition hence preventing duplicate events.
         /// </summary>
-        public string BlobStorageConnectionString { get; set; }
+        public AnyOf<AzureBlobStorageCredenetial, string> BlobStorageCredentials { get; set; }
 
         /// <summary>
         /// The name of the blob container used by the EventHubs processor.
@@ -40,7 +35,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         /// <summary>
         /// The type of transport to use.
-        /// Defaults to <see cref="EventHubsTransportType.AmqpTcp"/>
+        /// Defaults to <see cref="EventHubsTransportType.AmqpTcp"/>.
         /// </summary>
         public EventHubsTransportType TransportType { get; set; } = EventHubsTransportType.AmqpTcp;
 

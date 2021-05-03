@@ -127,8 +127,9 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Subscribe to events that a consumer can listen to.
         /// </summary>
         /// <typeparam name="TConsumer">The type of consumer to handle the events.</typeparam>
+        /// <param name="configure"></param>
         /// <returns></returns>
-        public EventBusBuilder AddConsumer<TConsumer>() where TConsumer : class, IEventConsumer
+        public EventBusBuilder AddConsumer<TConsumer>(Action<EventRegistration, EventConsumerRegistration> configure) where TConsumer : class, IEventConsumer
         {
             var consumerType = typeof(TConsumer);
             if (consumerType.IsAbstract)
@@ -169,16 +170,33 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 foreach (var et in eventTypes)
                 {
-                    // get or create a simple registration
-                    if (!options.Registrations.TryGetValue(et, out var registration))
+                    // get or create a simple EventRegistration
+                    if (!options.Registrations.TryGetValue(et, out var ereg))
                     {
-                        registration = options.Registrations[et] = new EventRegistration(et);
+                        ereg = options.Registrations[et] = new EventRegistration(et);
                     }
 
+                    // create a ConsumerRegistration
+                    var ecr = new EventConsumerRegistration(consumerType: consumerType);
+
+                    // call the configuration function
+                    configure?.Invoke(ereg, ecr);
+
                     // add the consumer to the registration
-                    registration.Consumers.Add(new EventConsumerRegistration(consumerType: consumerType));
+                    ereg.Consumers.Add(ecr);
                 }
             });
+        }
+
+        /// <summary>
+        /// Subscribe to events that a consumer can listen to.
+        /// </summary>
+        /// <typeparam name="TConsumer">The type of consumer to handle the events.</typeparam>
+        /// <param name="configure"></param>
+        /// <returns></returns>
+        public EventBusBuilder AddConsumer<TConsumer>(Action<EventConsumerRegistration> configure = null) where TConsumer : class, IEventConsumer
+        {
+            return AddConsumer<TConsumer>((ereg, creg) => configure?.Invoke(creg));
         }
 
         /// <summary>

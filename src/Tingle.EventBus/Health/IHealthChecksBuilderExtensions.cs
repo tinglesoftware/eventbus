@@ -17,7 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>The <see cref="IHealthChecksBuilder"/>.</returns>
         public static IHealthChecksBuilder AddEventBus(this IHealthChecksBuilder builder, string name = "eventbus")
         {
-            return builder.AddCheck<EventBusHealthCheck>(name);
+            return builder.AddCheck<EventBusHealthCheck>(name, tags: new[] { "eventbus", });
         }
     }
 }

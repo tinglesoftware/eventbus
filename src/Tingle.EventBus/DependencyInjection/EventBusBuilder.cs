@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tingle.EventBus;
+using Tingle.EventBus.Readiness;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
 using Tingle.EventBus.Transports;
@@ -32,6 +33,7 @@ namespace Microsoft.Extensions.DependencyInjection
             Services.AddSingleton<EventBus>();
             Services.AddHostedService(p => p.GetRequiredService<EventBus>());
             UseDefaultSerializer<DefaultEventSerializer>();
+            UseDefaultReadinessProvider<DefaultReadinessProvider>();
         }
 
         /// <summary>
@@ -114,6 +116,17 @@ namespace Microsoft.Extensions.DependencyInjection
         public EventBusBuilder UseDefaultSerializer<TEventSerializer>() where TEventSerializer : class, IEventSerializer
         {
             Services.AddSingleton<IEventSerializer, TEventSerializer>();
+            return this;
+        }
+
+        /// <summary>
+        /// Setup the default readiness provider to use when deciding if a consumer is ready to consume events.
+        /// </summary>
+        /// <typeparam name="TReadinessProvider"></typeparam>
+        /// <returns></returns>
+        public EventBusBuilder UseDefaultReadinessProvider<TReadinessProvider>() where TReadinessProvider : class, IReadinessProvider
+        {
+            Services.AddScoped<IReadinessProvider, TReadinessProvider>();
             return this;
         }
 

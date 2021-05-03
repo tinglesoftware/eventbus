@@ -154,6 +154,33 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <typeparam name="TEvent">The event type from wich to retrieve a <see cref="EventConsumerRegistration"/> for.</typeparam>
         /// <typeparam name="TConsumer">The consumer to configure.</typeparam>
+        /// <param name="ereg">
+        /// When this method returns, contains the event registration associated with the specified event type,
+        /// if the event type is found; otherwise, <see langword="null"/> is returned.
+        /// This parameter is passed uninitialized.
+        /// </param>
+        /// <param name="creg">
+        /// When this method returns, contains the consumer registration associated with the specified event type,
+        /// if the event type is found; otherwise, <see langword="null"/> is returned.
+        /// This parameter is passed uninitialized.
+        /// </param>
+        /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
+        internal bool TryGetConsumerRegistration<TEvent, TConsumer>(out EventRegistration ereg, out EventConsumerRegistration creg)
+        {
+            creg = default;
+            if (Registrations.TryGetValue(typeof(TEvent), out ereg))
+            {
+                creg = ereg.Consumers.SingleOrDefault(cr => cr.ConsumerType == typeof(TConsumer));
+                if (creg != null) return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Get the consumer registration in a given event type.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type from wich to retrieve a <see cref="EventConsumerRegistration"/> for.</typeparam>
+        /// <typeparam name="TConsumer">The consumer to configure.</typeparam>
         /// <param name="registration">
         /// When this method returns, contains the consumer registration associated with the specified event type,
         /// if the event type is found; otherwise, <see langword="null"/> is returned.
@@ -162,13 +189,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
         public bool TryGetConsumerRegistration<TEvent, TConsumer>(out EventConsumerRegistration registration)
         {
-            registration = default;
-            if (Registrations.TryGetValue(typeof(TEvent), out var ereg))
-            {
-                registration = ereg.Consumers.SingleOrDefault(cr => cr.ConsumerType == typeof(TConsumer));
-                if (registration != null) return true;
-            }
-            return false;
+            return TryGetConsumerRegistration<TEvent, TConsumer>(out _, out registration);
         }
 
         /// <summary>
@@ -194,17 +215,32 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <typeparam name="TConsumer">The consumer to configure.</typeparam>
         /// <param name="configure"></param>
         /// <returns></returns>
+        public EventBusOptions ConfigureConsumer<TEvent, TConsumer>(Action<EventRegistration, EventConsumerRegistration> configure)
+            where TConsumer : class, IEventConsumer
+        {
+            if (configure is null) throw new ArgumentNullException(nameof(configure));
+
+            if (TryGetConsumerRegistration<TEvent, TConsumer>(out var ereg, out var creg))
+            {
+                configure(ereg, creg);
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// Configure the <see cref="EventConsumerRegistration"/> for <typeparamref name="TConsumer"/>.
+        /// </summary>
+        /// <typeparam name="TEvent">The event in the consumer to configure for.</typeparam>
+        /// <typeparam name="TConsumer">The consumer to configure.</typeparam>
+        /// <param name="configure"></param>
+        /// <returns></returns>
         public EventBusOptions ConfigureConsumer<TEvent, TConsumer>(Action<EventConsumerRegistration> configure)
             where TConsumer : class, IEventConsumer
         {
             if (configure is null) throw new ArgumentNullException(nameof(configure));
 
-            if (TryGetConsumerRegistration<TEvent, TConsumer>(out var registration))
-            {
-                configure(registration);
-            }
-
-            return this;
+            return ConfigureConsumer<TEvent, TConsumer>((ereg, creg) => configure(creg));
         }
     }
 }

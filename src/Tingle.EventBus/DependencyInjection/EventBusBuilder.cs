@@ -127,20 +127,9 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Subscribe to events that a consumer can listen to.
         /// </summary>
         /// <typeparam name="TConsumer">The type of consumer to handle the events.</typeparam>
-        /// <param name="lifetime">
-        /// The lifetime to use when resolving and maintaining instances of <typeparamref name="TConsumer"/>.
-        /// Using <see cref="ServiceLifetime.Transient"/> is best because a clean instance is created each
-        /// time a message is received and has a high level of isolation hence avoiding leackage of dependencies.
-        /// However, it can result in high memory usage making <see cref="ServiceLifetime.Scoped"/> the
-        /// middleground. Scoped instances are resued for each message received in a batch of messages so long
-        /// as they are processed sequencially.
-        /// <br />
-        /// <br />
-        /// These decisions do not apply in all scenarios and should be reconsidered depending on the
-        /// design of <typeparamref name="TConsumer"/>.
-        /// </param>
+        /// <param name="configure"></param>
         /// <returns></returns>
-        public EventBusBuilder AddConsumer<TConsumer>(ServiceLifetime lifetime = ServiceLifetime.Scoped) where TConsumer : class, IEventConsumer
+        public EventBusBuilder AddConsumer<TConsumer>(Action<EventRegistration, EventConsumerRegistration> configure) where TConsumer : class, IEventConsumer
         {
             var consumerType = typeof(TConsumer);
             if (consumerType.IsAbstract)
@@ -149,7 +138,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             // register the consumer for resolution
-            Services.Add(ServiceDescriptor.Describe(consumerType, consumerType, lifetime));
+            Services.AddScoped(consumerType);
 
             var genericConsumerType = typeof(IEventConsumer<>);
             var eventTypes = new List<Type>();
@@ -181,16 +170,33 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 foreach (var et in eventTypes)
                 {
-                    // get or create a simple registration
-                    if (!options.Registrations.TryGetValue(et, out var registration))
+                    // get or create a simple EventRegistration
+                    if (!options.Registrations.TryGetValue(et, out var ereg))
                     {
-                        registration = options.Registrations[et] = new EventRegistration(et);
+                        ereg = options.Registrations[et] = new EventRegistration(et);
                     }
 
+                    // create a ConsumerRegistration
+                    var ecr = new EventConsumerRegistration(consumerType: consumerType);
+
+                    // call the configuration function
+                    configure?.Invoke(ereg, ecr);
+
                     // add the consumer to the registration
-                    registration.Consumers.Add(new EventConsumerRegistration(consumerType: consumerType));
+                    ereg.Consumers.Add(ecr);
                 }
             });
+        }
+
+        /// <summary>
+        /// Subscribe to events that a consumer can listen to.
+        /// </summary>
+        /// <typeparam name="TConsumer">The type of consumer to handle the events.</typeparam>
+        /// <param name="configure"></param>
+        /// <returns></returns>
+        public EventBusBuilder AddConsumer<TConsumer>(Action<EventConsumerRegistration> configure = null) where TConsumer : class, IEventConsumer
+        {
+            return AddConsumer<TConsumer>((ereg, creg) => configure?.Invoke(creg));
         }
 
         /// <summary>

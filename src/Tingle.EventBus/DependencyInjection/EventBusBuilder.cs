@@ -127,20 +127,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Subscribe to events that a consumer can listen to.
         /// </summary>
         /// <typeparam name="TConsumer">The type of consumer to handle the events.</typeparam>
-        /// <param name="lifetime">
-        /// The lifetime to use when resolving and maintaining instances of <typeparamref name="TConsumer"/>.
-        /// Using <see cref="ServiceLifetime.Transient"/> is best because a clean instance is created each
-        /// time a message is received and has a high level of isolation hence avoiding leackage of dependencies.
-        /// However, it can result in high memory usage making <see cref="ServiceLifetime.Scoped"/> the
-        /// middleground. Scoped instances are resued for each message received in a batch of messages so long
-        /// as they are processed sequencially.
-        /// <br />
-        /// <br />
-        /// These decisions do not apply in all scenarios and should be reconsidered depending on the
-        /// design of <typeparamref name="TConsumer"/>.
-        /// </param>
         /// <returns></returns>
-        public EventBusBuilder AddConsumer<TConsumer>(ServiceLifetime lifetime = ServiceLifetime.Scoped) where TConsumer : class, IEventConsumer
+        public EventBusBuilder AddConsumer<TConsumer>() where TConsumer : class, IEventConsumer
         {
             var consumerType = typeof(TConsumer);
             if (consumerType.IsAbstract)
@@ -149,7 +137,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             // register the consumer for resolution
-            Services.Add(ServiceDescriptor.Describe(consumerType, consumerType, lifetime));
+            Services.AddScoped(consumerType);
 
             var genericConsumerType = typeof(IEventConsumer<>);
             var eventTypes = new List<Type>();

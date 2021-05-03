@@ -79,7 +79,8 @@ namespace Microsoft.Extensions.DependencyInjection
                    .SetTransportName(options) // set transport name
                    .SetEventName(options.Naming) // set event name
                    .SetEntityKind()
-                   .SetConsumerNames(options.Naming, environment); // set the consumer names
+                   .SetConsumerNames(options.Naming, environment) // set the consumer names
+                   .SetReadinessProviders(); // set the readiness provider
             }
 
             // Ensure there are no events with the same name

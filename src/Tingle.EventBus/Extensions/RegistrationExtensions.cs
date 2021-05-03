@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Linq;
+using Tingle.EventBus.Readiness;
 
 namespace Tingle.EventBus.Registrations
 {
@@ -96,6 +97,30 @@ namespace Tingle.EventBus.Registrations
                     }
                     // Appending the EventName to the consumer name can ensure it is unique
                     creg.ConsumerName = options.SuffixConsumerName ? options.Join(cname, reg.EventName) : cname;
+                }
+            }
+
+            return reg;
+        }
+
+        internal static EventRegistration SetReadinessProviders(this EventRegistration reg)
+        {
+            if (reg is null) throw new ArgumentNullException(nameof(reg));
+
+            foreach (var creg in reg.Consumers)
+            {
+                // If the readiness provider has not been specified, attempt to get from the attribute
+                var type = creg.ConsumerType;
+                var attrs = type.GetCustomAttributes(false);
+                creg.ReadinessProviderType ??= attrs.OfType<ConsumerReadinessProviderAttribute>().SingleOrDefault()?.ReadinessProviderType;
+                creg.ReadinessProviderType ??= typeof(IReadinessProvider); // use the default when not provided
+
+                // Ensure the provider is either default or it implements IReadinessProvider
+                if (creg.ReadinessProviderType != typeof(IReadinessProvider)
+                    && !typeof(IReadinessProvider).IsAssignableFrom(creg.ReadinessProviderType))
+                {
+                    throw new InvalidOperationException($"The type '{creg.ReadinessProviderType.FullName}' is used as a readiness provider "
+                                                      + $"but does not implement '{typeof(IReadinessProvider).FullName}'");
                 }
             }
 

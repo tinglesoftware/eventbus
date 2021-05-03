@@ -1,6 +1,7 @@
 ﻿using Polly.Retry;
 using System;
 using System.Collections.Generic;
+using Tingle.EventBus.Readiness;
 
 namespace Tingle.EventBus.Registrations
 {
@@ -27,6 +28,12 @@ namespace Tingle.EventBus.Registrations
         /// The name generated for the consumer.
         /// </summary>
         public string ConsumerName { get; set; }
+
+        /// <summary>
+        /// The type used for checking if the consumer is ready to consume events.
+        /// This type must implement <see cref="IReadinessProvider"/>.
+        /// </summary>
+        public Type ReadinessProviderType { get; set; }
 
         /// <summary>
         /// The retry policy to apply when consuming events.

@@ -16,6 +16,8 @@ namespace Tingle.EventBus.Readiness
         /// <param name="creg">The <see cref="EventConsumerRegistration"/> for the consumer.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<bool> ConsumerReadyAsync(EventRegistration ereg, EventConsumerRegistration creg, CancellationToken cancellationToken = default);
+        Task<bool> IsReadyAsync(EventRegistration ereg = null,
+                                EventConsumerRegistration creg = null,
+                                CancellationToken cancellationToken = default);
     }
 }

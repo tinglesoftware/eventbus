@@ -23,6 +23,12 @@ namespace Microsoft.Extensions.DependencyInjection
         public TimeSpan? StartupDelay { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
+        /// The duration of time that the bus can wait for readiness before timing out.
+        /// The default value is 5 minutes. Max value is 15 minutes and minimum is 5 seconds.
+        /// </summary>
+        public TimeSpan ReadinessTimeout { get; set; } = TimeSpan.FromMinutes(5);
+
+        /// <summary>
         /// The options to use for serialization.
         /// </summary>
         public JsonSerializerOptions SerializerOptions { get; set; } = new JsonSerializerOptions

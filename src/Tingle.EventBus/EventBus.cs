@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Readiness;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Transports;
 
@@ -19,6 +20,7 @@ namespace Tingle.EventBus
     /// </summary>
     public class EventBus : IHostedService
     {
+        private readonly IReadinessProvider readinessProvider;
         private readonly IList<IEventBusTransport> transports;
         private readonly EventBusOptions options;
         private readonly ILogger logger;
@@ -26,13 +28,16 @@ namespace Tingle.EventBus
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="readinessProvider"></param>
         /// <param name="optionsAccessor"></param>
         /// <param name="transports"></param>
         /// <param name="loggerFactory"></param>
-        public EventBus(IEnumerable<IEventBusTransport> transports,
+        public EventBus(IReadinessProvider readinessProvider,
+                        IEnumerable<IEventBusTransport> transports,
                         IOptions<EventBusOptions> optionsAccessor,
                         ILoggerFactory loggerFactory)
         {
+            this.readinessProvider = readinessProvider ?? throw new ArgumentNullException(nameof(readinessProvider));
             this.transports = transports?.ToList() ?? throw new ArgumentNullException(nameof(transports));
             options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
             logger = loggerFactory?.CreateLogger(LogCategoryNames.EventBus) ?? throw new ArgumentNullException(nameof(logger));
@@ -261,6 +266,38 @@ namespace Tingle.EventBus
 
         private async Task StartTransports(CancellationToken cancellationToken)
         {
+            var timeout = options.ReadinessTimeout;
+            try
+            {
+                // Perform readiness check before starting bus.
+                logger.StartupReadinessCheck(timeout);
+                using var cts_timeout = new CancellationTokenSource(timeout);
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts_timeout.Token);
+                var ct = cts.Token;
+                var ready = false;
+                do
+                {
+                    ready = await readinessProvider.IsReadyAsync(cancellationToken: ct);
+                    if (!ready)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(1), ct); // delay for a second
+                    }
+                } while (!ready);
+            }
+            catch (Exception ex)
+            {
+                if (ex is TaskCanceledException) // the cancellation token was invoked
+                {
+                    logger.StartupReadinessCheckTimedout(timeout);
+                }
+                else
+                {
+                    logger.StartupReadinessCheckError(ex);
+                }
+                throw; // re-throw to prevent from getting healthy
+            }
+
+
             // Start the bus and its transports
             logger.StartingBus(transports.Count);
             foreach (var t in transports)

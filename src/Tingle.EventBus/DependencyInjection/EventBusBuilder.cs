@@ -31,7 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
             Services.AddTransient<IEventPublisher, EventPublisher>();
             Services.AddSingleton<EventBus>();
             Services.AddHostedService(p => p.GetRequiredService<EventBus>());
-            Services.AddSingleton<DefaultEventSerializer>();
+            UseDefaultSerializer<DefaultEventSerializer>();
         }
 
         /// <summary>
@@ -113,15 +113,9 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public EventBusBuilder UseDefaultSerializer<TEventSerializer>() where TEventSerializer : class, IEventSerializer
         {
-            Services.AddSingleton<IEventSerializer>(p => p.GetRequiredService<TEventSerializer>());
+            Services.AddSingleton<IEventSerializer, TEventSerializer>();
             return this;
         }
-
-        /// <summary>
-        /// Use the included default serializer.
-        /// </summary>
-        /// <returns></returns>
-        public EventBusBuilder UseDefaultSerializer() => UseDefaultSerializer<DefaultEventSerializer>();
 
         /// <summary>
         /// Subscribe to events that a consumer can listen to.

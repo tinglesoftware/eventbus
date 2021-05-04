@@ -20,9 +20,7 @@ namespace Tingle.EventBus.Readiness
         }
 
         /// <inheritdoc/>
-        public async Task<bool> IsReadyAsync(EventRegistration ereg = null,
-                                             EventConsumerRegistration creg = null,
-                                             CancellationToken cancellationToken = default)
+        public async Task<bool> IsReadyAsync(CancellationToken cancellationToken = default)
         {
             /*
              * Simplest implementation is to use the health checks registered in the application.
@@ -46,6 +44,21 @@ namespace Tingle.EventBus.Readiness
             }
 
             return true;
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> IsReadyAsync(EventRegistration ereg,
+                                       EventConsumerRegistration creg,
+                                       CancellationToken cancellationToken = default)
+        {
+            /*
+             * This default implementation does not support checks per consumer/event registration.
+             * Instead, it just checks as though it is the whole bus that needs to be checked.
+             * 
+             * To check per event/consumer, the application developer should create a custom
+             * implementation of IReadinessProvider.
+             */
+            return IsReadyAsync(cancellationToken);
         }
     }
 }

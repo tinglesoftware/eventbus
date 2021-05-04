@@ -7,8 +7,13 @@ namespace Tingle.EventBus.Tests
 {
     public class FakeReadinessProvider1 : IReadinessProvider
     {
-        public Task<bool> IsReadyAsync(EventRegistration ereg = null,
-                                       EventConsumerRegistration creg = null,
+        public Task<bool> IsReadyAsync(CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<bool> IsReadyAsync(EventRegistration ereg,
+                                       EventConsumerRegistration creg,
                                        CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();

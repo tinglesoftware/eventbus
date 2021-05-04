@@ -22,10 +22,10 @@ namespace Microsoft.Extensions.DependencyInjection
         public void PostConfigure(string name, EventBusOptions options)
         {
             // Check bounds for readiness timeout
-            var ticks = options.ReadinessTimeout.Ticks;
+            var ticks = options.Readiness.Timeout.Ticks;
             ticks = Math.Max(ticks, TimeSpan.FromSeconds(5).Ticks); // must be more than 5 seconds
             ticks = Math.Min(ticks, TimeSpan.FromMinutes(15).Ticks); // must be less than 15 minutes
-            options.ReadinessTimeout = TimeSpan.FromTicks(ticks);
+            options.Readiness.Timeout = TimeSpan.FromTicks(ticks);
 
             // Check bounds for startup delay, if provided
             if (options.StartupDelay != null)

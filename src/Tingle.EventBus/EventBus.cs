@@ -266,7 +266,7 @@ namespace Tingle.EventBus
 
         private async Task StartTransports(CancellationToken cancellationToken)
         {
-            var timeout = options.ReadinessTimeout;
+            var timeout = options.Readiness.Timeout;
             try
             {
                 // Perform readiness check before starting bus.

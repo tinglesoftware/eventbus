@@ -23,10 +23,14 @@ namespace Microsoft.Extensions.DependencyInjection
         public TimeSpan? StartupDelay { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
-        /// The duration of time that the bus can wait for readiness before timing out.
-        /// The default value is 5 minutes. Max value is 15 minutes and minimum is 5 seconds.
+        /// Gets the <see cref="EventBusReadinessOptions"/> for the Event Bus.
         /// </summary>
-        public TimeSpan ReadinessTimeout { get; set; } = TimeSpan.FromMinutes(5);
+        public EventBusReadinessOptions Readiness { get; } = new EventBusReadinessOptions();
+
+        /// <summary>
+        /// Gets the <see cref="EventBusNamingOptions"/> for the Event Bus.
+        /// </summary>
+        public EventBusNamingOptions Naming { get; } = new EventBusNamingOptions();
 
         /// <summary>
         /// The options to use for serialization.
@@ -44,11 +48,6 @@ namespace Microsoft.Extensions.DependencyInjection
             AllowTrailingCommas = true,
             ReadCommentHandling = JsonCommentHandling.Skip,
         };
-
-        /// <summary>
-        /// Gets the <see cref="EventBusNamingOptions"/> for the Event Bus.
-        /// </summary>
-        public EventBusNamingOptions Naming { get; } = new EventBusNamingOptions();
 
         /// <summary>
         /// The information about the host where the EventBus is running.

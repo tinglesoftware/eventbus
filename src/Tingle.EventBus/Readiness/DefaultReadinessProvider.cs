@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Registrations;
@@ -9,10 +11,12 @@ namespace Tingle.EventBus.Readiness
     internal class DefaultReadinessProvider : IReadinessProvider
     {
         private readonly IServiceScopeFactory scopeFactory;
+        private readonly EventBusReadinessOptions options;
 
-        public DefaultReadinessProvider(IServiceScopeFactory scopeFactory)
+        public DefaultReadinessProvider(IServiceScopeFactory scopeFactory, IOptions<EventBusOptions> optionsAccessor)
         {
-            this.scopeFactory = scopeFactory ?? throw new System.ArgumentNullException(nameof(scopeFactory));
+            this.scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
+            options = optionsAccessor?.Value?.Readiness ?? throw new ArgumentNullException(nameof(optionsAccessor));
         }
 
         /// <inheritdoc/>
@@ -31,9 +35,13 @@ namespace Tingle.EventBus.Readiness
             var hcs = provider.GetService<HealthCheckService>();
             if (hcs != null)
             {
-                // Exclude the bus to avoid cyclic references.
-                var report = await hcs.CheckHealthAsync(predicate: r => r.Tags?.Contains("eventbus") ?? false,
-                                                        cancellationToken: cancellationToken);
+                // Exclude the bus configured to do so
+                Func<HealthCheckRegistration, bool> predicate = null;
+                if (options.ExcludeSelf)
+                {
+                    predicate = r => r.Tags?.Contains("eventbus") ?? false;
+                }
+                var report = await hcs.CheckHealthAsync(predicate: predicate, cancellationToken: cancellationToken);
                 return report.Status == HealthStatus.Healthy;
             }
 

@@ -11,6 +11,12 @@ on:
       - LICENSE
       - CHANGELOG.md
       - docs/**
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for running the action'
+        required: false
+        default: 'Pre-Release'
 
 jobs:
   Build:

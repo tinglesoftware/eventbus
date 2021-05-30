@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Registrations;
 
@@ -26,5 +27,13 @@ namespace Tingle.EventBus.Readiness
         Task<bool> IsReadyAsync(EventRegistration ereg,
                                 EventConsumerRegistration creg,
                                 CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Waits for the application to be ready before returning.
+        /// The implementation determines how long to wait before being ready.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task WaitReadyAsync(CancellationToken cancellationToken = default);
     }
 }

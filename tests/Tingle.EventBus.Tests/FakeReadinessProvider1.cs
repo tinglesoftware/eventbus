@@ -18,5 +18,10 @@ namespace Tingle.EventBus.Tests
         {
             throw new System.NotImplementedException();
         }
+
+        public Task WaitReadyAsync(CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

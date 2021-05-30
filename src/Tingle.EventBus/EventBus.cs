@@ -266,34 +266,15 @@ namespace Tingle.EventBus
 
         private async Task StartTransportsAsync(CancellationToken cancellationToken)
         {
-            var timeout = options.Readiness.Timeout;
             try
             {
                 // Perform readiness check before starting bus.
-                logger.StartupReadinessCheck(timeout);
-                using var cts_timeout = new CancellationTokenSource(timeout);
-                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts_timeout.Token);
-                var ct = cts.Token;
-                var ready = false;
-                do
-                {
-                    ready = await readinessProvider.IsReadyAsync(cancellationToken: ct);
-                    if (!ready)
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(1), ct); // delay for a second
-                    }
-                } while (!ready);
+                logger.StartupReadinessCheck();
+                await readinessProvider.WaitReadyAsync(cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {
-                if (ex is TaskCanceledException) // the cancellation token was invoked
-                {
-                    logger.StartupReadinessCheckTimedout(timeout);
-                }
-                else
-                {
-                    logger.StartupReadinessCheckError(ex);
-                }
+                logger.StartupReadinessCheckFailed(ex);
                 throw; // re-throw to prevent from getting healthy
             }
 

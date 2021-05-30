@@ -219,9 +219,18 @@ namespace Microsoft.Extensions.Logging
                 logLevel: LogLevel.Error,
                 formatString: "Startup readiness check failed or timedout after '{ReadinessTimeout}'.");
 
+        private static readonly Action<ILogger, Exception> _readinessCheckDisabled
+            = LoggerMessage.Define(
+                eventId: new EventId(401, nameof(ReadinessCheckDisabled)),
+                logLevel: LogLevel.Debug,
+                formatString: "Readiness check is disabled. Assumes ready by default.");
+
         public static void ReadinessCheck(this ILogger logger, TimeSpan timeout) => _readinessCheck(logger, timeout, null);
 
         public static void ReadinessCheckTimedout(this ILogger logger, TimeSpan timeout) => _readinessCheckTimedout(logger, timeout, null);
+
+        public static void ReadinessCheckDisabled(this ILogger logger) => _readinessCheckDisabled(logger, null);
+
         #endregion
     }
 }

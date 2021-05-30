@@ -45,6 +45,9 @@ namespace Tingle.EventBus.Readiness
         /// <inheritdoc/>
         public async Task WaitReadyAsync(CancellationToken cancellationToken = default)
         {
+            // If disabled, do not proceed
+            if (!options.Enabled) return;
+
             // Perform readiness check before starting bus.
             var timeout = options.Timeout;
             logger.ReadinessCheck(timeout);
@@ -72,6 +75,13 @@ namespace Tingle.EventBus.Readiness
 
         private async Task<bool> InternalIsReadyAsync(CancellationToken cancellationToken)
         {
+            // If disabled, do not proceed
+            if (!options.Enabled)
+            {
+                logger.ReadinessCheckDisabled();
+                return true;
+            }
+
             /*
              * Simplest implementation is to use the health checks registered in the application.
              * 

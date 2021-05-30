@@ -23,6 +23,16 @@ namespace Microsoft.Extensions.DependencyInjection
         public TimeSpan? StartupDelay { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
+        /// Gets the <see cref="EventBusReadinessOptions"/> for the Event Bus.
+        /// </summary>
+        public EventBusReadinessOptions Readiness { get; } = new EventBusReadinessOptions();
+
+        /// <summary>
+        /// Gets the <see cref="EventBusNamingOptions"/> for the Event Bus.
+        /// </summary>
+        public EventBusNamingOptions Naming { get; } = new EventBusNamingOptions();
+
+        /// <summary>
         /// The options to use for serialization.
         /// </summary>
         public JsonSerializerOptions SerializerOptions { get; set; } = new JsonSerializerOptions
@@ -38,11 +48,6 @@ namespace Microsoft.Extensions.DependencyInjection
             AllowTrailingCommas = true,
             ReadCommentHandling = JsonCommentHandling.Skip,
         };
-
-        /// <summary>
-        /// Gets the <see cref="EventBusNamingOptions"/> for the Event Bus.
-        /// </summary>
-        public EventBusNamingOptions Naming { get; } = new EventBusNamingOptions();
 
         /// <summary>
         /// The information about the host where the EventBus is running.

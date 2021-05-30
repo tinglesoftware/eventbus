@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Readiness;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Transports;
 
@@ -19,6 +20,7 @@ namespace Tingle.EventBus
     /// </summary>
     public class EventBus : IHostedService
     {
+        private readonly IReadinessProvider readinessProvider;
         private readonly IList<IEventBusTransport> transports;
         private readonly EventBusOptions options;
         private readonly ILogger logger;
@@ -26,13 +28,16 @@ namespace Tingle.EventBus
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="readinessProvider"></param>
         /// <param name="optionsAccessor"></param>
         /// <param name="transports"></param>
         /// <param name="loggerFactory"></param>
-        public EventBus(IEnumerable<IEventBusTransport> transports,
+        public EventBus(IReadinessProvider readinessProvider,
+                        IEnumerable<IEventBusTransport> transports,
                         IOptions<EventBusOptions> optionsAccessor,
                         ILoggerFactory loggerFactory)
         {
+            this.readinessProvider = readinessProvider ?? throw new ArgumentNullException(nameof(readinessProvider));
             this.transports = transports?.ToList() ?? throw new ArgumentNullException(nameof(transports));
             options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
             logger = loggerFactory?.CreateLogger(LogCategoryNames.EventBus) ?? throw new ArgumentNullException(nameof(logger));
@@ -238,7 +243,7 @@ namespace Tingle.EventBus
             else
             {
                 // Without a delay, just start the transports directly
-                await StartTransports(cancellationToken);
+                await StartTransportsAsync(cancellationToken);
             }
         }
 
@@ -250,7 +255,7 @@ namespace Tingle.EventBus
             {
                 logger.DelayedBusStartup(delay);
                 await Task.Delay(delay, cancellationToken);
-                await StartTransports(cancellationToken);
+                await StartTransportsAsync(cancellationToken);
             }
             catch (Exception ex)
                 when (!(ex is OperationCanceledException || ex is TaskCanceledException)) // skip operation cancel
@@ -259,8 +264,20 @@ namespace Tingle.EventBus
             }
         }
 
-        private async Task StartTransports(CancellationToken cancellationToken)
+        private async Task StartTransportsAsync(CancellationToken cancellationToken)
         {
+            try
+            {
+                // Perform readiness check before starting bus.
+                logger.StartupReadinessCheck();
+                await readinessProvider.WaitReadyAsync(cancellationToken: cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                logger.StartupReadinessCheckFailed(ex);
+                throw; // re-throw to prevent from getting healthy
+            }
+
             // Start the bus and its transports
             logger.StartingBus(transports.Count);
             foreach (var t in transports)

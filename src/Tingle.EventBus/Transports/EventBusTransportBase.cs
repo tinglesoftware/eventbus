@@ -21,21 +21,21 @@ namespace Tingle.EventBus.Transports
     public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransportWithOptions, IEventBusTransport where TTransportOptions : EventBusTransportOptionsBase, new()
     {
         private static readonly Regex CategoryNamePattern = new Regex(@"Transport$", RegexOptions.Compiled);
-        private readonly IServiceScopeFactory serviceScopeFactory;
+        private readonly IServiceScopeFactory scopeFactory;
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="serviceScopeFactory"></param>
+        /// <param name="scopeFactory"></param>
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public EventBusTransportBase(IServiceScopeFactory serviceScopeFactory,
+        public EventBusTransportBase(IServiceScopeFactory scopeFactory,
                                      IOptions<EventBusOptions> busOptionsAccessor,
                                      IOptions<TTransportOptions> transportOptionsAccessor,
                                      ILoggerFactory loggerFactory)
         {
-            this.serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
+            this.scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
             BusOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
             TransportOptions = transportOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(transportOptionsAccessor));
 
@@ -241,7 +241,7 @@ namespace Tingle.EventBus.Transports
         /// Once this is disposed, any scoped services that have been resolved
         /// from the <see cref="IServiceScope.ServiceProvider"/> will also be disposed.
         /// </returns>
-        protected IServiceScope CreateScope() => serviceScopeFactory.CreateScope();
+        protected IServiceScope CreateScope() => scopeFactory.CreateScope();
 
         #region Registrations
 

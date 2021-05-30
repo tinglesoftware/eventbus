@@ -3,7 +3,7 @@
 namespace Tingle.EventBus
 {
     /// <summary>
-    /// Specify the serializer type used for this event contract/type, overriding the default one.
+    /// Specify the serializer type used for an event contract/type, overriding the default one.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
     public sealed class EventSerializerAttribute : Attribute

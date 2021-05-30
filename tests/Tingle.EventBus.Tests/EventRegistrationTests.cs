@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using Tingle.EventBus.Readiness;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
 using Xunit;
@@ -19,10 +20,11 @@ namespace Tingle.EventBus.Tests
         }
 
         [Fact]
-        public void SetSerializer_RepsectsAttribute()
+        public void SetSerializer_RespectsAttribute()
         {
             // attribute is respected
             var registration = new EventRegistration(typeof(TestEvent2));
+            Assert.Null(registration.EventSerializerType);
             registration.SetSerializer();
             Assert.Equal(typeof(FakeEventSerializer1), registration.EventSerializerType);
         }
@@ -159,6 +161,44 @@ namespace Tingle.EventBus.Tests
             var registration = new EventRegistration(eventType);
             registration.SetEntityKind();
             Assert.Equal(expected, registration.EntityKind);
+        }
+
+        [Fact]
+        public void SetReadinessProviders_UsesDefault()
+        {
+            // when not set, use default
+            var ereg = new EventRegistration(typeof(TestEvent1));
+            var creg = new EventConsumerRegistration(typeof(TestConsumer1));
+            ereg.Consumers.Add(creg);
+            Assert.Null(creg.ReadinessProviderType);
+            ereg.SetReadinessProviders();
+            Assert.Equal(typeof(IReadinessProvider), creg.ReadinessProviderType);
+        }
+
+        [Fact]
+        public void SetReadinessProviders_RespectsAttribute()
+        {
+            // attribute is respected
+            var ereg = new EventRegistration(typeof(TestEvent2));
+            var creg = new EventConsumerRegistration(typeof(TestConsumer2));
+            ereg.Consumers.Add(creg);
+            Assert.Null(creg.ReadinessProviderType);
+            ereg.SetReadinessProviders();
+            Assert.Equal(typeof(FakeReadinessProvider1), creg.ReadinessProviderType);
+        }
+
+        [Fact]
+        public void SetReadinessProviders_Throws_InvalidOperationException()
+        {
+            // attribute is respected
+            var ereg = new EventRegistration(typeof(TestEvent3));
+            var creg = new EventConsumerRegistration(typeof(TestConsumer3));
+            ereg.Consumers.Add(creg);
+            Assert.Null(creg.ReadinessProviderType);
+            var ex = Assert.Throws<InvalidOperationException>(() => ereg.SetReadinessProviders());
+            Assert.Equal("The type 'Tingle.EventBus.Tests.FakeReadinessProvider2' is used"
+                       + " as a readiness provider but does not implement 'Tingle.EventBus.Readiness.IReadinessProvider'",
+                ex.Message);
         }
     }
 }

@@ -24,20 +24,34 @@ namespace Microsoft.Extensions.Logging
                 logLevel: LogLevel.Error,
                 formatString: "Starting bus delayed error.");
 
+        private static readonly Action<ILogger, Exception> _startupReadinessCheck
+            = LoggerMessage.Define(
+                eventId: new EventId(103, nameof(StartupReadinessCheck)),
+                logLevel: LogLevel.Information,
+                formatString: "Performing readiness check before starting bus.");
+
+        private static readonly Action<ILogger, Exception> _startupReadinessCheckFailed
+            = LoggerMessage.Define(
+                eventId: new EventId(104, nameof(StartupReadinessCheckFailed)),
+                logLevel: LogLevel.Error,
+                formatString: "Startup readiness check failed or timedout.");
+
         private static readonly Action<ILogger, int, Exception> _startingBus
             = LoggerMessage.Define<int>(
-                eventId: new EventId(103, nameof(StartingBus)),
+                eventId: new EventId(105, nameof(StartingBus)),
                 logLevel: LogLevel.Debug,
                 formatString: "Starting bus with {TransportsCount} transports.");
 
         private static readonly Action<ILogger, Exception> _stoppingBus
             = LoggerMessage.Define(
-                eventId: new EventId(104, nameof(StoppingBus)),
+                eventId: new EventId(106, nameof(StoppingBus)),
                 logLevel: LogLevel.Debug,
                 formatString: "Stopping bus.");
 
         public static void DelayedBusStartup(this ILogger logger, TimeSpan delay) => _delayedBusStartup(logger, delay, null);
         public static void DelayedBusStartupError(this ILogger logger, Exception ex) => _delayedBusStartupError(logger, ex);
+        public static void StartupReadinessCheck(this ILogger logger) => _startupReadinessCheck(logger, null);
+        public static void StartupReadinessCheckFailed(this ILogger logger, Exception ex) => _startupReadinessCheckFailed(logger, ex);
         public static void StartingBus(this ILogger logger, int count) => _startingBus(logger, count, null);
         public static void StoppingBus(this ILogger logger) => _stoppingBus(logger, null);
 
@@ -188,6 +202,34 @@ namespace Microsoft.Extensions.Logging
             var delay = scheduled - DateTimeOffset.UtcNow;
             return (delay.ToReadableString(), delay);
         }
+
+        #endregion
+
+        #region Readiness (400 series)
+
+        private static readonly Action<ILogger, TimeSpan, Exception> _readinessCheck
+            = LoggerMessage.Define<TimeSpan>(
+                eventId: new EventId(401, nameof(ReadinessCheck)),
+                logLevel: LogLevel.Information,
+                formatString: "Performing readiness check. Timeout: '{ReadinessTimeout}'.");
+
+        private static readonly Action<ILogger, TimeSpan, Exception> _readinessCheckTimedout
+            = LoggerMessage.Define<TimeSpan>(
+                eventId: new EventId(402, nameof(StartupReadinessCheckFailed)),
+                logLevel: LogLevel.Error,
+                formatString: "Startup readiness check failed or timedout after '{ReadinessTimeout}'.");
+
+        private static readonly Action<ILogger, Exception> _readinessCheckDisabled
+            = LoggerMessage.Define(
+                eventId: new EventId(401, nameof(ReadinessCheckDisabled)),
+                logLevel: LogLevel.Debug,
+                formatString: "Readiness check is disabled. Assumes ready by default.");
+
+        public static void ReadinessCheck(this ILogger logger, TimeSpan timeout) => _readinessCheck(logger, timeout, null);
+
+        public static void ReadinessCheckTimedout(this ILogger logger, TimeSpan timeout) => _readinessCheckTimedout(logger, timeout, null);
+
+        public static void ReadinessCheckDisabled(this ILogger logger) => _readinessCheckDisabled(logger, null);
 
         #endregion
     }

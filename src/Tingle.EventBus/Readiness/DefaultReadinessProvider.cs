@@ -3,6 +3,8 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Registrations;
@@ -25,22 +27,14 @@ namespace Tingle.EventBus.Readiness
         }
 
         /// <inheritdoc/>
-        public Task<bool> IsReadyAsync(CancellationToken cancellationToken = default) => InternalIsReadyAsync(cancellationToken);
+        public Task<bool> IsReadyAsync(CancellationToken cancellationToken = default)
+            => InternalIsReadyAsync(allowed: null /* no filters */, cancellationToken: cancellationToken);
 
         /// <inheritdoc/>
         public Task<bool> IsReadyAsync(EventRegistration ereg,
                                        EventConsumerRegistration creg,
                                        CancellationToken cancellationToken = default)
-        {
-            /*
-             * This default implementation does not support checks per consumer/event registration.
-             * Instead, it just checks as though it is the whole bus that needs to be checked.
-             * 
-             * To check per event/consumer, the application developer should create a custom
-             * implementation of IReadinessProvider.
-             */
-            return InternalIsReadyAsync(cancellationToken);
-        }
+            => InternalIsReadyAsync(allowed: creg.ReadinessTags, cancellationToken: cancellationToken);
 
         /// <inheritdoc/>
         public async Task WaitReadyAsync(CancellationToken cancellationToken = default)
@@ -59,7 +53,7 @@ namespace Tingle.EventBus.Readiness
             {
                 do
                 {
-                    ready = await InternalIsReadyAsync(cancellationToken: ct);
+                    ready = await InternalIsReadyAsync(allowed: null /* no filters */, cancellationToken: ct);
                     if (!ready)
                     {
                         await Task.Delay(TimeSpan.FromSeconds(1), ct); // delay for a second
@@ -73,7 +67,7 @@ namespace Tingle.EventBus.Readiness
             }
         }
 
-        private async Task<bool> InternalIsReadyAsync(CancellationToken cancellationToken)
+        private async Task<bool> InternalIsReadyAsync(ICollection<string> allowed, CancellationToken cancellationToken)
         {
             // If disabled, do not proceed
             if (!options.Enabled)
@@ -93,17 +87,29 @@ namespace Tingle.EventBus.Readiness
             var hcs = provider.GetService<HealthCheckService>();
             if (hcs != null)
             {
-                // Exclude the bus configured to do so
-                Func<HealthCheckRegistration, bool> predicate = null;
-                if (options.ExcludeSelf)
-                {
-                    predicate = r => r.Tags?.Contains("eventbus") ?? false;
-                }
+                bool predicate(HealthCheckRegistration r) => ShouldInclude(registration: r, excludeSelf: options.ExcludeSelf, allowed: allowed);
                 var report = await hcs.CheckHealthAsync(predicate: predicate, cancellationToken: cancellationToken);
                 return report.Status == HealthStatus.Healthy;
             }
 
             return true;
+        }
+
+        private static bool ShouldInclude(HealthCheckRegistration registration, bool excludeSelf, ICollection<string> allowed)
+        {
+            if (registration is null) throw new ArgumentNullException(nameof(registration));
+
+            var r_tags = registration.Tags?.ToList() ?? new List<string>();
+
+            // Exclude the bus if configured to do so
+            if (excludeSelf && r_tags.Contains("eventbus")) return false;
+
+            /*
+             * If allowed is null, means there is no filtering so we include the registration.
+             * Otherwise, check if any of the allowed tags is present in the registration's tags.
+             * If so, we should include the registration
+             */
+            return allowed == null || allowed.Intersect(r_tags, StringComparer.OrdinalIgnoreCase).Any();
         }
     }
 }

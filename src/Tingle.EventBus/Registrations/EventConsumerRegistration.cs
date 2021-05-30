@@ -36,6 +36,13 @@ namespace Tingle.EventBus.Registrations
         public Type ReadinessProviderType { get; set; }
 
         /// <summary>
+        /// The tags to use when checking for readiness before the consumer can be asked to consume an event.
+        /// This tags should match the health registrations for them to work with the default implementation
+        /// of <see cref="IReadinessProvider"/>.
+        /// </summary>
+        public ICollection<string> ReadinessTags { get; set; }
+
+        /// <summary>
         /// The retry policy to apply when consuming events.
         /// This is an outter wrapper around the
         /// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, System.Threading.CancellationToken)"/>

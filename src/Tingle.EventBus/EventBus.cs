@@ -243,7 +243,7 @@ namespace Tingle.EventBus
             else
             {
                 // Without a delay, just start the transports directly
-                await StartTransports(cancellationToken);
+                await StartTransportsAsync(cancellationToken);
             }
         }
 
@@ -255,7 +255,7 @@ namespace Tingle.EventBus
             {
                 logger.DelayedBusStartup(delay);
                 await Task.Delay(delay, cancellationToken);
-                await StartTransports(cancellationToken);
+                await StartTransportsAsync(cancellationToken);
             }
             catch (Exception ex)
                 when (!(ex is OperationCanceledException || ex is TaskCanceledException)) // skip operation cancel
@@ -264,7 +264,7 @@ namespace Tingle.EventBus
             }
         }
 
-        private async Task StartTransports(CancellationToken cancellationToken)
+        private async Task StartTransportsAsync(CancellationToken cancellationToken)
         {
             var timeout = options.Readiness.Timeout;
             try
@@ -296,7 +296,6 @@ namespace Tingle.EventBus
                 }
                 throw; // re-throw to prevent from getting healthy
             }
-
 
             // Start the bus and its transports
             logger.StartingBus(transports.Count);

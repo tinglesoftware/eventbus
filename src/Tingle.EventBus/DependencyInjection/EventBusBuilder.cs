@@ -126,7 +126,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public EventBusBuilder UseDefaultReadinessProvider<TReadinessProvider>() where TReadinessProvider : class, IReadinessProvider
         {
-            Services.AddScoped<IReadinessProvider, TReadinessProvider>();
+            Services.AddSingleton<IReadinessProvider, TReadinessProvider>();
             return this;
         }
 

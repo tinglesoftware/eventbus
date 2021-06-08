@@ -386,7 +386,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                         AutoCompleteMessages = false,
 
                         // Set the period of time for which to keep renewing the lock token
-                        MaxAutoLockRenewalDuration = Defaults.MaxAutoLockRenewDuration,
+                        MaxAutoLockRenewalDuration = TransportOptions.DefaultMaxAutoLockRenewDuration,
                     };
 
                     // Allow for the defaults to be overriden
@@ -454,17 +454,17 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     EnablePartitioning = false,
                     EnableBatchedOperations = true,
                     DeadLetteringOnMessageExpiration = true,
-                    LockDuration = Defaults.LockDuration,
-                    MaxDeliveryCount = Defaults.MaxDeliveryCount,
+                    LockDuration = TransportOptions.DefaultLockDuration,
+                    MaxDeliveryCount = TransportOptions.DefaultMaxDeliveryCount,
                 };
 
                 // Certain properties are not allowed in Basic Tier or have lower limits
                 if (!await IsBasicTierAsync(cancellationToken))
                 {
-                    options.DefaultMessageTimeToLive = Defaults.DefaultMessageTimeToLive; // defaults to 14days in basic tier
+                    options.DefaultMessageTimeToLive = TransportOptions.DefaultMessageTimeToLive; // defaults to 14days in basic tier
                     options.RequiresDuplicateDetection = BusOptions.EnableDeduplication;
                     options.DuplicateDetectionHistoryTimeWindow = BusOptions.DuplicateDetectionDuration;
-                    options.AutoDeleteOnIdle = Defaults.AutoDeleteOnIdle;
+                    options.AutoDeleteOnIdle = TransportOptions.DefaultAutoDeleteOnIdle;
                 }
 
                 // Allow for the defaults to be overriden
@@ -494,8 +494,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     EnablePartitioning = false,
                     RequiresDuplicateDetection = BusOptions.EnableDeduplication,
                     DuplicateDetectionHistoryTimeWindow = BusOptions.DuplicateDetectionDuration,
-                    AutoDeleteOnIdle = Defaults.AutoDeleteOnIdle,
-                    DefaultMessageTimeToLive = Defaults.DefaultMessageTimeToLive,
+                    AutoDeleteOnIdle = TransportOptions.DefaultAutoDeleteOnIdle,
+                    DefaultMessageTimeToLive = TransportOptions.DefaultMessageTimeToLive,
                     EnableBatchedOperations = true,
                 };
 
@@ -527,12 +527,12 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 var options = new CreateSubscriptionOptions(topicName: topicName, subscriptionName: subscriptionName)
                 {
                     Status = EntityStatus.Active,
-                    AutoDeleteOnIdle = Defaults.AutoDeleteOnIdle,
-                    DefaultMessageTimeToLive = Defaults.DefaultMessageTimeToLive,
+                    AutoDeleteOnIdle = TransportOptions.DefaultAutoDeleteOnIdle,
+                    DefaultMessageTimeToLive = TransportOptions.DefaultMessageTimeToLive,
                     EnableBatchedOperations = true,
                     DeadLetteringOnMessageExpiration = true,
-                    LockDuration = Defaults.LockDuration,
-                    MaxDeliveryCount = Defaults.MaxDeliveryCount,
+                    LockDuration = TransportOptions.DefaultLockDuration,
+                    MaxDeliveryCount = TransportOptions.DefaultMaxDeliveryCount,
                 };
 
                 // Allow for the defaults to be overriden

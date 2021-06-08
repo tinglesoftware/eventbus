@@ -20,6 +20,42 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         public ServiceBusTransportType TransportType { get; set; } = ServiceBusTransportType.AmqpTcp;
 
+        #region Defaults
+
+        /// <summary>
+        /// The default lock duration applies on entities created.
+        /// Defaults to is 5 minutes.
+        /// </summary>
+        public TimeSpan DefaultLockDuration { get; set; } = TimeSpan.FromMinutes(5);
+
+        /// <summary>
+        /// The default TTL(Time To Live) to set on entities created.
+        /// Defaults to is 366 days.
+        /// </summary>
+        public TimeSpan DefaultMessageTimeToLive { get; set; } = TimeSpan.FromDays(366);
+
+        /// <summary>
+        /// The default maximum delivery count to set on entities created.
+        /// Defaults to is 5.
+        /// </summary>
+        public int DefaultMaxDeliveryCount { get; set; } = 5;
+
+        /// <summary>
+        /// The default auto delete on idle time to set on entities created.
+        /// Defaults to is 427 days.
+        /// </summary>
+        public TimeSpan DefaultAutoDeleteOnIdle { get; set; } = TimeSpan.FromDays(427);
+
+        /// <summary>
+        /// The default maximum auto lock renewal duration to set when creating processors.
+        /// This value must be more than the <c>LockDuration</c> set on the entity.
+        /// It can also be overriden per event/consumer using <see cref="ServiceBusProcessorOptions"/>
+        /// passed in through <see cref="SetupProcessorOptions"/>.
+        /// </summary>
+        public TimeSpan DefaultMaxAutoLockRenewDuration { get; set; } = TimeSpan.FromMinutes(10);
+
+        #endregion
+
         /// <summary>
         /// A setup function for setting up options for a queue.
         /// This is only called before creation.

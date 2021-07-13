@@ -30,21 +30,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.RabbitMQ", "src\Tingle.EventBus.Transports.RabbitMQ\Tingle.EventBus.Transports.RabbitMQ.csproj", "{1BCD0C98-D061-4143-B00F-0031FBCD5E5E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{62F603F3-FF36-4E36-AC0C-08D1883525BE}"
-	ProjectSection(SolutionItems) = preProject
-		examples\Directory.Build.props = examples\Directory.Build.props
-	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomSerializer", "examples\CustomSerializer\CustomSerializer.csproj", "{2C55FABC-8C94-4104-BE05-42A477D2AD9E}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InMemoryBackgroundProcessing", "examples\InMemoryBackgroundProcessing\InMemoryBackgroundProcessing.csproj", "{C9293277-90BA-4F1A-BEA7-85CE41103B8D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiEventsConsumer", "examples\MultiEventsConsumer\MultiEventsConsumer.csproj", "{E9D6F25A-0586-4409-A3EB-A72B6E89A71C}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleConsumer", "examples\SimpleConsumer\SimpleConsumer.csproj", "{ED1E8BA4-9538-42AB-9759-4FC4233A36B1}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimplePublisher", "examples\SimplePublisher\SimplePublisher.csproj", "{2FEC41FE-188B-4B02-943B-0FEAB0E1FA39}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BDD324B6-9EFC-49A3-9CF6-6CE494446C4B}"
 	ProjectSection(SolutionItems) = preProject
 		tests\Directory.Build.props = tests\Directory.Build.props
@@ -57,6 +42,21 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Azure.EventHubs.Tests", "tests\Tingle.EventBus.Transports.Azure.EventHubs.Tests\Tingle.EventBus.Transports.Azure.EventHubs.Tests.csproj", "{B52EE5B6-D86E-4415-8688-E835220AD219}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Azure.ServiceBus.Tests", "tests\Tingle.EventBus.Transports.Azure.ServiceBus.Tests\Tingle.EventBus.Transports.Azure.ServiceBus.Tests.csproj", "{C2E8CDC9-E607-4DDF-9796-98EF9CAFC65D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{62F603F3-FF36-4E36-AC0C-08D1883525BE}"
+	ProjectSection(SolutionItems) = preProject
+		samples\Directory.Build.props = samples\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomSerializer", "samples\CustomSerializer\CustomSerializer.csproj", "{2C55FABC-8C94-4104-BE05-42A477D2AD9E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InMemoryBackgroundProcessing", "samples\InMemoryBackgroundProcessing\InMemoryBackgroundProcessing.csproj", "{C9293277-90BA-4F1A-BEA7-85CE41103B8D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiEventsConsumer", "samples\MultiEventsConsumer\MultiEventsConsumer.csproj", "{E9D6F25A-0586-4409-A3EB-A72B6E89A71C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleConsumer", "samples\SimpleConsumer\SimpleConsumer.csproj", "{ED1E8BA4-9538-42AB-9759-4FC4233A36B1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimplePublisher", "samples\SimplePublisher\SimplePublisher.csproj", "{2FEC41FE-188B-4B02-943B-0FEAB0E1FA39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -26,7 +26,7 @@ namespace Tingle.EventBus.Registrations
             if (options is null) throw new ArgumentNullException(nameof(options));
 
             // set transport name
-            SetTransportName(registration, options);
+            ConfigureTransportName(registration, options);
 
             // set event name and kind
             ConfigureEventName(registration, options.Naming);
@@ -40,7 +40,7 @@ namespace Tingle.EventBus.Registrations
             ConfigureReadinessProviders(registration);
         }
 
-        internal void SetTransportName(EventRegistration reg, EventBusOptions options)
+        internal void ConfigureTransportName(EventRegistration reg, EventBusOptions options)
         {
             // If the event transport name has not been specified, attempt to get from the attribute
             var type = reg.EventType;

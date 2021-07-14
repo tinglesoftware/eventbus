@@ -33,7 +33,7 @@ namespace Tingle.EventBus.Registrations
             SetEntityKind(registration);
 
             // set the consumer names
-            SetConsumerNames(registration, options.Naming);
+            ConfigureConsumerNames(registration, options.Naming);
 
             // set the serializer and the readiness provider
             ConfigureSerializer(registration);
@@ -99,7 +99,7 @@ namespace Tingle.EventBus.Registrations
             }
         }
 
-        internal void SetConsumerNames(EventRegistration reg, EventBusNamingOptions options)
+        internal void ConfigureConsumerNames(EventRegistration reg, EventBusNamingOptions options)
         {
             // ensure we have the event name set
             if (string.IsNullOrWhiteSpace(reg.EventName))

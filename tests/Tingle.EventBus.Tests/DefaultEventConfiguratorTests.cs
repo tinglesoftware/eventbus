@@ -161,7 +161,7 @@ namespace Tingle.EventBus.Tests
 
             var creg = Assert.Single(registration.Consumers);
             configurator.SetEventName(registration, options.Naming);
-            configurator.SetConsumerNames(registration, options.Naming);
+            configurator.ConfigureConsumerNames(registration, options.Naming);
             Assert.Equal(expected, creg.ConsumerName);
         }
 

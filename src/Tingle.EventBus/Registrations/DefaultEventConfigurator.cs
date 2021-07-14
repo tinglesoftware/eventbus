@@ -37,7 +37,7 @@ namespace Tingle.EventBus.Registrations
 
             // set the serializer and the readiness provider
             SetSerializer(registration);
-            SetReadinessProviders(registration);
+            ConfigureReadinessProviders(registration);
         }
 
         internal void SetTransportName(EventRegistration reg, EventBusOptions options)
@@ -155,7 +155,7 @@ namespace Tingle.EventBus.Registrations
             }
         }
 
-        internal void SetReadinessProviders(EventRegistration reg)
+        internal void ConfigureReadinessProviders(EventRegistration reg)
         {
             foreach (var creg in reg.Consumers)
             {

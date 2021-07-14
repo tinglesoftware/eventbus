@@ -169,12 +169,12 @@ namespace Tingle.EventBus.Tests
         [InlineData(typeof(TestEvent1), null)]
         [InlineData(typeof(TestEvent2), null)]
         [InlineData(typeof(TestEvent3), EntityKind.Broadcast)]
-        public void SetEntityKind_Works(Type eventType, EntityKind? expected)
+        public void ConfigureEntityKind_Works(Type eventType, EntityKind? expected)
         {
             var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
 
             var registration = new EventRegistration(eventType);
-            configurator.SetEntityKind(registration);
+            configurator.ConfigureEntityKind(registration);
             Assert.Equal(expected, registration.EntityKind);
         }
 

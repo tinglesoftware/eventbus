@@ -30,7 +30,7 @@ namespace Tingle.EventBus.Registrations
 
             // set event name and kind
             SetEventName(registration, options.Naming);
-            SetEntityKind(registration);
+            ConfigureEntityKind(registration);
 
             // set the consumer names
             ConfigureConsumerNames(registration, options.Naming);
@@ -85,7 +85,7 @@ namespace Tingle.EventBus.Registrations
             }
         }
 
-        internal void SetEntityKind(EventRegistration reg)
+        internal void ConfigureEntityKind(EventRegistration reg)
         {
             // set the entity kind, if not set and there is an attribute
             if (reg.EntityKind == null)

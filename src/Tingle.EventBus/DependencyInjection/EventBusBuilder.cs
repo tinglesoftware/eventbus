@@ -27,6 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // Configure the options
             Services.AddSingleton<IConfigureOptions<EventBusOptions>, EventBusConfigureOptions>();
             Services.AddSingleton<IPostConfigureOptions<EventBusOptions>, EventBusPostConfigureOptions>();
+            Services.AddSingleton<IEventConfigurator, DefaultEventConfigurator>();
 
             // Register necessary services
             Services.AddTransient<IEventPublisher, EventPublisher>();

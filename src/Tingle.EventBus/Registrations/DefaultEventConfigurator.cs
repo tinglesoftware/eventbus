@@ -3,19 +3,69 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Linq;
 using Tingle.EventBus.Readiness;
+using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Registrations
 {
     /// <summary>
-    /// Extension methods on <see cref="EventRegistration"/> and <see cref="EventConsumerRegistration"/>.
+    /// Default implementation of <see cref="IEventConfigurator"/>.
     /// </summary>
-    public static class RegistrationExtensions
+    internal class DefaultEventConfigurator : IEventConfigurator
     {
-        internal static EventRegistration SetEventName(this EventRegistration reg, EventBusNamingOptions options)
+        private readonly IHostEnvironment environment;
+
+        public DefaultEventConfigurator(IHostEnvironment environment)
         {
-            if (reg is null) throw new ArgumentNullException(nameof(reg));
+            this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
+        }
+
+        /// <inheritdoc/>
+        public void Configure(EventRegistration registration, EventBusOptions options)
+        {
+            if (registration is null) throw new ArgumentNullException(nameof(registration));
             if (options is null) throw new ArgumentNullException(nameof(options));
 
+            // set transport name
+            ConfigureTransportName(registration, options);
+
+            // set event name and kind
+            ConfigureEventName(registration, options.Naming);
+            ConfigureEntityKind(registration);
+
+            // set the consumer names
+            ConfigureConsumerNames(registration, options.Naming);
+
+            // set the serializer and the readiness provider
+            ConfigureSerializer(registration);
+            ConfigureReadinessProviders(registration);
+        }
+
+        internal void ConfigureTransportName(EventRegistration reg, EventBusOptions options)
+        {
+            // If the event transport name has not been specified, attempt to get from the attribute
+            var type = reg.EventType;
+            reg.TransportName ??= type.GetCustomAttributes(false).OfType<EventTransportNameAttribute>().SingleOrDefault()?.Name;
+
+            // If the event transport name has not been set, try the default one
+            reg.TransportName ??= options.DefaultTransportName;
+
+            // Set the transport name from the default, if not set
+            if (string.IsNullOrWhiteSpace(reg.TransportName))
+            {
+                throw new InvalidOperationException($"Unable to set the transport for event '{type.FullName}'."
+                                                  + $" Either set the '{nameof(options.DefaultTransportName)}' option"
+                                                  + $" or use the '{typeof(EventTransportNameAttribute).FullName}' on the event.");
+            }
+
+            // Ensure the transport name set has been registered
+            if (!options.RegisteredTransportNames.ContainsKey(reg.TransportName))
+            {
+                throw new InvalidOperationException($"Transport '{reg.TransportName}' on event '{type.FullName}' must be registered.");
+            }
+        }
+
+        internal void ConfigureEventName(EventRegistration reg, EventBusNamingOptions options)
+        {
             // set the event name, if not set
             if (string.IsNullOrWhiteSpace(reg.EventName))
             {
@@ -33,14 +83,10 @@ namespace Tingle.EventBus.Registrations
                 }
                 reg.EventName = ename;
             }
-
-            return reg;
         }
 
-        internal static EventRegistration SetEntityKind(this EventRegistration reg)
+        internal void ConfigureEntityKind(EventRegistration reg)
         {
-            if (reg is null) throw new ArgumentNullException(nameof(reg));
-
             // set the entity kind, if not set and there is an attribute
             if (reg.EntityKind == null)
             {
@@ -51,18 +97,10 @@ namespace Tingle.EventBus.Registrations
                     reg.EntityKind = kind;
                 }
             }
-
-            return reg;
         }
 
-        internal static EventRegistration SetConsumerNames(this EventRegistration reg,
-                                                           EventBusNamingOptions options,
-                                                           IHostEnvironment environment)
+        internal void ConfigureConsumerNames(EventRegistration reg, EventBusNamingOptions options)
         {
-            if (reg is null) throw new ArgumentNullException(nameof(reg));
-            if (options is null) throw new ArgumentNullException(nameof(options));
-            if (environment is null) throw new ArgumentNullException(nameof(environment));
-
             // ensure we have the event name set
             if (string.IsNullOrWhiteSpace(reg.EventName))
             {
@@ -99,14 +137,26 @@ namespace Tingle.EventBus.Registrations
                     creg.ConsumerName = options.SuffixConsumerName ? options.Join(cname, reg.EventName) : cname;
                 }
             }
-
-            return reg;
         }
 
-        internal static EventRegistration SetReadinessProviders(this EventRegistration reg)
+        internal void ConfigureSerializer(EventRegistration reg)
         {
-            if (reg is null) throw new ArgumentNullException(nameof(reg));
+            // If the event serializer has not been specified, attempt to get from the attribute
+            var attrs = reg.EventType.GetCustomAttributes(false);
+            reg.EventSerializerType ??= attrs.OfType<EventSerializerAttribute>().SingleOrDefault()?.SerializerType;
+            reg.EventSerializerType ??= typeof(IEventSerializer); // use the default when not provided
 
+            // Ensure the serializer is either default or it implements IEventSerializer
+            if (reg.EventSerializerType != typeof(IEventSerializer)
+                && !typeof(IEventSerializer).IsAssignableFrom(reg.EventSerializerType))
+            {
+                throw new InvalidOperationException($"The type '{reg.EventSerializerType.FullName}' is used as a serializer "
+                                                  + $"but does not implement '{typeof(IEventSerializer).FullName}'");
+            }
+        }
+
+        internal void ConfigureReadinessProviders(EventRegistration reg)
+        {
             foreach (var creg in reg.Consumers)
             {
                 // If the readiness provider has not been specified, attempt to get from the attribute
@@ -123,8 +173,6 @@ namespace Tingle.EventBus.Registrations
                                                       + $"but does not implement '{typeof(IReadinessProvider).FullName}'");
                 }
             }
-
-            return reg;
         }
     }
 }

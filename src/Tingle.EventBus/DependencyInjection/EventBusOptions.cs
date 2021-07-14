@@ -133,28 +133,6 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Get or create the event registration for a given event type.
-        /// </summary>
-        /// <typeparam name="TEvent">The event type to retrieve an <see cref="EventRegistration"/> for.</typeparam>
-        /// <returns></returns>
-        /// <exception cref="KeyNotFoundException">The given event type does not have any event registered.</exception>
-        public EventRegistration GetOrCreateRegistration<TEvent>()
-        {
-            // if there's already a registration for the event return it
-            var eventType = typeof(TEvent);
-            if (Registrations.TryGetValue(key: eventType, out var registration)) return registration;
-
-            // at this point, the registration does not exist;
-            // create it and add to the registrations for repeated use
-            registration = new EventRegistration(eventType);
-            registration.SetSerializer() // set serializer
-                        .SetEventName(Naming) // set event name
-                        .SetEntityKind()
-                        .SetTransportName(this); // set transport name
-            return Registrations[eventType] = registration;
-        }
-
-        /// <summary>
         /// Get the consumer registration in a given event type.
         /// </summary>
         /// <typeparam name="TEvent">The event type from wich to retrieve a <see cref="EventConsumerRegistration"/> for.</typeparam>
@@ -207,7 +185,13 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             if (configure is null) throw new ArgumentNullException(nameof(configure));
 
-            var registration = GetOrCreateRegistration<TEvent>();
+            // if there's already a registration for the event return it
+            var eventType = typeof(TEvent);
+            if (!Registrations.TryGetValue(key: eventType, out var registration))
+            {
+                Registrations[eventType] = registration = new EventRegistration(eventType);
+            }
+
             configure(registration);
 
             return this;

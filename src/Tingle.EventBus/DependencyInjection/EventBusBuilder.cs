@@ -27,6 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // Configure the options
             Services.AddSingleton<IConfigureOptions<EventBusOptions>, EventBusConfigureOptions>();
             Services.AddSingleton<IPostConfigureOptions<EventBusOptions>, EventBusPostConfigureOptions>();
+            Services.AddSingleton<IEventConfigurator, DefaultEventConfigurator>();
 
             // Register necessary services
             Services.AddTransient<IEventPublisher, EventPublisher>();
@@ -51,19 +52,6 @@ namespace Microsoft.Extensions.DependencyInjection
             if (configure is null) throw new ArgumentNullException(nameof(configure));
 
             Services.Configure(configure);
-            return this;
-        }
-
-        /// <summary>
-        /// Post configure options for EventBus
-        /// </summary>
-        /// <param name="configure"></param>
-        /// <returns></returns>
-        public EventBusBuilder PostConfigure(Action<EventBusOptions> configure)
-        {
-            if (configure is null) throw new ArgumentNullException(nameof(configure));
-
-            Services.PostConfigure(configure);
             return this;
         }
 

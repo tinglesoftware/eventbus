@@ -22,6 +22,7 @@ namespace Tingle.EventBus
     {
         private readonly IReadinessProvider readinessProvider;
         private readonly IList<IEventBusTransport> transports;
+        private readonly IList<IEventConfigurator> configurators;
         private readonly EventBusOptions options;
         private readonly ILogger logger;
 
@@ -31,13 +32,16 @@ namespace Tingle.EventBus
         /// <param name="readinessProvider"></param>
         /// <param name="optionsAccessor"></param>
         /// <param name="transports"></param>
+        /// <param name="configurators"></param>
         /// <param name="loggerFactory"></param>
         public EventBus(IReadinessProvider readinessProvider,
                         IEnumerable<IEventBusTransport> transports,
+                        IEnumerable<IEventConfigurator> configurators,
                         IOptions<EventBusOptions> optionsAccessor,
                         ILoggerFactory loggerFactory)
         {
             this.readinessProvider = readinessProvider ?? throw new ArgumentNullException(nameof(readinessProvider));
+            this.configurators = configurators?.ToList() ?? throw new ArgumentNullException(nameof(configurators));
             this.transports = transports?.ToList() ?? throw new ArgumentNullException(nameof(transports));
             options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
             logger = loggerFactory?.CreateLogger(LogCategoryNames.EventBus) ?? throw new ArgumentNullException(nameof(logger));
@@ -298,7 +302,7 @@ namespace Tingle.EventBus
         internal (EventRegistration registration, IEventBusTransport transport) GetTransportForEvent<TEvent>()
         {
             // get the transport
-            var reg = options.GetOrCreateRegistration<TEvent>();
+            var reg = GetOrCreateRegistration<TEvent>();
             var transportType = options.RegisteredTransportNames[reg.TransportName];
             var transport = transports.Single(t => t.GetType() == transportType);
 
@@ -311,6 +315,25 @@ namespace Tingle.EventBus
             }
 
             return (reg, transport);
+        }
+
+        internal EventRegistration GetOrCreateRegistration<TEvent>()
+        {
+            // if there's already a registration for the event return it
+            var eventType = typeof(TEvent);
+            if (options.Registrations.TryGetValue(key: eventType, out var registration)) return registration;
+
+            // at this point, the registration does not exist;
+            // create it and add to the registrations for repeated use
+            options.Registrations[eventType] = registration = new EventRegistration(eventType);
+
+            // pass the registration via all the configurators.
+            foreach (var cfg in configurators)
+            {
+                cfg.Configure(registration, options);
+            }
+
+            return registration;
         }
 
         internal static string GenerateEventId(EventRegistration reg)

@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Tingle.EventBus.Registrations;
 
@@ -11,11 +11,11 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     internal class EventBusPostConfigureOptions : IPostConfigureOptions<EventBusOptions>
     {
-        private readonly IHostEnvironment environment;
+        private readonly IEnumerable<IEventConfigurator> configurators;
 
-        public EventBusPostConfigureOptions(IHostEnvironment environment)
+        public EventBusPostConfigureOptions(IEnumerable<IEventConfigurator> configurators)
         {
-            this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
+            this.configurators = configurators ?? throw new ArgumentNullException(nameof(configurators));
         }
 
         /// <inheritdoc/>
@@ -80,16 +80,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             }
 
-            // Setup names and transports for each event and its consumers
+            // Configure each event and its consumers
             var registrations = options.Registrations.Values.ToList();
             foreach (var evr in registrations)
             {
-                evr.SetSerializer() // set serializer
-                   .SetTransportName(options) // set transport name
-                   .SetEventName(options.Naming) // set event name
-                   .SetEntityKind()
-                   .SetConsumerNames(options.Naming, environment) // set the consumer names
-                   .SetReadinessProviders(); // set the readiness provider
+                foreach(var cfg in configurators)
+                {
+                    cfg.Configure(evr, options);
+                }
             }
 
             // Ensure there are no events with the same name

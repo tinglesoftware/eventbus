@@ -79,6 +79,8 @@ namespace Tingle.EventBus.Registrations
         /// </summary>
         public IDictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
 
+        #region Equality Overrides
+
         /// <inheritdoc/>
         public override bool Equals(object obj) => Equals(obj as EventConsumerRegistration);
 
@@ -99,5 +101,8 @@ namespace Tingle.EventBus.Registrations
 
         ///
         public static bool operator !=(EventConsumerRegistration left, EventConsumerRegistration right) => !(left == right);
+
+        #endregion
+
     }
 }

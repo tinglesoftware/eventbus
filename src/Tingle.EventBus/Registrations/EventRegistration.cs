@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Registrations
@@ -65,24 +64,6 @@ namespace Tingle.EventBus.Registrations
         /// of the event bus such as the bus, the transport or the serializer.
         /// </summary>
         public IDictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
-
-        internal EventRegistration SetSerializer()
-        {
-            // If the event serializer has not been specified, attempt to get from the attribute
-            var attrs = EventType.GetCustomAttributes(false);
-            EventSerializerType ??= attrs.OfType<EventSerializerAttribute>().SingleOrDefault()?.SerializerType;
-            EventSerializerType ??= typeof(IEventSerializer); // use the default when not provided
-
-            // Ensure the serializer is either default or it implements IEventSerializer
-            if (EventSerializerType != typeof(IEventSerializer)
-                && !typeof(IEventSerializer).IsAssignableFrom(EventSerializerType))
-            {
-                throw new InvalidOperationException($"The type '{EventSerializerType.FullName}' is used as a serializer "
-                                                  + $"but does not implement '{typeof(IEventSerializer).FullName}'");
-            }
-
-            return this;
-        }
 
         #region Equality Overrides
 

@@ -61,7 +61,7 @@ namespace Tingle.EventBus.Tests
         [InlineData(typeof(TestEvent2), true, "dev", NamingConvention.KebabCase, "sample-event")]
         [InlineData(typeof(TestEvent2), true, "dev", NamingConvention.SnakeCase, "sample-event")]
         [InlineData(typeof(TestEvent2), true, "dev", NamingConvention.DotCase, "sample-event")]
-        public void SetEventName_Works(Type eventType, bool useFullTypeNames, string scope, NamingConvention namingConvention, string expected)
+        public void ConfigureEventName_Works(Type eventType, bool useFullTypeNames, string scope, NamingConvention namingConvention, string expected)
         {
             var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
 
@@ -70,7 +70,7 @@ namespace Tingle.EventBus.Tests
             options.Naming.Convention = namingConvention;
             options.Naming.UseFullTypeNames = useFullTypeNames;
             var registration = new EventRegistration(eventType);
-            configurator.SetEventName(registration, options.Naming);
+            configurator.ConfigureEventName(registration, options.Naming);
             Assert.Equal(expected, registration.EventName);
         }
 
@@ -160,7 +160,7 @@ namespace Tingle.EventBus.Tests
             registration.Consumers.Add(new EventConsumerRegistration(consumerType));
 
             var creg = Assert.Single(registration.Consumers);
-            configurator.SetEventName(registration, options.Naming);
+            configurator.ConfigureEventName(registration, options.Naming);
             configurator.ConfigureConsumerNames(registration, options.Naming);
             Assert.Equal(expected, creg.ConsumerName);
         }

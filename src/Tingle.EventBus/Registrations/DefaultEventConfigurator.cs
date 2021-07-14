@@ -29,7 +29,7 @@ namespace Tingle.EventBus.Registrations
             SetTransportName(registration, options);
 
             // set event name and kind
-            SetEventName(registration, options.Naming);
+            ConfigureEventName(registration, options.Naming);
             ConfigureEntityKind(registration);
 
             // set the consumer names
@@ -64,7 +64,7 @@ namespace Tingle.EventBus.Registrations
             }
         }
 
-        internal void SetEventName(EventRegistration reg, EventBusNamingOptions options)
+        internal void ConfigureEventName(EventRegistration reg, EventBusNamingOptions options)
         {
             // set the event name, if not set
             if (string.IsNullOrWhiteSpace(reg.EventName))

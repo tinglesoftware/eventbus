@@ -36,7 +36,7 @@ namespace Tingle.EventBus.Registrations
             SetConsumerNames(registration, options.Naming);
 
             // set the serializer and the readiness provider
-            SetSerializer(registration);
+            ConfigureSerializer(registration);
             ConfigureReadinessProviders(registration);
         }
 
@@ -139,7 +139,7 @@ namespace Tingle.EventBus.Registrations
             }
         }
 
-        internal void SetSerializer(EventRegistration reg)
+        internal void ConfigureSerializer(EventRegistration reg)
         {
             // If the event serializer has not been specified, attempt to get from the attribute
             var attrs = reg.EventType.GetCustomAttributes(false);

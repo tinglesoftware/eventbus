@@ -14,37 +14,37 @@ namespace Tingle.EventBus.Tests
     public class DefaultEventConfiguratorTests
     {
         [Fact]
-        public void SetSerializer_UsesDefault()
+        public void ConfigureSerializer_UsesDefault()
         {
             var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
 
             // when not set, use default
             var registration = new EventRegistration(typeof(TestEvent1));
             Assert.Null(registration.EventSerializerType);
-            configurator.SetSerializer(registration);
+            configurator.ConfigureSerializer(registration);
             Assert.Equal(typeof(IEventSerializer), registration.EventSerializerType);
         }
 
         [Fact]
-        public void SetSerializer_RespectsAttribute()
+        public void ConfigureSerializer_RespectsAttribute()
         {
             var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
 
             // attribute is respected
             var registration = new EventRegistration(typeof(TestEvent2));
             Assert.Null(registration.EventSerializerType);
-            configurator.SetSerializer(registration);
+            configurator.ConfigureSerializer(registration);
             Assert.Equal(typeof(FakeEventSerializer1), registration.EventSerializerType);
         }
 
         [Fact]
-        public void SetSerializer_Throws_InvalidOperationException()
+        public void ConfigureSerializer_Throws_InvalidOperationException()
         {
             var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
 
             // attribute is respected
             var registration = new EventRegistration(typeof(TestEvent3));
-            var ex = Assert.Throws<InvalidOperationException>(() => configurator.SetSerializer(registration));
+            var ex = Assert.Throws<InvalidOperationException>(() => configurator.ConfigureSerializer(registration));
             Assert.Equal("The type 'Tingle.EventBus.Tests.FakeEventSerializer2' is used"
                        + " as a serializer but does not implement 'Tingle.EventBus.Serialization.IEventSerializer'",
                 ex.Message);

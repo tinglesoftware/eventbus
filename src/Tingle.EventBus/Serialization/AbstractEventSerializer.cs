@@ -18,10 +18,8 @@ namespace Tingle.EventBus.Serialization
     /// </summary>
     public abstract class AbstractEventSerializer : IEventSerializer
     {
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        ///
         protected static readonly IList<string> JsonContentTypes = new[] { "application/json", "text/json", };
-        protected static readonly IList<string> XmlContentTypes = new[] { "application/xml", "text/xml", };
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         private static readonly Regex trimPattern = new("(Serializer|EventSerializer)$", RegexOptions.Compiled);
 

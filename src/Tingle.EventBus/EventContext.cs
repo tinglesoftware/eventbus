@@ -58,7 +58,7 @@ namespace Tingle.EventBus
         /// The serializer used for the event must support the value set.
         /// When set to <see langword="null"/>, the serializer used for the event decides what
         /// content type to use depending on its implementation.
-        /// For the default implementation, see <see cref="Serialization.DefaultEventSerializer"/>.
+        /// For the default implementation, see <see cref="Serialization.DefaultJsonEventSerializer"/>.
         /// </summary>
         public ContentType? ContentType { get; set; }
 

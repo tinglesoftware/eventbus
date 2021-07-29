@@ -12,7 +12,7 @@ namespace CustomSerializer
 {
     public class AzureDevOpsEventSerializer : IEventSerializer
     {
-        private static readonly ContentType JsonContentType = new ContentType(MediaTypeNames.Application.Json);
+        private static readonly ContentType JsonContentType = new(MediaTypeNames.Application.Json);
 
         private readonly JsonSerializer serializer = JsonSerializer.CreateDefault();
         private readonly EventBus bus;

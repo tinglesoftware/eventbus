@@ -22,14 +22,14 @@ namespace Tingle.EventBus.Transports.InMemory
     [TransportName(TransportNames.InMemory)]
     public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>, IDisposable
     {
-        private readonly Dictionary<(Type, bool), InMemoryQueueEntity> queuesCache = new Dictionary<(Type, bool), InMemoryQueueEntity>();
-        private readonly SemaphoreSlim queuesCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
-        private readonly CancellationTokenSource stoppingCts = new CancellationTokenSource();
-        private readonly List<Task> receiverTasks = new List<Task>();
+        private readonly Dictionary<(Type, bool), InMemoryQueueEntity> queuesCache = new();
+        private readonly SemaphoreSlim queuesCacheLock = new(1, 1); // only one at a time.
+        private readonly CancellationTokenSource stoppingCts = new();
+        private readonly List<Task> receiverTasks = new();
 
-        private readonly ConcurrentBag<EventContext> published = new ConcurrentBag<EventContext>();
-        private readonly ConcurrentBag<EventContext> consumed = new ConcurrentBag<EventContext>();
-        private readonly ConcurrentBag<EventContext> failed = new ConcurrentBag<EventContext>();
+        private readonly ConcurrentBag<EventContext> published = new();
+        private readonly ConcurrentBag<EventContext> consumed = new();
+        private readonly ConcurrentBag<EventContext> failed = new();
 
         private readonly SequenceNumberGenerator sng;
 

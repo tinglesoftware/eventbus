@@ -20,7 +20,7 @@ namespace Tingle.EventBus.Transports
     /// <typeparam name="TTransportOptions">The type used for configuring options of the transport</typeparam>
     public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransportWithOptions, IEventBusTransport where TTransportOptions : EventBusTransportOptionsBase, new()
     {
-        private static readonly Regex CategoryNamePattern = new Regex(@"Transport$", RegexOptions.Compiled);
+        private static readonly Regex CategoryNamePattern = new(@"Transport$", RegexOptions.Compiled);
         private readonly IServiceScopeFactory scopeFactory;
 
         /// <summary>

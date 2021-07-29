@@ -16,7 +16,7 @@ namespace Tingle.EventBus.Serialization
     /// </summary>
     internal class DefaultEventSerializer : IEventSerializer
     {
-        private static readonly ContentType JsonContentType = new ContentType(MediaTypeNames.Application.Json);
+        private static readonly ContentType JsonContentType = new(MediaTypeNames.Application.Json);
 
         private readonly EventBus bus;
         private readonly JsonSerializerOptions serializerOptions;

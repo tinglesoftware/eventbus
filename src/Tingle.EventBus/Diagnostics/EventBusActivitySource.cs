@@ -10,7 +10,7 @@ namespace Tingle.EventBus.Diagnostics
         private static readonly AssemblyName AssemblyName = typeof(EventBusActivitySource).Assembly.GetName();
         private static readonly string ActivitySourceName = AssemblyName.Name;
         private static readonly Version Version = AssemblyName.Version;
-        private static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
+        private static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
 
         /// <summary>
         /// Creates a new activity if there are active listeners for it, using the specified

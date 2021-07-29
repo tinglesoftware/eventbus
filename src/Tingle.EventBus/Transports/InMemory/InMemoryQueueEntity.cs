@@ -8,8 +8,8 @@ namespace Tingle.EventBus.Transports.InMemory
 {
     internal class InMemoryQueueEntity
     {
-        private readonly SemaphoreSlim messageAvailable = new SemaphoreSlim(0);
-        private readonly ConcurrentQueue<InMemoryQueueMessage> queue = new ConcurrentQueue<InMemoryQueueMessage>();
+        private readonly SemaphoreSlim messageAvailable = new(0);
+        private readonly ConcurrentQueue<InMemoryQueueMessage> queue = new();
         private readonly TimeSpan deliveryDelay;
 
         public InMemoryQueueEntity(string name, TimeSpan deliveryDelay)

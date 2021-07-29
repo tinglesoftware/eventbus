@@ -26,9 +26,9 @@ namespace Tingle.EventBus.Transports.RabbitMQ
     [TransportName(TransportNames.RabbitMq)]
     public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>, IDisposable
     {
-        private readonly SemaphoreSlim connectionLock = new SemaphoreSlim(1, 1);
-        private readonly Dictionary<string, IModel> subscriptionChannelsCache = new Dictionary<string, IModel>();
-        private readonly SemaphoreSlim subscriptionChannelsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
+        private readonly SemaphoreSlim connectionLock = new(1, 1);
+        private readonly Dictionary<string, IModel> subscriptionChannelsCache = new();
+        private readonly SemaphoreSlim subscriptionChannelsCacheLock = new(1, 1); // only one at a time.
         private readonly RetryPolicy retryPolicy;
 
         private IConnection connection;

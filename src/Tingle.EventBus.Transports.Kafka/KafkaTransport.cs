@@ -28,8 +28,8 @@ namespace Tingle.EventBus.Transports.Kafka
 
         private readonly IProducer<string, byte[]> producer; // producer instance is thread safe thus can be shared, and across topics
         private readonly IConsumer<string, byte[]> consumer; // consumer instance is thread safe thus can be shared, and across topics
-        private readonly CancellationTokenSource stoppingCts = new CancellationTokenSource();
-        private readonly List<Task> receiverTasks = new List<Task>();
+        private readonly CancellationTokenSource stoppingCts = new();
+        private readonly List<Task> receiverTasks = new();
         private readonly IAdminClient adminClient;
 
         /// <summary>

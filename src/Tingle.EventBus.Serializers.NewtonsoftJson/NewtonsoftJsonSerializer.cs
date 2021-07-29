@@ -18,7 +18,7 @@ namespace Tingle.EventBus.Serializers
     /// </summary>
     public class NewtonsoftJsonSerializer : IEventSerializer
     {
-        private static readonly ContentType JsonContentType = new ContentType(MediaTypeNames.Application.Json);
+        private static readonly ContentType JsonContentType = new(MediaTypeNames.Application.Json);
 
         private readonly EventBus bus;
         private readonly ILogger logger;

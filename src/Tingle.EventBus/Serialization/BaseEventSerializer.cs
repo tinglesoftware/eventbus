@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Diagnostics;
@@ -22,6 +23,8 @@ namespace Tingle.EventBus.Serialization
         protected static readonly IList<string> XmlContentTypes = new[] { "application/xml", "text/xml", };
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
+        private static readonly Regex trimPattern = new("(Serializer|EventSerializer)$", RegexOptions.Compiled);
+
         private readonly EventBus bus;
 
         /// <summary>
@@ -36,9 +39,13 @@ namespace Tingle.EventBus.Serialization
             OptionsAccessor = optionsAccessor ?? throw new ArgumentNullException(nameof(optionsAccessor));
 
             // Create a well-scoped logger
-            var categoryName = $"{LogCategoryNames.Serializers}.Default"; // TODO: pull from the type name and tim EventSerializer and Serializer 
+            Name = trimPattern.Replace(GetType().Name, "");
+            var categoryName = $"{LogCategoryNames.Serializers}.{Name}";
             Logger = loggerFactory?.CreateLogger(categoryName) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
+
+        ///
+        protected string Name { get; }
 
         ///
         protected abstract IList<string> SupportedMediaTypes { get; }

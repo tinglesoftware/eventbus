@@ -20,7 +20,6 @@ namespace Tingle.EventBus.Transports.Kafka
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Kafka.
     /// </summary>
     [TransportName(TransportNames.Kafka)]
-#pragma warning disable CA1063 // Implement IDisposable Correctly
     public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDisposable
     {
         // the timeout used for non-async operations
@@ -334,6 +333,5 @@ namespace Tingle.EventBus.Transports.Kafka
         {
             stoppingCts.Cancel();
         }
-#pragma warning restore CA1063 // Implement IDisposable Correctly
     }
 }

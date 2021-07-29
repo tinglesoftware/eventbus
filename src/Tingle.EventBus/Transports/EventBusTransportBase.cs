@@ -144,18 +144,26 @@ namespace Tingle.EventBus.Transports
         /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task<EventContext<TEvent>?> DeserializeAsync<TEvent>(Stream body,
-                                                                             ContentType? contentType,
-                                                                             EventRegistration registration,
-                                                                             IServiceScope scope,
-                                                                             CancellationToken cancellationToken = default)
+        protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(Stream body,
+                                                                            ContentType? contentType,
+                                                                            EventRegistration registration,
+                                                                            IServiceScope scope,
+                                                                            CancellationToken cancellationToken = default)
             where TEvent : class
         {
             // Get the serializer
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType!);
 
             // Deserialize the content into a context
-            return await serializer.DeserializeAsync<TEvent>(body, contentType, cancellationToken);
+            var context = await serializer.DeserializeAsync<TEvent>(body, contentType, cancellationToken);
+
+            // Ensure we are not null (throwing helps track the error)
+            if (context is null)
+            {
+                throw new InvalidOperationException($"Deserialization from '{typeof(TEvent).Name}' resulted in null which is not allowed.");
+            }
+
+            return context;
         }
 
         /// <summary>

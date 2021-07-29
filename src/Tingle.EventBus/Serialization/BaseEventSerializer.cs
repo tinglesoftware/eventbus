@@ -72,7 +72,7 @@ namespace Tingle.EventBus.Serialization
             }
 
             // Deserialize
-            var envelope = await Deserialize2Async<T>(stream: stream, contentType: contentType, cancellationToken: cancellationToken);
+            var envelope = await DeserializeToEnvelopeAsync<T>(stream: stream, contentType: contentType, cancellationToken: cancellationToken);
             if (envelope is null) return null;
 
             // Create the context
@@ -122,7 +122,7 @@ namespace Tingle.EventBus.Serialization
             };
 
             // Serialize
-            await SerializeAsync(stream: stream, envelope: envelope, cancellationToken: cancellationToken);
+            await SerializeEnvelopeAsync(stream: stream, envelope: envelope, cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -136,9 +136,10 @@ namespace Tingle.EventBus.Serialization
         /// <param name="contentType">The type of content contained in the <paramref name="stream"/>.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected abstract Task<MessageEnvelope<T>?> Deserialize2Async<T>(Stream stream,
-                                                                          ContentType? contentType,
-                                                                          CancellationToken cancellationToken = default) where T : class;
+        protected abstract Task<MessageEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
+                                                                                   ContentType? contentType,
+                                                                                   CancellationToken cancellationToken = default)
+            where T : class;
 
         /// <summary>
         /// Serialize a <see cref="MessageEnvelope{T}"/> into a stream of bytes.
@@ -150,8 +151,9 @@ namespace Tingle.EventBus.Serialization
         /// <param name="envelope">The <see cref="MessageEnvelope{T}"/> to be serialized.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected abstract Task SerializeAsync<T>(Stream stream,
-                                                  MessageEnvelope<T> envelope,
-                                                  CancellationToken cancellationToken = default) where T : class;
+        protected abstract Task SerializeEnvelopeAsync<T>(Stream stream,
+                                                          MessageEnvelope<T> envelope,
+                                                          CancellationToken cancellationToken = default)
+            where T : class;
     }
 }

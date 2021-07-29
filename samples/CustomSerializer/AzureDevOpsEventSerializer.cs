@@ -27,7 +27,7 @@ namespace CustomSerializer
         protected override IList<string> SupportedMediaTypes => JsonContentTypes;
 
         /// <inheritdoc/>
-        protected override Task<MessageEnvelope<T>?> Deserialize2Async<T>(Stream stream,
+        protected override Task<MessageEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
                                                                           ContentType? contentType,
                                                                           CancellationToken cancellationToken = default) where T : class
         {
@@ -54,7 +54,7 @@ namespace CustomSerializer
         }
 
         /// <inheritdoc/>
-        protected override Task SerializeAsync<T>(Stream stream,
+        protected override Task SerializeEnvelopeAsync<T>(Stream stream,
                                                   MessageEnvelope<T> envelope,
                                                   CancellationToken cancellationToken = default)
         {

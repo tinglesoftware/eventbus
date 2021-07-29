@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using Azure.Storage.Queues;
+﻿using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -25,10 +24,10 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
     {
         private const string SequenceNumberSeparator = "|";
 
-        private readonly Dictionary<(Type, bool), QueueClient> queueClientsCache = new Dictionary<(Type, bool), QueueClient>();
-        private readonly SemaphoreSlim queueClientsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
-        private readonly CancellationTokenSource stoppingCts = new CancellationTokenSource();
-        private readonly List<Task> receiverTasks = new List<Task>();
+        private readonly Dictionary<(Type, bool), QueueClient> queueClientsCache = new();
+        private readonly SemaphoreSlim queueClientsCacheLock = new(1, 1); // only one at a time.
+        private readonly CancellationTokenSource stoppingCts = new();
+        private readonly List<Task> receiverTasks = new();
         private readonly QueueServiceClient serviceClient;
 
         /// <summary>

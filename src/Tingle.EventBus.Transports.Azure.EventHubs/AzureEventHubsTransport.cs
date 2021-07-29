@@ -25,10 +25,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
     [TransportName(TransportNames.AzureEventHubs)]
     public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTransportOptions>
     {
-        private readonly Dictionary<(Type, bool), EventHubProducerClient> producersCache = new Dictionary<(Type, bool), EventHubProducerClient>();
-        private readonly SemaphoreSlim producersCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
-        private readonly Dictionary<string, EventProcessorClient> processorsCache = new Dictionary<string, EventProcessorClient>();
-        private readonly SemaphoreSlim processorsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
+        private readonly Dictionary<(Type, bool), EventHubProducerClient> producersCache = new();
+        private readonly SemaphoreSlim producersCacheLock = new(1, 1); // only one at a time.
+        private readonly Dictionary<string, EventProcessorClient> processorsCache = new();
+        private readonly SemaphoreSlim processorsCacheLock = new(1, 1); // only one at a time.
 
         /// <summary>
         /// 

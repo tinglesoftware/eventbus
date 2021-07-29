@@ -27,12 +27,12 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
     [TransportName(TransportNames.AmazonSqs)]
     public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOptions>, IDisposable
     {
-        private readonly Dictionary<Type, string> topicArnsCache = new Dictionary<Type, string>();
-        private readonly SemaphoreSlim topicArnsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
-        private readonly Dictionary<(string, bool), string> queueUrlsCache = new Dictionary<(string, bool), string>();
-        private readonly SemaphoreSlim queueUrlsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
-        private readonly CancellationTokenSource stoppingCts = new CancellationTokenSource();
-        private readonly List<Task> receiverTasks = new List<Task>();
+        private readonly Dictionary<Type, string> topicArnsCache = new();
+        private readonly SemaphoreSlim topicArnsCacheLock = new(1, 1); // only one at a time.
+        private readonly Dictionary<(string, bool), string> queueUrlsCache = new();
+        private readonly SemaphoreSlim queueUrlsCacheLock = new(1, 1); // only one at a time.
+        private readonly CancellationTokenSource stoppingCts = new();
+        private readonly List<Task> receiverTasks = new();
         private readonly AmazonSimpleNotificationServiceClient snsClient;
         private readonly AmazonSQSClient sqsClient;
 

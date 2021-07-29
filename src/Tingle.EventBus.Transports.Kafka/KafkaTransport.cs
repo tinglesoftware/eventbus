@@ -20,7 +20,6 @@ namespace Tingle.EventBus.Transports.Kafka
     /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Kafka.
     /// </summary>
     [TransportName(TransportNames.Kafka)]
-#pragma warning disable CA1063 // Implement IDisposable Correctly
     public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDisposable
     {
         // the timeout used for non-async operations
@@ -28,8 +27,8 @@ namespace Tingle.EventBus.Transports.Kafka
 
         private readonly IProducer<string, byte[]> producer; // producer instance is thread safe thus can be shared, and across topics
         private readonly IConsumer<string, byte[]> consumer; // consumer instance is thread safe thus can be shared, and across topics
-        private readonly CancellationTokenSource stoppingCts = new CancellationTokenSource();
-        private readonly List<Task> receiverTasks = new List<Task>();
+        private readonly CancellationTokenSource stoppingCts = new();
+        private readonly List<Task> receiverTasks = new();
         private readonly IAdminClient adminClient;
 
         /// <summary>
@@ -334,6 +333,5 @@ namespace Tingle.EventBus.Transports.Kafka
         {
             stoppingCts.Cancel();
         }
-#pragma warning restore CA1063 // Implement IDisposable Correctly
     }
 }

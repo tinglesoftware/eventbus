@@ -11,12 +11,12 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     public class EventBusNamingOptions
     {
-        private static readonly Regex trimPattern = new Regex("(Event|Consumer|EventConsumer)$", RegexOptions.Compiled);
-        private static readonly Regex namePattern = new Regex("(?<=[a-z0-9])[A-Z]", RegexOptions.Compiled);
-        private static readonly Regex replacePatternKebabCase = new Regex("[^a-zA-Z0-9-]", RegexOptions.Compiled);
-        private static readonly Regex replacePatternSnakeCase = new Regex("[^a-zA-Z0-9_]", RegexOptions.Compiled);
-        private static readonly Regex replacePatternDotCase = new Regex("[^a-zA-Z0-9\\.]", RegexOptions.Compiled);
-        private static readonly Regex replacePatternDefault = new Regex("[^a-zA-Z0-9-_\\.]", RegexOptions.Compiled);
+        private static readonly Regex trimPattern = new("(Event|Consumer|EventConsumer)$", RegexOptions.Compiled);
+        private static readonly Regex namePattern = new("(?<=[a-z0-9])[A-Z]", RegexOptions.Compiled);
+        private static readonly Regex replacePatternKebabCase = new("[^a-zA-Z0-9-]", RegexOptions.Compiled);
+        private static readonly Regex replacePatternSnakeCase = new("[^a-zA-Z0-9_]", RegexOptions.Compiled);
+        private static readonly Regex replacePatternDotCase = new("[^a-zA-Z0-9\\.]", RegexOptions.Compiled);
+        private static readonly Regex replacePatternDefault = new("[^a-zA-Z0-9-_\\.]", RegexOptions.Compiled);
 
         /// <summary>
         /// The scope to use for queues and subscriptions.

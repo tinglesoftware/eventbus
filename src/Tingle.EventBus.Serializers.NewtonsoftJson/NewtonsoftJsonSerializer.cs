@@ -18,7 +18,7 @@ namespace Tingle.EventBus.Serializers
     /// </summary>
     public class NewtonsoftJsonSerializer : IEventSerializer
     {
-        private static readonly ContentType JsonContentType = new ContentType(MediaTypeNames.Application.Json);
+        private static readonly ContentType JsonContentType = new(MediaTypeNames.Application.Json);
 
         private readonly EventBus bus;
         private readonly ILogger logger;
@@ -102,7 +102,7 @@ namespace Tingle.EventBus.Serializers
             var envelope = serializer.Deserialize<MessageEnvelope>(jr);
 
             // Ensure we have a JToken for the event
-            if (!(envelope.Event is JToken eventToken) || eventToken.Type == JTokenType.Null)
+            if (envelope.Event is not JToken eventToken || eventToken.Type == JTokenType.Null)
             {
                 logger.LogWarning("The Event node is not a JToken or it is null");
                 eventToken = typeof(IEnumerable).IsAssignableFrom(typeof(T)) ? new JArray() : (JToken)new JObject();

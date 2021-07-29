@@ -16,7 +16,7 @@ namespace Tingle.EventBus.Serialization
     /// </summary>
     internal class DefaultEventSerializer : IEventSerializer
     {
-        private static readonly ContentType JsonContentType = new ContentType(MediaTypeNames.Application.Json);
+        private static readonly ContentType JsonContentType = new(MediaTypeNames.Application.Json);
 
         private readonly EventBus bus;
         private readonly JsonSerializerOptions serializerOptions;
@@ -96,7 +96,7 @@ namespace Tingle.EventBus.Serialization
                                                                                   cancellationToken: cancellationToken);
 
             // Ensure we have a JsonElement for the event
-            if (!(envelope.Event is JsonElement eventToken) || eventToken.ValueKind == JsonValueKind.Null)
+            if (envelope.Event is not JsonElement eventToken || eventToken.ValueKind == JsonValueKind.Null)
             {
                 logger.LogWarning("The Event node is not a JsonElement or it is null");
                 eventToken = new JsonElement();

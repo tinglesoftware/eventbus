@@ -22,11 +22,11 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
     [TransportName(TransportNames.AzureServiceBus)]
     public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTransportOptions>
     {
-        private readonly Dictionary<Type, ServiceBusSender> sendersCache = new Dictionary<Type, ServiceBusSender>();
-        private readonly SemaphoreSlim sendersCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
-        private readonly Dictionary<string, ServiceBusProcessor> processorsCache = new Dictionary<string, ServiceBusProcessor>();
-        private readonly SemaphoreSlim processorsCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
-        private readonly SemaphoreSlim propertiesCacheLock = new SemaphoreSlim(1, 1); // only one at a time.
+        private readonly Dictionary<Type, ServiceBusSender> sendersCache = new();
+        private readonly SemaphoreSlim sendersCacheLock = new(1, 1); // only one at a time.
+        private readonly Dictionary<string, ServiceBusProcessor> processorsCache = new();
+        private readonly SemaphoreSlim processorsCacheLock = new(1, 1); // only one at a time.
+        private readonly SemaphoreSlim propertiesCacheLock = new(1, 1); // only one at a time.
         private readonly ServiceBusAdministrationClient managementClient;
         private readonly ServiceBusClient serviceBusClient;
         private NamespaceProperties properties;

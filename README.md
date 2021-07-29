@@ -1,8 +1,10 @@
 # Simple Multi-Transport Event Bus for .NET
 
+![Nuget](https://img.shields.io/nuget/dt/Tingle.EventBus)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/tinglesoftware/eventbus/Build%20and%20Publish?style=flat-square)
+[![Dependabot](https://badgen.net/badge/Dependabot/enabled/green?icon=dependabot)](https://dependabot.com/)
 
-This repository contains the code for the `Tingle.EventBus` libraries.
+This repository contains the code for the `Tingle.EventBus` libraries. This project exists so as to simplify the amount of work required to add events to .NET projects. The existing libraries seem to have numerous complexities in setup especially when it comes to the use of framework concepts like dependency inject and options configuration. At [Tingle Software](https://tingle.software), we use this for all our event-driven architecture that is based on .NET
 
 ## Packages
 

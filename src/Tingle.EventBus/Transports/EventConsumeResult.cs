@@ -13,7 +13,7 @@ namespace Tingle.EventBus.Transports
         /// </summary>
         /// <param name="successful">See <see cref="Successful"/>.</param>
         /// <param name="exception">See <see cref="Exception"/>.</param>
-        internal EventConsumeResult(bool successful, Exception exception = null)
+        internal EventConsumeResult(bool successful, Exception? exception = null)
         {
             Successful = successful;
             Exception = exception;
@@ -27,14 +27,14 @@ namespace Tingle.EventBus.Transports
         /// <summary>
         /// Exception caught for failures.
         /// </summary>
-        public Exception Exception { get; }
+        public Exception? Exception { get; }
 
         /// <summary>
         /// Deconstruct the result into parts
         /// </summary>
         /// <param name="successful">See <see cref="Successful"/>.</param>
         /// <param name="exception">See <see cref="Exception"/>.</param>
-        public void Deconstruct(out bool successful, out Exception exception)
+        public void Deconstruct(out bool successful, out Exception? exception)
         {
             successful = Successful;
             exception = Exception;

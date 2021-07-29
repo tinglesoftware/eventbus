@@ -43,7 +43,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public static EventBusBuilder AddAzureServiceBusTransport(this EventBusBuilder builder,
                                                                   string connectionString,
-                                                                  Action<AzureServiceBusTransportOptions> configure = null)
+                                                                  Action<AzureServiceBusTransportOptions>? configure = null)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
 

@@ -43,7 +43,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public static EventBusBuilder AddAzureQueueStorageTransport(this EventBusBuilder builder,
                                                                     string connectionString,
-                                                                    Action<AzureQueueStorageTransportOptions> configure = null)
+                                                                    Action<AzureQueueStorageTransportOptions>? configure = null)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
 

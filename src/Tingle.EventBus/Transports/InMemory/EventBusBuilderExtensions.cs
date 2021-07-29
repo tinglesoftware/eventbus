@@ -16,7 +16,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="configure"></param>
         /// <returns></returns>
         public static EventBusBuilder AddInMemoryTransport(this EventBusBuilder builder,
-                                                           Action<InMemoryTransportOptions> configure = null)
+                                                           Action<InMemoryTransportOptions>? configure = null)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
 
@@ -48,7 +48,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="configure"></param>
         /// <returns></returns>
         public static EventBusBuilder AddInMemoryTestHarness(this EventBusBuilder builder,
-                                                             Action<InMemoryTestHarnessOptions> configure = null)
+                                                             Action<InMemoryTestHarnessOptions>? configure = null)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
 

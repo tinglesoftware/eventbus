@@ -31,7 +31,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         private readonly SemaphoreSlim subscriptionChannelsCacheLock = new(1, 1); // only one at a time.
         private readonly RetryPolicy retryPolicy;
 
-        private IConnection connection;
+        private IConnection? connection;
         private bool disposed;
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 await TryConnectAsync(cancellationToken);
             }
 
-            using var channel = connection.CreateModel();
+            using var channel = connection!.CreateModel();
             return channel.IsOpen;
         }
 
@@ -106,10 +106,10 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         }
 
         /// <inheritdoc/>
-        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                EventRegistration registration,
-                                                                DateTimeOffset? scheduled = null,
-                                                                CancellationToken cancellationToken = default)
+        public override async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                 EventRegistration registration,
+                                                                 DateTimeOffset? scheduled = null,
+                                                                 CancellationToken cancellationToken = default)
         {
             if (!IsConnected)
             {
@@ -117,7 +117,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             }
 
             // create channel, declare a fanout exchange
-            using var channel = connection.CreateModel();
+            using var channel = connection!.CreateModel();
             var name = registration.EventName;
             channel.ExchangeDeclare(exchange: name, type: "fanout");
 
@@ -131,15 +131,15 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                                  cancellationToken: cancellationToken);
 
             // publish message
-            string scheduledId = null;
+            string? scheduledId = null;
             retryPolicy.Execute(() =>
             {
                 // setup properties
                 var properties = channel.CreateBasicProperties();
                 properties.MessageId = @event.Id;
                 properties.CorrelationId = @event.CorrelationId;
-                properties.ContentEncoding = @event.ContentType.CharSet;
-                properties.ContentType = @event.ContentType.MediaType;
+                properties.ContentEncoding = @event.ContentType?.CharSet;
+                properties.ContentType = @event.ContentType?.MediaType;
 
                 // if scheduled for later, set the delay in the message
                 if (scheduled != null)
@@ -148,7 +148,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     if (delay > 0)
                     {
                         properties.Headers["x-delay"] = (long)delay;
-                        scheduledId = @event.Id;
+                        scheduledId = @event.Id!;
                     }
                 }
 
@@ -179,10 +179,10 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         }
 
         /// <inheritdoc/>
-        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                       EventRegistration registration,
-                                                                       DateTimeOffset? scheduled = null,
-                                                                       CancellationToken cancellationToken = default)
+        public override async Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                        EventRegistration registration,
+                                                                        DateTimeOffset? scheduled = null,
+                                                                        CancellationToken cancellationToken = default)
         {
             if (!IsConnected)
             {
@@ -190,13 +190,13 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             }
 
             // create channel, declare a fanout exchange
-            using var channel = connection.CreateModel();
+            using var channel = connection!.CreateModel();
             var name = registration.EventName;
             channel.ExchangeDeclare(exchange: name, type: "fanout");
 
             using var scope = CreateScope();
 
-            var serializedEvents = new List<(EventContext<TEvent>, ContentType, ReadOnlyMemory<byte>)>();
+            var serializedEvents = new List<(EventContext<TEvent>, ContentType?, ReadOnlyMemory<byte>)>();
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
@@ -217,8 +217,8 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     var properties = channel.CreateBasicProperties();
                     properties.MessageId = @event.Id;
                     properties.CorrelationId = @event.CorrelationId;
-                    properties.ContentEncoding = contentType.CharSet;
-                    properties.ContentType = contentType.MediaType;
+                    properties.ContentEncoding = contentType?.CharSet;
+                    properties.ContentType = contentType?.MediaType;
 
                     // if scheduled for later, set the delay in the message
                     if (scheduled != null)
@@ -256,7 +256,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             });
 
             var messageIds = events.Select(m => m.Id);
-            return scheduled != null ? messageIds.ToList() : (IList<string>)Array.Empty<string>();
+            return scheduled != null ? messageIds.ToList()! : Array.Empty<string>();
         }
 
         /// <inheritdoc/>
@@ -285,10 +285,10 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             var registrations = GetRegistrations();
             foreach (var ereg in registrations)
             {
-                var exchangeName = ereg.EventName;
+                var exchangeName = ereg.EventName!;
                 foreach (var creg in ereg.Consumers)
                 {
-                    var queueName = creg.ConsumerName;
+                    var queueName = creg.ConsumerName!;
 
                     var channel = await GetSubscriptionChannelAsync(exchangeName: exchangeName, queueName: queueName, cancellationToken);
                     var consumer = new AsyncEventingBasicConsumer(channel);
@@ -315,13 +315,14 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             var messageId = args.BasicProperties?.MessageId;
             using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                               correlationId: args.BasicProperties?.CorrelationId,
-                                                              extras: new Dictionary<string, string>
+                                                              extras: new Dictionary<string, string?>
                                                               {
                                                                   ["RoutingKey"] = args.RoutingKey,
                                                                   ["DeliveryTag"] = args.DeliveryTag.ToString(),
                                                               });
 
-            args.BasicProperties.Headers.TryGetValue(AttributeNames.ActivityId, out var parentActivityId);
+            object? parentActivityId = null;
+            args.BasicProperties?.Headers.TryGetValue(AttributeNames.ActivityId, out parentActivityId);
 
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
@@ -385,7 +386,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     // dispose existing channel
                     if (channel != null) channel.Dispose();
 
-                    channel = connection.CreateModel();
+                    channel = connection!.CreateModel();
                     channel.ExchangeDeclare(exchange: exchangeName, type: "fanout");
                     channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
                     channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: "");
@@ -422,12 +423,12 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
                 retryPolicy.Execute(() =>
                 {
-                    connection = TransportOptions.ConnectionFactory.CreateConnection();
+                    connection = TransportOptions.ConnectionFactory!.CreateConnection();
                 });
 
                 if (IsConnected)
                 {
-                    connection.ConnectionShutdown += OnConnectionShutdown;
+                    connection!.ConnectionShutdown += OnConnectionShutdown;
                     connection.CallbackException += OnCallbackException;
                     connection.ConnectionBlocked += OnConnectionBlocked;
 
@@ -450,7 +451,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
         private bool TryConnect() => TryConnectAsync(CancellationToken.None).GetAwaiter().GetResult();
 
-        private bool IsConnected => connection != null && connection.IsOpen && !disposed;
+        private bool IsConnected => connection is not null && connection.IsOpen && !disposed;
 
         private void OnConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
         {
@@ -479,7 +480,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             TryConnect();
         }
 
-        private static ContentType GetContentType(IBasicProperties properties)
+        private static ContentType? GetContentType(IBasicProperties? properties)
         {
             var contentType = properties?.ContentType;
             var contentEncoding = properties?.ContentEncoding ?? "utf-8"; // assume a default
@@ -497,7 +498,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 {
                     try
                     {
-                        connection.Dispose();
+                        connection?.Dispose();
                     }
                     catch (Exception ex)
                     {

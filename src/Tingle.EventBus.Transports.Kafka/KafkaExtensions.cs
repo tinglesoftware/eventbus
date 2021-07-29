@@ -4,7 +4,7 @@ namespace Confluent.Kafka
 {
     internal static class KafkaExtensions
     {
-        public static Headers AddIfNotNull(this Headers headers, string key, string value)
+        public static Headers AddIfNotNull(this Headers headers, string key, string? value)
         {
             if (!string.IsNullOrWhiteSpace(value))
             {
@@ -13,14 +13,14 @@ namespace Confluent.Kafka
             return headers;
         }
 
-        public static bool TryGetValue(this Headers headers, string key, out string value)
+        public static bool TryGetValue(this Headers headers, string key, out string? value)
         {
-            value = null;
             if (headers.TryGetLastBytes(key, out var bytes))
             {
                 value = Encoding.UTF8.GetString(bytes);
                 return true;
             }
+            value = null;
             return false;
         }
     }

@@ -27,7 +27,7 @@ namespace Tingle.EventBus
         /// true if the ConsumerGroup is found; otherwise, false.
         /// </returns>
         /// <exception cref="ArgumentNullException">The context is null</exception>
-        public static bool TryGetConsumerGroup(this EventContext context, out string consumerGroup)
+        public static bool TryGetConsumerGroup(this EventContext context, out string? consumerGroup)
         {
             if (context is null) throw new ArgumentNullException(nameof(context));
 
@@ -55,7 +55,7 @@ namespace Tingle.EventBus
         /// true if the parition is found; otherwise, false.
         /// </returns>
         /// <exception cref="ArgumentNullException">The context is null</exception>
-        public static bool TryGetPartitionContext(this EventContext context, out PartitionContext partition)
+        public static bool TryGetPartitionContext(this EventContext context, out PartitionContext? partition)
         {
             if (context is null) throw new ArgumentNullException(nameof(context));
 
@@ -83,7 +83,7 @@ namespace Tingle.EventBus
         /// true if the data is found; otherwise, false.
         /// </returns>
         /// <exception cref="ArgumentNullException">The context is null</exception>
-        public static bool TryGetEventData(this EventContext context, out EventData data)
+        public static bool TryGetEventData(this EventContext context, out EventData? data)
         {
             if (context is null) throw new ArgumentNullException(nameof(context));
 

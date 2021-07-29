@@ -39,7 +39,7 @@ namespace Tingle.EventBus.Tests.InMemoryHarness
 
                     // Ensure only one was published
                     var context = Assert.Single(harness.Published<OrderProcessedEvent>());
-                    var evt = context.Event;
+                    var evt = context.Event!;
                     Assert.Equal(2021 + orderNumber, evt.Year);
                 }
                 else

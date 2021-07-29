@@ -11,6 +11,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// The fully qualified Event Hubs namespace to connect to.
         /// This is likely to be similar to {yournamespace}.servicebus.windows.net.
         /// </summary>
-        public string FullyQualifiedNamespace { get; set; }
+        public string? FullyQualifiedNamespace { get; set; }
     }
 }

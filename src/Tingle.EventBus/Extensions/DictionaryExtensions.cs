@@ -18,9 +18,9 @@
         /// <exception cref="ArgumentException">An element with the same key already exists in the <see cref="IDictionary{TKey, TValue}"/>.</exception>
         /// <exception cref="NotSupportedException">The <see cref="IDictionary{TKey, TValue}"/> is read-only.</exception>
         /// <returns></returns>
-        public static IDictionary<TKey, TValue> AddIfNotDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+        public static IDictionary<TKey, TValue?> AddIfNotDefault<TKey, TValue>(this IDictionary<TKey, TValue?> dictionary, TKey key, TValue? value)
         {
-            if (!EqualityComparer<TValue>.Default.Equals(value, default)
+            if (!EqualityComparer<TValue?>.Default.Equals(value, default)
                 || (value is string s && !string.IsNullOrWhiteSpace(s)))
             {
                 dictionary[key] = value;

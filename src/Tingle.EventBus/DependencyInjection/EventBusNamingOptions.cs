@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// The scope to use for queues and subscriptions.
         /// Set to <see langword="null"/> to disable scoping of entities.
         /// </summary>
-        public string Scope { get; set; }
+        public string? Scope { get; set; }
 
         /// <summary>
         /// The naming convention to use when generating names for types and entities on the sepected transport.
@@ -64,7 +64,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// The prefix used with <see cref="ConsumerNameSource.Prefix"/> and <see cref="ConsumerNameSource.PrefixAndTypeName"/>.
         /// Defaults to <see cref="IHostEnvironment.ApplicationName"/>.
         /// </summary>
-        public string ConsumerNamePrefix { get; set; }
+        public string? ConsumerNamePrefix { get; set; }
 
         /// <summary>
         /// Indicates if the consumer name generated should be suffixed with the event name.

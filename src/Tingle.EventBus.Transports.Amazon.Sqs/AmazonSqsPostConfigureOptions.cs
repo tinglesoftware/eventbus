@@ -40,7 +40,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 // Event names become Topic names and they should not be longer than 256 characters
                 // See https://aws.amazon.com/sns/faqs/#:~:text=Features%20and%20functionality,and%20underscores%20(_)%20are%20allowed.
-                if (ereg.EventName.Length > 256)
+                if (ereg.EventName!.Length > 256)
                 {
                     throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
                                                        + "Amazon SNS does not allow more than 256 characters for Topic names.");
@@ -50,7 +50,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 // See https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/quotas-queues.html
                 foreach (var creg in ereg.Consumers)
                 {
-                    if (creg.ConsumerName.Length > 80)
+                    if (creg.ConsumerName!.Length > 80)
                     {
                         throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
                                                            + "Amazon SQS does not allow more than 80 characters for Queue names.");

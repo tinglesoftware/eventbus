@@ -189,7 +189,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <typeparam name="TConsumer">The type of consumer to handle the events.</typeparam>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public EventBusBuilder AddConsumer<TConsumer>(Action<EventConsumerRegistration> configure = null) where TConsumer : class, IEventConsumer
+        public EventBusBuilder AddConsumer<TConsumer>(Action<EventConsumerRegistration>? configure = null) where TConsumer : class, IEventConsumer
         {
             return AddConsumer<TConsumer>((ereg, creg) => configure?.Invoke(creg));
         }
@@ -211,7 +211,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 foreach (var registration in options.Registrations.Values)
                 {
                     var target = registration.Consumers.SingleOrDefault(c => c.ConsumerType == ct);
-                    if (target != null)
+                    if (target is not null)
                     {
                         registration.Consumers.Remove(target);
                     }

@@ -52,7 +52,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// The information about the host where the EventBus is running.
         /// </summary>
-        public HostInfo HostInfo { get; set; }
+        public HostInfo? HostInfo { get; set; }
 
         /// <summary>
         /// Indicates if the messages/events procuded require guard against duplicate messages.
@@ -89,7 +89,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// To specify a value per transport, use the <see cref="EventBusTransportOptionsBase.DefaultConsumerRetryPolicy"/> option on the specific transport.
         /// Defaults to <see langword="null"/>.
         /// </summary>
-        public AsyncRetryPolicy DefaultConsumerRetryPolicy { get; set; }
+        public AsyncRetryPolicy? DefaultConsumerRetryPolicy { get; set; }
 
         /// <summary>
         /// Optional default behaviour for errors encountered in a consumer but are not handled.
@@ -104,7 +104,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Gets or sets the name of the default transport.
         /// When there is only one transport registered, setting this value is not necessary, as it is used as the default.
         /// </summary>
-        public string DefaultTransportName { get; set; }
+        public string? DefaultTransportName { get; set; }
 
         /// <summary>
         /// The map of registered transport names to their types.
@@ -148,13 +148,13 @@ namespace Microsoft.Extensions.DependencyInjection
         /// This parameter is passed uninitialized.
         /// </param>
         /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
-        internal bool TryGetConsumerRegistration<TEvent, TConsumer>(out EventRegistration ereg, out EventConsumerRegistration creg)
+        internal bool TryGetConsumerRegistration<TEvent, TConsumer>(out EventRegistration ereg, out EventConsumerRegistration? creg)
         {
             creg = default;
             if (Registrations.TryGetValue(typeof(TEvent), out ereg))
             {
                 creg = ereg.Consumers.SingleOrDefault(cr => cr.ConsumerType == typeof(TConsumer));
-                if (creg != null) return true;
+                if (creg is not null) return true;
             }
             return false;
         }
@@ -170,7 +170,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// This parameter is passed uninitialized.
         /// </param>
         /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
-        public bool TryGetConsumerRegistration<TEvent, TConsumer>(out EventConsumerRegistration registration)
+        public bool TryGetConsumerRegistration<TEvent, TConsumer>(out EventConsumerRegistration? registration)
         {
             return TryGetConsumerRegistration<TEvent, TConsumer>(out _, out registration);
         }
@@ -209,7 +209,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             if (configure is null) throw new ArgumentNullException(nameof(configure));
 
-            if (TryGetConsumerRegistration<TEvent, TConsumer>(out var ereg, out var creg))
+            if (TryGetConsumerRegistration<TEvent, TConsumer>(out var ereg, out var creg) && creg is not null)
             {
                 configure(ereg, creg);
             }

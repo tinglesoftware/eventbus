@@ -41,7 +41,7 @@ namespace Tingle.EventBus.Serialization
         /// <inheritdoc/>
         public async Task SerializeAsync<T>(Stream stream,
                                             EventContext<T> context,
-                                            HostInfo hostInfo,
+                                            HostInfo? hostInfo,
                                             CancellationToken cancellationToken = default)
              where T : class
         {
@@ -77,7 +77,7 @@ namespace Tingle.EventBus.Serialization
 
         /// <inheritdoc/>
         public async Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
-                                                               ContentType contentType,
+                                                               ContentType? contentType,
                                                                CancellationToken cancellationToken = default)
             where T : class
         {
@@ -96,14 +96,14 @@ namespace Tingle.EventBus.Serialization
                                                                                   cancellationToken: cancellationToken);
 
             // Ensure we have a JsonElement for the event
-            if (envelope.Event is not JsonElement eventToken || eventToken.ValueKind == JsonValueKind.Null)
+            if (envelope!.Event is not JsonElement eventToken || eventToken.ValueKind == JsonValueKind.Null)
             {
                 logger.LogWarning("The Event node is not a JsonElement or it is null");
                 eventToken = new JsonElement();
             }
 
             // Get the event from the element
-            T @event = typeof(T) == typeof(JsonElement) ? eventToken as T : ToObject<T>(eventToken, serializerOptions);
+            T? @event = typeof(T) == typeof(JsonElement) ? eventToken as T : ToObject<T>(eventToken, serializerOptions);
 
             // Create the context with the event and popuate common properties
             var context = new EventContext<T>(bus)
@@ -122,7 +122,7 @@ namespace Tingle.EventBus.Serialization
             return context;
         }
 
-        private static T ToObject<T>(JsonElement element, JsonSerializerOptions options = null)
+        private static T? ToObject<T>(JsonElement element, JsonSerializerOptions? options = null)
         {
             var bufferWriter = new System.Buffers.ArrayBufferWriter<byte>();
             using (var writer = new Utf8JsonWriter(bufferWriter))

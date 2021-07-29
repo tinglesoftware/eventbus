@@ -31,8 +31,8 @@ namespace Tingle.EventBus.Serializers
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
         /// <param name="logger"></param>
         public NewtonsoftJsonSerializer(EventBus bus,
-                                             IOptions<NewtonsoftJsonSerializerOptions> optionsAccessor,
-                                             ILogger<NewtonsoftJsonSerializer> logger)
+                                        IOptions<NewtonsoftJsonSerializerOptions> optionsAccessor,
+                                        ILogger<NewtonsoftJsonSerializer> logger)
         {
             this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -43,7 +43,7 @@ namespace Tingle.EventBus.Serializers
         /// <inheritdoc/>
         public Task SerializeAsync<T>(Stream stream,
                                       EventContext<T> context,
-                                      HostInfo hostInfo,
+                                      HostInfo? hostInfo,
                                       CancellationToken cancellationToken = default)
              where T : class
         {
@@ -80,8 +80,8 @@ namespace Tingle.EventBus.Serializers
 
         /// <inheritdoc/>
         public Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
-                                                               ContentType contentType,
-                                                               CancellationToken cancellationToken = default)
+                                                         ContentType? contentType,
+                                                         CancellationToken cancellationToken = default)
             where T : class
         {
             // Assume JSON content if not specified
@@ -102,14 +102,14 @@ namespace Tingle.EventBus.Serializers
             var envelope = serializer.Deserialize<MessageEnvelope>(jr);
 
             // Ensure we have a JToken for the event
-            if (envelope.Event is not JToken eventToken || eventToken.Type == JTokenType.Null)
+            if (envelope!.Event is not JToken eventToken || eventToken.Type == JTokenType.Null)
             {
                 logger.LogWarning("The Event node is not a JToken or it is null");
                 eventToken = typeof(IEnumerable).IsAssignableFrom(typeof(T)) ? new JArray() : (JToken)new JObject();
             }
 
             // Get the event from the token
-            T @event = typeof(T) == typeof(JToken) ? eventToken as T : eventToken.ToObject<T>(serializer);
+            T? @event = typeof(T) == typeof(JToken) ? eventToken as T : eventToken.ToObject<T>(serializer);
 
             // Create the context with the event and popuate common properties
             var context = new EventContext<T>(bus)

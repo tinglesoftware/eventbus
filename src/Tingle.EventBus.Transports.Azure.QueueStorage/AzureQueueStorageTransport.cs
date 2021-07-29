@@ -43,7 +43,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                           ILoggerFactory loggerFactory)
             : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            var cred = TransportOptions.Credentials.Value;
+            var cred = TransportOptions.Credentials!.Value;
             serviceClient = cred is AzureQueueStorageTransportCredentials aqstc
                     ? new QueueServiceClient(serviceUri: aqstc.ServiceUrl, credential: aqstc.TokenCredential)
                     : new QueueServiceClient(connectionString: (string)cred);
@@ -96,10 +96,10 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                EventRegistration registration,
-                                                                DateTimeOffset? scheduled = null,
-                                                                CancellationToken cancellationToken = default)
+        public override async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                 EventRegistration registration,
+                                                                 DateTimeOffset? scheduled = null,
+                                                                 CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
             using var ms = new MemoryStream();
@@ -130,10 +130,10 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                       EventRegistration registration,
-                                                                       DateTimeOffset? scheduled = null,
-                                                                       CancellationToken cancellationToken = default)
+        public override async Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                        EventRegistration registration,
+                                                                        DateTimeOffset? scheduled = null,
+                                                                        CancellationToken cancellationToken = default)
         {
             // log warning when doing batch
             Logger.LogWarning("Azure Queue Storage does not support batching. The events will be looped through one by one");
@@ -242,7 +242,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
                     // create the queue client
                     // queueUri has the format "https://{account_name}.queue.core.windows.net/{queue_name}" which can be made using "{serviceClient.Uri}/{queue_name}"
-                    var cred = TransportOptions.Credentials.Value;
+                    var cred = TransportOptions.Credentials!.Value;
                     queueClient = cred is AzureQueueStorageTransportCredentials aqstc
                         ? new QueueClient(queueUri: new Uri($"{serviceClient.Uri}/{name}"), credential: aqstc.TokenCredential, options: qco)
                         : new QueueClient(connectionString: (string)cred, queueName: name, options: qco);
@@ -327,7 +327,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             var messageId = message.MessageId;
             using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                               correlationId: null,
-                                                              extras: new Dictionary<string, string>
+                                                              extras: new Dictionary<string, string?>
                                                               {
                                                                   ["PopReceipt"] = message.PopReceipt,
                                                               });
@@ -356,7 +356,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             // if the event contains the parent activity id, set it
             if (context.Headers.TryGetValue(HeaderNames.ActivityId, out var parentActivityId))
             {
-                activity?.SetParentId(parentId: parentActivityId.ToString());
+                activity?.SetParentId(parentId: parentActivityId!.ToString());
             }
 
             var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(creg: creg,

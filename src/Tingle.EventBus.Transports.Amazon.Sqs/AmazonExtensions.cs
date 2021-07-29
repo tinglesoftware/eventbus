@@ -7,7 +7,7 @@ namespace Amazon.SimpleNotificationService.Model
     /// </summary>
     internal static class PublishRequestExtensions
     {
-        public static PublishRequest SetAttribute(this PublishRequest request, string key, string value)
+        public static PublishRequest SetAttribute(this PublishRequest request, string key, string? value)
         {
             if (request is null) throw new ArgumentNullException(nameof(request));
             if (string.IsNullOrWhiteSpace(key))
@@ -34,7 +34,7 @@ namespace Amazon.SQS.Model
     /// </summary>
     internal static class MessageExtensions
     {
-        public static bool TryGetAttribute(this Message message, string key, out string value)
+        public static bool TryGetAttribute(this Message message, string key, out string? value)
         {
             if (message is null) throw new ArgumentNullException(nameof(message));
             if (string.IsNullOrWhiteSpace(key))

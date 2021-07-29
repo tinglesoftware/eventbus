@@ -24,7 +24,7 @@ namespace CustomSerializer
 
         /// <inheritdoc/>
         public Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
-                                                         ContentType contentType,
+                                                         ContentType? contentType,
                                                          CancellationToken cancellationToken = default) where T : class
         {
             if (typeof(T) != typeof(AzureDevOpsCodePushed))
@@ -45,7 +45,7 @@ namespace CustomSerializer
             using var jtr = new JsonTextReader(sr);
             var jToken = serializer.Deserialize<JToken>(jtr);
 
-            var @event = jToken.ToObject<AzureDevOpsCodePushed>();
+            var @event = jToken!.ToObject<AzureDevOpsCodePushed>();
             var context = new EventContext<T>(bus)
             {
                 Id = jToken.Value<string>("id"),
@@ -64,7 +64,7 @@ namespace CustomSerializer
         /// <inheritdoc/>
         public Task SerializeAsync<T>(Stream stream,
                                       EventContext<T> context,
-                                      HostInfo hostInfo,
+                                      HostInfo? hostInfo,
                                       CancellationToken cancellationToken = default) where T : class
         {
             throw new NotSupportedException("Serialization of AzureDevOps events should never happen.");

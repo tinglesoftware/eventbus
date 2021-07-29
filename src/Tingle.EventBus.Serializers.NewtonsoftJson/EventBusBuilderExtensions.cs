@@ -16,7 +16,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="configure"></param>
         /// <returns></returns>
         public static EventBusBuilder UseDefaultNewtonsoftJsonSerializer(this EventBusBuilder builder,
-                                                                         Action<NewtonsoftJsonSerializerOptions> configure = null)
+                                                                         Action<NewtonsoftJsonSerializerOptions>? configure = null)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
 

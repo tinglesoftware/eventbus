@@ -120,10 +120,10 @@ namespace Tingle.EventBus.Transports.Kafka
         }
 
         /// <inheritdoc/>
-        public async override Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                EventRegistration registration,
-                                                                DateTimeOffset? scheduled = null,
-                                                                CancellationToken cancellationToken = default)
+        public async override Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                 EventRegistration registration,
+                                                                 DateTimeOffset? scheduled = null,
+                                                                 CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -142,11 +142,11 @@ namespace Tingle.EventBus.Transports.Kafka
             // prepare the message
             var message = new Message<string, byte[]>();
             message.Headers.AddIfNotNull(AttributeNames.CorrelationId, @event.CorrelationId)
-                           .AddIfNotNull(AttributeNames.ContentType, @event.ContentType.ToString())
+                           .AddIfNotNull(AttributeNames.ContentType, @event.ContentType?.ToString())
                            .AddIfNotNull(AttributeNames.RequestId, @event.RequestId)
                            .AddIfNotNull(AttributeNames.InitiatorId, @event.InitiatorId)
                            .AddIfNotNull(AttributeNames.ActivityId, Activity.Current?.Id);
-            message.Key = @event.Id;
+            message.Key = @event.Id!;
             message.Value = ms.ToArray();
 
             // send the event
@@ -159,10 +159,10 @@ namespace Tingle.EventBus.Transports.Kafka
         }
 
         /// <inheritdoc/>
-        public async override Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                       EventRegistration registration,
-                                                                       DateTimeOffset? scheduled = null,
-                                                                       CancellationToken cancellationToken = default)
+        public async override Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                        EventRegistration registration,
+                                                                        DateTimeOffset? scheduled = null,
+                                                                        CancellationToken cancellationToken = default)
         {
             // log warning when doing batch
             Logger.LogWarning("Kafka does not support batching. The events will be looped through one by one");
@@ -189,11 +189,11 @@ namespace Tingle.EventBus.Transports.Kafka
                 // prepare the message
                 var message = new Message<string, byte[]>();
                 message.Headers.AddIfNotNull(AttributeNames.CorrelationId, @event.CorrelationId)
-                               .AddIfNotNull(AttributeNames.ContentType, @event.ContentType.ToString())
+                               .AddIfNotNull(AttributeNames.ContentType, @event.ContentType?.ToString())
                                .AddIfNotNull(AttributeNames.RequestId, @event.RequestId)
                                .AddIfNotNull(AttributeNames.InitiatorId, @event.InitiatorId)
                                .AddIfNotNull(AttributeNames.ActivityId, Activity.Current?.Id);
-                message.Key = @event.Id;
+                message.Key = @event.Id!;
                 message.Value = ms.ToArray();
 
                 // send the event

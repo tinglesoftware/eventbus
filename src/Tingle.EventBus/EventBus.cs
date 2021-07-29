@@ -89,9 +89,9 @@ namespace Tingle.EventBus
         /// </param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                       DateTimeOffset? scheduled = null,
-                                                       CancellationToken cancellationToken = default)
+        public async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                        DateTimeOffset? scheduled = null,
+                                                        CancellationToken cancellationToken = default)
             where TEvent : class
         {
             if (scheduled != null && scheduled <= DateTimeOffset.UtcNow)
@@ -139,9 +139,9 @@ namespace Tingle.EventBus
         /// </param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                              DateTimeOffset? scheduled = null,
-                                                              CancellationToken cancellationToken = default)
+        public async Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                               DateTimeOffset? scheduled = null,
+                                                               CancellationToken cancellationToken = default)
             where TEvent : class
         {
             if (scheduled != null && scheduled <= DateTimeOffset.UtcNow)
@@ -303,7 +303,7 @@ namespace Tingle.EventBus
         {
             // get the transport
             var reg = GetOrCreateRegistration<TEvent>();
-            var transportType = options.RegisteredTransportNames[reg.TransportName];
+            var transportType = options.RegisteredTransportNames[reg.TransportName!];
             var transport = transports.Single(t => t.GetType() == transportType);
 
             // For events that were not configured (e.g. publish only applications),

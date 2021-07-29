@@ -19,23 +19,23 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Configuration for SQS
         /// </summary>
-        public AmazonSQSConfig SqsConfig { get; set; }
+        public AmazonSQSConfig? SqsConfig { get; set; }
 
         /// <summary>
         /// Configuration for SNS
         /// </summary>
-        public AmazonSimpleNotificationServiceConfig SnsConfig { get; set; }
+        public AmazonSimpleNotificationServiceConfig? SnsConfig { get; set; }
 
         /// <summary>
         /// A setup function for setting up settings for a topic.
         /// This is only called before creation.
         /// </summary>
-        public Action<EventRegistration, CreateTopicRequest> SetupCreateTopicRequest { get; set; }
+        public Action<EventRegistration, CreateTopicRequest>? SetupCreateTopicRequest { get; set; }
 
         /// <summary>
         /// A setup function for setting up settings for a queue.
         /// This is only called before creation.
         /// </summary>
-        public Action<EventConsumerRegistration, CreateQueueRequest> SetupCreateQueueRequest { get; set; }
+        public Action<EventConsumerRegistration, CreateQueueRequest>? SetupCreateQueueRequest { get; set; }
     }
 }

@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.DependencyInjection
             base.PostConfigure(name, options);
 
             // ensure we have a FullyQualifiedNamespace when using AzureServiceBusTransportCredentials
-            if (options.Credentials.Value is AzureServiceBusTransportCredentials asbtc && asbtc.FullyQualifiedNamespace is null)
+            if (options.Credentials!.Value is AzureServiceBusTransportCredentials asbtc && asbtc.FullyQualifiedNamespace is null)
             {
                 throw new InvalidOperationException($"'{nameof(AzureServiceBusTransportCredentials.FullyQualifiedNamespace)}' must be provided when using '{nameof(AzureServiceBusTransportCredentials)}'.");
             }
@@ -39,7 +39,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast, EntityKind.Queue);
 
                 // Event names become Topic and Queue names and they should not be longer than 260 characters
-                if (ereg.EventName.Length > 260)
+                if (ereg.EventName!.Length > 260)
                 {
                     throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
                                                        + "Azure Service Bus does not allow more than 260 characters for Topic and Queue names.");
@@ -51,7 +51,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     foreach (var creg in ereg.Consumers)
                     {
-                        if (creg.ConsumerName.Length > 50)
+                        if (creg.ConsumerName!.Length > 50)
                         {
                             throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
                                                                + "Azure Service Bus does not allow more than 50 characters for Subscription names.");

@@ -23,7 +23,7 @@ namespace Microsoft.Extensions.DependencyInjection
             base.PostConfigure(name, options);
 
             // ensure we have a FullyQualifiedNamespace when using AzureEventHubsTransportCredentials
-            if (options.Credentials.Value is AzureEventHubsTransportCredentials aehtc && aehtc.FullyQualifiedNamespace is null)
+            if (options.Credentials!.Value is AzureEventHubsTransportCredentials aehtc && aehtc.FullyQualifiedNamespace is null)
             {
                 throw new InvalidOperationException($"'{nameof(AzureEventHubsTransportCredentials.FullyQualifiedNamespace)}' must be provided when using '{nameof(AzureEventHubsTransportCredentials)}'.");
             }
@@ -65,7 +65,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast);
 
                 // Event names become Event Hub names and they should not be longer than 256 characters
-                if (ereg.EventName.Length > 256)
+                if (ereg.EventName!.Length > 256)
                 {
                     throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
                                                        + "Azure Event Hubs does not allow more than 256 characters for Event Hub names.");
@@ -74,7 +74,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 // Consumer names become Consumer Group names and they should not be longer than 256 characters
                 foreach (var creg in ereg.Consumers)
                 {
-                    if (creg.ConsumerName.Length > 256)
+                    if (creg.ConsumerName!.Length > 256)
                     {
                         throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
                                                            + "Azure Event Hubs does not allow more than 256 characters for Consumer Group names.");

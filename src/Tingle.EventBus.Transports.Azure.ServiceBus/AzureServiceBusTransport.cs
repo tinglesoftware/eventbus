@@ -29,7 +29,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         private readonly SemaphoreSlim propertiesCacheLock = new(1, 1); // only one at a time.
         private readonly ServiceBusAdministrationClient managementClient;
         private readonly ServiceBusClient serviceBusClient;
-        private NamespaceProperties properties;
+        private NamespaceProperties? properties;
 
         /// <summary>
         /// 
@@ -44,7 +44,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                         ILoggerFactory loggerFactory)
             : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            var cred = TransportOptions.Credentials.Value;
+            var cred = TransportOptions.Credentials!.Value;
             var sbcOptions = new ServiceBusClientOptions { TransportType = TransportOptions.TransportType, };
             if (cred is AzureServiceBusTransportCredentials asbtc)
             {
@@ -142,10 +142,10 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         /// <inheritdoc/>
-        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                EventRegistration registration,
-                                                                DateTimeOffset? scheduled = null,
-                                                                CancellationToken cancellationToken = default)
+        public override async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                 EventRegistration registration,
+                                                                 DateTimeOffset? scheduled = null,
+                                                                 CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
             using var ms = new MemoryStream();
@@ -158,7 +158,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             var message = new ServiceBusMessage(ms.ToArray())
             {
                 MessageId = @event.Id,
-                ContentType = @event.ContentType.ToString(),
+                ContentType = @event.ContentType?.ToString(),
             };
 
             // If CorrelationId is present, set it
@@ -206,10 +206,10 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         /// <inheritdoc/>
-        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                       EventRegistration registration,
-                                                                       DateTimeOffset? scheduled = null,
-                                                                       CancellationToken cancellationToken = default)
+        public override async Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                        EventRegistration registration,
+                                                                        DateTimeOffset? scheduled = null,
+                                                                        CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
             var messages = new List<ServiceBusMessage>();
@@ -225,7 +225,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 var message = new ServiceBusMessage(ms.ToArray())
                 {
                     MessageId = @event.Id,
-                    ContentType = @event.ContentType.ToString(),
+                    ContentType = @event.ContentType?.ToString(),
                 };
 
                 // If CorrelationId is present, set it
@@ -333,7 +333,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             {
                 if (!sendersCache.TryGetValue(reg.EventType, out var sender))
                 {
-                    var name = reg.EventName;
+                    var name = reg.EventName!;
 
                     // Create the entity.
                     if (await ShouldUseQueueAsync(reg, cancellationToken))
@@ -368,8 +368,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             try
             {
-                var topicName = ereg.EventName;
-                var subscriptionName = creg.ConsumerName;
+                var topicName = ereg.EventName!;
+                var subscriptionName = creg.ConsumerName!;
 
                 var key = $"{topicName}/{subscriptionName}";
                 if (!processorsCache.TryGetValue(key, out var processor))
@@ -561,7 +561,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                               correlationId: message.CorrelationId,
                                                               sequenceNumber: message.SequenceNumber,
-                                                              extras: new Dictionary<string, string>
+                                                              extras: new Dictionary<string, string?>
                                                               {
                                                                   ["EntityPath"] = entityPath,
                                                                   ["EnqueuedSequenceNumber"] = message.EnqueuedSequenceNumber.ToString(),
@@ -613,7 +613,10 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
             else if (action == PostConsumeAction.Throw)
             {
-                throw ex; // Any better way to do this?
+                if (ex is not null)
+                {
+                    throw ex; // Any better way to do this?
+                }
             }
             else if (action == PostConsumeAction.Deadletter)
             {

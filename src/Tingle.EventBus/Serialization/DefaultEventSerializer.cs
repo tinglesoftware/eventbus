@@ -77,7 +77,7 @@ namespace Tingle.EventBus.Serialization
 
         /// <inheritdoc/>
         public async Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
-                                                               ContentType contentType,
+                                                               ContentType? contentType,
                                                                CancellationToken cancellationToken = default)
             where T : class
         {

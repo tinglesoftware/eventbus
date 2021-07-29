@@ -324,7 +324,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
             using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                               correlationId: null,
-                                                              extras: new Dictionary<string, string>
+                                                              extras: new Dictionary<string, string?>
                                                               {
                                                                   ["QueueName"] = queueEntity.Name,
                                                               });

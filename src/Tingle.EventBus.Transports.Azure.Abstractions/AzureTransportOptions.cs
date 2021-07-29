@@ -12,6 +12,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Authentication credentials.
         /// This can either be a connection string or <typeparamref name="TCredenetial"/>.
         /// </summary>
-        public AnyOf<TCredenetial, string> Credentials { get; set; }
+        public AnyOf<TCredenetial, string>? Credentials { get; set; }
     }
 }

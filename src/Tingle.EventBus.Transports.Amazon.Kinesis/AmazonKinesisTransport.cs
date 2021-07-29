@@ -77,10 +77,10 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         }
 
         /// <inheritdoc/>
-        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                EventRegistration registration,
-                                                                DateTimeOffset? scheduled = null,
-                                                                CancellationToken cancellationToken = default)
+        public override async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                 EventRegistration registration,
+                                                                 DateTimeOffset? scheduled = null,
+                                                                 CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -115,10 +115,10 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         }
 
         /// <inheritdoc/>
-        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                       EventRegistration registration,
-                                                                       DateTimeOffset? scheduled = null,
-                                                                       CancellationToken cancellationToken = default)
+        public override async Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                        EventRegistration registration,
+                                                                        DateTimeOffset? scheduled = null,
+                                                                        CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)

@@ -43,7 +43,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 // Event names become Stream names and they should not be longer than 128 characters
                 // See https://docs.aws.amazon.com/kinesis/latest/APIReference/API_CreateStream.html
-                if (ereg.EventName.Length > 128)
+                if (ereg.EventName!.Length > 128)
                 {
                     throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
                                                        + "Amazon Kinesis does not allow more than 128 characters for Stream names.");
@@ -53,7 +53,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 // See https://docs.aws.amazon.com/kinesis/latest/APIReference/API_RegisterStreamConsumer.html
                 foreach (var creg in ereg.Consumers)
                 {
-                    if (creg.ConsumerName.Length > 128)
+                    if (creg.ConsumerName!.Length > 128)
                     {
                         throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
                                                            + "Amazon Kinesis does not allow more than 128 characters for Stream Consumer names.");

@@ -39,7 +39,7 @@ namespace Tingle.EventBus.Serialization
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
-                                                  ContentType contentType,
+                                                  ContentType? contentType,
                                                   CancellationToken cancellationToken = default) where T : class;
     }
 }

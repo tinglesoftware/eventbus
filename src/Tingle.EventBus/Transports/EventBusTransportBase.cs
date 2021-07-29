@@ -145,7 +145,7 @@ namespace Tingle.EventBus.Transports
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(Stream body,
-                                                                            ContentType contentType,
+                                                                            ContentType? contentType,
                                                                             EventRegistration registration,
                                                                             IServiceScope scope,
                                                                             CancellationToken cancellationToken = default)
@@ -266,7 +266,7 @@ namespace Tingle.EventBus.Transports
         protected IDisposable BeginLoggingScopeForConsume(string? id,
                                                           string? correlationId,
                                                           string? sequenceNumber = null,
-                                                          IDictionary<string, string>? extras = null)
+                                                          IDictionary<string, string?>? extras = null)
         {
             var state = new Dictionary<string, string?>();
             state.AddIfNotDefault(AttributeNames.Id, id);
@@ -297,7 +297,7 @@ namespace Tingle.EventBus.Transports
         protected IDisposable BeginLoggingScopeForConsume(string? id,
                                                           string? correlationId,
                                                           long sequenceNumber,
-                                                          IDictionary<string, string>? extras = null)
+                                                          IDictionary<string, string?>? extras = null)
         {
             return BeginLoggingScopeForConsume(id: id,
                                                correlationId: correlationId,

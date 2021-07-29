@@ -14,6 +14,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// For more details on assigning tokens,
         /// see the <see href="https://github.com/Azure/azure-sdk-for-net/blob/master/sdk/identity/Azure.Identity/README.md">offical Azure SDK identity docs.</see>
         /// </summary>
-        public TokenCredential TokenCredential { get; set; }
+        public TokenCredential? TokenCredential { get; set; }
     }
 }

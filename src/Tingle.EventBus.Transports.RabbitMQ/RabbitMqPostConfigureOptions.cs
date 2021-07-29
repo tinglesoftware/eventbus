@@ -75,7 +75,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast, EntityKind.Queue);
 
                 // Event names become Exchange names and they should not be longer than 255 characters
-                if (ereg.EventName.Length > 255)
+                if (ereg.EventName!.Length > 255)
                 {
                     throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
                                                        + "RabbitMQ does not allow more than 255 characters for Exchange names.");
@@ -84,7 +84,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 // Consumer names become Queue names and they should not be longer than 255 characters
                 foreach (var creg in ereg.Consumers)
                 {
-                    if (creg.ConsumerName.Length > 255)
+                    if (creg.ConsumerName!.Length > 255)
                     {
                         throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
                                                            + "RabbitMQ does not allow more than 255 characters for Queue names.");

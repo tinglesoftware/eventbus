@@ -15,7 +15,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Configuration for Kinesis
         /// </summary>
-        public AmazonKinesisConfig KinesisConfig { get; set; }
+        public AmazonKinesisConfig? KinesisConfig { get; set; }
 
         /// <summary>
         /// A function for selecting the partition key from an event context.
@@ -23,6 +23,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Defaults function uses <see cref="EventContext.Id"/> as the partion key.
         /// The value returned is hashed to determine the shard the event is sent to.
         /// </summary>
-        public Func<EventContext, string> PartitionKeyResolver { get; set; } = (ctx) => ctx.Id;
+        public Func<EventContext, string?> PartitionKeyResolver { get; set; } = (ctx) => ctx.Id;
     }
 }

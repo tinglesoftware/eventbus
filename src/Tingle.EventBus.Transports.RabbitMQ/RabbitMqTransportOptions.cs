@@ -39,6 +39,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// The factory for creating <see cref="IConnection"/> instances when needed.
         /// When not provided, aa factory is created from the settings available in this class.
         /// </summary>
-        public ConnectionFactory ConnectionFactory { get; set; }
+        public ConnectionFactory? ConnectionFactory { get; set; }
     }
 }

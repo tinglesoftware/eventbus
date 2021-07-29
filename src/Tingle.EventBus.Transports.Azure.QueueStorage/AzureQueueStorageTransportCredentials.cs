@@ -12,6 +12,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// A <see cref="Uri"/> referencing the queue service.
         /// This is likely to be similar to "https://{account_name}.queue.core.windows.net".
         /// </summary>
-        public Uri ServiceUrl { get; set; }
+        public Uri? ServiceUrl { get; set; }
     }
 }

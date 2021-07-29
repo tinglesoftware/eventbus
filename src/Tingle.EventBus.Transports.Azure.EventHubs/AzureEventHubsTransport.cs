@@ -125,10 +125,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         }
 
         /// <inheritdoc/>
-        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                EventRegistration registration,
-                                                                DateTimeOffset? scheduled = null,
-                                                                CancellationToken cancellationToken = default)
+        public override async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                 EventRegistration registration,
+                                                                 DateTimeOffset? scheduled = null,
+                                                                 CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled event
             if (scheduled != null)
@@ -153,7 +153,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             var data = new EventData(ms.ToArray());
             data.Properties.AddIfNotDefault(AttributeNames.Id, @event.Id)
                            .AddIfNotDefault(AttributeNames.CorrelationId, @event.CorrelationId)
-                           .AddIfNotDefault(AttributeNames.ContentType, @event.ContentType.ToString())
+                           .AddIfNotDefault(AttributeNames.ContentType, @event.ContentType?.ToString())
                            .AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
                            .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
                            .AddIfNotDefault(AttributeNames.EventName, registration.EventName)
@@ -173,10 +173,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         }
 
         /// <inheritdoc/>
-        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                       EventRegistration registration,
-                                                                       DateTimeOffset? scheduled = null,
-                                                                       CancellationToken cancellationToken = default)
+        public override async Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                        EventRegistration registration,
+                                                                        DateTimeOffset? scheduled = null,
+                                                                        CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled events
             if (scheduled != null)
@@ -204,7 +204,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                 var data = new EventData(ms.ToArray());
                 data.Properties.AddIfNotDefault(AttributeNames.Id, @event.Id)
                                .AddIfNotDefault(AttributeNames.CorrelationId, @event.CorrelationId)
-                               .AddIfNotDefault(AttributeNames.ContentType, @event.ContentType.ToString())
+                               .AddIfNotDefault(AttributeNames.ContentType, @event.ContentType?.ToString())
                                .AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
                                .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
                                .AddIfNotDefault(AttributeNames.EventName, registration.EventName)
@@ -268,7 +268,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                     // Override values that must be overriden
 
                     // Create the producer client
-                    var cred = TransportOptions.Credentials.Value;
+                    var cred = TransportOptions.Credentials!.Value;
                     producer = cred is AzureEventHubsTransportCredentials aehtc
                             ? new EventHubProducerClient(fullyQualifiedNamespace: aehtc.FullyQualifiedNamespace,
                                                          eventHubName: name,
@@ -318,7 +318,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                      */
 
                     // blobContainerUri has the format "https://{account_name}.blob.core.windows.net/{container_name}" which can be made using "{BlobServiceUri}/{container_name}".
-                    var cred_bs = TransportOptions.BlobStorageCredentials.Value;
+                    var cred_bs = TransportOptions.BlobStorageCredentials!.Value;
                     var blobContainerClient = cred_bs is AzureBlobStorageCredenetial abstc
                         ? new BlobContainerClient(blobContainerUri: new Uri($"{abstc.BlobServiceUrl}/{TransportOptions.BlobContainerName}"),
                                                   credential: abstc.TokenCredential)
@@ -342,7 +342,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
 
                     // Create the processor client
-                    var cred = TransportOptions.Credentials.Value;
+                    var cred = TransportOptions.Credentials!.Value;
                     processor = cred is AzureEventHubsTransportCredentials aehtc
                         ? new EventProcessorClient(checkpointStore: blobContainerClient,
                                                          consumerGroup: consumerGroup,
@@ -398,7 +398,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             using var log_scope = BeginLoggingScopeForConsume(id: eventId?.ToString(),
                                                               correlationId: correlationId?.ToString(),
                                                               sequenceNumber: data.SequenceNumber,
-                                                              extras: new Dictionary<string, string>
+                                                              extras: new Dictionary<string, string?>
                                                               {
                                                                   [AttributeNames.EventName] = eventName?.ToString(),
                                                                   [AttributeNames.EventType] = eventType?.ToString(),

@@ -111,10 +111,10 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         }
 
         /// <inheritdoc/>
-        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                EventRegistration registration,
-                                                                DateTimeOffset? scheduled = null,
-                                                                CancellationToken cancellationToken = default)
+        public override async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                 EventRegistration registration,
+                                                                 DateTimeOffset? scheduled = null,
+                                                                 CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -134,7 +134,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             var topicArn = await GetTopicArnAsync(registration, cancellationToken);
             var message = Encoding.UTF8.GetString(ms.ToArray());
             var request = new PublishRequest(topicArn: topicArn, message: message);
-            request.SetAttribute(AttributeNames.ContentType, @event.ContentType.ToString())
+            request.SetAttribute(AttributeNames.ContentType, @event.ContentType?.ToString())
                    .SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId)
                    .SetAttribute(AttributeNames.RequestId, @event.RequestId)
                    .SetAttribute(AttributeNames.InitiatorId, @event.InitiatorId)
@@ -148,10 +148,10 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         }
 
         /// <inheritdoc/>
-        public override async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                       EventRegistration registration,
-                                                                       DateTimeOffset? scheduled = null,
-                                                                       CancellationToken cancellationToken = default)
+        public override async Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                        EventRegistration registration,
+                                                                        DateTimeOffset? scheduled = null,
+                                                                        CancellationToken cancellationToken = default)
         {
             // log warning when doing batch
             Logger.LogWarning("Amazon SNS does not support batching. The events will be looped through one by one");
@@ -179,7 +179,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 var topicArn = await GetTopicArnAsync(registration, cancellationToken);
                 var message = Encoding.UTF8.GetString(ms.ToArray());
                 var request = new PublishRequest(topicArn: topicArn, message: message);
-                request.SetAttribute(AttributeNames.ContentType, @event.ContentType.ToString())
+                request.SetAttribute(AttributeNames.ContentType, @event.ContentType?.ToString())
                        .SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId)
                        .SetAttribute(AttributeNames.RequestId, @event.RequestId)
                        .SetAttribute(AttributeNames.InitiatorId, @event.InitiatorId)
@@ -222,7 +222,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 if (!topicArnsCache.TryGetValue(reg.EventType, out var topicArn))
                 {
                     // ensure topic is created, then add it's arn to the cache
-                    var name = reg.EventName;
+                    var name = reg.EventName!;
                     topicArn = await CreateTopicIfNotExistsAsync(ereg: reg, topicName: name, cancellationToken: cancellationToken);
                     topicArnsCache[reg.EventType] = topicArn;
                 }
@@ -241,8 +241,8 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
 
             try
             {
-                var topicName = ereg.EventName;
-                var queueName = creg.ConsumerName;
+                var topicName = ereg.EventName!;
+                var queueName = creg.ConsumerName!;
                 if (deadletter) queueName += TransportOptions.DeadLetterSuffix;
 
                 var key = $"{topicName}/{queueName}";
@@ -374,7 +374,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                               correlationId: correlationId,
                                                               sequenceNumber: sequenceNumber,
-                                                              extras: new Dictionary<string, string>
+                                                              extras: new Dictionary<string, string?>
                                                               {
                                                                   ["QueueUrl"] = queueUrl,
                                                                   ["ReceiptHandle"] = message.ReceiptHandle,

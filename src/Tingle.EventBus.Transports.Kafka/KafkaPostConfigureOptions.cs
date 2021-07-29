@@ -47,7 +47,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // ensure there's only one consumer per event
             var registrations = busOptions.GetRegistrations(TransportNames.Kafka);
             var multiple = registrations.FirstOrDefault(r => r.Consumers.Count > 1);
-            if (multiple != null)
+            if (multiple is not null)
             {
                 throw new InvalidOperationException($"More than one consumer registered for '{multiple.EventType.Name}' yet "
                                                    + "Kafka does not support more than one consumer per event in the same application domain.");
@@ -65,7 +65,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 // Event names become Topic names and they should not be longer than 255 characters
                 // https://www.ibm.com/support/knowledgecenter/SSMKHH_10.0.0/com.ibm.etools.mft.doc/bz91041_.html
-                if (ereg.EventName.Length > 255)
+                if (ereg.EventName!.Length > 255)
                 {
                     throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
                                                        + "Kafka does not allow more than 255 characters for Topic names.");
@@ -74,7 +74,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 // Consumer names become Consumer Group IDs and they should not be longer than 255 characters
                 foreach (var creg in ereg.Consumers)
                 {
-                    if (creg.ConsumerName.Length > 255)
+                    if (creg.ConsumerName!.Length > 255)
                     {
                         throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
                                                            + "Kafka does not allow more than 255 characters for Consumer Group IDs.");

@@ -60,24 +60,24 @@ namespace Microsoft.Extensions.DependencyInjection
         /// A setup function for setting up options for a queue.
         /// This is only called before creation.
         /// </summary>
-        public Action<EventRegistration, CreateQueueOptions> SetupQueueOptions { get; set; }
+        public Action<EventRegistration, CreateQueueOptions>? SetupQueueOptions { get; set; }
 
         /// <summary>
         /// A setup function for setting up options for a topic.
         /// This is only called before creation.
         /// </summary>
-        public Action<EventRegistration, CreateTopicOptions> SetupTopicOptions { get; set; }
+        public Action<EventRegistration, CreateTopicOptions>? SetupTopicOptions { get; set; }
 
         /// <summary>
         /// A setup function for setting up options for a subscription.
         /// This is only called before creation.
         /// </summary>
-        public Action<EventConsumerRegistration, CreateSubscriptionOptions> SetupSubscriptionOptions { get; set; }
+        public Action<EventConsumerRegistration, CreateSubscriptionOptions>? SetupSubscriptionOptions { get; set; }
 
         /// <summary>
         /// A function to create the processor options instead of using the default options.
         /// Some options set may still be overriding for proper operation of the the transport and the bus.
         /// </summary>
-        public Action<EventRegistration, EventConsumerRegistration, ServiceBusProcessorOptions> SetupProcessorOptions { get; set; }
+        public Action<EventRegistration, EventConsumerRegistration, ServiceBusProcessorOptions>? SetupProcessorOptions { get; set; }
     }
 }

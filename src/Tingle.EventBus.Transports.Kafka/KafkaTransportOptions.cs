@@ -19,18 +19,18 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// The initial list of brokers indicated as <c>host</c> or <c>host:port</c>
         /// </summary>
-        public List<string> BootstrapServers { get; set; }
+        public List<string>? BootstrapServers { get; set; }
 
         /// <summary>
         /// Configuration for Admin Client
         /// </summary>
-        public AdminClientConfig AdminConfig { get; set; }
+        public AdminClientConfig? AdminConfig { get; set; }
 
         /// <summary>
         /// A setup function for setting up specifications for a topic.
         /// This is only called before creation.
         /// </summary>
-        public Action<EventRegistration, TopicSpecification> SetupTopicSpecification { get; set; }
+        public Action<EventRegistration, TopicSpecification>? SetupTopicSpecification { get; set; }
 
         /// <summary>
         /// The number of events consumed after which to checkpoint.

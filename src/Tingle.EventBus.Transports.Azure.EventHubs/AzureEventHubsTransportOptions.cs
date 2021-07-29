@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// which allows the events to be processed from a certain point.
         /// It is also used to create a lease per partition hence preventing duplicate events.
         /// </summary>
-        public AnyOf<AzureBlobStorageCredenetial, string> BlobStorageCredentials { get; set; }
+        public AnyOf<AzureBlobStorageCredenetial, string>? BlobStorageCredentials { get; set; }
 
         /// <summary>
         /// The name of the blob container used by the EventHubs processor.
@@ -52,12 +52,12 @@ namespace Microsoft.Extensions.DependencyInjection
         /// A function to create the producer options instead of using the default options.
         /// Some options set may still be overriding for proper operation of the the transport and the bus.
         /// </summary>
-        public Action<EventRegistration, EventHubProducerClientOptions> SetupProducerClientOptions { get; set; }
+        public Action<EventRegistration, EventHubProducerClientOptions>? SetupProducerClientOptions { get; set; }
 
         /// <summary>
         /// A function to create the processor options instead of using the default options.
         /// Some options set may still be overriding for proper operation of the the transport and the bus.
         /// </summary>
-        public Action<EventRegistration, EventConsumerRegistration, EventProcessorClientOptions> SetupProcessorClientOptions { get; set; }
+        public Action<EventRegistration, EventConsumerRegistration, EventProcessorClientOptions>? SetupProcessorClientOptions { get; set; }
     }
 }

@@ -27,9 +27,9 @@ namespace CustomSerializer
         protected override IList<string> SupportedMediaTypes => JsonContentTypes;
 
         /// <inheritdoc/>
-        public override Task<MessageEnvelope<T>?> Deserialize2Async<T>(Stream stream,
-                                                                       ContentType? contentType,
-                                                                       CancellationToken cancellationToken = default) where T : class
+        protected override Task<MessageEnvelope<T>?> Deserialize2Async<T>(Stream stream,
+                                                                          ContentType? contentType,
+                                                                          CancellationToken cancellationToken = default) where T : class
         {
             using var sr = new StreamReader(stream);
             using var jtr = new JsonTextReader(sr);
@@ -54,9 +54,9 @@ namespace CustomSerializer
         }
 
         /// <inheritdoc/>
-        public override Task SerializeAsync(Stream stream,
-                                            MessageEnvelope envelope,
-                                            CancellationToken cancellationToken = default)
+        protected override Task SerializeAsync<T>(Stream stream,
+                                                  MessageEnvelope<T> envelope,
+                                                  CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("Serialization of AzureDevOps events should never happen.");
         }

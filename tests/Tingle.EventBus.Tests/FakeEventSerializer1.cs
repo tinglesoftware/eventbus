@@ -24,21 +24,5 @@ namespace Tingle.EventBus.Tests
         {
             throw new NotImplementedException();
         }
-
-        /// <inheritdoc/>
-        public Task<MessageEnvelope<T>?> Deserialize2Async<T>(Stream stream,
-                                                              ContentType? contentType,
-                                                              CancellationToken cancellationToken = default) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public Task SerializeAsync(Stream stream,
-                                   MessageEnvelope envelope,
-                                   CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

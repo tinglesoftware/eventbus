@@ -39,33 +39,5 @@ namespace Tingle.EventBus.Serialization
         Task<EventContext<T>?> DeserializeAsync<T>(Stream stream,
                                                    ContentType? contentType,
                                                    CancellationToken cancellationToken = default) where T : class;
-
-        /// <summary>
-        /// Serialize an event into a stream of bytes.
-        /// </summary>
-        /// <param name="stream">
-        /// The stream to serialize to.
-        /// (It must be writeable, i.e. <see cref="Stream.CanWrite"/> must be true).
-        /// </param>
-        /// <param name="envelope">The envelope to be serialized.</param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        Task SerializeAsync(Stream stream,
-                            MessageEnvelope envelope,
-                            CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Deserialize an event from a stream of bytes.
-        /// </summary>
-        /// <param name="stream">
-        /// The <see cref="Stream"/> containing the raw data.
-        /// (It must be readable, i.e. <see cref="Stream.CanRead"/> must be true).
-        /// </param>
-        /// <param name="contentType">The type of content contained in the <paramref name="stream"/>.</param>
-        /// <returns></returns>
-        /// <param name="cancellationToken"></param>
-        Task<MessageEnvelope<T>?> Deserialize2Async<T>(Stream stream,
-                                                       ContentType? contentType,
-                                                       CancellationToken cancellationToken = default) where T : class;
     }
 }

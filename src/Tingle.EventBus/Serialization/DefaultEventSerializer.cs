@@ -31,9 +31,9 @@ namespace Tingle.EventBus.Serialization
         protected override IList<string> SupportedMediaTypes => JsonContentTypes;
 
         /// <inheritdoc/>
-        public override async Task<MessageEnvelope<T>?> Deserialize2Async<T>(Stream stream,
-                                                                             ContentType? contentType,
-                                                                             CancellationToken cancellationToken = default) where T : class
+        protected override async Task<MessageEnvelope<T>?> Deserialize2Async<T>(Stream stream,
+                                                                                ContentType? contentType,
+                                                                                CancellationToken cancellationToken = default) where T : class
         {
             var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;
             return await JsonSerializer.DeserializeAsync<MessageEnvelope<T>>(utf8Json: stream,
@@ -42,12 +42,13 @@ namespace Tingle.EventBus.Serialization
         }
 
         /// <inheritdoc/>
-        public override async Task SerializeAsync(Stream stream, MessageEnvelope envelope, CancellationToken cancellationToken = default)
+        protected override async Task SerializeAsync<T>(Stream stream,
+                                                        MessageEnvelope<T> envelope,
+                                                        CancellationToken cancellationToken = default)
         {
             var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;
             await JsonSerializer.SerializeAsync(utf8Json: stream,
                                                 value: envelope,
-                                                inputType: envelope.GetType(), // without this, the event property does not get serialized
                                                 options: serializerOptions,
                                                 cancellationToken: cancellationToken);
         }

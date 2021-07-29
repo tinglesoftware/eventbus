@@ -117,10 +117,10 @@ namespace Tingle.EventBus.Transports.InMemory
         }
 
         /// <inheritdoc/>
-        public override async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                EventRegistration registration,
-                                                                DateTimeOffset? scheduled = null,
-                                                                CancellationToken cancellationToken = default)
+        public override async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                 EventRegistration registration,
+                                                                 DateTimeOffset? scheduled = null,
+                                                                 CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -139,7 +139,7 @@ namespace Tingle.EventBus.Transports.InMemory
             var message = new InMemoryQueueMessage(ms.ToArray())
             {
                 MessageId = @event.Id,
-                ContentType = @event.ContentType.ToString(),
+                ContentType = @event.ContentType?.ToString(),
                 CorrelationId = @event.CorrelationId,
             };
 
@@ -174,7 +174,7 @@ namespace Tingle.EventBus.Transports.InMemory
         }
 
         /// <inheritdoc/>
-        public async override Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+        public async override Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
                                                                        EventRegistration registration,
                                                                        DateTimeOffset? scheduled = null,
                                                                        CancellationToken cancellationToken = default)
@@ -201,7 +201,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 {
                     MessageId = @event.Id,
                     CorrelationId = @event.CorrelationId,
-                    ContentType = @event.ContentType.ToString(),
+                    ContentType = @event.ContentType?.ToString(),
                 };
 
                 // Add custom properties
@@ -262,7 +262,7 @@ namespace Tingle.EventBus.Transports.InMemory
             {
                 if (!queuesCache.TryGetValue((reg.EventType, deadletter), out var queue))
                 {
-                    var name = reg.EventName;
+                    var name = reg.EventName!;
                     if (deadletter) name += TransportOptions.DeadLetterSuffix;
 
                     queue = new InMemoryQueueEntity(name: name, TransportOptions.DeliveryDelay);
@@ -337,7 +337,7 @@ namespace Tingle.EventBus.Transports.InMemory
             activity?.AddTag(ActivityTagNames.MessagingDestination, queueEntity.Name);
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
 
-            EventContext<TEvent> context = null;
+            EventContext<TEvent>? context = null;
             Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueEntity.Name);
             using var ms = new MemoryStream(message.Body.ToArray());
             var contentType = new ContentType(message.ContentType);

@@ -72,17 +72,17 @@ namespace Tingle.EventBus.Transports
                                                     CancellationToken cancellationToken = default);
 
         /// <inheritdoc/>
-        public abstract Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                          EventRegistration registration,
-                                                          DateTimeOffset? scheduled = null,
-                                                          CancellationToken cancellationToken = default)
+        public abstract Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                           EventRegistration registration,
+                                                           DateTimeOffset? scheduled = null,
+                                                           CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <inheritdoc/>
-        public abstract Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                 EventRegistration registration,
-                                                                 DateTimeOffset? scheduled = null,
-                                                                 CancellationToken cancellationToken = default)
+        public abstract Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                  EventRegistration registration,
+                                                                  DateTimeOffset? scheduled = null,
+                                                                  CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <inheritdoc/>
@@ -152,7 +152,7 @@ namespace Tingle.EventBus.Transports
             where TEvent : class
         {
             // Get the serializer
-            var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
+            var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType!);
 
             // Deserialize the content into a context
             return await serializer.DeserializeAsync<TEvent>(body, contentType, cancellationToken);
@@ -179,7 +179,7 @@ namespace Tingle.EventBus.Transports
             where TEvent : class
         {
             // Get the serializer
-            var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType);
+            var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType!);
 
             // Serialize
             await serializer.SerializeAsync(body, @event, BusOptions.HostInfo, cancellationToken);
@@ -263,12 +263,12 @@ namespace Tingle.EventBus.Transports
         /// <param name="sequenceNumber"></param>
         /// <param name="extras">The extras to put in the scope. (Optional)</param>
         /// <returns>A disposable object that ends the logical operation scope on dispose.</returns>
-        protected IDisposable BeginLoggingScopeForConsume(string id,
-                                                          string correlationId,
-                                                          string sequenceNumber = null,
-                                                          IDictionary<string, string> extras = null)
+        protected IDisposable BeginLoggingScopeForConsume(string? id,
+                                                          string? correlationId,
+                                                          string? sequenceNumber = null,
+                                                          IDictionary<string, string>? extras = null)
         {
-            var state = new Dictionary<string, string>();
+            var state = new Dictionary<string, string?>();
             state.AddIfNotDefault(AttributeNames.Id, id);
             state.AddIfNotDefault(AttributeNames.CorrelationId, correlationId);
             state.AddIfNotDefault(AttributeNames.SequenceNumber, sequenceNumber);
@@ -294,10 +294,10 @@ namespace Tingle.EventBus.Transports
         /// <param name="sequenceNumber"></param>
         /// <param name="extras">The extras to put in the scope. (Optional)</param>
         /// <returns>A disposable object that ends the logical operation scope on dispose.</returns>
-        protected IDisposable BeginLoggingScopeForConsume(string id,
-                                                          string correlationId,
+        protected IDisposable BeginLoggingScopeForConsume(string? id,
+                                                          string? correlationId,
                                                           long sequenceNumber,
-                                                          IDictionary<string, string> extras = null)
+                                                          IDictionary<string, string>? extras = null)
         {
             return BeginLoggingScopeForConsume(id: id,
                                                correlationId: correlationId,

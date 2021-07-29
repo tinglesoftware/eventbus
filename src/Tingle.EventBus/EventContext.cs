@@ -21,22 +21,22 @@ namespace Tingle.EventBus
         /// <summary>
         /// The unique identifier of the event.
         /// </summary>
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// The unique identifier of the request accosiated with the event.
         /// </summary>
-        public string RequestId { get; set; }
+        public string? RequestId { get; set; }
 
         /// <summary>
         /// A value shared between related events.
         /// </summary>
-        public string CorrelationId { get; set; }
+        public string? CorrelationId { get; set; }
 
         /// <summary>
         /// The unique identifier of the initiator of the event.
         /// </summary>
-        public string InitiatorId { get; set; }
+        public string? InitiatorId { get; set; }
 
         /// <summary>
         /// The specific time at which the event expires.
@@ -52,7 +52,7 @@ namespace Tingle.EventBus
         /// The headers published alongside the event.
         /// The keys are case insensitive.
         /// </summary>
-        public IDictionary<string, object> Headers { get; set; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        public IDictionary<string, object?> Headers { get; set; } = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// The content type used to serialize and deserialize the event to/from a stream of bytes.
@@ -62,7 +62,7 @@ namespace Tingle.EventBus
         /// content type to use depending on its implementation.
         /// For the default implementation, see <see cref="Serialization.DefaultEventSerializer"/>.
         /// </summary>
-        public ContentType ContentType { get; set; }
+        public ContentType? ContentType { get; set; }
 
         /// <summary>
         /// Gets or sets a key/value collection that can be used to share data within the scope of this context.
@@ -70,7 +70,7 @@ namespace Tingle.EventBus
         /// <remarks>
         /// This information should not be passed on to serialization.
         /// </remarks>
-        public IDictionary<string, object> Items { get; set; } = new Dictionary<string, object>();
+        public IDictionary<string, object?> Items { get; set; } = new Dictionary<string, object?>();
 
         /// <summary>
         /// The bus in which this context exists.
@@ -78,7 +78,7 @@ namespace Tingle.EventBus
         internal EventBus Bus { get; }
 
         /// <inheritdoc/>
-        public EventContext<TEvent> CreateEventContext<TEvent>(TEvent @event, string correlationId = null)
+        public EventContext<TEvent> CreateEventContext<TEvent>(TEvent @event, string? correlationId = null)
         {
             return new EventContext<TEvent>(Bus)
             {
@@ -88,27 +88,27 @@ namespace Tingle.EventBus
         }
 
         /// <inheritdoc/>
-        public Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                 DateTimeOffset? scheduled = null,
-                                                 CancellationToken cancellationToken = default)
+        public Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                  DateTimeOffset? scheduled = null,
+                                                  CancellationToken cancellationToken = default)
             where TEvent : class
         {
             return Bus.PublishAsync(@event: @event, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>
-        public Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                        DateTimeOffset? scheduled = null,
-                                                        CancellationToken cancellationToken = default)
+        public Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                         DateTimeOffset? scheduled = null,
+                                                         CancellationToken cancellationToken = default)
             where TEvent : class
         {
             return Bus.PublishAsync(events: events, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>
-        public Task<string> PublishAsync<TEvent>(TEvent @event,
-                                                 DateTimeOffset? scheduled = null,
-                                                 CancellationToken cancellationToken = default)
+        public Task<string?> PublishAsync<TEvent>(TEvent @event,
+                                                  DateTimeOffset? scheduled = null,
+                                                  CancellationToken cancellationToken = default)
             where TEvent : class
         {
             var context = CreateEventContext(@event);
@@ -116,9 +116,9 @@ namespace Tingle.EventBus
         }
 
         /// <inheritdoc/>
-        public Task<IList<string>> PublishAsync<TEvent>(IList<TEvent> events,
-                                                        DateTimeOffset? scheduled = null,
-                                                        CancellationToken cancellationToken = default)
+        public Task<IList<string>?> PublishAsync<TEvent>(IList<TEvent> events,
+                                                         DateTimeOffset? scheduled = null,
+                                                         CancellationToken cancellationToken = default)
             where TEvent : class
         {
             var contexts = events.Select(e => CreateEventContext(e)).ToList();
@@ -150,6 +150,6 @@ namespace Tingle.EventBus
         /// <summary>
         /// The event published or to be published.
         /// </summary>
-        public T Event { get; set; }
+        public T? Event { get; set; }
     }
 }

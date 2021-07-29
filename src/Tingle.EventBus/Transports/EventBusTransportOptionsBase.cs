@@ -55,7 +55,7 @@ namespace Tingle.EventBus.Transports
         /// This value overrides the default value set on the bus via <see cref="EventBusOptions.DefaultConsumerRetryPolicy"/>.
         /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.RetryPolicy"/> option.
         /// </summary>
-        public AsyncRetryPolicy DefaultConsumerRetryPolicy { get; set; }
+        public AsyncRetryPolicy? DefaultConsumerRetryPolicy { get; set; }
 
         /// <summary>
         /// Optional default behaviour for errors encountered in a consumer but are not handled.

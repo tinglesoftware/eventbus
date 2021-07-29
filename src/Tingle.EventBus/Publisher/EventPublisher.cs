@@ -16,32 +16,32 @@ namespace Tingle.EventBus
         }
 
         /// <inheritdoc/>
-        public EventContext<TEvent> CreateEventContext<TEvent>(TEvent @event, string correlationId = null)
+        public EventContext<TEvent> CreateEventContext<TEvent>(TEvent @event, string? correlationId = null)
         {
             return new EventContext<TEvent>(bus) { Event = @event, };
         }
 
         /// <inheritdoc/>
-        public async Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                       DateTimeOffset? scheduled = null,
-                                                       CancellationToken cancellationToken = default)
+        public async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                        DateTimeOffset? scheduled = null,
+                                                        CancellationToken cancellationToken = default)
             where TEvent : class
         {
             return await bus.PublishAsync(@event, scheduled, cancellationToken);
         }
 
         /// <inheritdoc/>
-        public async Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                              DateTimeOffset? scheduled = null,
-                                                              CancellationToken cancellationToken = default) where TEvent : class
+        public async Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                               DateTimeOffset? scheduled = null,
+                                                               CancellationToken cancellationToken = default) where TEvent : class
         {
             return await bus.PublishAsync(events: events, scheduled: scheduled, cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>
-        public async Task<string> PublishAsync<TEvent>(TEvent @event,
-                                                       DateTimeOffset? scheduled = null,
-                                                       CancellationToken cancellationToken = default)
+        public async Task<string?> PublishAsync<TEvent>(TEvent @event,
+                                                        DateTimeOffset? scheduled = null,
+                                                        CancellationToken cancellationToken = default)
             where TEvent : class
         {
             var context = CreateEventContext(@event);
@@ -49,9 +49,9 @@ namespace Tingle.EventBus
         }
 
         /// <inheritdoc/>
-        public async Task<IList<string>> PublishAsync<TEvent>(IList<TEvent> events,
-                                                              DateTimeOffset? scheduled = null,
-                                                              CancellationToken cancellationToken = default) where TEvent : class
+        public async Task<IList<string>?> PublishAsync<TEvent>(IList<TEvent> events,
+                                                               DateTimeOffset? scheduled = null,
+                                                               CancellationToken cancellationToken = default) where TEvent : class
         {
             var contexts = events.Select(e => CreateEventContext(e)).ToList();
             return await PublishAsync(events: contexts, scheduled: scheduled, cancellationToken: cancellationToken);

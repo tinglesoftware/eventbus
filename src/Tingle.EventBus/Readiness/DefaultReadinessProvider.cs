@@ -67,7 +67,7 @@ namespace Tingle.EventBus.Readiness
             }
         }
 
-        private async Task<bool> InternalIsReadyAsync(ICollection<string> allowed, CancellationToken cancellationToken)
+        private async Task<bool> InternalIsReadyAsync(ICollection<string>? allowed, CancellationToken cancellationToken)
         {
             // If disabled, do not proceed
             if (!options.Enabled)
@@ -95,7 +95,7 @@ namespace Tingle.EventBus.Readiness
             return true;
         }
 
-        private static bool ShouldInclude(HealthCheckRegistration registration, bool excludeSelf, ICollection<string> allowed)
+        private static bool ShouldInclude(HealthCheckRegistration registration, bool excludeSelf, ICollection<string>? allowed)
         {
             if (registration is null) throw new ArgumentNullException(nameof(registration));
 

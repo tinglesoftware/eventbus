@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="services">The <see cref="IServiceCollection"/> instance to add services to.</param>
         /// <param name="setupAction">An optional action for setting up the bus.</param>
         /// <returns></returns>
-        public static IServiceCollection AddEventBus(this IServiceCollection services, Action<EventBusBuilder> setupAction = null)
+        public static IServiceCollection AddEventBus(this IServiceCollection services, Action<EventBusBuilder>? setupAction = null)
         {
             if (services == null) throw new ArgumentNullException(nameof(services));
 

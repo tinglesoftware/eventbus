@@ -17,7 +17,7 @@ namespace Tingle.EventBus
         /// <param name="event">The event to be nested.</param>
         /// <param name="correlationId">The identifier of the event from which to create a child event.</param>
         /// <returns></returns>
-        EventContext<TEvent> CreateEventContext<TEvent>(TEvent @event, string correlationId = null);
+        EventContext<TEvent> CreateEventContext<TEvent>(TEvent @event, string? correlationId = null);
 
         /// <summary>
         /// Publish an event.
@@ -30,9 +30,9 @@ namespace Tingle.EventBus
         /// </param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<string> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                          DateTimeOffset? scheduled = null,
-                                          CancellationToken cancellationToken = default)
+        Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                           DateTimeOffset? scheduled = null,
+                                           CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <summary>
@@ -46,9 +46,9 @@ namespace Tingle.EventBus
         /// </param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<IList<string>> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                 DateTimeOffset? scheduled = null,
-                                                 CancellationToken cancellationToken = default)
+        Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                  DateTimeOffset? scheduled = null,
+                                                  CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <summary>
@@ -62,9 +62,9 @@ namespace Tingle.EventBus
         /// </param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<string> PublishAsync<TEvent>(TEvent @event,
-                                          DateTimeOffset? scheduled = null,
-                                          CancellationToken cancellationToken = default)
+        Task<string?> PublishAsync<TEvent>(TEvent @event,
+                                           DateTimeOffset? scheduled = null,
+                                           CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <summary>
@@ -78,9 +78,9 @@ namespace Tingle.EventBus
         /// </param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<IList<string>> PublishAsync<TEvent>(IList<TEvent> events,
-                                                 DateTimeOffset? scheduled = null,
-                                                 CancellationToken cancellationToken = default)
+        Task<IList<string>?> PublishAsync<TEvent>(IList<TEvent> events,
+                                                  DateTimeOffset? scheduled = null,
+                                                  CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <summary>

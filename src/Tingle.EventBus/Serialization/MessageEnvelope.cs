@@ -11,27 +11,27 @@ namespace Tingle.EventBus.Serialization
         /// <summary>
         /// The unique identifier of the event.
         /// </summary>
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// The unique identifier of the request associated with the event.
         /// </summary>
-        public string RequestId { get; set; }
+        public string? RequestId { get; set; }
 
         /// <summary>
         /// A value shared between related events.
         /// </summary>
-        public string CorrelationId { get; set; }
+        public string? CorrelationId { get; set; }
 
         /// <summary>
         /// The unique identifier of the initiator of the event.
         /// </summary>
-        public string InitiatorId { get; set; }
+        public string? InitiatorId { get; set; }
 
         /// <summary>
         /// The event published or to be published.
         /// </summary>
-        public object Event { get; set; }
+        public object? Event { get; set; }
 
         /// <summary>
         /// The specific time at which the event expires.
@@ -46,11 +46,11 @@ namespace Tingle.EventBus.Serialization
         /// <summary>
         /// The headers published alongside the event.
         /// </summary>
-        public IDictionary<string, object> Headers { get; set; }
+        public IDictionary<string, object?> Headers { get; set; } = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Information about the host on which the event was generated.
         /// </summary>
-        public HostInfo Host { get; set; }
+        public HostInfo? Host { get; set; }
     }
 }

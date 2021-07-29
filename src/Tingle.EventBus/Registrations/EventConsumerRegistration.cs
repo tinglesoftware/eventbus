@@ -27,20 +27,20 @@ namespace Tingle.EventBus.Registrations
         /// <summary>
         /// The name generated for the consumer.
         /// </summary>
-        public string ConsumerName { get; set; }
+        public string? ConsumerName { get; set; }
 
         /// <summary>
         /// The type used for checking if the consumer is ready to consume events.
         /// This type must implement <see cref="IReadinessProvider"/>.
         /// </summary>
-        public Type ReadinessProviderType { get; set; }
+        public Type? ReadinessProviderType { get; set; }
 
         /// <summary>
         /// The tags to use when checking for readiness before the consumer can be asked to consume an event.
         /// This tags should match the health registrations for them to work with the default implementation
         /// of <see cref="IReadinessProvider"/>.
         /// </summary>
-        public ICollection<string> ReadinessTags { get; set; }
+        public ICollection<string>? ReadinessTags { get; set; }
 
         /// <summary>
         /// The retry policy to apply when consuming events.
@@ -57,7 +57,7 @@ namespace Tingle.EventBus.Registrations
         /// In such a case, ensure the execution timeout (sometimes called the visibility timeout
         /// or lock duration) is set to accommodate the longest possible duration of the retry policy.
         /// </remarks>
-        public AsyncRetryPolicy RetryPolicy { get; set; }
+        public AsyncRetryPolicy? RetryPolicy { get; set; }
 
         /// <summary>
         /// The behaviour for unhandled errors when consuming events via the
@@ -82,12 +82,12 @@ namespace Tingle.EventBus.Registrations
         #region Equality Overrides
 
         /// <inheritdoc/>
-        public override bool Equals(object obj) => Equals(obj as EventConsumerRegistration);
+        public override bool Equals(object? obj) => Equals(obj as EventConsumerRegistration);
 
         /// <inheritdoc/>
-        public bool Equals(EventConsumerRegistration other)
+        public bool Equals(EventConsumerRegistration? other)
         {
-            return other != null && EqualityComparer<Type>.Default.Equals(ConsumerType, other.ConsumerType);
+            return other is not null && EqualityComparer<Type>.Default.Equals(ConsumerType, other.ConsumerType);
         }
 
         /// <inheritdoc/>

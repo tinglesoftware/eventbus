@@ -7,7 +7,7 @@ namespace Tingle.EventBus.Registrations
     /// <summary>
     /// Represents a registration for an event.
     /// </summary>
-    public class EventRegistration : IEquatable<EventRegistration>
+    public class EventRegistration : IEquatable<EventRegistration?>
     {
         /// <summary>
         /// Creates an instance of <see cref="EventRegistration"/>.
@@ -26,7 +26,7 @@ namespace Tingle.EventBus.Registrations
         /// <summary>
         /// The name generated for the event.
         /// </summary>
-        public string EventName { get; set; }
+        public string? EventName { get; set; }
 
         /// <summary>
         /// The preferred type of entity to use for the event.
@@ -43,13 +43,13 @@ namespace Tingle.EventBus.Registrations
         /// <summary>
         /// The name of the transport used for the event.
         /// </summary>
-        public string TransportName { get; set; }
+        public string? TransportName { get; set; }
 
         /// <summary>
         /// The type used for serializing and deserializing events.
         /// This type must implement <see cref="IEventSerializer"/>.
         /// </summary>
-        public Type EventSerializerType { get; set; }
+        public Type? EventSerializerType { get; set; }
 
         /// <summary>
         /// The list of consumers registered for this event.
@@ -68,12 +68,12 @@ namespace Tingle.EventBus.Registrations
         #region Equality Overrides
 
         /// <inheritdoc/>
-        public override bool Equals(object obj) => Equals(obj as EventRegistration);
+        public override bool Equals(object? obj) => Equals(obj as EventRegistration);
 
         /// <inheritdoc/>
-        public bool Equals(EventRegistration other)
+        public bool Equals(EventRegistration? other)
         {
-            return other != null && EqualityComparer<Type>.Default.Equals(EventType, other.EventType);
+            return other is not null && EqualityComparer<Type>.Default.Equals(EventType, other.EventType);
         }
 
         /// <inheritdoc/>

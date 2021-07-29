@@ -20,9 +20,9 @@ namespace Tingle.EventBus.Diagnostics
         /// <param name="kind"></param>
         /// <param name="parentId"></param>
         /// <returns></returns>
-        public static Activity StartActivity(string name, ActivityKind kind = ActivityKind.Internal, string parentId = null)
+        public static Activity? StartActivity(string name, ActivityKind kind = ActivityKind.Internal, string? parentId = null)
         {
-            return parentId != null
+            return parentId is not null
                 ? ActivitySource.StartActivity(name: name, kind: kind, parentId: parentId)
                 : ActivitySource.StartActivity(name: name, kind: kind);
         }

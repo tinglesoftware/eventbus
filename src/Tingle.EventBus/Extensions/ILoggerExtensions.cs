@@ -12,37 +12,37 @@ namespace Microsoft.Extensions.Logging
     {
         #region Bus (100 series)
 
-        private static readonly Action<ILogger, TimeSpan, Exception> _delayedBusStartup
+        private static readonly Action<ILogger, TimeSpan, Exception?> _delayedBusStartup
             = LoggerMessage.Define<TimeSpan>(
                 eventId: new EventId(101, nameof(DelayedBusStartup)),
                 logLevel: LogLevel.Information,
                 formatString: "Delaying bus startup for '{StartupDelay}'.");
 
-        private static readonly Action<ILogger, Exception> _delayedBusStartupError
+        private static readonly Action<ILogger, Exception?> _delayedBusStartupError
             = LoggerMessage.Define(
                 eventId: new EventId(102, nameof(DelayedBusStartupError)),
                 logLevel: LogLevel.Error,
                 formatString: "Starting bus delayed error.");
 
-        private static readonly Action<ILogger, Exception> _startupReadinessCheck
+        private static readonly Action<ILogger, Exception?> _startupReadinessCheck
             = LoggerMessage.Define(
                 eventId: new EventId(103, nameof(StartupReadinessCheck)),
                 logLevel: LogLevel.Information,
                 formatString: "Performing readiness check before starting bus.");
 
-        private static readonly Action<ILogger, Exception> _startupReadinessCheckFailed
+        private static readonly Action<ILogger, Exception?> _startupReadinessCheckFailed
             = LoggerMessage.Define(
                 eventId: new EventId(104, nameof(StartupReadinessCheckFailed)),
                 logLevel: LogLevel.Error,
                 formatString: "Startup readiness check failed or timedout.");
 
-        private static readonly Action<ILogger, int, Exception> _startingBus
+        private static readonly Action<ILogger, int, Exception?> _startingBus
             = LoggerMessage.Define<int>(
                 eventId: new EventId(105, nameof(StartingBus)),
                 logLevel: LogLevel.Debug,
                 formatString: "Starting bus with {TransportsCount} transports.");
 
-        private static readonly Action<ILogger, Exception> _stoppingBus
+        private static readonly Action<ILogger, Exception?> _stoppingBus
             = LoggerMessage.Define(
                 eventId: new EventId(106, nameof(StoppingBus)),
                 logLevel: LogLevel.Debug,
@@ -59,13 +59,13 @@ namespace Microsoft.Extensions.Logging
 
         #region Transports (200 series)
 
-        private static readonly Action<ILogger, int, TimeSpan, Exception> _startingTransport
+        private static readonly Action<ILogger, int, TimeSpan, Exception?> _startingTransport
             = LoggerMessage.Define<int, TimeSpan>(
                 eventId: new EventId(201, nameof(StartingTransport)),
                 logLevel: LogLevel.Debug,
                 formatString: "Starting transport. Consumers: {ConsumersCount}, EmptyResultsDelay: '{EmptyResultsDelay}'");
 
-        private static readonly Action<ILogger, Exception> _stoppingTransport
+        private static readonly Action<ILogger, Exception?> _stoppingTransport
             = LoggerMessage.Define(
                 eventId: new EventId(202, nameof(StoppingTransport)),
                 logLevel: LogLevel.Debug,
@@ -80,61 +80,61 @@ namespace Microsoft.Extensions.Logging
 
         #region Events (300 series)
 
-        private static readonly Action<ILogger, string, string, Exception> _sendingEvent
-            = LoggerMessage.Define<string, string>(
+        private static readonly Action<ILogger, string?, string, Exception?> _sendingEvent
+            = LoggerMessage.Define<string?, string>(
                 eventId: new EventId(301, nameof(SendingEvent)),
                 logLevel: LogLevel.Information,
                 formatString: "Sending event '{EventId}' using '{TransportName}' transport");
 
-        private static readonly Action<ILogger, string, string, DateTimeOffset, string, TimeSpan, Exception> _sendingEventWithScheduled
-            = LoggerMessage.Define<string, string, DateTimeOffset, string, TimeSpan>(
+        private static readonly Action<ILogger, string?, string, DateTimeOffset, string, TimeSpan, Exception?> _sendingEventWithScheduled
+            = LoggerMessage.Define<string?, string, DateTimeOffset, string, TimeSpan>(
                 eventId: new EventId(301, nameof(SendingEvent)),
                 logLevel: LogLevel.Information,
                 formatString: "Sending event '{EventId}' using '{TransportName}' transport. Scheduled: {Scheduled:o}, Delay: {ReadableDelay} ({RetryDelay})");
 
-        private static readonly Action<ILogger, int, string, IList<string>, Exception> _sendingEvents
-            = LoggerMessage.Define<int, string, IList<string>>(
+        private static readonly Action<ILogger, int, string, IList<string?>, Exception?> _sendingEvents
+            = LoggerMessage.Define<int, string, IList<string?>>(
                 eventId: new EventId(302, nameof(SendingEvents)),
                 logLevel: LogLevel.Information,
                 formatString: "Sending {EventsCount} events using '{TransportName}' transport.\r\nEvents: {EventIds}");
 
-        private static readonly Action<ILogger, int, string, DateTimeOffset, string, TimeSpan, IList<string>, Exception> _sendingEventsWithScheduled
-            = LoggerMessage.Define<int, string, DateTimeOffset, string, TimeSpan, IList<string>>(
+        private static readonly Action<ILogger, int, string, DateTimeOffset, string, TimeSpan, IList<string?>, Exception?> _sendingEventsWithScheduled
+            = LoggerMessage.Define<int, string, DateTimeOffset, string, TimeSpan, IList<string?>>(
                 eventId: new EventId(302, nameof(SendingEvents)),
                 logLevel: LogLevel.Information,
                 formatString: "Sending {EventsCount} events using '{TransportName}' transport. Scheduled: {Scheduled:o}, Delay: {ReadableDelay} ({RetryDelay}).\r\nEvents: {EventIds}");
 
-        private static readonly Action<ILogger, string, string, Exception> _cancelingEvent
+        private static readonly Action<ILogger, string, string, Exception?> _cancelingEvent
             = LoggerMessage.Define<string, string>(
                 eventId: new EventId(303, nameof(CancelingEvent)),
                 logLevel: LogLevel.Information,
                 formatString: "Canceling event '{EventId}' on '{TransportName}' transport");
 
-        private static readonly Action<ILogger, int, string, IList<string>, Exception> _cancelingEvents
+        private static readonly Action<ILogger, int, string, IList<string>, Exception?> _cancelingEvents
             = LoggerMessage.Define<int, string, IList<string>>(
                 eventId: new EventId(303, nameof(CancelingEvents)),
                 logLevel: LogLevel.Information,
                 formatString: "Canceling {EventsCount} events on '{TransportName}' transport.\r\nEvents: {EventIds}");
 
-        private static readonly Action<ILogger, string, Exception> _consumeFailedTransportHandling
-            = LoggerMessage.Define<string>(
+        private static readonly Action<ILogger, string?, Exception?> _consumeFailedTransportHandling
+            = LoggerMessage.Define<string?>(
                 eventId: new EventId(304, nameof(ConsumeFailed)),
                 logLevel: LogLevel.Error,
                 formatString: "Event processing failed. Transport specific handling in play. (EventId:{EventId})");
 
-        private static readonly Action<ILogger, string, Exception> _consumeFailedDeadletter
-            = LoggerMessage.Define<string>(
+        private static readonly Action<ILogger, string?, Exception?> _consumeFailedDeadletter
+            = LoggerMessage.Define<string?>(
                 eventId: new EventId(304, nameof(ConsumeFailed)),
                 logLevel: LogLevel.Error,
                 formatString: "Event processing failed. Moving to deadletter. (EventId:{EventId})");
 
-        private static readonly Action<ILogger, string, Exception> _consumeFailedDiscard
-            = LoggerMessage.Define<string>(
+        private static readonly Action<ILogger, string?, Exception?> _consumeFailedDiscard
+            = LoggerMessage.Define<string?>(
                 eventId: new EventId(304, nameof(ConsumeFailed)),
                 logLevel: LogLevel.Error,
                 formatString: "Event processing failed. Discarding event. (EventId:{EventId})");
 
-        public static void SendingEvent(this ILogger logger, string eventId, string transportName, DateTimeOffset? scheduled = null)
+        public static void SendingEvent(this ILogger logger, string? eventId, string transportName, DateTimeOffset? scheduled = null)
         {
             if (scheduled == null)
             {
@@ -152,7 +152,7 @@ namespace Microsoft.Extensions.Logging
             SendingEvent(logger, @event.Id, transportName, scheduled);
         }
 
-        public static void SendingEvents(this ILogger logger, IList<string> eventIds, string transportName, DateTimeOffset? scheduled = null)
+        public static void SendingEvents(this ILogger logger, IList<string?> eventIds, string transportName, DateTimeOffset? scheduled = null)
         {
             if (scheduled == null)
             {
@@ -185,9 +185,9 @@ namespace Microsoft.Extensions.Logging
             _cancelingEvents(logger, eventIds.Count, transportName, eventIds, null);
         }
 
-        public static void ConsumeFailed(this ILogger logger, string eventId, UnhandledConsumerErrorBehaviour? behaviour, Exception ex)
+        public static void ConsumeFailed(this ILogger logger, string? eventId, UnhandledConsumerErrorBehaviour? behaviour, Exception ex)
         {
-            Action<ILogger, string, Exception> action = behaviour switch
+            Action<ILogger, string?, Exception> action = behaviour switch
             {
                 UnhandledConsumerErrorBehaviour.Deadletter => _consumeFailedDeadletter,
                 UnhandledConsumerErrorBehaviour.Discard => _consumeFailedDiscard,
@@ -207,19 +207,19 @@ namespace Microsoft.Extensions.Logging
 
         #region Readiness (400 series)
 
-        private static readonly Action<ILogger, TimeSpan, Exception> _readinessCheck
+        private static readonly Action<ILogger, TimeSpan, Exception?> _readinessCheck
             = LoggerMessage.Define<TimeSpan>(
                 eventId: new EventId(401, nameof(ReadinessCheck)),
                 logLevel: LogLevel.Information,
                 formatString: "Performing readiness check. Timeout: '{ReadinessTimeout}'.");
 
-        private static readonly Action<ILogger, TimeSpan, Exception> _readinessCheckTimedout
+        private static readonly Action<ILogger, TimeSpan, Exception?> _readinessCheckTimedout
             = LoggerMessage.Define<TimeSpan>(
                 eventId: new EventId(402, nameof(StartupReadinessCheckFailed)),
                 logLevel: LogLevel.Error,
                 formatString: "Startup readiness check failed or timedout after '{ReadinessTimeout}'.");
 
-        private static readonly Action<ILogger, Exception> _readinessCheckDisabled
+        private static readonly Action<ILogger, Exception?> _readinessCheckDisabled
             = LoggerMessage.Define(
                 eventId: new EventId(401, nameof(ReadinessCheckDisabled)),
                 logLevel: LogLevel.Debug,

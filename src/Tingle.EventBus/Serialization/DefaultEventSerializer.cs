@@ -32,20 +32,20 @@ namespace Tingle.EventBus.Serialization
         protected override IList<string> SupportedMediaTypes => JsonContentTypes;
 
         /// <inheritdoc/>
-        protected override async Task<MessageEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                                ContentType? contentType,
-                                                                                CancellationToken cancellationToken = default) where T : class
+        protected override async Task<EventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
+                                                                                       ContentType? contentType,
+                                                                                       CancellationToken cancellationToken = default)
         {
             var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;
-            return await JsonSerializer.DeserializeAsync<MessageEnvelope<T>>(utf8Json: stream,
+            return await JsonSerializer.DeserializeAsync<EventEnvelope<T>>(utf8Json: stream,
                                                                              options: serializerOptions,
                                                                              cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>
         protected override async Task SerializeEnvelopeAsync<T>(Stream stream,
-                                                        MessageEnvelope<T> envelope,
-                                                        CancellationToken cancellationToken = default)
+                                                                EventEnvelope<T> envelope,
+                                                                CancellationToken cancellationToken = default)
         {
             var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;
             await JsonSerializer.SerializeAsync(utf8Json: stream,

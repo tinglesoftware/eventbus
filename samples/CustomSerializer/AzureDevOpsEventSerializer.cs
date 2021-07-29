@@ -26,18 +26,18 @@ namespace CustomSerializer
         protected override IList<string> SupportedMediaTypes => JsonContentTypes;
 
         /// <inheritdoc/>
-        protected override Task<MessageEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                          ContentType? contentType,
-                                                                          CancellationToken cancellationToken = default) where T : class
+        protected override Task<EventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
+                                                                                 ContentType? contentType,
+                                                                                 CancellationToken cancellationToken = default)
         {
             using var sr = new StreamReader(stream);
             using var jtr = new JsonTextReader(sr);
             var jToken = serializer.Deserialize<JToken>(jtr);
 
-            if (jToken is null) return Task.FromResult<MessageEnvelope<T>?>(null);
+            if (jToken is null) return Task.FromResult<EventEnvelope<T>?>(null);
 
             var @event = jToken.ToObject<AzureDevOpsCodePushed>();
-            var envelope = new MessageEnvelope<T>
+            var envelope = new EventEnvelope<T>
             {
                 Id = jToken.Value<string>("id"),
                 Event = @event as T,
@@ -49,13 +49,13 @@ namespace CustomSerializer
             envelope.Headers["resourceVersion"] = jToken.Value<string>("resourceVersion");
             envelope.Headers["publisherId"] = jToken.Value<string>("publisherId");
 
-            return Task.FromResult<MessageEnvelope<T>?>(envelope);
+            return Task.FromResult<EventEnvelope<T>?>(envelope);
         }
 
         /// <inheritdoc/>
         protected override Task SerializeEnvelopeAsync<T>(Stream stream,
-                                                  MessageEnvelope<T> envelope,
-                                                  CancellationToken cancellationToken = default)
+                                                          EventEnvelope<T> envelope,
+                                                          CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("Serialization of AzureDevOps events should never happen.");
         }

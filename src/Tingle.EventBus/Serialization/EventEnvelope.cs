@@ -6,7 +6,7 @@ namespace Tingle.EventBus.Serialization
     /// <summary>
     /// An envelope of a event as represented when serialized.
     /// </summary>
-    public class MessageEnvelope
+    public class EventEnvelope
     {
         /// <summary>
         /// The unique identifier of the event.
@@ -52,7 +52,7 @@ namespace Tingle.EventBus.Serialization
     /// <summary>
     /// An envelope of a event as represented when serialized.
     /// </summary>
-    public class MessageEnvelope<T> : MessageEnvelope
+    public class EventEnvelope<T> : EventEnvelope
     {
         /// <summary>
         /// The event published or to be published.

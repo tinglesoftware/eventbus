@@ -93,7 +93,7 @@ namespace Tingle.EventBus
         /// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
         /// <param name="envelope">Envelope containing details for the event.</param>
         /// <param name="contentType">Value for <see cref="EventContext.ContentType"/></param>
-        public EventContext(IEventPublisher publisher, MessageEnvelope<T> envelope, ContentType? contentType) : base(publisher)
+        public EventContext(IEventPublisher publisher, EventEnvelope<T> envelope, ContentType? contentType) : base(publisher)
         {
             //Event = @event;
             Id = envelope.Id;

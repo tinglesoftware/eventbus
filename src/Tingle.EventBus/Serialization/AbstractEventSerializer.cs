@@ -97,7 +97,7 @@ namespace Tingle.EventBus.Serialization
 
             // Create the envelope for the event
             var hostInfo = OptionsAccessor.CurrentValue.HostInfo;
-            var envelope = new MessageEnvelope<T>
+            var envelope = new EventEnvelope<T>
             {
                 Id = context.Id,
                 RequestId = context.RequestId,
@@ -115,7 +115,7 @@ namespace Tingle.EventBus.Serialization
         }
 
         /// <summary>
-        /// Deserialize a stream of bytes to a <see cref="MessageEnvelope{T}"/>.
+        /// Deserialize a stream of bytes to a <see cref="EventEnvelope{T}"/>.
         /// </summary>
         /// <typeparam name="T">The event type to be deserialized.</typeparam>
         /// <param name="stream">
@@ -125,23 +125,23 @@ namespace Tingle.EventBus.Serialization
         /// <param name="contentType">The type of content contained in the <paramref name="stream"/>.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected abstract Task<MessageEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                                   ContentType? contentType,
-                                                                                   CancellationToken cancellationToken = default)
+        protected abstract Task<EventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
+                                                                                 ContentType? contentType,
+                                                                                 CancellationToken cancellationToken = default)
             where T : class;
 
         /// <summary>
-        /// Serialize a <see cref="MessageEnvelope{T}"/> into a stream of bytes.
+        /// Serialize a <see cref="EventEnvelope{T}"/> into a stream of bytes.
         /// </summary>
         /// <param name="stream">
         /// The stream to serialize to.
         /// (It must be writeable, i.e. <see cref="Stream.CanWrite"/> must be true).
         /// </param>
-        /// <param name="envelope">The <see cref="MessageEnvelope{T}"/> to be serialized.</param>
+        /// <param name="envelope">The <see cref="EventEnvelope{T}"/> to be serialized.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         protected abstract Task SerializeEnvelopeAsync<T>(Stream stream,
-                                                          MessageEnvelope<T> envelope,
+                                                          EventEnvelope<T> envelope,
                                                           CancellationToken cancellationToken = default)
             where T : class;
     }

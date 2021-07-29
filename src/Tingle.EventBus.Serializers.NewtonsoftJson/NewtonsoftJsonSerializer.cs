@@ -31,8 +31,8 @@ namespace Tingle.EventBus.Serializers
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
         /// <param name="logger"></param>
         public NewtonsoftJsonSerializer(EventBus bus,
-                                             IOptions<NewtonsoftJsonSerializerOptions> optionsAccessor,
-                                             ILogger<NewtonsoftJsonSerializer> logger)
+                                        IOptions<NewtonsoftJsonSerializerOptions> optionsAccessor,
+                                        ILogger<NewtonsoftJsonSerializer> logger)
         {
             this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -43,7 +43,7 @@ namespace Tingle.EventBus.Serializers
         /// <inheritdoc/>
         public Task SerializeAsync<T>(Stream stream,
                                       EventContext<T> context,
-                                      HostInfo hostInfo,
+                                      HostInfo? hostInfo,
                                       CancellationToken cancellationToken = default)
              where T : class
         {
@@ -109,7 +109,7 @@ namespace Tingle.EventBus.Serializers
             }
 
             // Get the event from the token
-            T @event = typeof(T) == typeof(JToken) ? eventToken as T : eventToken.ToObject<T>(serializer);
+            T? @event = typeof(T) == typeof(JToken) ? eventToken as T : eventToken.ToObject<T>(serializer);
 
             // Create the context with the event and popuate common properties
             var context = new EventContext<T>(bus)
@@ -125,7 +125,7 @@ namespace Tingle.EventBus.Serializers
                 ContentType = contentType,
             };
 
-            return Task.FromResult(context);
+            return Task.FromResult<EventContext<T>?>(context);
         }
     }
 }

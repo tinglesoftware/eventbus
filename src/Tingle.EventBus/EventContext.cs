@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Mime;
+using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus
 {
@@ -76,8 +77,35 @@ namespace Tingle.EventBus
     /// <typeparam name="T">The type of event carried.</typeparam>
     public class EventContext<T> : EventContext
     {
-        /// <inheritdoc/>
-        public EventContext(IEventPublisher publisher) : base(publisher) { } // TODO: make internal
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
+        /// <param name="event">Value for <see cref="Event"/>.</param>
+        public EventContext(IEventPublisher publisher, T? @event) : base(publisher)
+        {
+            Event = @event;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
+        /// <param name="envelope">Envelope containing details for the event.</param>
+        /// <param name="contentType">Value for <see cref="EventContext.ContentType"/></param>
+        public EventContext(IEventPublisher publisher, MessageEnvelope<T> envelope, ContentType? contentType) : base(publisher)
+        {
+            //Event = @event;
+            Id = envelope.Id;
+            RequestId = envelope.RequestId;
+            CorrelationId = envelope.CorrelationId;
+            InitiatorId = envelope.InitiatorId;
+            Event = envelope.Event;
+            Expires = envelope.Expires;
+            Sent = envelope.Sent;
+            Headers = envelope.Headers;
+            ContentType = contentType;
+        }
 
         /// <summary>
         /// The event published or to be published.

@@ -18,7 +18,7 @@ namespace Tingle.EventBus
         /// <inheritdoc/>
         public EventContext<TEvent> CreateEventContext<TEvent>(TEvent @event, string? correlationId = null)
         {
-            return new EventContext<TEvent>(this) { Event = @event, };
+            return new EventContext<TEvent>(this, @event);
         }
 
         /// <inheritdoc/>

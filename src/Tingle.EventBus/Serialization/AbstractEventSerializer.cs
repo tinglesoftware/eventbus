@@ -77,19 +77,7 @@ namespace Tingle.EventBus.Serialization
 
             // Create the context
             var publisher = serviceProvider.GetRequiredService<IEventPublisher>();
-            var context = new EventContext<T>(publisher)
-            {
-                Id = envelope.Id,
-                RequestId = envelope.RequestId,
-                CorrelationId = envelope.CorrelationId,
-                InitiatorId = envelope.InitiatorId,
-                Event = envelope.Event,
-                Expires = envelope.Expires,
-                Sent = envelope.Sent,
-                Headers = envelope.Headers,
-                ContentType = contentType,
-            };
-            return context;
+            return new EventContext<T>(publisher, envelope, contentType);
         }
 
         /// <inheritdoc/>

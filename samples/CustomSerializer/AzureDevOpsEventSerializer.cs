@@ -1,52 +1,43 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
-using Tingle.EventBus;
 using Tingle.EventBus.Serialization;
 
 namespace CustomSerializer
 {
-    public class AzureDevOpsEventSerializer : IEventSerializer
+    public class AzureDevOpsEventSerializer : AbstractEventSerializer
     {
-        private static readonly ContentType JsonContentType = new(MediaTypeNames.Application.Json);
-
         private readonly JsonSerializer serializer = JsonSerializer.CreateDefault();
-        private readonly EventBus bus;
 
-        public AzureDevOpsEventSerializer(EventBus bus)
-        {
-            this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
-        }
+        public AzureDevOpsEventSerializer(IServiceProvider serviceProvider,
+                                          IOptionsMonitor<EventBusOptions> optionsAccessor,
+                                          ILoggerFactory loggerFactory)
+            : base(serviceProvider, optionsAccessor, loggerFactory) { }
 
         /// <inheritdoc/>
-        public Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
-                                                         ContentType? contentType,
-                                                         CancellationToken cancellationToken = default) where T : class
+        protected override IList<string> SupportedMediaTypes => JsonContentTypes;
+
+        /// <inheritdoc/>
+        protected override Task<EventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
+                                                                                 ContentType? contentType,
+                                                                                 CancellationToken cancellationToken = default)
         {
-            if (typeof(T) != typeof(AzureDevOpsCodePushed))
-            {
-                throw new InvalidOperationException($"Only '{nameof(AzureDevOpsCodePushed)}' events are supported.");
-            }
-
-            // Assume JSON content if not specified
-            contentType ??= JsonContentType;
-
-            // Ensure the content type is supported
-            if (!contentType.MediaType.Contains("json", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException("Only JSON content is supported");
-            }
-
             using var sr = new StreamReader(stream);
             using var jtr = new JsonTextReader(sr);
             var jToken = serializer.Deserialize<JToken>(jtr);
 
-            var @event = jToken!.ToObject<AzureDevOpsCodePushed>();
-            var context = new EventContext<T>(bus)
+            if (jToken is null) return Task.FromResult<EventEnvelope<T>?>(null);
+
+            var @event = jToken.ToObject<AzureDevOpsCodePushed>();
+            var envelope = new EventEnvelope<T>
             {
                 Id = jToken.Value<string>("id"),
                 Event = @event as T,
@@ -54,18 +45,17 @@ namespace CustomSerializer
             };
 
             // you can consider moving this to extenion methods on EventContext for both get and set
-            context.Headers["eventType"] = jToken.Value<string>("eventType");
-            context.Headers["resourceVersion"] = jToken.Value<string>("resourceVersion");
-            context.Headers["publisherId"] = jToken.Value<string>("publisherId");
+            envelope.Headers["eventType"] = jToken.Value<string>("eventType");
+            envelope.Headers["resourceVersion"] = jToken.Value<string>("resourceVersion");
+            envelope.Headers["publisherId"] = jToken.Value<string>("publisherId");
 
-            return Task.FromResult(context);
+            return Task.FromResult<EventEnvelope<T>?>(envelope);
         }
 
         /// <inheritdoc/>
-        public Task SerializeAsync<T>(Stream stream,
-                                      EventContext<T> context,
-                                      HostInfo? hostInfo,
-                                      CancellationToken cancellationToken = default) where T : class
+        protected override Task SerializeEnvelopeAsync<T>(Stream stream,
+                                                          EventEnvelope<T> envelope,
+                                                          CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException("Serialization of AzureDevOps events should never happen.");
         }

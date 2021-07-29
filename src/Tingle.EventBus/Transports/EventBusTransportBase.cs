@@ -155,7 +155,15 @@ namespace Tingle.EventBus.Transports
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType!);
 
             // Deserialize the content into a context
-            return await serializer.DeserializeAsync<TEvent>(body, contentType, cancellationToken);
+            var context = await serializer.DeserializeAsync<TEvent>(body, contentType, cancellationToken);
+
+            // Ensure we are not null (throwing helps track the error)
+            if (context is null)
+            {
+                throw new InvalidOperationException($"Deserialization from '{typeof(TEvent).Name}' resulted in null which is not allowed.");
+            }
+
+            return context;
         }
 
         /// <summary>
@@ -182,7 +190,7 @@ namespace Tingle.EventBus.Transports
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType!);
 
             // Serialize
-            await serializer.SerializeAsync(body, @event, BusOptions.HostInfo, cancellationToken);
+            await serializer.SerializeAsync(body, @event, cancellationToken);
         }
 
         #endregion

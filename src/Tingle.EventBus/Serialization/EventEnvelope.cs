@@ -6,7 +6,7 @@ namespace Tingle.EventBus.Serialization
     /// <summary>
     /// An envelope of a event as represented when serialized.
     /// </summary>
-    public class MessageEnvelope
+    public class EventEnvelope
     {
         /// <summary>
         /// The unique identifier of the event.
@@ -29,11 +29,6 @@ namespace Tingle.EventBus.Serialization
         public string? InitiatorId { get; set; }
 
         /// <summary>
-        /// The event published or to be published.
-        /// </summary>
-        public object? Event { get; set; }
-
-        /// <summary>
         /// The specific time at which the event expires.
         /// </summary>
         public DateTimeOffset? Expires { get; set; }
@@ -52,5 +47,16 @@ namespace Tingle.EventBus.Serialization
         /// Information about the host on which the event was generated.
         /// </summary>
         public HostInfo? Host { get; set; }
+    }
+
+    /// <summary>
+    /// An envelope of a event as represented when serialized.
+    /// </summary>
+    public class EventEnvelope<T> : EventEnvelope
+    {
+        /// <summary>
+        /// The event published or to be published.
+        /// </summary>
+        public T? Event { get; set; }
     }
 }

@@ -20,14 +20,42 @@ This repository contains the code for the `Tingle.EventBus` libraries.
 |`Tingle.EventBus.Transports.Kafka`|[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.Transports.Kafka.svg)](https://www.nuget.org/packages/Tingle.EventBus.Transports.Kafka/)|Event bus transport based on the open source [Apache Kafka](https://kafka.apache.org/) platform.|
 |`Tingle.EventBus.Transports.RabbitMQ`|[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.Transports.RabbitMQ.svg)](https://www.nuget.org/packages/Tingle.EventBus.Transports.RabbitMQ/)|Event bus transport based on the open source [Rabbit MQ](https://www.rabbitmq.com/) broker.|
 
-## Usage
+## Documentation
 
-WIP
+A number fo the documents below are still a work in progress and would be added as they get ready.
 
-### Issues &amp; Comments
+### Getting started
+
+[Bus Concepts and Configuration](docs/Bus-Concepts-and-Configuration.md)
+
+#### Features
+
+* [Choosing a transport](docs/Transport-Selection.md)
+* [Multiple transports in one bus](docs/Multi-Transport-One-Bus.md)
+* [Retries](docs/Retries.md)
+* [Event and Consumers](docs/Events-and-Consumers.md)
+* [Observability](docs/Observability.md)
+* [Your first app](docs/Your-first-app.md)
+
+#### How to ...
+
+* [Work with IoTHub](docs/Work-with-IoTHub.md)
+* [Advanced Service Bus options](docs/Advanced-Service-Bus-options.md)
+* [Work with Feature Management](docs/Work-with-Feature-Management.md)
+* [Extend event configuration](docs/Extend-Event-Configuration.md)
+
+## Samples
+
+* [Simple Consumer](./samples/SimpleConsumer)
+* [Simple Publisher](./samples/SimplePublisher)
+* [Build a custom serializer](./samples/CustomSerializer)
+* [Consume multiple events in one consumer](./samples/MultiEventsConsumer)
+* [In memory background processing](./samples/InMemoryBackgroundProcessing)
+
+## Issues &amp; Comments
 
 Please leave all comments, bugs, requests, and issues on the Issues page. We'll respond to your request ASAP!
 
-### License
+## License
 
 The code is licensed under the [MIT](http://www.opensource.org/licenses/mit-license.php "Read more about the MIT license form") license. Refer to the [LICENSE](./LICENSE) file for more information.

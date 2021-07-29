@@ -9,7 +9,6 @@ using System.IO;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
-using Tingle.EventBus;
 using Tingle.EventBus.Serialization;
 
 namespace CustomSerializer
@@ -18,10 +17,10 @@ namespace CustomSerializer
     {
         private readonly JsonSerializer serializer = JsonSerializer.CreateDefault();
 
-        public AzureDevOpsEventSerializer(EventBus bus,
+        public AzureDevOpsEventSerializer(IServiceProvider serviceProvider,
                                           IOptionsMonitor<EventBusOptions> optionsAccessor,
                                           ILoggerFactory loggerFactory)
-            : base(bus, optionsAccessor, loggerFactory) { }
+            : base(serviceProvider, optionsAccessor, loggerFactory) { }
 
         /// <inheritdoc/>
         protected override IList<string> SupportedMediaTypes => JsonContentTypes;

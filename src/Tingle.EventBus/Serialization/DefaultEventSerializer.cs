@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Mime;
@@ -19,13 +20,13 @@ namespace Tingle.EventBus.Serialization
         /// <summary>
         /// Creates an instance of <see cref="DefaultEventSerializer"/>.
         /// </summary>
-        /// <param name="bus"></param>
+        /// <param name="serviceProvider"></param>
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
         /// <param name="loggerFactory"></param>
-        public DefaultEventSerializer(EventBus bus,
+        public DefaultEventSerializer(IServiceProvider serviceProvider,
                                       IOptionsMonitor<EventBusOptions> optionsAccessor,
                                       ILoggerFactory loggerFactory)
-            : base(bus, optionsAccessor, loggerFactory) { }
+            : base(serviceProvider, optionsAccessor, loggerFactory) { }
 
         /// <inheritdoc/>
         protected override IList<string> SupportedMediaTypes => JsonContentTypes;

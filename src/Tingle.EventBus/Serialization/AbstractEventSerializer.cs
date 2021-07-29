@@ -25,17 +25,17 @@ namespace Tingle.EventBus.Serialization
 
         private static readonly Regex trimPattern = new("(Serializer|EventSerializer)$", RegexOptions.Compiled);
 
-        private readonly EventBus bus;
+        private readonly IServiceProvider serviceProvider;
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="bus"></param>
+        /// <param name="serviceProvider"></param>
         /// <param name="optionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        protected AbstractEventSerializer(EventBus bus, IOptionsMonitor<EventBusOptions> optionsAccessor, ILoggerFactory loggerFactory)
+        protected AbstractEventSerializer(IServiceProvider serviceProvider, IOptionsMonitor<EventBusOptions> optionsAccessor, ILoggerFactory loggerFactory)
         {
-            this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             OptionsAccessor = optionsAccessor ?? throw new ArgumentNullException(nameof(optionsAccessor));
 
             // Create a well-scoped logger
@@ -76,7 +76,8 @@ namespace Tingle.EventBus.Serialization
             if (envelope is null) return null;
 
             // Create the context
-            var context = new EventContext<T>(bus)
+            var publisher = serviceProvider.GetRequiredService<IEventPublisher>();
+            var context = new EventContext<T>(publisher)
             {
                 Id = envelope.Id,
                 RequestId = envelope.RequestId,

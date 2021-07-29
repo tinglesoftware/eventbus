@@ -23,15 +23,15 @@ namespace Tingle.EventBus.Serializers
         /// <summary>
         /// Creates an instance of <see cref="NewtonsoftJsonSerializer"/>.
         /// </summary>
-        /// <param name="bus"></param>
+        /// <param name="serviceProvider"></param>
         /// <param name="serializerOptionsAccessor">The options for configuring the serializer.</param>
         /// <param name="optionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        public NewtonsoftJsonSerializer(EventBus bus,
+        public NewtonsoftJsonSerializer(IServiceProvider serviceProvider,
                                         IOptions<NewtonsoftJsonSerializerOptions> serializerOptionsAccessor,
                                         IOptionsMonitor<EventBusOptions> optionsAccessor,
                                         ILoggerFactory loggerFactory)
-            : base(bus, optionsAccessor, loggerFactory)
+            : base(serviceProvider, optionsAccessor, loggerFactory)
         {
             var settings = serializerOptionsAccessor?.Value?.SerializerSettings ?? throw new ArgumentNullException(nameof(serializerOptionsAccessor));
             serializer = JsonSerializer.Create(settings);

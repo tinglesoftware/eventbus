@@ -16,7 +16,7 @@ namespace Tingle.EventBus.Serialization
     /// <summary>
     /// Abstract implementation for an event serializer.
     /// </summary>
-    public abstract class BaseEventSerializer : IEventSerializer
+    public abstract class AbstractEventSerializer : IEventSerializer
     {
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         protected static readonly IList<string> JsonContentTypes = new[] { "application/json", "text/json", };
@@ -33,7 +33,7 @@ namespace Tingle.EventBus.Serialization
         /// <param name="bus"></param>
         /// <param name="optionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        protected BaseEventSerializer(EventBus bus, IOptionsMonitor<EventBusOptions> optionsAccessor, ILoggerFactory loggerFactory)
+        protected AbstractEventSerializer(EventBus bus, IOptionsMonitor<EventBusOptions> optionsAccessor, ILoggerFactory loggerFactory)
         {
             this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
             OptionsAccessor = optionsAccessor ?? throw new ArgumentNullException(nameof(optionsAccessor));

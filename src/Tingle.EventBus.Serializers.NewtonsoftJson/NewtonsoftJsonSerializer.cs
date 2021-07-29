@@ -16,7 +16,7 @@ namespace Tingle.EventBus.Serializers
     /// <summary>
     /// Implementation of <see cref="IEventSerializer"/> that uses <c>Newtonsoft.Json</c>.
     /// </summary>
-    public class NewtonsoftJsonSerializer : BaseEventSerializer
+    public class NewtonsoftJsonSerializer : AbstractEventSerializer
     {
         private readonly JsonSerializer serializer;
 

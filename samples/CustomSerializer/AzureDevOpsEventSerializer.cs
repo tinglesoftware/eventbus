@@ -14,7 +14,7 @@ using Tingle.EventBus.Serialization;
 
 namespace CustomSerializer
 {
-    public class AzureDevOpsEventSerializer : BaseEventSerializer
+    public class AzureDevOpsEventSerializer : AbstractEventSerializer
     {
         private readonly JsonSerializer serializer = JsonSerializer.CreateDefault();
 

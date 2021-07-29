@@ -11,21 +11,20 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Serialization
 {
-
     /// <summary>
-    /// The default implementation of <see cref="IEventSerializer"/> that uses <c>System.Text.Json</c>.
+    /// The default implementation of <see cref="IEventSerializer"/> for JSON using the <c>System.Text.Json</c> library.
     /// </summary>
-    internal class DefaultEventSerializer : AbstractEventSerializer
+    internal class DefaultJsonEventSerializer : AbstractEventSerializer
     {
         /// <summary>
-        /// Creates an instance of <see cref="DefaultEventSerializer"/>.
+        /// Creates an instance of <see cref="DefaultJsonEventSerializer"/>.
         /// </summary>
         /// <param name="serviceProvider"></param>
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
         /// <param name="loggerFactory"></param>
-        public DefaultEventSerializer(IServiceProvider serviceProvider,
-                                      IOptionsMonitor<EventBusOptions> optionsAccessor,
-                                      ILoggerFactory loggerFactory)
+        public DefaultJsonEventSerializer(IServiceProvider serviceProvider,
+                                          IOptionsMonitor<EventBusOptions> optionsAccessor,
+                                          ILoggerFactory loggerFactory)
             : base(serviceProvider, optionsAccessor, loggerFactory) { }
 
         /// <inheritdoc/>

@@ -33,7 +33,7 @@ namespace Microsoft.Extensions.DependencyInjection
             Services.AddTransient<IEventPublisher, EventPublisher>();
             Services.AddSingleton<EventBus>();
             Services.AddHostedService(p => p.GetRequiredService<EventBus>());
-            UseDefaultSerializer<DefaultEventSerializer>();
+            UseDefaultSerializer<DefaultJsonEventSerializer>();
             UseDefaultReadinessProvider<DefaultReadinessProvider>();
         }
 

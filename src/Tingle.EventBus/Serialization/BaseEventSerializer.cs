@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,19 +17,29 @@ namespace Tingle.EventBus.Serialization
     /// </summary>
     public abstract class BaseEventSerializer : IEventSerializer
     {
+        ///
+        protected static readonly IList<string> JsonContentTypes = new[] { "application/json", "text/json", };
+
+        private readonly EventBus bus;
+
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="bus"></param>
         /// <param name="optionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        protected BaseEventSerializer(IOptionsMonitor<EventBusOptions> optionsAccessor, ILoggerFactory loggerFactory)
+        protected BaseEventSerializer(EventBus bus, IOptionsMonitor<EventBusOptions> optionsAccessor, ILoggerFactory loggerFactory)
         {
+            this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
             OptionsAccessor = optionsAccessor ?? throw new ArgumentNullException(nameof(optionsAccessor));
 
             // Create a well-scoped logger
-            var categoryName = $"{LogCategoryNames.Serializers}.Default";
+            var categoryName = $"{LogCategoryNames.Serializers}.Default"; // TODO: pull from the type name and tim EventSerializer and Serializer 
             Logger = loggerFactory?.CreateLogger(categoryName) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
+
+        ///
+        protected abstract IList<string> SupportedMediaTypes { get; }
 
         ///
         protected IOptionsMonitor<EventBusOptions> OptionsAccessor { get; }
@@ -36,19 +48,52 @@ namespace Tingle.EventBus.Serialization
         protected ILogger Logger { get; }
 
         /// <inheritdoc/>
-        public abstract Task<EventContext<T>?> DeserializeAsync<T>(Stream stream,
-                                                                   ContentType? contentType,
-                                                                   CancellationToken cancellationToken = default) where T : class;
+        public async Task<EventContext<T>?> DeserializeAsync<T>(Stream stream,
+                                                                ContentType? contentType,
+                                                                CancellationToken cancellationToken = default)
+            where T : class
+        {
+            // Assume first media type if none is specified
+            contentType ??= new ContentType(SupportedMediaTypes[0]);
+
+            // Ensure the content type is supported
+            if (!SupportedMediaTypes.Contains(contentType.MediaType, StringComparer.OrdinalIgnoreCase))
+            {
+                throw new NotSupportedException($"The ContentType '{contentType}' is not supported by this serializer");
+            }
+
+            // Deserialize
+            var envelope = await Deserialize2Async<T>(stream: stream, contentType: contentType, cancellationToken: cancellationToken);
+            if (envelope is null) return null;
+
+            // Create the context with the event and popuate common properties
+            return CreateEventContext(bus, envelope, contentType);
+        }
 
         /// <inheritdoc/>
         public abstract Task<MessageEnvelope<T>?> Deserialize2Async<T>(Stream stream,
                                                                        ContentType? contentType,
-                                                                       CancellationToken cancellationToken = default);
+                                                                       CancellationToken cancellationToken = default) where T : class;
 
         /// <inheritdoc/>
-        public abstract Task SerializeAsync<T>(Stream stream,
-                                               EventContext<T> context,
-                                               CancellationToken cancellationToken = default) where T : class;
+        public async Task SerializeAsync<T>(Stream stream,
+                                            EventContext<T> context,
+                                            CancellationToken cancellationToken = default)
+             where T : class
+        {
+            // Assume first media type if none is specified
+            context.ContentType ??= new ContentType(SupportedMediaTypes[0]);
+
+            // Ensure the content type is supported
+            if (!SupportedMediaTypes.Contains(context.ContentType.MediaType, StringComparer.OrdinalIgnoreCase))
+            {
+                throw new NotSupportedException($"The ContentType '{context.ContentType}' is not supported by this serializer");
+            }
+
+            // Serialize
+            var envelope = CreateMessageEnvelope(context);
+            await SerializeAsync(stream: stream, envelope: envelope, cancellationToken: cancellationToken);
+        }
 
         /// <inheritdoc/>
         public abstract Task SerializeAsync(Stream stream, MessageEnvelope envelope, CancellationToken cancellationToken = default);

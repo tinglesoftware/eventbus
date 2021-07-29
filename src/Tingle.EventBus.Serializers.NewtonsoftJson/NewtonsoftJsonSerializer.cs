@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Mime;
 using System.Text;
@@ -17,9 +18,6 @@ namespace Tingle.EventBus.Serializers
     /// </summary>
     public class NewtonsoftJsonSerializer : BaseEventSerializer
     {
-        private static readonly ContentType JsonContentType = new(MediaTypeNames.Application.Json);
-
-        private readonly EventBus bus;
         private readonly JsonSerializer serializer;
 
         /// <summary>
@@ -33,58 +31,17 @@ namespace Tingle.EventBus.Serializers
                                         IOptions<NewtonsoftJsonSerializerOptions> serializerOptionsAccessor,
                                         IOptionsMonitor<EventBusOptions> optionsAccessor,
                                         ILoggerFactory loggerFactory)
-            : base(optionsAccessor, loggerFactory)
+            : base(bus, optionsAccessor, loggerFactory)
         {
-            this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
             var settings = serializerOptionsAccessor?.Value?.SerializerSettings ?? throw new ArgumentNullException(nameof(serializerOptionsAccessor));
             serializer = JsonSerializer.Create(settings);
         }
 
         /// <inheritdoc/>
-        public override async Task<EventContext<T>?> DeserializeAsync<T>(Stream stream,
-                                                                         ContentType? contentType,
-                                                                         CancellationToken cancellationToken = default)
-            where T : class
-        {
-            // Assume JSON content if not specified
-            contentType ??= JsonContentType;
-
-            // Ensure the content type is supported
-            if (!string.Equals(contentType.MediaType, JsonContentType.MediaType))
-            {
-                throw new NotSupportedException($"The ContentType '{contentType}' is not supported by this serializer");
-            }
-
-            // Deserialize
-            var envelope = await Deserialize2Async<T>(stream: stream, contentType: contentType, cancellationToken: cancellationToken);
-            if (envelope is null) return null;
-
-            // Create the context with the event and popuate common properties
-            return CreateEventContext(bus, envelope, contentType);
-        }
+        protected override IList<string> SupportedMediaTypes => JsonContentTypes;
 
         /// <inheritdoc/>
-        public override async Task SerializeAsync<T>(Stream stream,
-                                                     EventContext<T> context,
-                                                     CancellationToken cancellationToken = default)
-             where T : class
-        {
-            // Assume JSON content if not specified
-            context.ContentType ??= JsonContentType;
-
-            // Ensure the content type is supported
-            if (!string.Equals(context.ContentType.MediaType, JsonContentType.MediaType))
-            {
-                throw new NotSupportedException($"The ContentType '{context.ContentType}' is not supported by this serializer");
-            }
-
-            // Serialize
-            var envelope = CreateMessageEnvelope(context);
-            await SerializeAsync(stream: stream, envelope: envelope, cancellationToken: cancellationToken);
-        }
-
-        /// <inheritdoc/>
-        public override Task<MessageEnvelope<T>?> Deserialize2Async<T>(Stream stream, ContentType? contentType, CancellationToken cancellationToken = default)
+        public override Task<MessageEnvelope<T>?> Deserialize2Async<T>(Stream stream, ContentType? contentType, CancellationToken cancellationToken = default) where T : class
         {
             // get the encoding and always default to UTF-8
             var encoding = Encoding.GetEncoding(contentType?.CharSet ?? Encoding.UTF8.BodyName);

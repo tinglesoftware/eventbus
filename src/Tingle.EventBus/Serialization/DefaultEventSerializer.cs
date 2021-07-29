@@ -76,9 +76,9 @@ namespace Tingle.EventBus.Serialization
         }
 
         /// <inheritdoc/>
-        public async Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
-                                                               ContentType? contentType,
-                                                               CancellationToken cancellationToken = default)
+        public async Task<EventContext<T>?> DeserializeAsync<T>(Stream stream,
+                                                                ContentType? contentType,
+                                                                CancellationToken cancellationToken = default)
             where T : class
         {
             // Assume JSON content if not specified
@@ -95,8 +95,10 @@ namespace Tingle.EventBus.Serialization
                                                                                   options: serializerOptions,
                                                                                   cancellationToken: cancellationToken);
 
+            if (envelope is null) return null;
+
             // Ensure we have a JsonElement for the event
-            if (envelope!.Event is not JsonElement eventToken || eventToken.ValueKind == JsonValueKind.Null)
+            if (envelope.Event is not JsonElement eventToken || eventToken.ValueKind == JsonValueKind.Null)
             {
                 logger.LogWarning("The Event node is not a JsonElement or it is null");
                 eventToken = new JsonElement();

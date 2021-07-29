@@ -9,9 +9,9 @@ namespace Tingle.EventBus.Tests
 {
     internal class FakeEventSerializer1 : IEventSerializer
     {
-        public Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
-                                                         ContentType? contentType,
-                                                         CancellationToken cancellationToken = default) where T : class
+        public Task<EventContext<T>?> DeserializeAsync<T>(Stream stream,
+                                                          ContentType? contentType,
+                                                          CancellationToken cancellationToken = default) where T : class
         {
             throw new NotImplementedException();
         }

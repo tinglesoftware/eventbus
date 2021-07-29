@@ -79,9 +79,9 @@ namespace Tingle.EventBus.Serializers
         }
 
         /// <inheritdoc/>
-        public Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
-                                                         ContentType? contentType,
-                                                         CancellationToken cancellationToken = default)
+        public Task<EventContext<T>?> DeserializeAsync<T>(Stream stream,
+                                                          ContentType? contentType,
+                                                          CancellationToken cancellationToken = default)
             where T : class
         {
             // Assume JSON content if not specified
@@ -101,8 +101,10 @@ namespace Tingle.EventBus.Serializers
             using var jr = new JsonTextReader(sr);
             var envelope = serializer.Deserialize<MessageEnvelope>(jr);
 
+            if (envelope is null) return Task.FromResult<EventContext<T>?>(null);
+
             // Ensure we have a JToken for the event
-            if (envelope!.Event is not JToken eventToken || eventToken.Type == JTokenType.Null)
+            if (envelope.Event is not JToken eventToken || eventToken.Type == JTokenType.Null)
             {
                 logger.LogWarning("The Event node is not a JToken or it is null");
                 eventToken = typeof(IEnumerable).IsAssignableFrom(typeof(T)) ? new JArray() : (JToken)new JObject();
@@ -125,7 +127,7 @@ namespace Tingle.EventBus.Serializers
                 ContentType = contentType,
             };
 
-            return Task.FromResult(context);
+            return Task.FromResult<EventContext<T>?>(context);
         }
     }
 }

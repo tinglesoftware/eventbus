@@ -23,9 +23,9 @@ namespace CustomSerializer
         }
 
         /// <inheritdoc/>
-        public Task<EventContext<T>> DeserializeAsync<T>(Stream stream,
-                                                         ContentType? contentType,
-                                                         CancellationToken cancellationToken = default) where T : class
+        public Task<EventContext<T>?> DeserializeAsync<T>(Stream stream,
+                                                          ContentType? contentType,
+                                                          CancellationToken cancellationToken = default) where T : class
         {
             if (typeof(T) != typeof(AzureDevOpsCodePushed))
             {
@@ -45,7 +45,9 @@ namespace CustomSerializer
             using var jtr = new JsonTextReader(sr);
             var jToken = serializer.Deserialize<JToken>(jtr);
 
-            var @event = jToken!.ToObject<AzureDevOpsCodePushed>();
+            if (jToken is null) return Task.FromResult<EventContext<T>?>(null);
+
+            var @event = jToken.ToObject<AzureDevOpsCodePushed>();
             var context = new EventContext<T>(bus)
             {
                 Id = jToken.Value<string>("id"),
@@ -58,7 +60,7 @@ namespace CustomSerializer
             context.Headers["resourceVersion"] = jToken.Value<string>("resourceVersion");
             context.Headers["publisherId"] = jToken.Value<string>("publisherId");
 
-            return Task.FromResult(context);
+            return Task.FromResult<EventContext<T>?>(context);
         }
 
         /// <inheritdoc/>

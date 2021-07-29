@@ -14,7 +14,7 @@ namespace Tingle.EventBus.Serialization
     /// <summary>
     /// The default implementation of <see cref="IEventSerializer"/> for JSON using the <c>System.Text.Json</c> library.
     /// </summary>
-    internal class DefaultJsonEventSerializer : AbstractEventSerializer
+    public class DefaultJsonEventSerializer : AbstractEventSerializer
     {
         /// <summary>
         /// Creates an instance of <see cref="DefaultJsonEventSerializer"/>.

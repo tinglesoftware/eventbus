@@ -7,7 +7,7 @@ namespace MultiEventsConsumer
         /// <summary>
         /// The vehicle who's door was opened.
         /// </summary>
-        public string VehicleId { get; set; }
+        public string? VehicleId { get; set; }
 
         /// <summary>
         /// The kind of door that was opened.

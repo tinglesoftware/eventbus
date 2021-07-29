@@ -22,7 +22,7 @@ namespace MultiEventsConsumer
 
         public async Task ConsumeAsync(EventContext<DoorOpened> context, CancellationToken cancellationToken = default)
         {
-            var evt = context.Event;
+            var evt = context.Event!;
             var vehicleId = evt.VehicleId;
             var kind = evt.Kind;
             logger.LogInformation("{DoorKind} door for {VehicleId} was opened at {Opened:r}.", kind, vehicleId, evt.Opened);
@@ -48,7 +48,7 @@ namespace MultiEventsConsumer
 
         public async Task ConsumeAsync(EventContext<DoorClosed> context, CancellationToken cancellationToken = default)
         {
-            var evt = context.Event;
+            var evt = context.Event!;
             var vehicleId = evt.VehicleId;
             var kind = evt.Kind;
             logger.LogInformation("{DoorKind} door for {VehicleId} was closed at {Opened:r}.", kind, vehicleId, evt.Closed);
@@ -74,15 +74,25 @@ namespace MultiEventsConsumer
 
         private static string MakeCacheKey(string vehicleId, DoorKind kind) => $"{vehicleId}/{kind}".ToLowerInvariant();
 
-        private async Task<DoorState?> GetLastDoorStateAsync(string vehicleId, DoorKind kind, CancellationToken cancellationToken)
+        private async Task<DoorState?> GetLastDoorStateAsync(string? vehicleId, DoorKind kind, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrWhiteSpace(vehicleId))
+            {
+                throw new ArgumentException($"'{nameof(vehicleId)}' cannot be null or whitespace.", nameof(vehicleId));
+            }
+
             string key = MakeCacheKey(vehicleId, kind);
             var stateStr = await cache.GetStringAsync(key, cancellationToken);
             return Enum.TryParse<DoorState>(stateStr, ignoreCase: true, out var state) ? (DoorState?)state : null;
         }
 
-        private async Task SaveDoorStateAsync(string vehicleId, DoorKind kind, DoorState state, CancellationToken cancellation)
+        private async Task SaveDoorStateAsync(string? vehicleId, DoorKind kind, DoorState state, CancellationToken cancellation)
         {
+            if (string.IsNullOrWhiteSpace(vehicleId))
+            {
+                throw new ArgumentException($"'{nameof(vehicleId)}' cannot be null or whitespace.", nameof(vehicleId));
+            }
+
             string key = MakeCacheKey(vehicleId, kind);
             var stateStr = state.ToString().ToLowerInvariant();
             await cache.SetStringAsync(key, stateStr, cancellation);

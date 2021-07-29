@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,15 +18,13 @@ namespace CustomSerializer
 
         public Task ConsumeAsync(EventContext<AzureDevOpsCodePushed> context, CancellationToken cancellationToken = default)
         {
-            var @event = context.Event;
+            var @event = context.Event!;
             var resource = @event.Resource;
-            var projectUrl = resource.Repository.Project.Url;
-            var project = resource.Repository.Project.Name;
-            var repository = resource.Repository.Name;
-            var defaultBranch = resource.Repository.DefaultBranch;
+            var repository = resource?.Repository;
+            var defaultBranch = repository?.DefaultBranch;
 
             // get the updated branchs (refs)
-            var updatedReferences = resource.RefUpdates.Select(ru => ru.Name).ToList();
+            var updatedReferences = resource?.RefUpdates?.Select(ru => ru.Name).ToList() ?? new List<string?>();
             logger.LogInformation("Default branch: ({DefaultBranch})", defaultBranch);
             logger.LogInformation("Updated branches (references):\r\n- {ChangedReferences}",
                                   string.Join("\r\n- ", updatedReferences));

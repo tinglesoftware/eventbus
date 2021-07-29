@@ -71,5 +71,21 @@ namespace CustomSerializer
         {
             throw new NotSupportedException("Serialization of AzureDevOps events should never happen.");
         }
+
+        /// <inheritdoc/>
+        public Task<MessageEnvelope<T>?> Deserialize2Async<T>(Stream stream,
+                                                              ContentType? contentType,
+                                                              CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public Task SerializeAsync(Stream stream,
+                                   MessageEnvelope envelope,
+                                   CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

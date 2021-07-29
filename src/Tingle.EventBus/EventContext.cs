@@ -145,7 +145,7 @@ namespace Tingle.EventBus
     public class EventContext<T> : EventContext
     {
         /// <inheritdoc/>
-        public EventContext(EventBus bus) : base(bus) { }
+        public EventContext(EventBus bus) : base(bus) { } // TODO: make internal
 
         /// <summary>
         /// The event published or to be published.

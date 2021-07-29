@@ -19,12 +19,10 @@ namespace Tingle.EventBus.Serialization
         /// (It must be writeable, i.e. <see cref="Stream.CanWrite"/> must be true).
         /// </param>
         /// <param name="context">The context of the event to be serialized.</param>
-        /// <param name="hostInfo">The information about the host of the Event Bus.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task SerializeAsync<T>(Stream stream,
                                EventContext<T> context,
-                               HostInfo? hostInfo,
                                CancellationToken cancellationToken = default) where T : class;
 
         /// <summary>

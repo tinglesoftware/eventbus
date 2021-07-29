@@ -20,7 +20,6 @@ namespace Tingle.EventBus.Tests
         /// <inheritdoc/>
         public Task SerializeAsync<T>(Stream stream,
                                       EventContext<T> context,
-                                      HostInfo? hostInfo,
                                       CancellationToken cancellationToken = default) where T : class
         {
             throw new NotImplementedException();

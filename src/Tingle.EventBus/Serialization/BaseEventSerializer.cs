@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.IO;
 using System.Net.Mime;
@@ -16,14 +18,21 @@ namespace Tingle.EventBus.Serialization
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="optionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        protected BaseEventSerializer(ILoggerFactory loggerFactory)
+        protected BaseEventSerializer(IOptionsMonitor<EventBusOptions> optionsAccessor, ILoggerFactory loggerFactory)
         {
+            OptionsAccessor = optionsAccessor ?? throw new ArgumentNullException(nameof(optionsAccessor));
+
             // Create a well-scoped logger
             var categoryName = $"{LogCategoryNames.Serializers}.Default";
             Logger = loggerFactory?.CreateLogger(categoryName) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
+        ///
+        protected IOptionsMonitor<EventBusOptions> OptionsAccessor { get; }
+
+        ///
         protected ILogger Logger { get; }
 
         /// <inheritdoc/>
@@ -39,7 +48,6 @@ namespace Tingle.EventBus.Serialization
         /// <inheritdoc/>
         public abstract Task SerializeAsync<T>(Stream stream,
                                                EventContext<T> context,
-                                               HostInfo? hostInfo,
                                                CancellationToken cancellationToken = default) where T : class;
 
         /// <inheritdoc/>
@@ -74,10 +82,10 @@ namespace Tingle.EventBus.Serialization
         /// </summary>
         /// <typeparam name="T">The type of event carried.</typeparam>
         /// <param name="context"><see cref="EventContext{T}"/> to use as the source.</param>
-        /// <param name="hostInfo">Information about the host currently running this.</param>
         /// <returns></returns>
-        protected MessageEnvelope<T> CreateMessageEnvelope<T>(EventContext<T> context, HostInfo? hostInfo) // TODO: remove HostInfo and get it from options
+        protected MessageEnvelope<T> CreateMessageEnvelope<T>(EventContext<T> context)
         {
+            var hostInfo = OptionsAccessor.CurrentValue.HostInfo;
             return new MessageEnvelope<T>
             {
                 Id = context.Id,

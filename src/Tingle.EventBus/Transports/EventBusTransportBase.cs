@@ -209,7 +209,7 @@ namespace Tingle.EventBus.Transports
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType!);
 
             // Serialize
-            await serializer.SerializeAsync(body, @event, BusOptions.HostInfo, cancellationToken);
+            await serializer.SerializeAsync(body, @event, cancellationToken);
         }
 
         #endregion

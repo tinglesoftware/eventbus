@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
@@ -25,14 +26,17 @@ namespace Tingle.EventBus.Serializers
         /// Creates an instance of <see cref="NewtonsoftJsonSerializer"/>.
         /// </summary>
         /// <param name="bus"></param>
-        /// <param name="optionsAccessor">The options for configuring the serializer.</param>
+        /// <param name="serializerOptionsAccessor">The options for configuring the serializer.</param>
+        /// <param name="optionsAccessor"></param>
         /// <param name="loggerFactory"></param>
         public NewtonsoftJsonSerializer(EventBus bus,
-                                        IOptions<NewtonsoftJsonSerializerOptions> optionsAccessor,
-                                        ILoggerFactory loggerFactory) : base(loggerFactory)
+                                        IOptions<NewtonsoftJsonSerializerOptions> serializerOptionsAccessor,
+                                        IOptionsMonitor<EventBusOptions> optionsAccessor,
+                                        ILoggerFactory loggerFactory)
+            : base(optionsAccessor, loggerFactory)
         {
             this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
-            var settings = optionsAccessor?.Value?.SerializerSettings ?? throw new ArgumentNullException(nameof(optionsAccessor));
+            var settings = serializerOptionsAccessor?.Value?.SerializerSettings ?? throw new ArgumentNullException(nameof(serializerOptionsAccessor));
             serializer = JsonSerializer.Create(settings);
         }
 
@@ -62,7 +66,6 @@ namespace Tingle.EventBus.Serializers
         /// <inheritdoc/>
         public override async Task SerializeAsync<T>(Stream stream,
                                                      EventContext<T> context,
-                                                     HostInfo? hostInfo,
                                                      CancellationToken cancellationToken = default)
              where T : class
         {
@@ -76,7 +79,7 @@ namespace Tingle.EventBus.Serializers
             }
 
             // Serialize
-            var envelope = CreateMessageEnvelope(context, hostInfo);
+            var envelope = CreateMessageEnvelope(context);
             await SerializeAsync(stream: stream, envelope: envelope, cancellationToken: cancellationToken);
         }
 

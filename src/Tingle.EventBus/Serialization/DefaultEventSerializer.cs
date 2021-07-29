@@ -19,7 +19,6 @@ namespace Tingle.EventBus.Serialization
         private static readonly ContentType JsonContentType = new(MediaTypeNames.Application.Json);
 
         private readonly EventBus bus;
-        private readonly JsonSerializerOptions serializerOptions;
 
         /// <summary>
         /// Creates an instance of <see cref="DefaultEventSerializer"/>.
@@ -28,11 +27,11 @@ namespace Tingle.EventBus.Serialization
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
         /// <param name="loggerFactory"></param>
         public DefaultEventSerializer(EventBus bus,
-                                      IOptions<EventBusOptions> optionsAccessor,
-                                      ILoggerFactory loggerFactory) : base(loggerFactory)
+                                      IOptionsMonitor<EventBusOptions> optionsAccessor,
+                                      ILoggerFactory loggerFactory)
+            : base(optionsAccessor, loggerFactory)
         {
             this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
-            serializerOptions = optionsAccessor?.Value?.SerializerOptions ?? throw new ArgumentNullException(nameof(optionsAccessor));
         }
 
         /// <inheritdoc/>
@@ -61,7 +60,6 @@ namespace Tingle.EventBus.Serialization
         /// <inheritdoc/>
         public override async Task SerializeAsync<T>(Stream stream,
                                                      EventContext<T> context,
-                                                     HostInfo? hostInfo,
                                                      CancellationToken cancellationToken = default)
              where T : class
         {
@@ -75,7 +73,7 @@ namespace Tingle.EventBus.Serialization
             }
 
             // Serialize
-            var envelope = CreateMessageEnvelope(context, hostInfo);
+            var envelope = CreateMessageEnvelope(context);
             await SerializeAsync(stream: stream, envelope: envelope, cancellationToken: cancellationToken);
         }
 
@@ -84,6 +82,7 @@ namespace Tingle.EventBus.Serialization
                                                                              ContentType? contentType,
                                                                              CancellationToken cancellationToken = default)
         {
+            var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;
             return await JsonSerializer.DeserializeAsync<MessageEnvelope<T>>(utf8Json: stream,
                                                                              options: serializerOptions,
                                                                              cancellationToken: cancellationToken);
@@ -92,6 +91,7 @@ namespace Tingle.EventBus.Serialization
         /// <inheritdoc/>
         public override async Task SerializeAsync(Stream stream, MessageEnvelope envelope, CancellationToken cancellationToken = default)
         {
+            var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;
             await JsonSerializer.SerializeAsync(utf8Json: stream,
                                                 value: envelope,
                                                 inputType: envelope.GetType(), // without this, the event property does not get serialized

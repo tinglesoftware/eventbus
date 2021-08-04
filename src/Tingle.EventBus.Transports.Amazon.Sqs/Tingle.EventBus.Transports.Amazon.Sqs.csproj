@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.2.18" />
-    <PackageReference Include="AWSSDK.SQS" Version="3.7.0.46" />
+    <PackageReference Include="AWSSDK.SQS" Version="3.7.0.48" />
   </ItemGroup>
 
   <ItemGroup>

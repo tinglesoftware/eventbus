@@ -142,10 +142,10 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         /// <inheritdoc/>
-        public override async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                 EventRegistration registration,
-                                                                 DateTimeOffset? scheduled = null,
-                                                                 CancellationToken cancellationToken = default)
+        public override async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                          EventRegistration registration,
+                                                                          DateTimeOffset? scheduled = null,
+                                                                          CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
             using var ms = new MemoryStream();
@@ -196,7 +196,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 var seqNum = await sender.ScheduleMessageAsync(message: message,
                                                                scheduledEnqueueTime: message.ScheduledEnqueueTime,
                                                                cancellationToken: cancellationToken);
-                return seqNum.ToString(); // return the sequence number
+                return new ScheduledResult(id: seqNum.ToString(), scheduled: scheduled.Value); // return the sequence number
             }
             else
             {
@@ -206,10 +206,10 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         /// <inheritdoc/>
-        public override async Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                        EventRegistration registration,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public override async Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                                 EventRegistration registration,
+                                                                                 DateTimeOffset? scheduled = null,
+                                                                                 CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
             var messages = new List<ServiceBusMessage>();
@@ -267,12 +267,12 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 var seqNums = await sender.ScheduleMessagesAsync(messages: messages,
                                                                  scheduledEnqueueTime: messages.First().ScheduledEnqueueTime,
                                                                  cancellationToken: cancellationToken);
-                return seqNums.Select(sn => sn.ToString()).ToList(); // return the sequence numbers
+                return seqNums.Select(n => new ScheduledResult(id: n.ToString(), scheduled: scheduled.Value)).ToList(); // return the sequence numbers
             }
             else
             {
                 await sender.SendMessagesAsync(messages: messages, cancellationToken: cancellationToken);
-                return Array.Empty<string>(); // no sequence numbers available
+                return Array.Empty<ScheduledResult>(); // no sequence numbers available
             }
         }
 

@@ -96,10 +96,10 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         /// <inheritdoc/>
-        public override async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                 EventRegistration registration,
-                                                                 DateTimeOffset? scheduled = null,
-                                                                 CancellationToken cancellationToken = default)
+        public override async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                          EventRegistration registration,
+                                                                          DateTimeOffset? scheduled = null,
+                                                                          CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
             using var ms = new MemoryStream();
@@ -126,14 +126,16 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                               cancellationToken: cancellationToken);
 
             // return the sequence number; both MessageId and PopReceipt are needed to update or delete
-            return scheduled != null ? string.Join(SequenceNumberSeparator, response.Value.MessageId, response.Value.PopReceipt) : null;
+            return scheduled != null
+                    ? new ScheduledResult(id: string.Join(SequenceNumberSeparator, response.Value.MessageId, response.Value.PopReceipt), scheduled: scheduled.Value)
+                    : null;
         }
 
         /// <inheritdoc/>
-        public override async Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                        EventRegistration registration,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public override async Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                                 EventRegistration registration,
+                                                                                 DateTimeOffset? scheduled = null,
+                                                                                 CancellationToken cancellationToken = default)
         {
             // log warning when doing batch
             Logger.LogWarning("Azure Queue Storage does not support batching. The events will be looped through one by one");
@@ -169,7 +171,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             }
 
             // return the sequence number
-            return scheduled != null ? sequenceNumbers : null;
+            return scheduled != null ? sequenceNumbers.Select(n => new ScheduledResult(id: n, scheduled: scheduled.Value)).ToList() : null;
         }
 
         /// <inheritdoc/>

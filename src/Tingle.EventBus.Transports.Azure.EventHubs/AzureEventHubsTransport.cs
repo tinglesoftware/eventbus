@@ -125,10 +125,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
         }
 
         /// <inheritdoc/>
-        public override async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                 EventRegistration registration,
-                                                                 DateTimeOffset? scheduled = null,
-                                                                 CancellationToken cancellationToken = default)
+        public override async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                          EventRegistration registration,
+                                                                          DateTimeOffset? scheduled = null,
+                                                                          CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled event
             if (scheduled != null)
@@ -169,14 +169,14 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             await producer.SendAsync(new[] { data }, cancellationToken);
 
             // return the sequence number
-            return data.SequenceNumber.ToString();
+            return scheduled != null ? new ScheduledResult(id: data.SequenceNumber.ToString(), scheduled: scheduled.Value) : null;
         }
 
         /// <inheritdoc/>
-        public override async Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                        EventRegistration registration,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public override async Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                                 EventRegistration registration,
+                                                                                 DateTimeOffset? scheduled = null,
+                                                                                 CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled events
             if (scheduled != null)
@@ -223,7 +223,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             await producer.SendAsync(datas, cancellationToken);
 
             // return the sequence numbers
-            return datas.Select(m => m.SequenceNumber.ToString()).ToList();
+            return scheduled != null ? datas.Select(m => new ScheduledResult(id: m.SequenceNumber.ToString(), scheduled: scheduled.Value)).ToList() : null;
         }
 
         /// <inheritdoc/>

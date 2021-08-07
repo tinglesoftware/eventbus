@@ -120,10 +120,10 @@ namespace Tingle.EventBus.Transports.Kafka
         }
 
         /// <inheritdoc/>
-        public async override Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                 EventRegistration registration,
-                                                                 DateTimeOffset? scheduled = null,
-                                                                 CancellationToken cancellationToken = default)
+        public async override Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                          EventRegistration registration,
+                                                                          DateTimeOffset? scheduled = null,
+                                                                          CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -155,14 +155,14 @@ namespace Tingle.EventBus.Transports.Kafka
             // Should we check persistence status?
 
             // return the sequence number
-            return scheduled != null ? result.Offset.Value.ToString() : null;
+            return scheduled != null ? new ScheduledResult(id: result.Offset.Value.ToString(), scheduled: scheduled.Value) : null;
         }
 
         /// <inheritdoc/>
-        public async override Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                        EventRegistration registration,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public async override Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                                 EventRegistration registration,
+                                                                                 DateTimeOffset? scheduled = null,
+                                                                                 CancellationToken cancellationToken = default)
         {
             // log warning when doing batch
             Logger.LogWarning("Kafka does not support batching. The events will be looped through one by one");
@@ -206,7 +206,7 @@ namespace Tingle.EventBus.Transports.Kafka
             }
 
             // return the sequence numbers
-            return scheduled != null ? sequenceNumbers : null;
+            return scheduled != null ? sequenceNumbers.Select(n => new ScheduledResult(id: n, scheduled: scheduled.Value)).ToList() : null;
         }
 
         /// <inheritdoc/>

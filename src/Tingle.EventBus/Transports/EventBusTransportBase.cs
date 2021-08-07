@@ -72,17 +72,17 @@ namespace Tingle.EventBus.Transports
                                                     CancellationToken cancellationToken = default);
 
         /// <inheritdoc/>
-        public abstract Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                           EventRegistration registration,
-                                                           DateTimeOffset? scheduled = null,
-                                                           CancellationToken cancellationToken = default)
+        public abstract Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                    EventRegistration registration,
+                                                                    DateTimeOffset? scheduled = null,
+                                                                    CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <inheritdoc/>
-        public abstract Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                  EventRegistration registration,
-                                                                  DateTimeOffset? scheduled = null,
-                                                                  CancellationToken cancellationToken = default)
+        public abstract Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                           EventRegistration registration,
+                                                                           DateTimeOffset? scheduled = null,
+                                                                           CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <inheritdoc/>

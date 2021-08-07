@@ -39,10 +39,10 @@ namespace Tingle.EventBus.Transports
         /// </param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                           EventRegistration registration,
-                                           DateTimeOffset? scheduled = null,
-                                           CancellationToken cancellationToken = default)
+        Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                    EventRegistration registration,
+                                                    DateTimeOffset? scheduled = null,
+                                                    CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <summary>
@@ -57,17 +57,17 @@ namespace Tingle.EventBus.Transports
         /// </param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                  EventRegistration registration,
-                                                  DateTimeOffset? scheduled = null,
-                                                  CancellationToken cancellationToken = default)
+        Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                           EventRegistration registration,
+                                                           DateTimeOffset? scheduled = null,
+                                                           CancellationToken cancellationToken = default)
             where TEvent : class;
 
         /// <summary>
         /// Cancel a scheduled event on the transport.
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
-        /// <param name="id">The identifier of the scheduled event.</param>
+        /// <param name="id">The scheduling identifier of the scheduled event.</param>
         /// <param name="registration">The registration for the event.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -80,7 +80,7 @@ namespace Tingle.EventBus.Transports
         /// Cancel a batch of scheduled events on the transport.
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
-        /// <param name="ids">The identifiers of the scheduled events.</param>
+        /// <param name="ids">The scheduling identifiers of the scheduled events.</param>
         /// <param name="registration">The registration for the events.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>

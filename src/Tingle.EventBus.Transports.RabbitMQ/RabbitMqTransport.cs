@@ -106,10 +106,10 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         }
 
         /// <inheritdoc/>
-        public override async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                 EventRegistration registration,
-                                                                 DateTimeOffset? scheduled = null,
-                                                                 CancellationToken cancellationToken = default)
+        public override async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                          EventRegistration registration,
+                                                                          DateTimeOffset? scheduled = null,
+                                                                          CancellationToken cancellationToken = default)
         {
             if (!IsConnected)
             {
@@ -175,14 +175,14 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                                      body: ms.ToArray());
             });
 
-            return scheduledId;
+            return scheduledId != null && scheduled != null ? new ScheduledResult(id: scheduledId, scheduled: scheduled.Value) : null;
         }
 
         /// <inheritdoc/>
-        public override async Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                        EventRegistration registration,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public override async Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                                 EventRegistration registration,
+                                                                                 DateTimeOffset? scheduled = null,
+                                                                                 CancellationToken cancellationToken = default)
         {
             if (!IsConnected)
             {
@@ -255,8 +255,8 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 batch.Publish();
             });
 
-            var messageIds = events.Select(m => m.Id);
-            return scheduled != null ? messageIds.ToList()! : Array.Empty<string>();
+            var messageIds = events.Select(m => m.Id!);
+            return scheduled != null ? messageIds.Select(n => new ScheduledResult(id: n, scheduled: scheduled.Value)).ToList() : Array.Empty<ScheduledResult>();
         }
 
         /// <inheritdoc/>

@@ -19,10 +19,10 @@ namespace Tingle.EventBus
         /// <param name="delay">The duration of time to wait before the event is available on the bus for consumption.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static Task<string?> PublishAsync<TEvent>(this IEventPublisher publisher,
-                                                         EventContext<TEvent> @event,
-                                                         TimeSpan delay,
-                                                         CancellationToken cancellationToken = default)
+        public static Task<ScheduledResult?> PublishAsync<TEvent>(this IEventPublisher publisher,
+                                                                  EventContext<TEvent> @event,
+                                                                  TimeSpan delay,
+                                                                  CancellationToken cancellationToken = default)
             where TEvent : class
         {
             var scheduled = DateTimeOffset.UtcNow + delay;
@@ -38,10 +38,10 @@ namespace Tingle.EventBus
         /// <param name="delay">The duration of time to wait before the event is available on the bus for consumption.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static Task<IList<string>?> PublishAsync<TEvent>(this IEventPublisher publisher,
-                                                                IList<EventContext<TEvent>> events,
-                                                                TimeSpan delay,
-                                                                CancellationToken cancellationToken = default)
+        public static Task<IList<ScheduledResult>?> PublishAsync<TEvent>(this IEventPublisher publisher,
+                                                                         IList<EventContext<TEvent>> events,
+                                                                         TimeSpan delay,
+                                                                         CancellationToken cancellationToken = default)
             where TEvent : class
         {
             var scheduled = DateTimeOffset.UtcNow + delay;
@@ -57,10 +57,10 @@ namespace Tingle.EventBus
         /// <param name="delay">The duration of time to wait before the event is available on the bus for consumption.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static Task<string?> PublishAsync<TEvent>(this IEventPublisher publisher,
-                                                         TEvent @event,
-                                                         TimeSpan delay,
-                                                         CancellationToken cancellationToken = default)
+        public static Task<ScheduledResult?> PublishAsync<TEvent>(this IEventPublisher publisher,
+                                                                  TEvent @event,
+                                                                  TimeSpan delay,
+                                                                  CancellationToken cancellationToken = default)
             where TEvent : class
         {
             var scheduled = DateTimeOffset.UtcNow + delay;
@@ -76,10 +76,10 @@ namespace Tingle.EventBus
         /// <param name="delay">The duration of time to wait before the event is available on the bus for consumption.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static Task<IList<string>?> PublishAsync<TEvent>(this IEventPublisher publisher,
-                                                                IList<TEvent> events,
-                                                                TimeSpan delay,
-                                                                CancellationToken cancellationToken = default)
+        public static Task<IList<ScheduledResult>?> PublishAsync<TEvent>(this IEventPublisher publisher,
+                                                                         IList<TEvent> events,
+                                                                         TimeSpan delay,
+                                                                         CancellationToken cancellationToken = default)
             where TEvent : class
         {
             var scheduled = DateTimeOffset.UtcNow + delay;

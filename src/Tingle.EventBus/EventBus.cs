@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Ids;
 using Tingle.EventBus.Readiness;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Transports;
@@ -21,6 +22,7 @@ namespace Tingle.EventBus
     public class EventBus : IHostedService
     {
         private readonly IReadinessProvider readinessProvider;
+        private readonly IEventIdGenerator idGenerator;
         private readonly IList<IEventBusTransport> transports;
         private readonly IList<IEventConfigurator> configurators;
         private readonly EventBusOptions options;
@@ -30,17 +32,20 @@ namespace Tingle.EventBus
         /// 
         /// </summary>
         /// <param name="readinessProvider"></param>
+        /// <param name="idGenerator"></param>
         /// <param name="optionsAccessor"></param>
         /// <param name="transports"></param>
         /// <param name="configurators"></param>
         /// <param name="loggerFactory"></param>
         public EventBus(IReadinessProvider readinessProvider,
+                        IEventIdGenerator idGenerator,
                         IEnumerable<IEventBusTransport> transports,
                         IEnumerable<IEventConfigurator> configurators,
                         IOptions<EventBusOptions> optionsAccessor,
                         ILoggerFactory loggerFactory)
         {
             this.readinessProvider = readinessProvider ?? throw new ArgumentNullException(nameof(readinessProvider));
+            this.idGenerator = idGenerator ?? throw new ArgumentNullException(nameof(idGenerator));
             this.configurators = configurators?.ToList() ?? throw new ArgumentNullException(nameof(configurators));
             this.transports = transports?.ToList() ?? throw new ArgumentNullException(nameof(transports));
             options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
@@ -113,7 +118,7 @@ namespace Tingle.EventBus
             @event.Headers.AddIfNotDefault(HeaderNames.ActivityId, activity?.Id);
 
             // Set properties that may be missing
-            @event.Id ??= GenerateEventId(reg);
+            @event.Id ??= idGenerator.Generate(reg);
             @event.Sent ??= DateTimeOffset.UtcNow;
 
             // Add message specific activity tags
@@ -165,7 +170,7 @@ namespace Tingle.EventBus
                 @event.Headers.AddIfNotDefault(HeaderNames.ActivityId, Activity.Current?.Id);
 
                 // Set properties that may be missing
-                @event.Id ??= GenerateEventId(reg);
+                @event.Id ??= idGenerator.Generate(reg);
                 @event.Sent ??= DateTimeOffset.UtcNow;
             }
 
@@ -334,26 +339,6 @@ namespace Tingle.EventBus
             }
 
             return registration;
-        }
-
-        internal static string GenerateEventId(EventRegistration reg)
-        {
-            if (reg is null) throw new ArgumentNullException(nameof(reg));
-
-            var id = Guid.NewGuid();
-            var bytes = id.ToByteArray();
-
-            return reg.IdFormat switch
-            {
-                EventIdFormat.Guid => id.ToString(),
-                EventIdFormat.GuidNoDashes => id.ToString("n"),
-                EventIdFormat.Long => BitConverter.ToUInt64(bytes, 0).ToString(),
-                EventIdFormat.LongHex => BitConverter.ToUInt64(bytes, 0).ToString("x"),
-                EventIdFormat.DoubleLong => $"{BitConverter.ToUInt64(bytes, 0)}{BitConverter.ToUInt64(bytes, 8)}",
-                EventIdFormat.DoubleLongHex => $"{BitConverter.ToUInt64(bytes, 0):x}{BitConverter.ToUInt64(bytes, 8):x}",
-                EventIdFormat.Random => Convert.ToBase64String(bytes),
-                _ => throw new NotSupportedException($"'{nameof(EventIdFormat)}.{reg.IdFormat}' set on event '{reg.EventType.FullName}' is not supported."),
-            };
         }
     }
 }

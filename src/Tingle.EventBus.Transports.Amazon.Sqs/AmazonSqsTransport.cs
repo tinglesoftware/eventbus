@@ -111,10 +111,10 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         }
 
         /// <inheritdoc/>
-        public override async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                 EventRegistration registration,
-                                                                 DateTimeOffset? scheduled = null,
-                                                                 CancellationToken cancellationToken = default)
+        public override async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                          EventRegistration registration,
+                                                                          DateTimeOffset? scheduled = null,
+                                                                          CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -144,14 +144,14 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             response.EnsureSuccess();
 
             // return the sequence number
-            return scheduled != null ? response.SequenceNumber : null;
+            return scheduled != null ? new ScheduledResult(id: response.SequenceNumber, scheduled: scheduled.Value) : null;
         }
 
         /// <inheritdoc/>
-        public override async Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                        EventRegistration registration,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public override async Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                                 EventRegistration registration,
+                                                                                 DateTimeOffset? scheduled = null,
+                                                                                 CancellationToken cancellationToken = default)
         {
             // log warning when doing batch
             Logger.LogWarning("Amazon SNS does not support batching. The events will be looped through one by one");
@@ -193,7 +193,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             }
 
             // return the sequence numbers
-            return scheduled != null ? sequenceNumbers : null;
+            return scheduled != null ? sequenceNumbers.Select(n => new ScheduledResult(id: n, scheduled: scheduled.Value)).ToList() : null;
         }
 
 

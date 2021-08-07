@@ -117,10 +117,10 @@ namespace Tingle.EventBus.Transports.InMemory
         }
 
         /// <inheritdoc/>
-        public override async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                 EventRegistration registration,
-                                                                 DateTimeOffset? scheduled = null,
-                                                                 CancellationToken cancellationToken = default)
+        public override async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                          EventRegistration registration,
+                                                                          DateTimeOffset? scheduled = null,
+                                                                          CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -164,7 +164,7 @@ namespace Tingle.EventBus.Transports.InMemory
                     queueEntity.Enqueue(msg);
                     return Task.CompletedTask;
                 }, message);
-                return sng.Generate();
+                return new ScheduledResult(id: sng.Generate(), scheduled: scheduled.Value);
             }
             else
             {
@@ -174,10 +174,10 @@ namespace Tingle.EventBus.Transports.InMemory
         }
 
         /// <inheritdoc/>
-        public async override Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                       EventRegistration registration,
-                                                                       DateTimeOffset? scheduled = null,
-                                                                       CancellationToken cancellationToken = default)
+        public async override Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                                 EventRegistration registration,
+                                                                                 DateTimeOffset? scheduled = null,
+                                                                                 CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -229,12 +229,12 @@ namespace Tingle.EventBus.Transports.InMemory
                     queueEntity.EnqueueBatch(msgs);
                     return Task.CompletedTask;
                 }, messages);
-                return events.Select(_ => sng.Generate()).ToList();
+                return events.Select(_ => new ScheduledResult(id: sng.Generate(), scheduled: scheduled.Value)).ToList();
             }
             else
             {
                 queueEntity.EnqueueBatch(messages);
-                return Array.Empty<string>(); // no sequence numbers available
+                return Array.Empty<ScheduledResult>(); // no sequence numbers available
             }
         }
 

@@ -77,10 +77,10 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
         }
 
         /// <inheritdoc/>
-        public override async Task<string?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                 EventRegistration registration,
-                                                                 DateTimeOffset? scheduled = null,
-                                                                 CancellationToken cancellationToken = default)
+        public override async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                          EventRegistration registration,
+                                                                          DateTimeOffset? scheduled = null,
+                                                                          CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -111,14 +111,14 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             response.EnsureSuccess();
 
             // return the sequence number
-            return scheduled != null ? response.SequenceNumber : null;
+            return scheduled != null ? new ScheduledResult(id: response.SequenceNumber, scheduled: scheduled.Value) : null;
         }
 
         /// <inheritdoc/>
-        public override async Task<IList<string>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                        EventRegistration registration,
-                                                                        DateTimeOffset? scheduled = null,
-                                                                        CancellationToken cancellationToken = default)
+        public override async Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                                 EventRegistration registration,
+                                                                                 DateTimeOffset? scheduled = null,
+                                                                                 CancellationToken cancellationToken = default)
         {
             // log warning when trying to publish scheduled message
             if (scheduled != null)
@@ -167,7 +167,14 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             // Should we check for failed records and throw exception?
 
             // return the sequence numbers
-            return response.Records.Select(m => m.SequenceNumber.ToString()).ToList();
+            if (scheduled is not null)
+            {
+                return response.Records.Select(m => new ScheduledResult(id: m.SequenceNumber.ToString(), scheduled: scheduled.Value)).ToList();
+            }
+            else
+            {
+                return Array.Empty<ScheduledResult>();
+            }
         }
 
         /// <inheritdoc/>

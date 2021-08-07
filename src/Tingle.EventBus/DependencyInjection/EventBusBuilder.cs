@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tingle.EventBus;
+using Tingle.EventBus.Ids;
 using Tingle.EventBus.Readiness;
 using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
@@ -28,6 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
             Services.AddSingleton<IConfigureOptions<EventBusOptions>, EventBusConfigureOptions>();
             Services.AddSingleton<IPostConfigureOptions<EventBusOptions>, EventBusPostConfigureOptions>();
             Services.AddSingleton<IEventConfigurator, DefaultEventConfigurator>();
+            Services.AddSingleton<IEventIdGenerator, DefaultEventIdGenerator>();
 
             // Register necessary services
             Services.AddTransient<IEventPublisher, EventPublisher>();

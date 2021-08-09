@@ -18,7 +18,7 @@ namespace CustomSerializer
 
         public Task ConsumeAsync(EventContext<AzureDevOpsCodePushed> context, CancellationToken cancellationToken = default)
         {
-            var @event = context.Event!;
+            var @event = context.Event;
             var resource = @event.Resource;
             var repository = resource?.Repository;
             var defaultBranch = repository?.DefaultBranch;

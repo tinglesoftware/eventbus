@@ -19,7 +19,7 @@ namespace InMemoryBackgroundProcessing
 
         public async Task ConsumeAsync(EventContext<VideoUploaded> context, CancellationToken cancellationToken = default)
         {
-            var evt = context.Event!;
+            var evt = context.Event;
             var videoId = evt.VideoId;
             logger.LogInformation("Received event Id: {Id} for video '{VideoId}'.", context.Id, videoId);
 

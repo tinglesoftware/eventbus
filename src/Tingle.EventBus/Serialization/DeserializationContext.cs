@@ -24,7 +24,10 @@ namespace Tingle.EventBus.Serialization
                                       string? identifier = null)
         {
             Stream = stream ?? throw new ArgumentNullException(nameof(stream));
-            // TODO: validate stream is readble
+            if (!stream.CanRead)
+            {
+                throw new InvalidOperationException("The supplied stream must be readable");
+            }
 
             Registration = registration;
             Identifier = identifier;

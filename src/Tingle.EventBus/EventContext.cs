@@ -75,7 +75,7 @@ namespace Tingle.EventBus
     /// The context for a specific event.
     /// </summary>
     /// <typeparam name="T">The type of event carried.</typeparam>
-    public class EventContext<T> : EventContext
+    public class EventContext<T> : EventContext where T : class
     {
         /// <summary>
         /// 

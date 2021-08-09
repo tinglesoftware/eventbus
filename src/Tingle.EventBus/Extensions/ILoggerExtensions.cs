@@ -171,6 +171,7 @@ namespace Microsoft.Extensions.Logging
         }
 
         public static void SendingEvents<T>(this ILogger logger, IList<EventContext<T>> events, string transportName, DateTimeOffset? scheduled = null)
+            where T : class
         {
             SendingEvents(logger, events.Select(e => e.Id).ToList(), transportName, scheduled);
         }

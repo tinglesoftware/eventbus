@@ -64,7 +64,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// Gets all the published events of a given type.
         /// <typeparam name="T">The type of event carried.</typeparam>
         /// </summary>
-        public IEnumerable<EventContext<T>> Published<T>() => transport.Published.OfType<EventContext<T>>();
+        public IEnumerable<EventContext<T>> Published<T>() where T : class => transport.Published.OfType<EventContext<T>>();
 
         /// <summary>
         /// Gets all the published events of a given type.
@@ -77,6 +77,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task<IEnumerable<EventContext<T>>> PublishedAsync<T>(TimeSpan? delay = null, CancellationToken cancellationToken = default)
+            where T : class
         {
             await Task.Delay(delay ?? options.DefaultDelay, cancellationToken);
             return Published<T>();
@@ -106,7 +107,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// Gets all the consumed events of a given type.
         /// <typeparam name="T">The type of event carried.</typeparam>
         /// </summary>
-        public IEnumerable<EventContext<T>> Consumed<T>() => transport.Consumed.OfType<EventContext<T>>();
+        public IEnumerable<EventContext<T>> Consumed<T>() where T : class => transport.Consumed.OfType<EventContext<T>>();
 
         /// <summary>
         /// Get all the consumed events of a given type.
@@ -119,6 +120,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task<IEnumerable<EventContext<T>>> ConsumedAsync<T>(TimeSpan? delay = null, CancellationToken cancellationToken = default)
+            where T : class
         {
             await Task.Delay(delay ?? options.DefaultDelay, cancellationToken);
             return Consumed<T>();
@@ -147,7 +149,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <summary>
         /// Gets all the failed events of a given type.
         /// </summary>
-        public IEnumerable<EventContext<T>> Failed<T>() => transport.Failed.OfType<EventContext<T>>();
+        public IEnumerable<EventContext<T>> Failed<T>() where T : class => transport.Failed.OfType<EventContext<T>>();
 
         /// <summary>
         /// Gets all the failed events of a given type.
@@ -160,6 +162,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task<IEnumerable<EventContext<T>>> FailedAsync<T>(TimeSpan? delay = null, CancellationToken cancellationToken = default)
+            where T : class
         {
             await Task.Delay(delay ?? options.DefaultDelay, cancellationToken);
             return Failed<T>();

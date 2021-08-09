@@ -212,6 +212,7 @@ namespace Tingle.EventBus.Transports
                                                                                  IServiceScope scope,
                                                                                  CancellationToken cancellationToken)
             where TConsumer : IEventConsumer<TEvent>
+            where TEvent : class
         {
             // Resolve the consumer
             var consumer = scope.ServiceProvider.GetRequiredService<TConsumer>();

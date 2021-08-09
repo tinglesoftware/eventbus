@@ -397,7 +397,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
             using var log_scope = BeginLoggingScopeForConsume(id: eventId?.ToString(),
                                                               correlationId: correlationId?.ToString(),
-                                                              sequenceNumber: data.SequenceNumber,
+                                                              sequenceNumber: data.SequenceNumber.ToString(),
                                                               extras: new Dictionary<string, string?>
                                                               {
                                                                   [AttributeNames.EventName] = eventName?.ToString(),

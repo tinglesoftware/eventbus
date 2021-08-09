@@ -560,7 +560,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                               correlationId: message.CorrelationId,
-                                                              sequenceNumber: message.SequenceNumber,
+                                                              sequenceNumber: message.SequenceNumber.ToString(),
                                                               extras: new Dictionary<string, string?>
                                                               {
                                                                   ["EntityPath"] = entityPath,

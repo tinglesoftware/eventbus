@@ -315,25 +315,6 @@ namespace Tingle.EventBus.Transports
             return Logger.BeginScope(state);
         }
 
-        /// <summary>
-        /// Begins a logical operation scope for logging.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="correlationId"></param>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="extras">The extras to put in the scope. (Optional)</param>
-        /// <returns>A disposable object that ends the logical operation scope on dispose.</returns>
-        protected IDisposable BeginLoggingScopeForConsume(string? id,
-                                                          string? correlationId,
-                                                          long sequenceNumber,
-                                                          IDictionary<string, string?>? extras = null)
-        {
-            return BeginLoggingScopeForConsume(id: id,
-                                               correlationId: correlationId,
-                                               sequenceNumber: sequenceNumber.ToString(),
-                                               extras: extras);
-        }
-
         #endregion
     }
 }

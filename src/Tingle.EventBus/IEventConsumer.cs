@@ -14,7 +14,7 @@ namespace Tingle.EventBus
     /// <summary>
     /// Contract describing a consumer of an event.
     /// </summary>
-    public interface IEventConsumer<T> : IEventConsumer
+    public interface IEventConsumer<T> : IEventConsumer where T : class
     {
         /// <summary>
         /// Consume an event of the provided type.

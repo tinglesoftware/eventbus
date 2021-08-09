@@ -124,10 +124,10 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             // serialize the event
             using var scope = CreateScope();
             using var ms = new MemoryStream();
-            await SerializeAsync(body: ms,
+            await SerializeAsync(scope: scope,
+                                 body: ms,
                                  @event: @event,
                                  registration: registration,
-                                 scope: scope,
                                  cancellationToken: cancellationToken);
 
             // publish message
@@ -200,10 +200,10 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                await SerializeAsync(body: ms,
+                await SerializeAsync(scope: scope,
+                                     body: ms,
                                      @event: @event,
                                      registration: registration,
-                                     scope: scope,
                                      cancellationToken: cancellationToken);
                 serializedEvents.Add((@event, @event.ContentType, ms.ToArray()));
             }
@@ -336,10 +336,11 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             using var scope = CreateScope();
             using var ms = new MemoryStream(args.Body.ToArray());
             var contentType = GetContentType(args.BasicProperties);
-            var context = await DeserializeAsync<TEvent>(body: ms,
+            var context = await DeserializeAsync<TEvent>(scope: scope,
+                                                         body: ms,
                                                          contentType: contentType,
                                                          registration: ereg,
-                                                         scope: scope,
+                                                         identifier: messageId,
                                                          cancellationToken: cancellationToken);
             Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
                                   messageId,

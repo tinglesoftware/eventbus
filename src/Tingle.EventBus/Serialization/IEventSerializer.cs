@@ -29,15 +29,10 @@ namespace Tingle.EventBus.Serialization
         /// Deserialize an event from a stream of bytes.
         /// </summary>
         /// <typeparam name="T">The event type to be deserialized.</typeparam>
-        /// <param name="stream">
-        /// The <see cref="Stream"/> containing the raw data.
-        /// (It must be readable, i.e. <see cref="Stream.CanRead"/> must be true).
-        /// </param>
-        /// <param name="contentType">The type of content contained in the <paramref name="stream"/>.</param>
+        /// <param name="context">The <see cref="DeserializationContext"/> to use.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<EventContext<T>?> DeserializeAsync<T>(Stream stream,
-                                                   ContentType? contentType,
+        Task<EventContext<T>?> DeserializeAsync<T>(DeserializationContext context,
                                                    CancellationToken cancellationToken = default) where T : class;
     }
 }

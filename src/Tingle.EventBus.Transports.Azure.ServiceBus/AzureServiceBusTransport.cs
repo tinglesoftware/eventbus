@@ -149,10 +149,10 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         {
             using var scope = CreateScope();
             using var ms = new MemoryStream();
-            await SerializeAsync(body: ms,
+            await SerializeAsync(scope: scope,
+                                 body: ms,
                                  @event: @event,
                                  registration: registration,
-                                 scope: scope,
                                  cancellationToken: cancellationToken);
 
             var message = new ServiceBusMessage(ms.ToArray())
@@ -216,10 +216,10 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                await SerializeAsync(body: ms,
+                await SerializeAsync(scope: scope,
+                                     body: ms,
                                      @event: @event,
                                      registration: registration,
-                                     scope: scope,
                                      cancellationToken: cancellationToken);
 
                 var message = new ServiceBusMessage(ms.ToArray())
@@ -560,7 +560,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                               correlationId: message.CorrelationId,
-                                                              sequenceNumber: message.SequenceNumber,
+                                                              sequenceNumber: message.SequenceNumber.ToString(),
                                                               extras: new Dictionary<string, string?>
                                                               {
                                                                   ["EntityPath"] = entityPath,
@@ -580,10 +580,11 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             using var scope = CreateScope();
             using var ms = message.Body.ToStream();
             var contentType = new ContentType(message.ContentType);
-            var context = await DeserializeAsync<TEvent>(body: ms,
+            var context = await DeserializeAsync<TEvent>(scope: scope,
+                                                         body: ms,
                                                          contentType: contentType,
                                                          registration: ereg,
-                                                         scope: scope,
+                                                         identifier: message.SequenceNumber.ToString(),
                                                          cancellationToken: cancellationToken);
 
             Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{EntityPath}'",

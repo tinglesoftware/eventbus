@@ -55,13 +55,11 @@ namespace Tingle.EventBus.Serialization
         protected ILogger Logger { get; }
 
         /// <inheritdoc/>
-        public async Task<EventContext<T>?> DeserializeAsync<T>(Stream stream,
-                                                                ContentType? contentType,
-                                                                CancellationToken cancellationToken = default)
+        public async Task<EventContext<T>?> DeserializeAsync<T>(DeserializationContext context, CancellationToken cancellationToken = default)
             where T : class
         {
             // Assume first media type if none is specified
-            contentType ??= new ContentType(SupportedMediaTypes[0]);
+            var contentType = context.ContentType ?? new ContentType(SupportedMediaTypes[0]);
 
             // Ensure the content type is supported
             if (!SupportedMediaTypes.Contains(contentType.MediaType, StringComparer.OrdinalIgnoreCase))
@@ -70,8 +68,19 @@ namespace Tingle.EventBus.Serialization
             }
 
             // Deserialize
+            var stream = context.Stream;
             var envelope = await DeserializeToEnvelopeAsync<T>(stream: stream, contentType: contentType, cancellationToken: cancellationToken);
-            if (envelope is null) return null;
+            if (envelope is null)
+            {
+                Logger.DeserializationResultedInNull(context);
+                return null;
+            }
+
+            if (envelope.Event is null)
+            {
+                Logger.DeserializedEventShouldNotBeNull(context, eventId: envelope.Id);
+                return null;
+            }
 
             // Create the context
             var publisher = serviceProvider.GetRequiredService<IEventPublisher>();

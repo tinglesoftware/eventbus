@@ -17,7 +17,8 @@ namespace Tingle.EventBus
         /// <param name="event">The event to be nested.</param>
         /// <param name="correlationId">The identifier of the event from which to create a child event.</param>
         /// <returns></returns>
-        EventContext<TEvent> CreateEventContext<TEvent>(TEvent @event, string? correlationId = null);
+        EventContext<TEvent> CreateEventContext<TEvent>(TEvent @event, string? correlationId = null)
+            where TEvent : class;
 
         /// <summary>
         /// Publish an event.

@@ -124,10 +124,10 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
 
             using var scope = CreateScope();
             using var ms = new MemoryStream();
-            await SerializeAsync(body: ms,
+            await SerializeAsync(scope: scope,
+                                 body: ms,
                                  @event: @event,
                                  registration: registration,
-                                 scope: scope,
                                  cancellationToken: cancellationToken);
 
             // get the topic arn and send the message
@@ -169,10 +169,10 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                await SerializeAsync(body: ms,
+                await SerializeAsync(scope: scope,
+                                     body: ms,
                                      @event: @event,
                                      registration: registration,
-                                     scope: scope,
                                      cancellationToken: cancellationToken);
 
                 // get the topic arn and send the message
@@ -397,10 +397,11 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             var contentType = contentType_str == null ? null : new ContentType(contentType_str);
 
             using var scope = CreateScope();
-            var context = await DeserializeAsync<TEvent>(body: ms,
+            var context = await DeserializeAsync<TEvent>(scope: scope,
+                                                         body: ms,
                                                          contentType: contentType,
                                                          registration: ereg,
-                                                         scope: scope,
+                                                         identifier: messageId,
                                                          cancellationToken: cancellationToken);
 
             Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueUrl}'",

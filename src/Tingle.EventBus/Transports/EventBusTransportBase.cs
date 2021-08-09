@@ -135,27 +135,21 @@ namespace Tingle.EventBus.Transports
         /// Deserialize an event from a stream of bytes.
         /// </summary>
         /// <typeparam name="TEvent">The event type to be deserialized.</typeparam>
-        /// <param name="body">
-        /// The <see cref="Stream"/> containing the raw data.
-        /// (It must be readable, i.e. <see cref="Stream.CanRead"/> must be true).
-        /// </param>
-        /// <param name="contentType">The type of content contained in the <paramref name="body"/>.</param>
-        /// <param name="registration">The bus registration for this event.</param>
         /// <param name="scope">The scope in which to resolve required services.</param>
+        /// <param name="ctx">The <see cref="DeserializationContext"/> to use.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(Stream body,
-                                                                            ContentType? contentType,
-                                                                            EventRegistration registration,
-                                                                            IServiceScope scope,
+        protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(IServiceScope scope,
+                                                                            DeserializationContext ctx,
                                                                             CancellationToken cancellationToken = default)
             where TEvent : class
         {
             // Get the serializer
+            var registration = ctx.Registration;
             var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType!);
 
             // Deserialize the content into a context
-            var context = await serializer.DeserializeAsync<TEvent>(body, contentType, cancellationToken);
+            var context = await serializer.DeserializeAsync<TEvent>(ctx, cancellationToken);
 
             // Ensure we are not null (throwing helps track the error)
             if (context is null)
@@ -167,22 +161,48 @@ namespace Tingle.EventBus.Transports
         }
 
         /// <summary>
+        /// Deserialize an event from a stream of bytes.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type to be deserialized.</typeparam>
+        /// <param name="scope">The scope in which to resolve required services.</param>
+        /// <param name="body">
+        /// The <see cref="Stream"/> containing the raw data.
+        /// (It must be readable, i.e. <see cref="Stream.CanRead"/> must be true).
+        /// </param>
+        /// <param name="contentType">The type of content contained in the <paramref name="body"/>.</param>
+        /// <param name="registration">The bus registration for this event.</param>
+        /// <param name="identifier">Identifier given the transport for the event to be deserailized.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(IServiceScope scope,
+                                                                            Stream body,
+                                                                            ContentType? contentType,
+                                                                            EventRegistration registration,
+                                                                            string? identifier,
+                                                                            CancellationToken cancellationToken = default)
+            where TEvent : class
+        {
+            var ctx = new DeserializationContext(body, registration, identifier) { ContentType = contentType, };
+            return await DeserializeAsync<TEvent>(scope, ctx, cancellationToken);
+        }
+
+        /// <summary>
         /// Serialize an event into a stream of bytes.
         /// </summary>
         /// <typeparam name="TEvent">The event type to be serialized.</typeparam>
+        /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="body">
         /// The stream to serialize to.
         /// (It must be writeable, i.e. <see cref="Stream.CanWrite"/> must be true).
         /// </param>
         /// <param name="event">The context of the event to be serialized.</param>
         /// <param name="registration">The bus registration for this event.</param>
-        /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task SerializeAsync<TEvent>(Stream body,
+        protected async Task SerializeAsync<TEvent>(IServiceScope scope,
+                                                    Stream body,
                                                     EventContext<TEvent> @event,
                                                     EventRegistration registration,
-                                                    IServiceScope scope,
                                                     CancellationToken cancellationToken = default)
             where TEvent : class
         {
@@ -212,6 +232,7 @@ namespace Tingle.EventBus.Transports
                                                                                  IServiceScope scope,
                                                                                  CancellationToken cancellationToken)
             where TConsumer : IEventConsumer<TEvent>
+            where TEvent : class
         {
             // Resolve the consumer
             var consumer = scope.ServiceProvider.GetRequiredService<TConsumer>();
@@ -292,25 +313,6 @@ namespace Tingle.EventBus.Transports
 
             // create the scope
             return Logger.BeginScope(state);
-        }
-
-        /// <summary>
-        /// Begins a logical operation scope for logging.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="correlationId"></param>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="extras">The extras to put in the scope. (Optional)</param>
-        /// <returns>A disposable object that ends the logical operation scope on dispose.</returns>
-        protected IDisposable BeginLoggingScopeForConsume(string? id,
-                                                          string? correlationId,
-                                                          long sequenceNumber,
-                                                          IDictionary<string, string?>? extras = null)
-        {
-            return BeginLoggingScopeForConsume(id: id,
-                                               correlationId: correlationId,
-                                               sequenceNumber: sequenceNumber.ToString(),
-                                               extras: extras);
         }
 
         #endregion

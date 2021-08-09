@@ -75,14 +75,14 @@ namespace Tingle.EventBus
     /// The context for a specific event.
     /// </summary>
     /// <typeparam name="T">The type of event carried.</typeparam>
-    public class EventContext<T> : EventContext
+    public class EventContext<T> : EventContext where T : class
     {
         /// <summary>
         /// 
         /// </summary>
         /// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
         /// <param name="event">Value for <see cref="Event"/>.</param>
-        public EventContext(IEventPublisher publisher, T? @event) : base(publisher)
+        public EventContext(IEventPublisher publisher, T @event) : base(publisher)
         {
             Event = @event;
         }
@@ -91,24 +91,28 @@ namespace Tingle.EventBus
         /// 
         /// </summary>
         /// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
+        /// <param name="event">Value for <see cref="Event"/>.</param>
         /// <param name="envelope">Envelope containing details for the event.</param>
         /// <param name="contentType">Value for <see cref="EventContext.ContentType"/></param>
-        public EventContext(IEventPublisher publisher, EventEnvelope<T> envelope, ContentType? contentType) : base(publisher)
+        public EventContext(IEventPublisher publisher, T @event, EventEnvelope envelope, ContentType? contentType) : this(publisher, @event)
         {
             Id = envelope.Id;
             RequestId = envelope.RequestId;
             CorrelationId = envelope.CorrelationId;
             InitiatorId = envelope.InitiatorId;
-            Event = envelope.Event;
             Expires = envelope.Expires;
             Sent = envelope.Sent;
             Headers = envelope.Headers;
             ContentType = contentType;
         }
 
+        // marked internal because of the forced null forgiving operator
+        internal EventContext(IEventPublisher publisher, EventEnvelope<T> envelope, ContentType? contentType)
+            : this(publisher, envelope.Event!, envelope, contentType) { }
+
         /// <summary>
         /// The event published or to be published.
         /// </summary>
-        public T? Event { get; set; }
+        public T Event { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Tingle.EventBus;
+using Tingle.EventBus.Serialization;
 
 namespace Microsoft.Extensions.Logging
 {
@@ -171,6 +172,7 @@ namespace Microsoft.Extensions.Logging
         }
 
         public static void SendingEvents<T>(this ILogger logger, IList<EventContext<T>> events, string transportName, DateTimeOffset? scheduled = null)
+            where T : class
         {
             SendingEvents(logger, events.Select(e => e.Id).ToList(), transportName, scheduled);
         }
@@ -230,6 +232,44 @@ namespace Microsoft.Extensions.Logging
         public static void ReadinessCheckTimedout(this ILogger logger, TimeSpan timeout) => _readinessCheckTimedout(logger, timeout, null);
 
         public static void ReadinessCheckDisabled(this ILogger logger) => _readinessCheckDisabled(logger, null);
+
+        #endregion
+
+        #region Serialization (500 series)
+
+        private static readonly Action<ILogger, string?, string, Exception?> _deserializationResultedInNull
+            = LoggerMessage.Define<string?, string>(
+                eventId: new EventId(501, nameof(DeserializationResultedInNull)),
+                logLevel: LogLevel.Warning,
+                formatString: "Deserialization resulted in a null which should not happen. Identifier: '{Identifier}', Type: '{EventType}'.");
+
+        private static readonly Action<ILogger, string?, string?, string, Exception?> _deserializedEventShouldNotBeNull
+            = LoggerMessage.Define<string?, string?, string>(
+                eventId: new EventId(502, nameof(DeserializedEventShouldNotBeNull)),
+                logLevel: LogLevel.Warning,
+                formatString: "Deserialized event should not have a null event. Identifier: '{Identifier}', EventId: '{EventId}', Type: '{EventType}'.");
+
+        public static void DeserializationResultedInNull(this ILogger logger, string? id, string eventType)
+        {
+            _deserializationResultedInNull(logger, id, eventType, null);
+        }
+
+        public static void DeserializationResultedInNull(this ILogger logger, DeserializationContext context)
+        {
+            logger.DeserializationResultedInNull(id: context.Identifier, eventType: context.Registration.EventType.FullName);
+        }
+
+        public static void DeserializedEventShouldNotBeNull(this ILogger logger, string? id, string? eventId, string eventType)
+        {
+            _deserializedEventShouldNotBeNull(logger, id, eventId, eventType, null);
+        }
+
+        public static void DeserializedEventShouldNotBeNull(this ILogger logger, DeserializationContext context, string? eventId)
+        {
+            logger.DeserializedEventShouldNotBeNull(id: context.Identifier,
+                                                    eventId: eventId,
+                                                    eventType: context.Registration.EventType.FullName);
+        }
 
         #endregion
     }

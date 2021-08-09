@@ -1,4 +1,4 @@
-name: Build and Publish (Preview)
+name: Publish Preview
 
 on:
   push:

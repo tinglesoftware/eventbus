@@ -22,8 +22,6 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
     [TransportName(TransportNames.AzureQueueStorage)]
     public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorageTransportOptions>, IDisposable
     {
-        private const string SequenceNumberSeparator = "|";
-
         private readonly Dictionary<(Type, bool), QueueClient> queueClientsCache = new();
         private readonly SemaphoreSlim queueClientsCacheLock = new(1, 1); // only one at a time.
         private readonly CancellationTokenSource stoppingCts = new();
@@ -127,7 +125,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
             // return the sequence number; both MessageId and PopReceipt are needed to update or delete
             return scheduled != null
-                    ? new ScheduledResult(id: MakeSequenceNumber(response.Value), scheduled: scheduled.Value)
+                    ? new ScheduledResult(id: (AzureQueueStorageSchedulingId)response.Value, scheduled: scheduled.Value)
                     : null;
         }
 
@@ -167,7 +165,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                                   timeToLive: ttl,
                                                                   cancellationToken: cancellationToken);
                 // collect the sequence number
-                sequenceNumbers.Add(MakeSequenceNumber(response.Value));
+                sequenceNumbers.Add((AzureQueueStorageSchedulingId)response.Value);
             }
 
             // return the sequence number
@@ -185,12 +183,19 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             }
 
             var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
-            var parts = id.Split(SequenceNumberSeparator);
-            string messageId = parts[0], popReceipt = parts[1];
-            Logger.LogInformation("Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'", messageId, popReceipt, queueClient.Name);
-            await queueClient.DeleteMessageAsync(messageId: messageId,
-                                                 popReceipt: popReceipt,
-                                                 cancellationToken: cancellationToken);
+            if (AzureQueueStorageSchedulingId.TryParse(id, out var sid))
+            {
+                var messageId = sid.MessageId;
+                var popReceipt = sid.PopReceipt;
+                Logger.LogInformation("Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'", messageId, popReceipt, queueClient.Name);
+                await queueClient.DeleteMessageAsync(messageId: messageId,
+                                                     popReceipt: popReceipt,
+                                                     cancellationToken: cancellationToken);
+            }
+            else
+            {
+                Logger.LogWarning("The provided id '{Id}' does not match the expected format.", id);
+            }
         }
 
         /// <inheritdoc/>
@@ -203,22 +208,26 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                 throw new ArgumentNullException(nameof(ids));
             }
 
-            var splits = ids.Select(i =>
-            {
-                var parts = i.Split(SequenceNumberSeparator);
-                return (messageId: parts[0], popReceipt: parts[1]);
-            }).ToList();
-
             // log warning when doing batch
             Logger.LogWarning("Azure Queue Storage does not support batching. The events will be canceled one by one");
 
             var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
-            foreach (var (messageId, popReceipt) in splits)
+
+            foreach (var id in ids)
             {
-                Logger.LogInformation("Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'", messageId, popReceipt, queueClient.Name);
-                await queueClient.DeleteMessageAsync(messageId: messageId,
-                                                     popReceipt: popReceipt,
-                                                     cancellationToken: cancellationToken);
+                if (AzureQueueStorageSchedulingId.TryParse(id, out var sid))
+                {
+                    var messageId = sid.MessageId;
+                    var popReceipt = sid.PopReceipt;
+                    Logger.LogInformation("Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'", messageId, popReceipt, queueClient.Name);
+                    await queueClient.DeleteMessageAsync(messageId: messageId,
+                                                         popReceipt: popReceipt,
+                                                         cancellationToken: cancellationToken);
+                }
+                else
+                {
+                    Logger.LogWarning("The provided id '{Id}' does not match the expected format.", id);
+                }
             }
         }
 
@@ -348,7 +357,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                          contentType: null, // There is no way to get this yet
                                                          registration: reg,
                                                          scope: scope,
-                                                         identifier: MakeSequenceNumber(message),
+                                                         identifier: (AzureQueueStorageSchedulingId)message,
                                                          cancellationToken: cancellationToken);
 
             Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueName}'",
@@ -385,26 +394,6 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         public void Dispose()
         {
             stoppingCts.Cancel();
-        }
-
-        private string MakeSequenceNumber(QueueMessage message)
-        {
-            if (message is null)
-            {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            return string.Join(SequenceNumberSeparator, message.MessageId, message.PopReceipt);
-        }
-
-        private string MakeSequenceNumber(SendReceipt receipt)
-        {
-            if (receipt is null)
-            {
-                throw new ArgumentNullException(nameof(receipt));
-            }
-
-            return string.Join(SequenceNumberSeparator, receipt.MessageId, receipt.PopReceipt);
         }
     }
 }

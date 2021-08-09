@@ -130,10 +130,10 @@ namespace Tingle.EventBus.Transports.InMemory
 
             using var scope = CreateScope();
             using var ms = new MemoryStream();
-            await SerializeAsync(body: ms,
+            await SerializeAsync(scope: scope,
+                                 body: ms,
                                  @event: @event,
                                  registration: registration,
-                                 scope: scope,
                                  cancellationToken: cancellationToken);
 
             var message = new InMemoryQueueMessage(ms.ToArray())
@@ -191,10 +191,10 @@ namespace Tingle.EventBus.Transports.InMemory
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                await SerializeAsync(body: ms,
+                await SerializeAsync(scope: scope,
+                                     body: ms,
                                      @event: @event,
                                      registration: registration,
-                                     scope: scope,
                                      cancellationToken: cancellationToken);
 
                 var message = new InMemoryQueueMessage(ms.ToArray())
@@ -340,11 +340,11 @@ namespace Tingle.EventBus.Transports.InMemory
             Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueEntity.Name);
             using var ms = new MemoryStream(message.Body.ToArray());
             var contentType = new ContentType(message.ContentType);
-            var context = await DeserializeAsync<TEvent>(body: ms,
+            var context = await DeserializeAsync<TEvent>(scope: scope,
+                                                         body: ms,
                                                          contentType: contentType,
                                                          registration: reg,
                                                          identifier: messageId,
-                                                         scope: scope,
                                                          cancellationToken: cancellationToken);
 
             Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueName}'",

@@ -144,10 +144,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
             using var scope = CreateScope();
             using var ms = new MemoryStream();
-            await SerializeAsync(body: ms,
+            await SerializeAsync(scope: scope,
+                                 body: ms,
                                  @event: @event,
                                  registration: registration,
-                                 scope: scope,
                                  cancellationToken: cancellationToken);
 
             var data = new EventData(ms.ToArray());
@@ -195,10 +195,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                await SerializeAsync(body: ms,
+                await SerializeAsync(scope: scope,
+                                     body: ms,
                                      @event: @event,
                                      registration: registration,
-                                     scope: scope,
                                      cancellationToken: cancellationToken);
 
                 var data = new EventData(ms.ToArray());
@@ -423,10 +423,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             using var scope = CreateScope();
             using var ms = new MemoryStream(data.Body.ToArray());
             var contentType = contentType_str == null ? null : new ContentType(contentType_str.ToString());
-            var context = await DeserializeAsync<TEvent>(body: ms,
+            var context = await DeserializeAsync<TEvent>(scope: scope,
+                                                         body: ms,
                                                          contentType: contentType,
                                                          registration: ereg,
-                                                         scope: scope,
                                                          identifier: data.SequenceNumber.ToString(),
                                                          cancellationToken: cancellationToken);
             Logger.LogInformation("Received event: '{EventId}|{PartitionKey}|{SequenceNumber}' containing Event '{Id}' from '{EventHubName}/{ConsumerGroup}'",

@@ -101,10 +101,10 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         {
             using var scope = CreateScope();
             using var ms = new MemoryStream();
-            await SerializeAsync(body: ms,
+            await SerializeAsync(scope: scope,
+                                 body: ms,
                                  @event: @event,
                                  registration: registration,
-                                 scope: scope,
                                  cancellationToken: cancellationToken);
 
 
@@ -146,10 +146,10 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
-                await SerializeAsync(body: ms,
+                await SerializeAsync(scope: scope,
+                                     body: ms,
                                      @event: @event,
                                      registration: registration,
-                                     scope: scope,
                                      cancellationToken: cancellationToken);
                 // if scheduled for later, calculate the visibility timeout
                 var visibilityTimeout = scheduled - DateTimeOffset.UtcNow;
@@ -353,10 +353,10 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
             Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueClient.Name);
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.MessageText));
-            var context = await DeserializeAsync<TEvent>(body: ms,
-                                                         contentType: null, // There is no way to get this yet
+            var context = await DeserializeAsync<TEvent>(scope: scope,
+                                                         body: ms, // There is no way to get this yet
+                                                         contentType: null,
                                                          registration: reg,
-                                                         scope: scope,
                                                          identifier: (AzureQueueStorageSchedulingId)message,
                                                          cancellationToken: cancellationToken);
 

@@ -164,6 +164,7 @@ namespace Tingle.EventBus.Transports
         /// Deserialize an event from a stream of bytes.
         /// </summary>
         /// <typeparam name="TEvent">The event type to be deserialized.</typeparam>
+        /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="body">
         /// The <see cref="Stream"/> containing the raw data.
         /// (It must be readable, i.e. <see cref="Stream.CanRead"/> must be true).
@@ -171,14 +172,13 @@ namespace Tingle.EventBus.Transports
         /// <param name="contentType">The type of content contained in the <paramref name="body"/>.</param>
         /// <param name="registration">The bus registration for this event.</param>
         /// <param name="identifier">Identifier given the transport for the event to be deserailized.</param>
-        /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(Stream body,
+        protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(IServiceScope scope,
+                                                                            Stream body,
                                                                             ContentType? contentType,
                                                                             EventRegistration registration,
                                                                             string? identifier,
-                                                                            IServiceScope scope,
                                                                             CancellationToken cancellationToken = default)
             where TEvent : class
         {
@@ -190,19 +190,19 @@ namespace Tingle.EventBus.Transports
         /// Serialize an event into a stream of bytes.
         /// </summary>
         /// <typeparam name="TEvent">The event type to be serialized.</typeparam>
+        /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="body">
         /// The stream to serialize to.
         /// (It must be writeable, i.e. <see cref="Stream.CanWrite"/> must be true).
         /// </param>
         /// <param name="event">The context of the event to be serialized.</param>
         /// <param name="registration">The bus registration for this event.</param>
-        /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task SerializeAsync<TEvent>(Stream body,
+        protected async Task SerializeAsync<TEvent>(IServiceScope scope,
+                                                    Stream body,
                                                     EventContext<TEvent> @event,
                                                     EventRegistration registration,
-                                                    IServiceScope scope,
                                                     CancellationToken cancellationToken = default)
             where TEvent : class
         {

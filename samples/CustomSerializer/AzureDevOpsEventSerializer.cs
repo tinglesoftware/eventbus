@@ -45,9 +45,9 @@ namespace CustomSerializer
             };
 
             // you can consider moving this to extenion methods on EventContext for both get and set
-            envelope.Headers["eventType"] = jToken.Value<string>("eventType");
-            envelope.Headers["resourceVersion"] = jToken.Value<string>("resourceVersion");
-            envelope.Headers["publisherId"] = jToken.Value<string>("publisherId");
+            envelope.Headers["eventType"] = jToken.Value<string>("eventType")!;
+            envelope.Headers["resourceVersion"] = jToken.Value<string>("resourceVersion")!;
+            envelope.Headers["publisherId"] = jToken.Value<string>("publisherId")!;
 
             return Task.FromResult<EventEnvelope<T>?>(envelope);
         }

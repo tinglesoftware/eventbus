@@ -41,7 +41,7 @@ namespace Tingle.EventBus.Serialization
         /// <summary>
         /// The headers published alongside the event.
         /// </summary>
-        public IDictionary<string, object?> Headers { get; set; } = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+        public IDictionary<string, object> Headers { get; set; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Information about the host on which the event was generated.

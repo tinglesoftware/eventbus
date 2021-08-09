@@ -276,7 +276,7 @@ namespace Tingle.EventBus.Transports
                                                           string? sequenceNumber = null,
                                                           IDictionary<string, string?>? extras = null)
         {
-            var state = new Dictionary<string, string?>();
+            var state = new Dictionary<string, string>();
             state.AddIfNotDefault(AttributeNames.Id, id);
             state.AddIfNotDefault(AttributeNames.CorrelationId, correlationId);
             state.AddIfNotDefault(AttributeNames.SequenceNumber, sequenceNumber);

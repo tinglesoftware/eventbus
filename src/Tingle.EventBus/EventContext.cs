@@ -50,7 +50,7 @@ namespace Tingle.EventBus
         /// The headers published alongside the event.
         /// The keys are case insensitive.
         /// </summary>
-        public IDictionary<string, object?> Headers { get; set; } = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+        public IDictionary<string, object> Headers { get; set; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// The content type used to serialize and deserialize the event to/from a stream of bytes.
@@ -95,7 +95,6 @@ namespace Tingle.EventBus
         /// <param name="contentType">Value for <see cref="EventContext.ContentType"/></param>
         public EventContext(IEventPublisher publisher, EventEnvelope<T> envelope, ContentType? contentType) : base(publisher)
         {
-            //Event = @event;
             Id = envelope.Id;
             RequestId = envelope.RequestId;
             CorrelationId = envelope.CorrelationId;

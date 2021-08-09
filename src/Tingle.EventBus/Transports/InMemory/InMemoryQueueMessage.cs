@@ -13,6 +13,6 @@ namespace Tingle.EventBus.Transports.InMemory
         public string? CorrelationId { get; set; }
         public string? MessageId { get; set; }
         public ReadOnlyMemory<byte> Body { get; set; }
-        public IDictionary<string, object?> Properties { get; set; } = new Dictionary<string, object?>();
+        public IDictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
     }
 }

@@ -11,12 +11,6 @@ on:
       - LICENSE
       - CHANGELOG.md
       - docs/**
-  workflow_dispatch:
-    inputs:
-      reason:
-        description: 'Reason for running the action'
-        required: false
-        default: 'Pre-Release'
 
 jobs:
   Build:
@@ -82,7 +76,7 @@ jobs:
         name: drop
 
     - name: Publish to NuGet.org
-      # if: startsWith(github.ref, 'refs/tags/')
+      if: startsWith(github.ref, 'refs/tags/')
       run: >
         dotnet nuget push "$GITHUB_WORKSPACE/drop/*"
         -k ${{ secrets.NUGET_API_KEY }}

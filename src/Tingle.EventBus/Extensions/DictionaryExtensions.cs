@@ -19,6 +19,7 @@
         /// <exception cref="NotSupportedException">The <see cref="IDictionary{TKey, TValue}"/> is read-only.</exception>
         /// <returns></returns>
         public static IDictionary<TKey, TValue> AddIfNotDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue? value)
+            where TKey : notnull
         {
             if (value is not null || (value is string s && !string.IsNullOrWhiteSpace(s)))
             {

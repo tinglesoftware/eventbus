@@ -71,7 +71,17 @@ namespace Tingle.EventBus.Serialization
 
             // Deserialize
             var envelope = await DeserializeToEnvelopeAsync<T>(stream: stream, contentType: contentType, cancellationToken: cancellationToken);
-            if (envelope is null) return null;
+            if (envelope is null)
+            {
+                Logger.DeserializationResultedInNull(null /* TODO: pull the identifier from the transport, maybe DeserializationContext */);
+                return null;
+            }
+
+            if (envelope.Event is null)
+            {
+                Logger.DeserializedEventShouldNotBeNull(null /* TODO: pull the identifier from the transport, maybe DeserializationContext */,envelope.Id);
+                return null;
+            }
 
             // Create the context
             var publisher = serviceProvider.GetRequiredService<IEventPublisher>();

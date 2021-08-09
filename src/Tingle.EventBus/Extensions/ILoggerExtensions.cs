@@ -233,5 +233,27 @@ namespace Microsoft.Extensions.Logging
         public static void ReadinessCheckDisabled(this ILogger logger) => _readinessCheckDisabled(logger, null);
 
         #endregion
+
+        #region Serialization (500 series)
+
+        private static readonly Action<ILogger, string?, Exception?> _deserializationResultedInNull
+            = LoggerMessage.Define<string?>(
+                eventId: new EventId(501, nameof(DeserializationResultedInNull)),
+                logLevel: LogLevel.Warning,
+                formatString: "Deserialization resulted in a null which should not happen. TransportIdentifier: '{TransportIdentifier}'.");
+
+        private static readonly Action<ILogger, string?, string?, Exception?> _deserializedEventShouldNotBeNull
+            = LoggerMessage.Define<string?, string?>(
+                eventId: new EventId(502, nameof(DeserializedEventShouldNotBeNull)),
+                logLevel: LogLevel.Warning,
+                formatString: "Deserialized event should not have a null event. TransportIdentifier: '{TransportIdentifier}', EventId: '{EventId}'.");
+
+        public static void DeserializationResultedInNull(this ILogger logger, string? id) => _deserializationResultedInNull(logger, id, null);
+        public static void DeserializedEventShouldNotBeNull(this ILogger logger, string? transportId, string? eventId)
+        {
+            _deserializedEventShouldNotBeNull(logger, transportId, eventId, null);
+        }
+
+        #endregion
     }
 }

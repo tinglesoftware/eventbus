@@ -340,6 +340,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                                                          contentType: contentType,
                                                          registration: ereg,
                                                          scope: scope,
+                                                         identifier: messageId,
                                                          cancellationToken: cancellationToken);
             Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
                                   messageId,

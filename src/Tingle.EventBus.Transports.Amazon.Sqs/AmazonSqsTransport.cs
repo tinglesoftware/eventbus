@@ -401,6 +401,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                                                          contentType: contentType,
                                                          registration: ereg,
                                                          scope: scope,
+                                                         identifier: messageId,
                                                          cancellationToken: cancellationToken);
 
             Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueUrl}'",

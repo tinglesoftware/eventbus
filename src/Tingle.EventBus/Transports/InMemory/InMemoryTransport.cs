@@ -337,15 +337,15 @@ namespace Tingle.EventBus.Transports.InMemory
             activity?.AddTag(ActivityTagNames.MessagingDestination, queueEntity.Name);
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
 
-            EventContext<TEvent>? context = null;
             Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueEntity.Name);
             using var ms = new MemoryStream(message.Body.ToArray());
             var contentType = new ContentType(message.ContentType);
-            context = await DeserializeAsync<TEvent>(body: ms,
-                                                     contentType: contentType,
-                                                     registration: reg,
-                                                     scope: scope,
-                                                     cancellationToken: cancellationToken);
+            var context = await DeserializeAsync<TEvent>(body: ms,
+                                                         contentType: contentType,
+                                                         registration: reg,
+                                                         identifier: messageId,
+                                                         scope: scope,
+                                                         cancellationToken: cancellationToken);
 
             Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueName}'",
                                   messageId,

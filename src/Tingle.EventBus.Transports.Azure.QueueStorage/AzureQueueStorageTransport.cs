@@ -348,6 +348,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                          contentType: null, // There is no way to get this yet
                                                          registration: reg,
                                                          scope: scope,
+                                                         identifier: MakeSequenceNumber(message),
                                                          cancellationToken: cancellationToken);
 
             Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueName}'",
@@ -384,6 +385,16 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         public void Dispose()
         {
             stoppingCts.Cancel();
+        }
+
+        private string MakeSequenceNumber(QueueMessage message)
+        {
+            if (message is null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return string.Join(SequenceNumberSeparator, message.MessageId, message.PopReceipt);
         }
     }
 }

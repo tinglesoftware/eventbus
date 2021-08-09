@@ -309,6 +309,7 @@ namespace Tingle.EventBus.Transports.Kafka
                                                          contentType: contentType,
                                                          registration: reg,
                                                          scope: scope,
+                                                         identifier: messageKey, // TODO: use offset
                                                          cancellationToken: cancellationToken);
             Logger.LogInformation("Received event: '{MessageKey}' containing Event '{Id}'",
                                   messageKey,

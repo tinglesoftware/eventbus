@@ -584,6 +584,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                          contentType: contentType,
                                                          registration: ereg,
                                                          scope: scope,
+                                                         identifier: message.SequenceNumber.ToString(),
                                                          cancellationToken: cancellationToken);
 
             Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{EntityPath}'",

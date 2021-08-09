@@ -427,6 +427,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                          contentType: contentType,
                                                          registration: ereg,
                                                          scope: scope,
+                                                         identifier: data.SequenceNumber.ToString(),
                                                          cancellationToken: cancellationToken);
             Logger.LogInformation("Received event: '{EventId}|{PartitionKey}|{SequenceNumber}' containing Event '{Id}' from '{EventHubName}/{ConsumerGroup}'",
                                   eventId,

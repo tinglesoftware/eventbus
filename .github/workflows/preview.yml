@@ -1,14 +1,6 @@
 name: Publish Preview
 
 on:
-  push:
-    # branches:
-    #   - main
-    paths-ignore:
-      - README.md
-      - LICENSE
-      - CHANGELOG.md
-      - docs/**
   workflow_dispatch:
     inputs:
       reason:

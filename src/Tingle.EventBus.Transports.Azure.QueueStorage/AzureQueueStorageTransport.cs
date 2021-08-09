@@ -127,7 +127,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
             // return the sequence number; both MessageId and PopReceipt are needed to update or delete
             return scheduled != null
-                    ? new ScheduledResult(id: string.Join(SequenceNumberSeparator, response.Value.MessageId, response.Value.PopReceipt), scheduled: scheduled.Value)
+                    ? new ScheduledResult(id: MakeSequenceNumber(response.Value), scheduled: scheduled.Value)
                     : null;
         }
 
@@ -167,7 +167,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                                   timeToLive: ttl,
                                                                   cancellationToken: cancellationToken);
                 // collect the sequence number
-                sequenceNumbers.Add(string.Join(SequenceNumberSeparator, response.Value.MessageId, response.Value.PopReceipt));
+                sequenceNumbers.Add(MakeSequenceNumber(response.Value));
             }
 
             // return the sequence number
@@ -395,6 +395,16 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             }
 
             return string.Join(SequenceNumberSeparator, message.MessageId, message.PopReceipt);
+        }
+
+        private string MakeSequenceNumber(SendReceipt receipt)
+        {
+            if (receipt is null)
+            {
+                throw new ArgumentNullException(nameof(receipt));
+            }
+
+            return string.Join(SequenceNumberSeparator, receipt.MessageId, receipt.PopReceipt);
         }
     }
 }

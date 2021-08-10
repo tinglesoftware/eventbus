@@ -41,7 +41,7 @@ namespace Tingle.EventBus.Tests.Configurator
             // attribute is respected
             var registration = new EventRegistration(typeof(TestEvent3));
             var ex = Assert.Throws<InvalidOperationException>(() => configurator.ConfigureSerializer(registration));
-            Assert.Equal("The type 'Tingle.EventBus.Tests.FakeEventSerializer2' is used"
+            Assert.Equal("The type 'Tingle.EventBus.Tests.Configurator.FakeEventSerializer2' is used"
                        + " as a serializer but does not implement 'Tingle.EventBus.Serialization.IEventSerializer'",
                 ex.Message);
         }
@@ -50,9 +50,9 @@ namespace Tingle.EventBus.Tests.Configurator
         [InlineData(typeof(TestEvent1), false, "dev", NamingConvention.KebabCase, "dev-test-event1")]
         [InlineData(typeof(TestEvent1), false, "dev", NamingConvention.SnakeCase, "dev_test_event1")]
         [InlineData(typeof(TestEvent1), false, "dev", NamingConvention.DotCase, "dev.test.event1")]
-        [InlineData(typeof(TestEvent1), true, "dev", NamingConvention.KebabCase, "dev-tingle-event-bus-tests-test-event1")]
-        [InlineData(typeof(TestEvent1), true, "dev", NamingConvention.SnakeCase, "dev_tingle_event_bus_tests_test_event1")]
-        [InlineData(typeof(TestEvent1), true, "dev", NamingConvention.DotCase, "dev.tingle.event.bus.tests.test.event1")]
+        [InlineData(typeof(TestEvent1), true, "dev", NamingConvention.KebabCase, "dev-tingle-event-bus-tests-configurator-test-event1")]
+        [InlineData(typeof(TestEvent1), true, "dev", NamingConvention.SnakeCase, "dev_tingle_event_bus_tests_configurator_test_event1")]
+        [InlineData(typeof(TestEvent1), true, "dev", NamingConvention.DotCase, "dev.tingle.event.bus.tests.configurator.test.event1")]
         // Overriden by attribute
         [InlineData(typeof(TestEvent2), true, "dev", NamingConvention.KebabCase, "sample-event")]
         [InlineData(typeof(TestEvent2), true, "dev", NamingConvention.SnakeCase, "sample-event")]
@@ -90,29 +90,29 @@ namespace Tingle.EventBus.Tests.Configurator
 
         // Short type names
         [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.TypeName, NamingConvention.KebabCase,
-            "tingle-event-bus-tests-test-consumer1-tingle-event-bus-tests-test-event1")]
+            "tingle-event-bus-tests-configurator-test-consumer1-tingle-event-bus-tests-configurator-test-event1")]
         [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.TypeName, NamingConvention.SnakeCase,
-            "tingle_event_bus_tests_test_consumer1_tingle_event_bus_tests_test_event1")]
+            "tingle_event_bus_tests_configurator_test_consumer1_tingle_event_bus_tests_configurator_test_event1")]
         [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.TypeName, NamingConvention.DotCase,
-            "tingle.event.bus.tests.test.consumer1.tingle.event.bus.tests.test.event1")]
-        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.Prefix, NamingConvention.KebabCase, "app1-tingle-event-bus-tests-test-event1")]
-        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "app1_tingle_event_bus_tests_test_event1")]
-        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.Prefix, NamingConvention.DotCase, "app1.tingle.event.bus.tests.test.event1")]
+            "tingle.event.bus.tests.configurator.test.consumer1.tingle.event.bus.tests.configurator.test.event1")]
+        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.Prefix, NamingConvention.KebabCase, "app1-tingle-event-bus-tests-configurator-test-event1")]
+        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "app1_tingle_event_bus_tests_configurator_test_event1")]
+        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.Prefix, NamingConvention.DotCase, "app1.tingle.event.bus.tests.configurator.test.event1")]
         [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase,
-            "app1-tingle-event-bus-tests-test-consumer1-tingle-event-bus-tests-test-event1")]
+            "app1-tingle-event-bus-tests-configurator-test-consumer1-tingle-event-bus-tests-configurator-test-event1")]
         [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase,
-            "app1_tingle_event_bus_tests_test_consumer1_tingle_event_bus_tests_test_event1")]
+            "app1_tingle_event_bus_tests_configurator_test_consumer1_tingle_event_bus_tests_configurator_test_event1")]
         [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase,
-            "app1.tingle.event.bus.tests.test.consumer1.tingle.event.bus.tests.test.event1")]
-        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.Prefix, NamingConvention.KebabCase, "service1-tingle-event-bus-tests-test-event1")]
-        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "service1_tingle_event_bus_tests_test_event1")]
-        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.Prefix, NamingConvention.DotCase, "service1.tingle.event.bus.tests.test.event1")]
+            "app1.tingle.event.bus.tests.configurator.test.consumer1.tingle.event.bus.tests.configurator.test.event1")]
+        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.Prefix, NamingConvention.KebabCase, "service1-tingle-event-bus-tests-configurator-test-event1")]
+        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "service1_tingle_event_bus_tests_configurator_test_event1")]
+        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.Prefix, NamingConvention.DotCase, "service1.tingle.event.bus.tests.configurator.test.event1")]
         [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase,
-            "service1-tingle-event-bus-tests-test-consumer1-tingle-event-bus-tests-test-event1")]
+            "service1-tingle-event-bus-tests-configurator-test-consumer1-tingle-event-bus-tests-configurator-test-event1")]
         [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase,
-            "service1_tingle_event_bus_tests_test_consumer1_tingle_event_bus_tests_test_event1")]
+            "service1_tingle_event_bus_tests_configurator_test_consumer1_tingle_event_bus_tests_configurator_test_event1")]
         [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase,
-            "service1.tingle.event.bus.tests.test.consumer1.tingle.event.bus.tests.test.event1")]
+            "service1.tingle.event.bus.tests.configurator.test.consumer1.tingle.event.bus.tests.configurator.test.event1")]
 
         // Overriden by attribute
         [InlineData(typeof(TestEvent2), typeof(TestConsumer2), false, null, true, ConsumerNameSource.TypeName, NamingConvention.SnakeCase, "sample-consumer_sample-event")]
@@ -129,9 +129,9 @@ namespace Tingle.EventBus.Tests.Configurator
         // Appending
         [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", false, ConsumerNameSource.TypeName, NamingConvention.KebabCase, "test-consumer1")]
         [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, null, false, ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase, "app1-test-consumer1")]
-        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, false, ConsumerNameSource.TypeName, NamingConvention.KebabCase, "tingle-event-bus-tests-test-consumer1")]
-        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, false, ConsumerNameSource.TypeName, NamingConvention.SnakeCase, "tingle_event_bus_tests_test_consumer1")]
-        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, false, ConsumerNameSource.TypeName, NamingConvention.DotCase, "tingle.event.bus.tests.test.consumer1")]
+        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, false, ConsumerNameSource.TypeName, NamingConvention.KebabCase, "tingle-event-bus-tests-configurator-test-consumer1")]
+        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, false, ConsumerNameSource.TypeName, NamingConvention.SnakeCase, "tingle_event_bus_tests_configurator_test_consumer1")]
+        [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, false, ConsumerNameSource.TypeName, NamingConvention.DotCase, "tingle.event.bus.tests.configurator.test.consumer1")]
         [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, null, false, ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase, "sample-consumer")]
         [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, null, false, ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase, "sample-consumer")]
         public void SetConsumerName_Works(Type eventType,
@@ -213,7 +213,7 @@ namespace Tingle.EventBus.Tests.Configurator
             ereg.Consumers.Add(creg);
             Assert.Null(creg.ReadinessProviderType);
             var ex = Assert.Throws<InvalidOperationException>(() => configurator.ConfigureReadinessProviders(ereg));
-            Assert.Equal("The type 'Tingle.EventBus.Tests.FakeReadinessProvider2' is used"
+            Assert.Equal("The type 'Tingle.EventBus.Tests.Configurator.FakeReadinessProvider2' is used"
                        + " as a readiness provider but does not implement 'Tingle.EventBus.Readiness.IReadinessProvider'",
                 ex.Message);
         }

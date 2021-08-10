@@ -10,7 +10,7 @@ namespace Tingle.EventBus
     public static class EventContextExtensions
     {
         internal const string ItemsKeyConsumerGroup = "azure.eventhubs.consumer-group";
-        internal const string ItemsKeyParitionContext = "azure.eventhubs.partition-context";
+        internal const string ItemsKeyPartitionContext = "azure.eventhubs.partition-context";
         internal const string ItemsKeyEventData = "azure.eventhubs.event-data";
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Tingle.EventBus
         {
             if (context is null) throw new ArgumentNullException(nameof(context));
 
-            if (context.Items.TryGetValue(ItemsKeyParitionContext, out var obj) && obj is string cg)
+            if (context.Items.TryGetValue(ItemsKeyPartitionContext, out var obj) && obj is string cg)
             {
                 consumerGroup = cg;
                 return true;
@@ -52,14 +52,14 @@ namespace Tingle.EventBus
         /// This parameter is passed uninitialized.
         /// </param>
         /// <returns>
-        /// true if the parition is found; otherwise, false.
+        /// true if the partition is found; otherwise, false.
         /// </returns>
         /// <exception cref="ArgumentNullException">The context is null</exception>
         public static bool TryGetPartitionContext(this EventContext context, out PartitionContext? partition)
         {
             if (context is null) throw new ArgumentNullException(nameof(context));
 
-            if (context.Items.TryGetValue(ItemsKeyParitionContext, out var obj) && obj is PartitionContext pc)
+            if (context.Items.TryGetValue(ItemsKeyPartitionContext, out var obj) && obj is PartitionContext pc)
             {
                 partition = pc;
                 return true;
@@ -141,7 +141,7 @@ namespace Tingle.EventBus
             if (context is null) throw new ArgumentNullException(nameof(context));
             if (partition is null) throw new ArgumentNullException(nameof(partition));
 
-            context.Items[ItemsKeyParitionContext] = partition;
+            context.Items[ItemsKeyPartitionContext] = partition;
             return context;
         }
     }

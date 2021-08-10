@@ -22,7 +22,7 @@ namespace Tingle.EventBus
         public string? Id { get; set; }
 
         /// <summary>
-        /// The unique identifier of the request accosiated with the event.
+        /// The unique identifier of the request associated with the event.
         /// </summary>
         public string? RequestId { get; set; }
 

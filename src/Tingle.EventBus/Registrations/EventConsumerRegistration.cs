@@ -64,7 +64,7 @@ namespace Tingle.EventBus.Registrations
         /// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, System.Threading.CancellationToken)"/>
         /// method.
         /// When set to <see langword="null"/>, the transport's default behaviour is used.
-        /// Depending on the transport, the event may be delayed for reconsumtion
+        /// Depending on the transport, the event may be delayed for reconsumption
         /// or added back to the entity or availed to another processor/consumer instnance.
         /// Defaults to <see langword="null"/>.
         /// When this value is set, it overrides the default value set on the transport or the bus.

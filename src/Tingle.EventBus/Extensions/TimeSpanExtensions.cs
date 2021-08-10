@@ -6,7 +6,7 @@
     public static class TimeSpanExtensions
     {
         /// <summary>
-        /// Generates a reable string.
+        /// Generates a readable string.
         /// </summary>
         /// <param name="span"></param>
         /// <returns></returns>

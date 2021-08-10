@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public string? Scope { get; set; }
 
         /// <summary>
-        /// The naming convention to use when generating names for types and entities on the sepected transport.
+        /// The naming convention to use when generating names for types and entities on the selected transport.
         /// Defaults to <see cref="NamingConvention.KebabCase"/>.
         /// </summary>
         public NamingConvention Convention { get; set; } = NamingConvention.KebabCase;
@@ -33,7 +33,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Determines if to trim suffixes such as <c>Consumer</c>, <c>Event</c> and <c>EventConsumer</c>
         /// in names generated from type names.
-        /// For example <c>DoorOpenedEvent</c> would be trimmed to <c>DoorTrimed</c>,
+        /// For example <c>DoorOpenedEvent</c> would be trimmed to <c>DoorOpened</c>,
         /// <c>DoorOpenedEventConsumer</c> would be trimmed to <c>DoorOpened</c>,
         /// <c>DoorOpenedConsumer</c> would be trimmed to <c>DoorOpened</c>.
         /// Defaults to <see langword="true"/>
@@ -51,7 +51,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         /// <summary>
         /// The source used to generate names for consumers.
-        /// Some transports are versy sensitive to the value used here and thus should be used carefully.
+        /// Some transports are very sensitive to the value used here and thus should be used carefully.
         /// When set to <see cref="ConsumerNameSource.Prefix"/>, each subscription/exchange will
         /// be named the same as <see cref="ConsumerNamePrefix"/> before appending the event name.
         /// For applications with more than one consumer per event type, use <see cref="ConsumerNameSource.TypeName"/>

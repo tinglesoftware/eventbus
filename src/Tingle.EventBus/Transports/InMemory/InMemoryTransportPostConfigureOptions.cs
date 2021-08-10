@@ -19,10 +19,10 @@ namespace Microsoft.Extensions.DependencyInjection
         public void PostConfigure(string name, InMemoryTransportOptions options)
         {
             var registrations = busOptions.GetRegistrations(TransportNames.InMemory);
-            foreach (var ereg in registrations)
+            foreach (var reg in registrations)
             {
                 // Set the IdFormat
-                options.SetEventIdFormat(ereg, busOptions);
+                options.SetEventIdFormat(reg, busOptions);
             }
         }
     }

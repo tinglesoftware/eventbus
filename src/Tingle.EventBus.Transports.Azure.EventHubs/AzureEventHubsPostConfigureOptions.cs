@@ -35,13 +35,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 // ensure the connection string for blob storage or token credential is provided
                 if (options.BlobStorageCredentials is null || options.BlobStorageCredentials.Value is null)
                 {
-                    throw new InvalidOperationException($"'{nameof(options.BlobStorageCredentials)}' must be provided in form a connection string or an instance of '{nameof(AzureBlobStorageCredenetial)}'.");
+                    throw new InvalidOperationException($"'{nameof(options.BlobStorageCredentials)}' must be provided in form a connection string or an instance of '{nameof(AzureBlobStorageCredentials)}'.");
                 }
 
-                // ensure we have a BlobServiceUrl when using AzureBlobStorageCredenetial
-                if (options.BlobStorageCredentials.Value is AzureBlobStorageCredenetial absc && absc.BlobServiceUrl is null)
+                // ensure we have a BlobServiceUrl when using AzureBlobStorageCredential
+                if (options.BlobStorageCredentials.Value is AzureBlobStorageCredentials absc && absc.BlobServiceUrl is null)
                 {
-                    throw new InvalidOperationException($"'{nameof(AzureBlobStorageCredenetial.BlobServiceUrl)}' must be provided when using '{nameof(AzureBlobStorageCredenetial)}'.");
+                    throw new InvalidOperationException($"'{nameof(AzureBlobStorageCredentials.BlobServiceUrl)}' must be provided when using '{nameof(AzureBlobStorageCredentials)}'.");
                 }
 
                 // ensure the blob container name is provided
@@ -56,27 +56,27 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Ensure the entity names are not longer than the limits
             // See https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-quotas#common-limits-for-all-tiers
-            foreach (var ereg in registrations)
+            foreach (var reg in registrations)
             {
                 // Set the IdFormat
-                options.SetEventIdFormat(ereg, busOptions);
+                options.SetEventIdFormat(reg, busOptions);
 
                 // Ensure the entity type is allowed
-                options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast);
+                options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast);
 
                 // Event names become Event Hub names and they should not be longer than 256 characters
-                if (ereg.EventName!.Length > 256)
+                if (reg.EventName!.Length > 256)
                 {
-                    throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
+                    throw new InvalidOperationException($"EventName '{reg.EventName}' generated from '{reg.EventType.Name}' is too long. "
                                                        + "Azure Event Hubs does not allow more than 256 characters for Event Hub names.");
                 }
 
                 // Consumer names become Consumer Group names and they should not be longer than 256 characters
-                foreach (var creg in ereg.Consumers)
+                foreach (var ecr in reg.Consumers)
                 {
-                    if (creg.ConsumerName!.Length > 256)
+                    if (ecr.ConsumerName!.Length > 256)
                     {
-                        throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
+                        throw new InvalidOperationException($"ConsumerName '{ecr.ConsumerName}' generated from '{ecr.ConsumerType.Name}' is too long. "
                                                            + "Azure Event Hubs does not allow more than 256 characters for Consumer Group names.");
                     }
                 }

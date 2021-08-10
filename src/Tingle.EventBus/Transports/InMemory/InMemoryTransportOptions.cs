@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection
     public class InMemoryTransportOptions : EventBusTransportOptionsBase
     {
         /// <summary>
-        /// The durationof time for which to delay delivery of a message after dequeuing.
+        /// The duration of time for which to delay delivery of a message after dequeuing.
         /// Default value is 1 second.
         /// </summary>
         public TimeSpan DeliveryDelay { get; set; } = TimeSpan.FromSeconds(1);

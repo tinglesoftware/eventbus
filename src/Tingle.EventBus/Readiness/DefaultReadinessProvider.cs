@@ -31,10 +31,10 @@ namespace Tingle.EventBus.Readiness
             => InternalIsReadyAsync(allowed: null /* no filters */, cancellationToken: cancellationToken);
 
         /// <inheritdoc/>
-        public Task<bool> IsReadyAsync(EventRegistration ereg,
-                                       EventConsumerRegistration creg,
+        public Task<bool> IsReadyAsync(EventRegistration reg,
+                                       EventConsumerRegistration ecr,
                                        CancellationToken cancellationToken = default)
-            => InternalIsReadyAsync(allowed: creg.ReadinessTags, cancellationToken: cancellationToken);
+            => InternalIsReadyAsync(allowed: ecr.ReadinessTags, cancellationToken: cancellationToken);
 
         /// <inheritdoc/>
         public async Task WaitReadyAsync(CancellationToken cancellationToken = default)
@@ -78,8 +78,8 @@ namespace Tingle.EventBus.Readiness
 
             /*
              * Simplest implementation is to use the health checks registered in the application.
-             * 
-             * If the customization is required per event or consumer, the ereg and creg arguments
+             *
+             * If the customization is required per event or consumer, the reg and ecr arguments
              * will serve that purpose but only in a custom implementation of IReadinessProvider
              */
             using var scope = scopeFactory.CreateScope();

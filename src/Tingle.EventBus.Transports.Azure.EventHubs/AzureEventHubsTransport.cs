@@ -67,11 +67,11 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             await base.StartAsync(cancellationToken);
 
             var registrations = GetRegistrations();
-            foreach (var ereg in registrations)
+            foreach (var reg in registrations)
             {
-                foreach (var creg in ereg.Consumers)
+                foreach (var ecr in reg.Consumers)
                 {
-                    var processor = await GetProcessorAsync(ereg: ereg, creg: creg, cancellationToken: cancellationToken);
+                    var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken);
 
                     // register handlers for error and processing
                     processor.PartitionClosingAsync += delegate (PartitionClosingEventArgs args)
@@ -90,8 +90,8 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                     {
                         var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
                         var mt = GetType().GetMethod(nameof(OnEventReceivedAsync), flags);
-                        var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
-                        return (Task)method.Invoke(this, new object[] { ereg, creg, processor, args, });
+                        var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
+                        return (Task)method.Invoke(this, new object[] { reg, ecr, processor, args, });
                     };
 
                     // start processing 
@@ -262,10 +262,10 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                         },
                     };
 
-                    // Allow for the defaults to be overriden
+                    // Allow for the defaults to be overridden
                     TransportOptions.SetupProducerClientOptions?.Invoke(reg, epco);
 
-                    // Override values that must be overriden
+                    // Override values that must be overridden
 
                     // Create the producer client
                     var cred = TransportOptions.Credentials!.Value;
@@ -292,14 +292,14 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
         }
 
-        private async Task<EventProcessorClient> GetProcessorAsync(EventRegistration ereg, EventConsumerRegistration creg, CancellationToken cancellationToken)
+        private async Task<EventProcessorClient> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
         {
             await processorsCacheLock.WaitAsync(cancellationToken);
 
             try
             {
-                var eventHubName = ereg.EventName;
-                var consumerGroup = TransportOptions.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : creg.ConsumerName;
+                var eventHubName = reg.EventName;
+                var consumerGroup = TransportOptions.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
 
                 var key = $"{eventHubName}/{consumerGroup}";
                 if (!processorsCache.TryGetValue(key, out var processor))
@@ -319,7 +319,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
                     // blobContainerUri has the format "https://{account_name}.blob.core.windows.net/{container_name}" which can be made using "{BlobServiceUri}/{container_name}".
                     var cred_bs = TransportOptions.BlobStorageCredentials!.Value;
-                    var blobContainerClient = cred_bs is AzureBlobStorageCredenetial abstc
+                    var blobContainerClient = cred_bs is AzureBlobStorageCredentials abstc
                         ? new BlobContainerClient(blobContainerUri: new Uri($"{abstc.BlobServiceUrl}/{TransportOptions.BlobContainerName}"),
                                                   credential: abstc.TokenCredential)
                         : new BlobContainerClient(connectionString: (string)cred_bs,
@@ -334,8 +334,8 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                         },
                     };
 
-                    // Allow for the defaults to be overriden
-                    TransportOptions.SetupProcessorClientOptions?.Invoke(ereg, creg, epco);
+                    // Allow for the defaults to be overridden
+                    TransportOptions.SetupProcessorClientOptions?.Invoke(reg, ecr, epco);
 
                     // How to ensure consumer is created in the event hub?
                     // EventHubs and ConsumerGroups can only be create via Azure portal or using Resource Manager which need different credentials
@@ -367,8 +367,8 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             }
         }
 
-        private async Task OnEventReceivedAsync<TEvent, TConsumer>(EventRegistration ereg,
-                                                                   EventConsumerRegistration creg,
+        private async Task OnEventReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
+                                                                   EventConsumerRegistration ecr,
                                                                    EventProcessorClient processor,
                                                                    ProcessEventArgs args)
             where TEvent : class
@@ -426,7 +426,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             var context = await DeserializeAsync<TEvent>(scope: scope,
                                                          body: ms,
                                                          contentType: contentType,
-                                                         registration: ereg,
+                                                         registration: reg,
                                                          identifier: data.SequenceNumber.ToString(),
                                                          cancellationToken: cancellationToken);
             Logger.LogInformation("Received event: '{EventId}|{PartitionKey}|{SequenceNumber}' containing Event '{Id}' from '{EventHubName}/{ConsumerGroup}'",
@@ -442,15 +442,15 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                    .SetPartitionContext(args.Partition)
                    .SetEventData(data);
 
-            var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+            var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
                                                                         @event: context,
                                                                         scope: scope,
                                                                         cancellationToken: cancellationToken);
 
-            if (!successful && creg.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
+            if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
             {
                 // get the producer for the dead letter event hub and send the event there
-                var dlqProcessor = await GetProducerAsync(reg: ereg, deadletter: true, cancellationToken: cancellationToken);
+                var dlqProcessor = await GetProducerAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
                 await dlqProcessor.SendAsync(new[] { data }, cancellationToken);
             }
 
@@ -458,7 +458,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
              * Update the checkpoint store if needed so that the app receives
              * only newer events the next time it's run.
             */
-            if (ShouldCheckpoint(successful, creg.UnhandledErrorBehaviour))
+            if (ShouldCheckpoint(successful, ecr.UnhandledErrorBehaviour))
             {
                 Logger.LogDebug("Checkpointing {Partition} of '{EventHubName}/{ConsumerGroup}', at {SequenceNumber}. Event: '{Id}'.",
                                 args.Partition,

@@ -34,7 +34,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         /// <summary>
         /// Credentials for accessing AWS services.
-        /// This can be used inplace of <see cref="AccessKey"/> and <see cref="SecretKey"/>.
+        /// This can be used in place of <see cref="AccessKey"/> and <see cref="SecretKey"/>.
         /// </summary>
         public AWSCredentials? Credentials { get; set; }
     }

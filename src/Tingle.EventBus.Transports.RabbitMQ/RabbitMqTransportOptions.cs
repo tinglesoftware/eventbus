@@ -24,7 +24,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public string Hostname { get; set; } = "localhost";
 
         /// <summary>
-        /// The username for authenenticating on the broker.
+        /// The username for authenticating on the broker.
         /// Defaults to <c>quest</c>.
         /// </summary>
         public string Username { get; set; } = "guest";

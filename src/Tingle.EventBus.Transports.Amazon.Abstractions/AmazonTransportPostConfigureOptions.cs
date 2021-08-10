@@ -22,8 +22,8 @@ namespace Microsoft.Extensions.DependencyInjection
             options.Region ??= RegionEndpoint.GetBySystemName(options.RegionName);
 
             /*
-             * If the credentials have not been provided, 
-             * we need the AccessKey and SecretKey to be provided for us 
+             * If the credentials have not been provided,
+             * we need the AccessKey and SecretKey to be provided for u
              * to create a basic credential
             */
             if (options.Credentials is null)

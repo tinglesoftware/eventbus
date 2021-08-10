@@ -39,18 +39,18 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Ensure the entity names are not longer than the limits
             // See https://docs.microsoft.com/en-us/rest/api/storageservices/naming-queues-and-metadata#queue-names
-            foreach (var ereg in registrations)
+            foreach (var reg in registrations)
             {
                 // Set the IdFormat
-                options.SetEventIdFormat(ereg, busOptions);
+                options.SetEventIdFormat(reg, busOptions);
 
                 // Ensure the entity type is allowed
-                options.EnsureAllowedEntityKind(ereg, EntityKind.Queue);
+                options.EnsureAllowedEntityKind(reg, EntityKind.Queue);
 
                 // Event names become topic names and they should not be longer than 63 characters
-                if (ereg.EventName!.Length > 63)
+                if (reg.EventName!.Length > 63)
                 {
-                    throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
+                    throw new InvalidOperationException($"EventName '{reg.EventName}' generated from '{reg.EventType.Name}' is too long. "
                                                        + "Azure Queue Storage does not allow more than 63 characters for Queue names.");
                 }
             }

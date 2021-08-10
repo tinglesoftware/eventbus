@@ -6,7 +6,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// Credentials for Azure Blob Storage backed by a <see cref="TokenCredential"/>.
     /// </summary>
-    public class AzureBlobStorageCredenetial : AzureTransportCredentials
+    public class AzureBlobStorageCredentials : AzureTransportCredentials
     {
         /// <summary>
         /// A <see cref="Uri"/> referencing the blob service.

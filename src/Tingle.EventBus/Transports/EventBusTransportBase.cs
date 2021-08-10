@@ -105,17 +105,17 @@ namespace Tingle.EventBus.Transports
              * Give priority to the transport default then the bus default.
             */
             var registrations = GetRegistrations();
-            foreach (var ereg in registrations)
+            foreach (var reg in registrations)
             {
-                foreach (var creg in ereg.Consumers)
+                foreach (var ecr in reg.Consumers)
                 {
                     // Set retry policy
-                    creg.RetryPolicy ??= TransportOptions.DefaultConsumerRetryPolicy;
-                    creg.RetryPolicy ??= BusOptions.DefaultConsumerRetryPolicy;
+                    ecr.RetryPolicy ??= TransportOptions.DefaultConsumerRetryPolicy;
+                    ecr.RetryPolicy ??= BusOptions.DefaultConsumerRetryPolicy;
 
                     // Set unhandled error behaviour
-                    creg.UnhandledErrorBehaviour ??= TransportOptions.DefaultUnhandledConsumerErrorBehaviour;
-                    creg.UnhandledErrorBehaviour ??= BusOptions.DefaultUnhandledConsumerErrorBehaviour;
+                    ecr.UnhandledErrorBehaviour ??= TransportOptions.DefaultUnhandledConsumerErrorBehaviour;
+                    ecr.UnhandledErrorBehaviour ??= BusOptions.DefaultUnhandledConsumerErrorBehaviour;
                 }
             }
             Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
@@ -171,7 +171,7 @@ namespace Tingle.EventBus.Transports
         /// </param>
         /// <param name="contentType">The type of content contained in the <paramref name="body"/>.</param>
         /// <param name="registration">The bus registration for this event.</param>
-        /// <param name="identifier">Identifier given the transport for the event to be deserailized.</param>
+        /// <param name="identifier">Identifier given the transport for the event to be deserialized.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(IServiceScope scope,
@@ -222,12 +222,12 @@ namespace Tingle.EventBus.Transports
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
         /// <typeparam name="TConsumer">The type of consumer.</typeparam>
-        /// <param name="creg">The <see cref="EventConsumerRegistration"/> for the current event.</param>
+        /// <param name="ecr">The <see cref="EventConsumerRegistration"/> for the current event.</param>
         /// <param name="event">The context containing the event.</param>
         /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="cancellationToken"></param>
         /// <returns>An <see cref="EventConsumeResult"/> representing the state of the action.</returns>
-        protected async Task<EventConsumeResult> ConsumeAsync<TEvent, TConsumer>(EventConsumerRegistration creg,
+        protected async Task<EventConsumeResult> ConsumeAsync<TEvent, TConsumer>(EventConsumerRegistration ecr,
                                                                                  EventContext<TEvent> @event,
                                                                                  IServiceScope scope,
                                                                                  CancellationToken cancellationToken)
@@ -240,7 +240,7 @@ namespace Tingle.EventBus.Transports
             try
             {
                 // Invoke handler method, with retry if specified
-                var retryPolicy = creg.RetryPolicy;
+                var retryPolicy = ecr.RetryPolicy;
                 if (retryPolicy != null)
                 {
                     await retryPolicy.ExecuteAsync(ct => consumer.ConsumeAsync(@event, ct), cancellationToken);
@@ -254,7 +254,7 @@ namespace Tingle.EventBus.Transports
             }
             catch (Exception ex)
             {
-                Logger.ConsumeFailed(@event.Id, creg.UnhandledErrorBehaviour, ex);
+                Logger.ConsumeFailed(@event.Id, ecr.UnhandledErrorBehaviour, ex);
                 return new EventConsumeResult(successful: false, exception: ex);
             }
         }

@@ -18,7 +18,7 @@ namespace Tingle.EventBus.Serialization
         /// (It must be readable, i.e. <see cref="Stream.CanRead"/> must be true).
         /// </param>
         /// <param name="registration">Registration for this event being deserialized.</param>
-        /// <param name="identifier">Identifier given the transport for the event to be deserailized.</param>
+        /// <param name="identifier">Identifier given the transport for the event to be deserialized.</param>
         public DeserializationContext(Stream stream,
                                       EventRegistration registration,
                                       string? identifier = null)
@@ -44,7 +44,7 @@ namespace Tingle.EventBus.Serialization
         public EventRegistration Registration { get; }
 
         /// <summary>
-        /// Identifier given the transport for the event to be deserailized.
+        /// Identifier given the transport for the event to be deserialized.
         /// </summary>
         public string? Identifier { get; }
 

@@ -72,16 +72,16 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             await base.StartAsync(cancellationToken);
 
             var registrations = GetRegistrations();
-            foreach (var ereg in registrations)
+            foreach (var reg in registrations)
             {
-                foreach (var creg in ereg.Consumers)
+                foreach (var ecr in reg.Consumers)
                 {
-                    var queueUrl = await GetQueueUrlAsync(ereg: ereg,
-                                                          creg: creg,
+                    var queueUrl = await GetQueueUrlAsync(reg: reg,
+                                                          ecr: ecr,
                                                           deadletter: false,
                                                           cancellationToken: cancellationToken);
-                    var t = ReceiveAsync(ereg: ereg,
-                                         creg: creg,
+                    var t = ReceiveAsync(reg: reg,
+                                         ecr: ecr,
                                          queueUrl: queueUrl,
                                          cancellationToken: stoppingCts.Token);
                     receiverTasks.Add(t);
@@ -223,7 +223,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 {
                     // ensure topic is created, then add it's arn to the cache
                     var name = reg.EventName!;
-                    topicArn = await CreateTopicIfNotExistsAsync(ereg: reg, topicName: name, cancellationToken: cancellationToken);
+                    topicArn = await CreateTopicIfNotExistsAsync(reg: reg, topicName: name, cancellationToken: cancellationToken);
                     topicArnsCache[reg.EventType] = topicArn;
                 }
 
@@ -235,27 +235,27 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             }
         }
 
-        private async Task<string> GetQueueUrlAsync(EventRegistration ereg, EventConsumerRegistration creg, bool deadletter, CancellationToken cancellationToken)
+        private async Task<string> GetQueueUrlAsync(EventRegistration reg, EventConsumerRegistration ecr, bool deadletter, CancellationToken cancellationToken)
         {
             await queueUrlsCacheLock.WaitAsync(cancellationToken);
 
             try
             {
-                var topicName = ereg.EventName!;
-                var queueName = creg.ConsumerName!;
+                var topicName = reg.EventName!;
+                var queueName = ecr.ConsumerName!;
                 if (deadletter) queueName += TransportOptions.DeadLetterSuffix;
 
                 var key = $"{topicName}/{queueName}";
                 if (!queueUrlsCache.TryGetValue((key, deadletter), out var queueUrl))
                 {
                     // ensure queue is created before creating subscription
-                    queueUrl = await CreateQueueIfNotExistsAsync(creg: creg, queueName: queueName, cancellationToken: cancellationToken);
+                    queueUrl = await CreateQueueIfNotExistsAsync(ecr: ecr, queueName: queueName, cancellationToken: cancellationToken);
 
                     // for non deadletter, we need to ensure the topic exists and the queue is subscribed to it
                     if (!deadletter)
                     {
                         // ensure topic is created before creating the subscription
-                        var topicArn = await CreateTopicIfNotExistsAsync(ereg: ereg, topicName: topicName, cancellationToken: cancellationToken);
+                        var topicArn = await CreateTopicIfNotExistsAsync(reg: reg, topicName: topicName, cancellationToken: cancellationToken);
 
                         // create subscription from the topic to the queue
                         await snsClient.SubscribeQueueAsync(topicArn: topicArn, sqsClient, queueUrl);
@@ -272,7 +272,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             }
         }
 
-        private async Task<string> CreateTopicIfNotExistsAsync(EventRegistration ereg, string topicName, CancellationToken cancellationToken)
+        private async Task<string> CreateTopicIfNotExistsAsync(EventRegistration reg, string topicName, CancellationToken cancellationToken)
         {
             // check if the topic exists
             var topic = await snsClient.FindTopicAsync(topicName: topicName);
@@ -281,12 +281,12 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             // if entity creation is not enabled, throw exception
             if (!TransportOptions.EnableEntityCreation)
             {
-                throw new InvalidOperationException("Entity creation is diabled. Required topic could not be created.");
+                throw new InvalidOperationException("Entity creation is disabled. Required topic could not be created.");
             }
 
             // create the topic
             var request = new CreateTopicRequest(name: topicName);
-            TransportOptions.SetupCreateTopicRequest?.Invoke(ereg, request);
+            TransportOptions.SetupCreateTopicRequest?.Invoke(reg, request);
             var response = await snsClient.CreateTopicAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
 
@@ -302,23 +302,23 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             // if entity creation is not enabled, throw exception
             if (!TransportOptions.EnableEntityCreation)
             {
-                throw new InvalidOperationException("Entity creation is diabled. Required queue could not be created.");
+                throw new InvalidOperationException("Entity creation is disabled. Required queue could not be created.");
             }
 
             // create the queue
             var request = new CreateQueueRequest(queueName: queueName);
-            TransportOptions.SetupCreateQueueRequest?.Invoke(creg, request);
+            TransportOptions.SetupCreateQueueRequest?.Invoke(ecr, request);
             var response = await sqsClient.CreateQueueAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
 
             return response.QueueUrl;
         }
 
-        private async Task ReceiveAsync(EventRegistration ereg, EventConsumerRegistration creg, string queueUrl, CancellationToken cancellationToken)
+        private async Task ReceiveAsync(EventRegistration reg, EventConsumerRegistration ecr, string queueUrl, CancellationToken cancellationToken)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
             var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
-            var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
+            var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -341,7 +341,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                         using var scope = CreateScope(); // shared
                         foreach (var message in messages)
                         {
-                            await (Task)method.Invoke(this, new object[] { ereg, creg, queueUrl, message, cancellationToken, });
+                            await (Task)method.Invoke(this, new object[] { reg, ecr, queueUrl, message, cancellationToken, });
                         }
                     }
                 }
@@ -358,8 +358,8 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration ereg,
-                                                                     EventConsumerRegistration creg,
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
+                                                                     EventConsumerRegistration ecr,
                                                                      string queueUrl,
                                                                      Message message,
                                                                      CancellationToken cancellationToken)
@@ -387,7 +387,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
-            activity?.AddTag(ActivityTagNames.MessagingDestination, ereg.EventName);
+            activity?.AddTag(ActivityTagNames.MessagingDestination, eeg.EventName);
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
             activity?.AddTag(ActivityTagNames.MessagingUrl, queueUrl);
 
@@ -400,7 +400,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             var context = await DeserializeAsync<TEvent>(scope: scope,
                                                          body: ms,
                                                          contentType: contentType,
-                                                         registration: ereg,
+                                                         registration: reg,
                                                          identifier: messageId,
                                                          cancellationToken: cancellationToken);
 
@@ -409,15 +409,15 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                                   context.Id,
                                   queueUrl);
 
-            var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+            var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
                                                                         @event: context,
                                                                         scope: scope,
                                                                         cancellationToken: cancellationToken);
 
-            if (!successful && creg.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
+            if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
             {
                 // get the queueUrl for the dead letter queue and send the mesage there
-                var dlqQueueUrl = await GetQueueUrlAsync(ereg: ereg, creg: creg, deadletter: true, cancellationToken: cancellationToken);
+                var dlqQueueUrl = await GetQueueUrlAsync(reg: reg, ecr: ecr, deadletter: true, cancellationToken: cancellationToken);
                 var dlqRequest = new SendMessageRequest
                 {
                     MessageAttributes = message.MessageAttributes,

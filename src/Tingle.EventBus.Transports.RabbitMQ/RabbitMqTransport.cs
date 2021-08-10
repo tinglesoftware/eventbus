@@ -283,12 +283,12 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             }
 
             var registrations = GetRegistrations();
-            foreach (var ereg in registrations)
+            foreach (var reg in registrations)
             {
-                var exchangeName = ereg.EventName!;
-                foreach (var creg in ereg.Consumers)
+                var exchangeName = reg.EventName!;
+                foreach (var ecr in reg.Consumers)
                 {
-                    var queueName = creg.ConsumerName!;
+                    var queueName = ecr.ConsumerName!;
 
                     var channel = await GetSubscriptionChannelAsync(exchangeName: exchangeName, queueName: queueName, cancellationToken);
                     var consumer = new AsyncEventingBasicConsumer(channel);
@@ -296,16 +296,16 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     {
                         var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
                         var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
-                        var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
-                        return (Task)method.Invoke(this, new object[] { ereg, creg, channel, @event, CancellationToken.None, }); // do not chain CancellationToken
+                        var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
+                        return (Task)method.Invoke(this, new object[] { reg, ecr, channel, @event, CancellationToken.None, }); // do not chain CancellationToken
                     };
                     channel.BasicConsume(queue: queueName, autoAck: false, consumer);
                 }
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration ereg,
-                                                                     EventConsumerRegistration creg,
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
+                                                                     EventConsumerRegistration ecr,
                                                                      IModel channel,
                                                                      BasicDeliverEventArgs args,
                                                                      CancellationToken cancellationToken)
@@ -329,7 +329,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
-            activity?.AddTag(ActivityTagNames.MessagingDestination, creg.ConsumerName);
+            activity?.AddTag(ActivityTagNames.MessagingDestination, ecr.ConsumerName);
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // only queues are possible
 
             Logger.LogDebug("Processing '{MessageId}'", messageId);
@@ -339,19 +339,19 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             var context = await DeserializeAsync<TEvent>(scope: scope,
                                                          body: ms,
                                                          contentType: contentType,
-                                                         registration: ereg,
+                                                         registration: reg,
                                                          identifier: messageId,
                                                          cancellationToken: cancellationToken);
             Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
                                   messageId,
                                   context.Id);
-            var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+            var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
                                                   @event: context,
                                                   scope: scope,
                                                   cancellationToken: cancellationToken);
 
             // Decide the action to execute then execute
-            var action = DecideAction(successful, creg.UnhandledErrorBehaviour);
+            var action = DecideAction(successful, ecr.UnhandledErrorBehaviour);
             Logger.LogDebug("Post Consume action: {Action} for message: {MessageId} containing Event: {EventId}.",
                             action,
                             messageId,
@@ -359,7 +359,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             if (action == PostConsumeAction.Acknowledge)
             {
-                // Acknowlege the message
+                // Acknowledge the message
                 Logger.LogDebug("Completing message: {MessageId}, {DeliveryTag}.", messageId, args.DeliveryTag);
                 channel.BasicAck(deliveryTag: args.DeliveryTag, multiple: false);
             }
@@ -393,7 +393,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: "");
                     channel.CallbackException += delegate (object sender, CallbackExceptionEventArgs e)
                     {
-                        Logger.LogError(e.Exception, "Callback exeception for {Subscription}", key);
+                        Logger.LogError(e.Exception, "Callback exception for {Subscription}", key);
                         var _ = ConnectConsumersAsync(CancellationToken.None); // do not await or chain token
                     };
 

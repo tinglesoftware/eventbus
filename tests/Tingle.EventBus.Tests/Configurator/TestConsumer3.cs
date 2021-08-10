@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Tingle.EventBus.Tests
+namespace Tingle.EventBus.Tests.Configurator
 {
     [ConsumerReadinessProvider(typeof(FakeReadinessProvider2))]
     internal class TestConsumer3 : IEventConsumer<TestEvent3>

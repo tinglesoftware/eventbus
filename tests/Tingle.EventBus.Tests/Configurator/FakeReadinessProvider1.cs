@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Tingle.EventBus.Readiness;
 using Tingle.EventBus.Registrations;
 
-namespace Tingle.EventBus.Tests
+namespace Tingle.EventBus.Tests.Configurator
 {
     public class FakeReadinessProvider1 : IReadinessProvider
     {

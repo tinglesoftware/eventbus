@@ -5,7 +5,7 @@ using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
 using Xunit;
 
-namespace Tingle.EventBus.Tests
+namespace Tingle.EventBus.Tests.Configurator
 {
     public class DefaultEventConfiguratorTests
     {

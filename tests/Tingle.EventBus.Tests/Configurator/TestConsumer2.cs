@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Tingle.EventBus.Tests
+namespace Tingle.EventBus.Tests.Configurator
 {
     [ConsumerName("sample-consumer")]
     [ConsumerReadinessProvider(typeof(FakeReadinessProvider1))]

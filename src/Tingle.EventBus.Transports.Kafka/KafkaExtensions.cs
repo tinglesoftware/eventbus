@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace Confluent.Kafka
 {
@@ -13,7 +14,7 @@ namespace Confluent.Kafka
             return headers;
         }
 
-        public static bool TryGetValue(this Headers headers, string key, out string? value)
+        public static bool TryGetValue(this Headers headers, string key, [NotNullWhen(true)] out string? value)
         {
             if (headers.TryGetLastBytes(key, out var bytes))
             {

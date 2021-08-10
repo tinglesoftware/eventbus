@@ -1,6 +1,7 @@
 ﻿using Polly.Retry;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using Tingle.EventBus;
@@ -148,7 +149,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// This parameter is passed uninitialized.
         /// </param>
         /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
-        internal bool TryGetConsumerRegistration<TEvent, TConsumer>(out EventRegistration reg, out EventConsumerRegistration? ecr)
+        internal bool TryGetConsumerRegistration<TEvent, TConsumer>([NotNullWhen(true)] out EventRegistration reg,
+                                                                    [NotNullWhen(true)] out EventConsumerRegistration? ecr)
         {
             ecr = default;
             if (Registrations.TryGetValue(typeof(TEvent), out reg))
@@ -170,7 +172,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// This parameter is passed uninitialized.
         /// </param>
         /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
-        public bool TryGetConsumerRegistration<TEvent, TConsumer>(out EventConsumerRegistration? registration)
+        public bool TryGetConsumerRegistration<TEvent, TConsumer>([NotNullWhen(true)] out EventConsumerRegistration? registration)
         {
             return TryGetConsumerRegistration<TEvent, TConsumer>(out _, out registration);
         }

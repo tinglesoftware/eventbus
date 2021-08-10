@@ -293,7 +293,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             return response.TopicArn;
         }
 
-        private async Task<string> CreateQueueIfNotExistsAsync(EventConsumerRegistration creg, string queueName, CancellationToken cancellationToken)
+        private async Task<string> CreateQueueIfNotExistsAsync(EventConsumerRegistration ecr, string queueName, CancellationToken cancellationToken)
         {
             // check if the queue exists
             var urlResponse = await sqsClient.GetQueueUrlAsync(queueName: queueName, cancellationToken);
@@ -387,7 +387,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
-            activity?.AddTag(ActivityTagNames.MessagingDestination, eeg.EventName);
+            activity?.AddTag(ActivityTagNames.MessagingDestination, reg.EventName);
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
             activity?.AddTag(ActivityTagNames.MessagingUrl, queueUrl);
 

@@ -1,5 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Tingle.EventBus
 {
@@ -24,7 +25,7 @@ namespace Tingle.EventBus
         /// true if the message is found; otherwise, false.
         /// </returns>
         /// <exception cref="ArgumentNullException">The context is null</exception>
-        public static bool TryGetServiceBusMessage(this EventContext context, out ServiceBusReceivedMessage? message)
+        public static bool TryGetServiceBusMessage(this EventContext context, [NotNullWhen(true)] out ServiceBusReceivedMessage? message)
         {
             if (context is null) throw new ArgumentNullException(nameof(context));
 

@@ -1,4 +1,4 @@
-﻿namespace CustomSerializer.Models
+﻿namespace CustomEventSerializer.Models
 {
     public class AzureDevOpsEventResourceRefUpdate
     {

@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus;
 
-namespace CustomSerializer
+namespace CustomEventSerializer
 {
     internal class AzureDevOpsEventsConsumer : IEventConsumer<AzureDevOpsCodePushed>
     {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Tingle.EventBus.Transports.InMemory;
 using Xunit;
 
-namespace Tingle.EventBus.Tests.InMemoryHarness
+namespace Tingle.EventBus.Tests.InMemory
 {
     public class SimplePublisherTests
     {

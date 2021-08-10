@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Serialization;
 
-namespace CustomSerializer
+namespace CustomEventSerializer
 {
     public class AzureDevOpsEventSerializer : AbstractEventSerializer
     {

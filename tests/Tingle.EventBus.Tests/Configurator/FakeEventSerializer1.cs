@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus.Tests
+namespace Tingle.EventBus.Tests.Configurator
 {
     internal class FakeEventSerializer1 : IEventSerializer
     {

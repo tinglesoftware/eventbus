@@ -1,4 +1,4 @@
-﻿namespace Tingle.EventBus.Tests
+﻿namespace Tingle.EventBus.Tests.Configurator
 {
     [EntityKind(EntityKind.Broadcast)]
     [EventSerializer(typeof(FakeEventSerializer2))]

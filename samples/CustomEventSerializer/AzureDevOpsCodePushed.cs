@@ -1,7 +1,7 @@
-﻿using CustomSerializer.Models;
+﻿using CustomEventSerializer.Models;
 using Tingle.EventBus;
 
-namespace CustomSerializer
+namespace CustomEventSerializer
 {
     [EventSerializer(typeof(AzureDevOpsEventSerializer))]
     public sealed class AzureDevOpsCodePushed

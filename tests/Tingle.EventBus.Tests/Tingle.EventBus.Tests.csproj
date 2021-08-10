@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\..\samples\SimpleConsumer\SimpleConsumer.csproj" />
     <ProjectReference Include="..\..\src\Tingle.EventBus\Tingle.EventBus.csproj" />
   </ItemGroup>
 

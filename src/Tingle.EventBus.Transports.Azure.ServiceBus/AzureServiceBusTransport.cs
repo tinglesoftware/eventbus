@@ -387,6 +387,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
                         // Set the period of time for which to keep renewing the lock token
                         MaxAutoLockRenewalDuration = TransportOptions.DefaultMaxAutoLockRenewDuration,
+
+                        // Set the number of items to be cached locally
+                        PrefetchCount = TransportOptions.DefaultPrefetchCount,
                     };
 
                     // Allow for the defaults to be overriden

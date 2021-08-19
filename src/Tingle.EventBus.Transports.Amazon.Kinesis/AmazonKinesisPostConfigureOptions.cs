@@ -33,29 +33,29 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Ensure the entity names are not longer than the limits
             var registrations = busOptions.GetRegistrations(TransportNames.AmazonKinesis);
-            foreach (var ereg in registrations)
+            foreach (var reg in registrations)
             {
                 // Set the IdFormat
-                options.SetEventIdFormat(ereg, busOptions);
+                options.SetEventIdFormat(reg, busOptions);
 
                 // Ensure the entity type is allowed
-                options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast);
+                options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast);
 
                 // Event names become Stream names and they should not be longer than 128 characters
                 // See https://docs.aws.amazon.com/kinesis/latest/APIReference/API_CreateStream.html
-                if (ereg.EventName!.Length > 128)
+                if (reg.EventName!.Length > 128)
                 {
-                    throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
+                    throw new InvalidOperationException($"EventName '{reg.EventName}' generated from '{reg.EventType.Name}' is too long. "
                                                        + "Amazon Kinesis does not allow more than 128 characters for Stream names.");
                 }
 
                 // Consumer names become Queue names and they should not be longer than 128 characters
                 // See https://docs.aws.amazon.com/kinesis/latest/APIReference/API_RegisterStreamConsumer.html
-                foreach (var creg in ereg.Consumers)
+                foreach (var ecr in reg.Consumers)
                 {
-                    if (creg.ConsumerName!.Length > 128)
+                    if (ecr.ConsumerName!.Length > 128)
                     {
-                        throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
+                        throw new InvalidOperationException($"ConsumerName '{ecr.ConsumerName}' generated from '{ecr.ConsumerType.Name}' is too long. "
                                                            + "Amazon Kinesis does not allow more than 128 characters for Stream Consumer names.");
                     }
                 }

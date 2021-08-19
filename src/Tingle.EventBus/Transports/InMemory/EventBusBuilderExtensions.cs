@@ -38,7 +38,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Add InMemory test harness. This can be reolved using <see cref="InMemoryTestHarness"/>.
+        /// Add InMemory test harness. This can be resolved using <see cref="InMemoryTestHarness"/>.
         /// <br/>
         /// Ensure the InMemory transport has been added using
         /// <see cref="AddInMemoryTransport(EventBusBuilder, Action{InMemoryTransportOptions})"/>

@@ -74,10 +74,10 @@ namespace Microsoft.Extensions.DependencyInjection
             Services.AddSingleton<IEventBusTransport, TTransport>();
 
             // Get the name of the transport
-            var tname = GetTransportName<TTransport>();
+            var name = GetTransportName<TTransport>();
 
             // Add name to registered transports
-            return Configure(options => options.RegisteredTransportNames.Add(tname, typeof(TTransport)));
+            return Configure(options => options.RegisteredTransportNames.Add(name, typeof(TTransport)));
         }
 
         /// <summary>
@@ -92,10 +92,10 @@ namespace Microsoft.Extensions.DependencyInjection
             if (target != null) Services.Remove(target);
 
             // Get the name of the transport
-            var tname = GetTransportName<TTransport>();
+            var name = GetTransportName<TTransport>();
 
             // Remove name from registered transports
-            return Configure(options => options.RegisteredTransportNames.Remove(tname));
+            return Configure(options => options.RegisteredTransportNames.Remove(name));
         }
 
         /// <summary>
@@ -168,19 +168,19 @@ namespace Microsoft.Extensions.DependencyInjection
                 foreach (var et in eventTypes)
                 {
                     // get or create a simple EventRegistration
-                    if (!options.Registrations.TryGetValue(et, out var ereg))
+                    if (!options.Registrations.TryGetValue(et, out var reg))
                     {
-                        ereg = options.Registrations[et] = new EventRegistration(et);
+                        reg = options.Registrations[et] = new EventRegistration(et);
                     }
 
                     // create a ConsumerRegistration
                     var ecr = new EventConsumerRegistration(consumerType: consumerType);
 
                     // call the configuration function
-                    configure?.Invoke(ereg, ecr);
+                    configure?.Invoke(reg, ecr);
 
                     // add the consumer to the registration
-                    ereg.Consumers.Add(ecr);
+                    reg.Consumers.Add(ecr);
                 }
             });
         }
@@ -193,7 +193,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public EventBusBuilder AddConsumer<TConsumer>(Action<EventConsumerRegistration>? configure = null) where TConsumer : class, IEventConsumer
         {
-            return AddConsumer<TConsumer>((ereg, creg) => configure?.Invoke(creg));
+            return AddConsumer<TConsumer>((reg, ecr) => configure?.Invoke(ecr));
         }
 
         /// <summary>

@@ -55,28 +55,28 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Ensure the entity names are not longer than the limits
             // See https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-quotas#common-limits-for-all-tiers
-            foreach (var ereg in registrations)
+            foreach (var reg in registrations)
             {
                 // Set the IdFormat
-                options.SetEventIdFormat(ereg, busOptions);
+                options.SetEventIdFormat(reg, busOptions);
 
                 // Ensure the entity type is allowed
-                options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast);
+                options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast);
 
                 // Event names become Topic names and they should not be longer than 255 characters
                 // https://www.ibm.com/support/knowledgecenter/SSMKHH_10.0.0/com.ibm.etools.mft.doc/bz91041_.html
-                if (ereg.EventName!.Length > 255)
+                if (reg.EventName!.Length > 255)
                 {
-                    throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
+                    throw new InvalidOperationException($"EventName '{reg.EventName}' generated from '{reg.EventType.Name}' is too long. "
                                                        + "Kafka does not allow more than 255 characters for Topic names.");
                 }
 
                 // Consumer names become Consumer Group IDs and they should not be longer than 255 characters
-                foreach (var creg in ereg.Consumers)
+                foreach (var ecr in reg.Consumers)
                 {
-                    if (creg.ConsumerName!.Length > 255)
+                    if (ecr.ConsumerName!.Length > 255)
                     {
-                        throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
+                        throw new InvalidOperationException($"ConsumerName '{ecr.ConsumerName}' generated from '{ecr.ConsumerType.Name}' is too long. "
                                                            + "Kafka does not allow more than 255 characters for Consumer Group IDs.");
                     }
                 }

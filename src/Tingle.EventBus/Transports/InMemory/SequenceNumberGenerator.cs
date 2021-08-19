@@ -4,7 +4,7 @@ using System.Threading;
 namespace Tingle.EventBus.Transports.InMemory
 {
     /// <summary>
-    /// A sequence number generator for Inmemory transport
+    /// A sequence number generator for InMemory transport
     /// </summary>
     public class SequenceNumberGenerator
     {

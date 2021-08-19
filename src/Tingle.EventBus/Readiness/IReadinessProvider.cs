@@ -19,12 +19,12 @@ namespace Tingle.EventBus.Readiness
         /// <summary>
         /// Check if a consumer is ready to receives events.
         /// </summary>
-        /// <param name="ereg">The <see cref="EventRegistration"/> that the consumer belongs to.</param>
-        /// <param name="creg">The <see cref="EventConsumerRegistration"/> for the consumer.</param>
+        /// <param name="reg">The <see cref="EventRegistration"/> that the consumer belongs to.</param>
+        /// <param name="ecr">The <see cref="EventConsumerRegistration"/> for the consumer.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<bool> IsReadyAsync(EventRegistration ereg,
-                                EventConsumerRegistration creg,
+        Task<bool> IsReadyAsync(EventRegistration reg,
+                                EventConsumerRegistration ecr,
                                 CancellationToken cancellationToken = default);
 
         /// <summary>

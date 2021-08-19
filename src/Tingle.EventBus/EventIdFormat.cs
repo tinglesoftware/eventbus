@@ -30,13 +30,13 @@
         LongHex,
 
         /// <summary>
-        /// Value is generated via <see cref="System.Guid.NewGuid"/> and converted to two <see cref="ulong"/> concantenated.
+        /// Value is generated via <see cref="System.Guid.NewGuid"/> and converted to two <see cref="ulong"/> concatenated.
         /// For example <c>573409745014952181912114767751129609107</c>
         /// </summary>
         DoubleLong,
 
         /// <summary>
-        /// Value is generated via <see cref="System.Guid.NewGuid"/> and converted to two <see cref="ulong"/> concantenated.
+        /// Value is generated via <see cref="System.Guid.NewGuid"/> and converted to two <see cref="ulong"/> concatenated.
         /// For example <c>4f939b4017a2a99ba8204d1536703393</c>
         /// </summary>
         DoubleLongHex,

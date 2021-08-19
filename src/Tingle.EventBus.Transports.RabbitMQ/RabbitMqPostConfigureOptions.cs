@@ -66,27 +66,27 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Ensure the entity names are not longer than the limits
             // See https://www.rabbitmq.com/queues.html#:~:text=Names,bytes%20of%20UTF%2D8%20characters.
-            foreach (var ereg in registrations)
+            foreach (var reg in registrations)
             {
                 // Set the IdFormat
-                options.SetEventIdFormat(ereg, busOptions);
+                options.SetEventIdFormat(reg, busOptions);
 
                 // Ensure the entity type is allowed
-                options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast, EntityKind.Queue);
+                options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast, EntityKind.Queue);
 
                 // Event names become Exchange names and they should not be longer than 255 characters
-                if (ereg.EventName!.Length > 255)
+                if (reg.EventName!.Length > 255)
                 {
-                    throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
+                    throw new InvalidOperationException($"EventName '{reg.EventName}' generated from '{reg.EventType.Name}' is too long. "
                                                        + "RabbitMQ does not allow more than 255 characters for Exchange names.");
                 }
 
                 // Consumer names become Queue names and they should not be longer than 255 characters
-                foreach (var creg in ereg.Consumers)
+                foreach (var ecr in reg.Consumers)
                 {
-                    if (creg.ConsumerName!.Length > 255)
+                    if (ecr.ConsumerName!.Length > 255)
                     {
-                        throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
+                        throw new InvalidOperationException($"ConsumerName '{ecr.ConsumerName}' generated from '{ecr.ConsumerType.Name}' is too long. "
                                                            + "RabbitMQ does not allow more than 255 characters for Queue names.");
                     }
                 }

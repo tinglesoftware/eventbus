@@ -248,12 +248,12 @@ namespace Tingle.EventBus.Transports.Kafka
 
                     // get the registration for topic
                     var topic = result.Topic;
-                    var ereg = GetRegistrations().Single(r => r.EventName == topic);
+                    var reg = GetRegistrations().Single(r => r.EventName == topic);
 
                     // form the generic method
-                    var creg = ereg.Consumers.Single(); // only one consumer per event
-                    var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
-                    await (Task)method.Invoke(this, new object[] { ereg, creg, result, cancellationToken, });
+                    var ecr = reg.Consumers.Single(); // only one consumer per event
+                    var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
+                    await (Task)method.Invoke(this, new object[] { reg, ecr, result, cancellationToken, });
 
 
                     // if configured to checkpoint at intervals, respect it
@@ -282,7 +282,7 @@ namespace Tingle.EventBus.Transports.Kafka
         }
 
         private async Task OnEventReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
-                                                                   EventConsumerRegistration creg,
+                                                                   EventConsumerRegistration ecr,
                                                                    ConsumeResult<string, byte[]> result,
                                                                    CancellationToken cancellationToken)
             where TEvent : class
@@ -315,12 +315,12 @@ namespace Tingle.EventBus.Transports.Kafka
             Logger.LogInformation("Received event: '{MessageKey}' containing Event '{Id}'",
                                   messageKey,
                                   context.Id);
-            var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+            var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
                                                                         @event: context,
                                                                         scope: scope,
                                                                         cancellationToken: cancellationToken);
 
-            if (!successful && creg.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
+            if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
             {
                 // produce message on deadletter topic
                 var dlt = reg.EventName += TransportOptions.DeadLetterSuffix;

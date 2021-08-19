@@ -64,10 +64,10 @@ namespace Microsoft.Extensions.DependencyInjection
             if (!string.IsNullOrWhiteSpace(options.DefaultTransportName))
             {
                 // ensure the transport name set has been registered
-                var tname = options.DefaultTransportName;
-                if (!options.RegisteredTransportNames.ContainsKey(tname))
+                var tName = options.DefaultTransportName;
+                if (!options.RegisteredTransportNames.ContainsKey(tName))
                 {
-                    throw new InvalidOperationException($"The default transport  specified '{tname}' must be a registered one.");
+                    throw new InvalidOperationException($"The default transport  specified '{tName}' must be a registered one.");
                 }
             }
 

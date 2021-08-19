@@ -71,17 +71,17 @@ namespace Tingle.EventBus.Registrations
             {
                 var type = reg.EventType;
                 // prioritize the attribute if available, otherwise get the type name
-                var ename = type.GetCustomAttributes(false).OfType<EventNameAttribute>().SingleOrDefault()?.EventName;
-                if (ename == null)
+                var name = type.GetCustomAttributes(false).OfType<EventNameAttribute>().SingleOrDefault()?.EventName;
+                if (name == null)
                 {
                     var typeName = options.UseFullTypeNames ? type.FullName : type.Name;
                     typeName = options.TrimCommonSuffixes(typeName);
-                    ename = typeName;
-                    ename = options.ApplyNamingConvention(ename);
-                    ename = options.AppendScope(ename);
-                    ename = options.ReplaceInvalidCharacters(ename);
+                    name = typeName;
+                    name = options.ApplyNamingConvention(name);
+                    name = options.AppendScope(name);
+                    name = options.ReplaceInvalidCharacters(name);
                 }
-                reg.EventName = ename;
+                reg.EventName = name;
             }
         }
 
@@ -110,31 +110,31 @@ namespace Tingle.EventBus.Registrations
             // prefix is either the one provided or the application name
             var prefix = options.ConsumerNamePrefix ?? environment.ApplicationName;
 
-            foreach (var creg in reg.Consumers)
+            foreach (var ecr in reg.Consumers)
             {
                 // set the consumer name, if not set
-                if (string.IsNullOrWhiteSpace(creg.ConsumerName))
+                if (string.IsNullOrWhiteSpace(ecr.ConsumerName))
                 {
-                    var type = creg.ConsumerType;
+                    var type = ecr.ConsumerType;
                     // prioritize the attribute if available, otherwise get the type name
-                    var cname = type.GetCustomAttributes(false).OfType<ConsumerNameAttribute>().SingleOrDefault()?.ConsumerName;
-                    if (cname == null)
+                    var name = type.GetCustomAttributes(false).OfType<ConsumerNameAttribute>().SingleOrDefault()?.ConsumerName;
+                    if (name == null)
                     {
                         var typeName = options.UseFullTypeNames ? type.FullName : type.Name;
                         typeName = options.TrimCommonSuffixes(typeName);
-                        cname = options.ConsumerNameSource switch
+                        name = options.ConsumerNameSource switch
                         {
                             ConsumerNameSource.TypeName => typeName,
                             ConsumerNameSource.Prefix => prefix,
                             ConsumerNameSource.PrefixAndTypeName => $"{prefix}.{typeName}",
                             _ => throw new InvalidOperationException($"'{nameof(options.ConsumerNameSource)}.{options.ConsumerNameSource}' is not supported"),
                         };
-                        cname = options.ApplyNamingConvention(cname);
-                        cname = options.AppendScope(cname);
-                        cname = options.ReplaceInvalidCharacters(cname);
+                        name = options.ApplyNamingConvention(name);
+                        name = options.AppendScope(name);
+                        name = options.ReplaceInvalidCharacters(name);
                     }
                     // Appending the EventName to the consumer name can ensure it is unique
-                    creg.ConsumerName = options.SuffixConsumerName ? options.Join(cname, reg.EventName) : cname;
+                    ecr.ConsumerName = options.SuffixConsumerName ? options.Join(name, reg.EventName) : name;
                 }
             }
         }
@@ -157,19 +157,19 @@ namespace Tingle.EventBus.Registrations
 
         internal void ConfigureReadinessProviders(EventRegistration reg)
         {
-            foreach (var creg in reg.Consumers)
+            foreach (var ecr in reg.Consumers)
             {
                 // If the readiness provider has not been specified, attempt to get from the attribute
-                var type = creg.ConsumerType;
+                var type = ecr.ConsumerType;
                 var attrs = type.GetCustomAttributes(false);
-                creg.ReadinessProviderType ??= attrs.OfType<ConsumerReadinessProviderAttribute>().SingleOrDefault()?.ReadinessProviderType;
-                creg.ReadinessProviderType ??= typeof(IReadinessProvider); // use the default when not provided
+                ecr.ReadinessProviderType ??= attrs.OfType<ConsumerReadinessProviderAttribute>().SingleOrDefault()?.ReadinessProviderType;
+                ecr.ReadinessProviderType ??= typeof(IReadinessProvider); // use the default when not provided
 
                 // Ensure the provider is either default or it implements IReadinessProvider
-                if (creg.ReadinessProviderType != typeof(IReadinessProvider)
-                    && !typeof(IReadinessProvider).IsAssignableFrom(creg.ReadinessProviderType))
+                if (ecr.ReadinessProviderType != typeof(IReadinessProvider)
+                    && !typeof(IReadinessProvider).IsAssignableFrom(ecr.ReadinessProviderType))
                 {
-                    throw new InvalidOperationException($"The type '{creg.ReadinessProviderType.FullName}' is used as a readiness provider "
+                    throw new InvalidOperationException($"The type '{ecr.ReadinessProviderType.FullName}' is used as a readiness provider "
                                                       + $"but does not implement '{typeof(IReadinessProvider).FullName}'");
                 }
             }

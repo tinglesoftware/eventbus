@@ -4,7 +4,7 @@ using Tingle.EventBus.Readiness;
 namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
-    /// Specifies options for readniess checks.
+    /// Specifies options for readiness checks.
     /// </summary>
     public class EventBusReadinessOptions
     {

@@ -17,12 +17,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
         /// <summary>
         /// Authentication credentials for Azure Blob Storage.
-        /// This can either be a connection string or <see cref="AzureBlobStorageCredenetial"/>.
+        /// This can either be a connection string or <see cref="AzureBlobStorageCredentials"/>.
         /// Azure Blob Storage is used by the EventHubs processor to store the events stream offset
         /// which allows the events to be processed from a certain point.
         /// It is also used to create a lease per partition hence preventing duplicate events.
         /// </summary>
-        public AnyOf<AzureBlobStorageCredenetial, string>? BlobStorageCredentials { get; set; }
+        public AnyOf<AzureBlobStorageCredentials, string>? BlobStorageCredentials { get; set; }
 
         /// <summary>
         /// The name of the blob container used by the EventHubs processor.
@@ -41,7 +41,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         /// <summary>
         /// Gets or sets value indicating if the Event Hubs namespace is in the Basic tier.
-        /// The Basic tier does not support mutiple consumer groups.
+        /// The Basic tier does not support multiple consumer groups.
         /// In this case, the transport would make use of the default consumer group only
         /// (<see cref="EventHubConsumerClient.DefaultConsumerGroupName"/>).
         /// Defaults to <see langword="true"/>.

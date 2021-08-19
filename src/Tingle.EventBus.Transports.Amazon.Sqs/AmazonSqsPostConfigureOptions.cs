@@ -30,29 +30,29 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Ensure the entity names are not longer than the limits
             var registrations = busOptions.GetRegistrations(TransportNames.AmazonSqs);
-            foreach (var ereg in registrations)
+            foreach (var reg in registrations)
             {
                 // Set the IdFormat
-                options.SetEventIdFormat(ereg, busOptions);
+                options.SetEventIdFormat(reg, busOptions);
 
                 // Ensure the entity type is allowed
-                options.EnsureAllowedEntityKind(ereg, EntityKind.Broadcast, EntityKind.Queue);
+                options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast, EntityKind.Queue);
 
                 // Event names become Topic names and they should not be longer than 256 characters
                 // See https://aws.amazon.com/sns/faqs/#:~:text=Features%20and%20functionality,and%20underscores%20(_)%20are%20allowed.
-                if (ereg.EventName!.Length > 256)
+                if (reg.EventName!.Length > 256)
                 {
-                    throw new InvalidOperationException($"EventName '{ereg.EventName}' generated from '{ereg.EventType.Name}' is too long. "
+                    throw new InvalidOperationException($"EventName '{reg.EventName}' generated from '{reg.EventType.Name}' is too long. "
                                                        + "Amazon SNS does not allow more than 256 characters for Topic names.");
                 }
 
                 // Consumer names become Queue names and they should not be longer than 80 characters
                 // See https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/quotas-queues.html
-                foreach (var creg in ereg.Consumers)
+                foreach (var ecr in reg.Consumers)
                 {
-                    if (creg.ConsumerName!.Length > 80)
+                    if (ecr.ConsumerName!.Length > 80)
                     {
-                        throw new InvalidOperationException($"ConsumerName '{creg.ConsumerName}' generated from '{creg.ConsumerType.Name}' is too long. "
+                        throw new InvalidOperationException($"ConsumerName '{ecr.ConsumerName}' generated from '{ecr.ConsumerType.Name}' is too long. "
                                                            + "Amazon SQS does not allow more than 80 characters for Queue names.");
                     }
                 }

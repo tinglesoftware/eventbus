@@ -62,11 +62,11 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             await base.StartAsync(cancellationToken);
 
             var registrations = GetRegistrations();
-            foreach (var ereg in registrations)
+            foreach (var reg in registrations)
             {
-                foreach (var creg in ereg.Consumers)
+                foreach (var ecr in reg.Consumers)
                 {
-                    var t = ReceiveAsync(ereg: ereg, creg: creg, cancellationToken: stoppingCts.Token);
+                    var t = ReceiveAsync(reg: reg, ecr: ecr, cancellationToken: stoppingCts.Token);
                     receiverTasks.Add(t);
                 }
             }
@@ -281,13 +281,13 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             }
         }
 
-        private async Task ReceiveAsync(EventRegistration ereg, EventConsumerRegistration creg, CancellationToken cancellationToken)
+        private async Task ReceiveAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
             var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
-            var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
+            var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
 
-            var queueClient = await GetQueueClientAsync(reg: ereg, deadletter: false, cancellationToken: cancellationToken);
+            var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -309,7 +309,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                         using var scope = CreateScope(); // shared
                         foreach (var message in messages)
                         {
-                            await (Task)method.Invoke(this, new object[] { ereg, creg, queueClient, message, scope, cancellationToken, });
+                            await (Task)method.Invoke(this, new object[] { reg, ecr, queueClient, message, scope, cancellationToken, });
                         }
                     }
                 }
@@ -327,7 +327,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         }
 
         private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
-                                                                     EventConsumerRegistration creg,
+                                                                     EventConsumerRegistration ecr,
                                                                      QueueClient queueClient,
                                                                      QueueMessage message,
                                                                      IServiceScope scope,
@@ -371,12 +371,12 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                 activity?.SetParentId(parentId: parentActivityId!.ToString());
             }
 
-            var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+            var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
                                                                         @event: context,
                                                                         scope: scope,
                                                                         cancellationToken: cancellationToken);
 
-            if (!successful && creg.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
+            if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
             {
                 // get the client for the dead letter queue and send the mesage there
                 var dlqClient = await GetQueueClientAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);

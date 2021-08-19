@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Tingle.EventBus
 {
     /// <summary>
-    /// An implmentation of <see cref="IEventPublisher"/>
+    /// An implementation of <see cref="IEventPublisher"/>
     /// that wraps another <see cref="IEventPublisher"/>.
     /// </summary>
     public class WrappedEventPublisher : IEventPublisher
@@ -14,7 +14,7 @@ namespace Tingle.EventBus
         private readonly IEventPublisher inner;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="inner">The instance of <see cref="IEventPublisher"/> to use for operations.</param>
         public WrappedEventPublisher(IEventPublisher inner)

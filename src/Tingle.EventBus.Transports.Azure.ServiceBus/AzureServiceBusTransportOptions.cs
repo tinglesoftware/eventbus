@@ -49,10 +49,22 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// The default maximum auto lock renewal duration to set when creating processors.
         /// This value must be more than the <c>LockDuration</c> set on the entity.
-        /// It can also be overriden per event/consumer using <see cref="ServiceBusProcessorOptions"/>
+        /// It can also be overridden per event/consumer using <see cref="ServiceBusProcessorOptions"/>
         /// passed in through <see cref="SetupProcessorOptions"/>.
         /// </summary>
         public TimeSpan DefaultMaxAutoLockRenewDuration { get; set; } = TimeSpan.FromMinutes(10);
+
+        /// <summary>
+        /// The default number of messages that will be eagerly requested from Queues or Subscriptions
+        /// and queued locally, intended to help maximize throughput by allowing the processor/receiver
+        /// to receive from a local cache rather than waiting on a service request.
+        /// <br/>
+        /// Defaults to is 0.
+        /// <br/>
+        /// It can also be overridden per event/consumer using <see cref="ServiceBusProcessorOptions"/>
+        /// passed in through <see cref="SetupProcessorOptions"/>.
+        /// </summary>
+        public int DefaultPrefetchCount { get; set; } = 0;
 
         #endregion
 

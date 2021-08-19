@@ -85,11 +85,11 @@ namespace Tingle.EventBus.Transports.InMemory
             }
 
             var registrations = GetRegistrations();
-            foreach (var ereg in registrations)
+            foreach (var reg in registrations)
             {
-                foreach (var creg in ereg.Consumers)
+                foreach (var ecr in reg.Consumers)
                 {
-                    var t = ReceiveAsync(ereg: ereg, creg: creg, cancellationToken: stoppingCts.Token);
+                    var t = ReceiveAsync(reg: reg, ecr: ecr, cancellationToken: stoppingCts.Token);
                     receiverTasks.Add(t);
                 }
             }
@@ -278,13 +278,13 @@ namespace Tingle.EventBus.Transports.InMemory
             }
         }
 
-        private async Task ReceiveAsync(EventRegistration ereg, EventConsumerRegistration creg, CancellationToken cancellationToken)
+        private async Task ReceiveAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
             var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
-            var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
+            var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
 
-            var queueEntity = await GetQueueAsync(reg: ereg, deadletter: false, cancellationToken: cancellationToken);
+            var queueEntity = await GetQueueAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
             var queueName = queueEntity.Name;
 
             while (!cancellationToken.IsCancellationRequested)
@@ -294,7 +294,7 @@ namespace Tingle.EventBus.Transports.InMemory
                     var message = await queueEntity.DequeueAsync(cancellationToken);
                     Logger.LogDebug("Received a message on '{QueueName}'", queueName);
                     using var scope = CreateScope(); // shared
-                    await (Task)method.Invoke(this, new object[] { ereg, creg, queueEntity, message, scope, cancellationToken, });
+                    await (Task)method.Invoke(this, new object[] { reg, ecr, queueEntity, message, scope, cancellationToken, });
                 }
                 catch (TaskCanceledException)
                 {
@@ -310,7 +310,7 @@ namespace Tingle.EventBus.Transports.InMemory
         }
 
         private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
-                                                                     EventConsumerRegistration creg,
+                                                                     EventConsumerRegistration ecr,
                                                                      InMemoryQueueEntity queueEntity,
                                                                      InMemoryQueueMessage message,
                                                                      IServiceScope scope,
@@ -352,7 +352,7 @@ namespace Tingle.EventBus.Transports.InMemory
                                   context.Id,
                                   queueEntity.Name);
 
-            var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+            var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
                                                                         @event: context,
                                                                         scope: scope,
                                                                         cancellationToken: cancellationToken);
@@ -368,7 +368,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 failed.Add(context);
 
                 // Deadletter if needed
-                if (creg.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
+                if (ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
                 {
                     // get the dead letter queue and send the mesage there
                     var dlqEntity = await GetQueueAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);

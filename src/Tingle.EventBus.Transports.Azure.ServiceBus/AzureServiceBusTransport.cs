@@ -94,11 +94,11 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             _ = await GetNamespacePropertiesAsync(cancellationToken);
 
             var registrations = GetRegistrations();
-            foreach (var ereg in registrations)
+            foreach (var reg in registrations)
             {
-                foreach (var creg in ereg.Consumers)
+                foreach (var ecr in reg.Consumers)
                 {
-                    var processor = await GetProcessorAsync(ereg: ereg, creg: creg, cancellationToken: cancellationToken);
+                    var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken);
 
                     // register handlers for error and processing
                     processor.ProcessErrorAsync += OnMessageFaultedAsync;
@@ -106,8 +106,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     {
                         var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
                         var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
-                        var method = mt.MakeGenericMethod(ereg.EventType, creg.ConsumerType);
-                        return (Task)method.Invoke(this, new object[] { ereg, creg, processor, args, });
+                        var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
+                        return (Task)method.Invoke(this, new object[] { reg, ecr, processor, args, });
                     };
 
                     // start processing
@@ -340,13 +340,13 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     {
                         // Ensure Queue is created
                         Logger.LogDebug("Creating sender for queue '{QueueName}'", name);
-                        await CreateQueueIfNotExistsAsync(ereg: reg, name: name, cancellationToken: cancellationToken);
+                        await CreateQueueIfNotExistsAsync(reg: reg, name: name, cancellationToken: cancellationToken);
                     }
                     else
                     {
                         // Ensure topic is created
                         Logger.LogDebug("Creating sender for topic '{TopicName}'", name);
-                        await CreateTopicIfNotExistsAsync(ereg: reg, name: name, cancellationToken: cancellationToken);
+                        await CreateTopicIfNotExistsAsync(reg: reg, name: name, cancellationToken: cancellationToken);
                     }
 
                     // Create the sender
@@ -362,14 +362,14 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
-        private async Task<ServiceBusProcessor> GetProcessorAsync(EventRegistration ereg, EventConsumerRegistration creg, CancellationToken cancellationToken)
+        private async Task<ServiceBusProcessor> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
         {
             await processorsCacheLock.WaitAsync(cancellationToken);
 
             try
             {
-                var topicName = ereg.EventName!;
-                var subscriptionName = creg.ConsumerName!;
+                var topicName = reg.EventName!;
+                var subscriptionName = ecr.ConsumerName!;
 
                 var key = $"{topicName}/{subscriptionName}";
                 if (!processorsCache.TryGetValue(key, out var processor))
@@ -387,16 +387,19 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
                         // Set the period of time for which to keep renewing the lock token
                         MaxAutoLockRenewalDuration = TransportOptions.DefaultMaxAutoLockRenewDuration,
+
+                        // Set the number of items to be cached locally
+                        PrefetchCount = TransportOptions.DefaultPrefetchCount,
                     };
 
-                    // Allow for the defaults to be overriden
-                    TransportOptions.SetupProcessorOptions?.Invoke(ereg, creg, sbpo);
+                    // Allow for the defaults to be overridden
+                    TransportOptions.SetupProcessorOptions?.Invoke(reg, ecr, sbpo);
 
                     // Create the processor.
-                    if (await ShouldUseQueueAsync(ereg, cancellationToken))
+                    if (await ShouldUseQueueAsync(reg, cancellationToken))
                     {
                         // Ensure Queue is created
-                        await CreateQueueIfNotExistsAsync(ereg: ereg, name: topicName, cancellationToken: cancellationToken);
+                        await CreateQueueIfNotExistsAsync(reg: reg, name: topicName, cancellationToken: cancellationToken);
 
                         // Create the processor for the Queue
                         Logger.LogDebug("Creating processor for queue '{QueueName}'", topicName);
@@ -405,10 +408,10 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     else
                     {
                         // Ensure Topic is created before creating the Subscription
-                        await CreateTopicIfNotExistsAsync(ereg: ereg, name: topicName, cancellationToken: cancellationToken);
+                        await CreateTopicIfNotExistsAsync(reg: reg, name: topicName, cancellationToken: cancellationToken);
 
                         // Ensure Subscription is created
-                        await CreateSubscriptionIfNotExistsAsync(creg: creg,
+                        await CreateSubscriptionIfNotExistsAsync(ecr: ecr,
                                                                  topicName: topicName,
                                                                  subscriptionName: subscriptionName,
                                                                  cancellationToken: cancellationToken);
@@ -433,12 +436,12 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
-        private async Task CreateQueueIfNotExistsAsync(EventRegistration ereg, string name, CancellationToken cancellationToken)
+        private async Task CreateQueueIfNotExistsAsync(EventRegistration reg, string name, CancellationToken cancellationToken)
         {
             // if entity creation is not enabled, just return
             if (!TransportOptions.EnableEntityCreation)
             {
-                Logger.LogTrace("Entity creation is diabled. Queue creation skipped");
+                Logger.LogTrace("Entity creation is disabled. Queue creation skipped");
                 return;
             }
 
@@ -467,19 +470,19 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     options.AutoDeleteOnIdle = TransportOptions.DefaultAutoDeleteOnIdle;
                 }
 
-                // Allow for the defaults to be overriden
-                TransportOptions.SetupQueueOptions?.Invoke(ereg, options);
+                // Allow for the defaults to be overridden
+                TransportOptions.SetupQueueOptions?.Invoke(reg, options);
                 Logger.LogInformation("Creating queue '{QueueName}'", name);
                 _ = await managementClient.CreateQueueAsync(options: options, cancellationToken: cancellationToken);
             }
         }
 
-        private async Task CreateTopicIfNotExistsAsync(EventRegistration ereg, string name, CancellationToken cancellationToken)
+        private async Task CreateTopicIfNotExistsAsync(EventRegistration reg, string name, CancellationToken cancellationToken)
         {
             // if entity creation is not enabled, just return
             if (!TransportOptions.EnableEntityCreation)
             {
-                Logger.LogTrace("Entity creation is diabled. Topic creation skipped");
+                Logger.LogTrace("Entity creation is disabled. Topic creation skipped");
                 return;
             }
 
@@ -499,19 +502,19 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     EnableBatchedOperations = true,
                 };
 
-                // Allow for the defaults to be overriden
-                TransportOptions.SetupTopicOptions?.Invoke(ereg, options);
+                // Allow for the defaults to be overridden
+                TransportOptions.SetupTopicOptions?.Invoke(reg, options);
                 Logger.LogInformation("Creating topic '{TopicName}'", name);
                 _ = await managementClient.CreateTopicAsync(options: options, cancellationToken: cancellationToken);
             }
         }
 
-        private async Task CreateSubscriptionIfNotExistsAsync(EventConsumerRegistration creg, string topicName, string subscriptionName, CancellationToken cancellationToken)
+        private async Task CreateSubscriptionIfNotExistsAsync(EventConsumerRegistration ecr, string topicName, string subscriptionName, CancellationToken cancellationToken)
         {
             // if entity creation is not enabled, just return
             if (!TransportOptions.EnableEntityCreation)
             {
-                Logger.LogTrace("Entity creation is diabled. Subscription creation skipped");
+                Logger.LogTrace("Entity creation is disabled. Subscription creation skipped");
                 return;
             }
 
@@ -535,8 +538,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                     MaxDeliveryCount = TransportOptions.DefaultMaxDeliveryCount,
                 };
 
-                // Allow for the defaults to be overriden
-                TransportOptions.SetupSubscriptionOptions?.Invoke(creg, options);
+                // Allow for the defaults to be overridden
+                TransportOptions.SetupSubscriptionOptions?.Invoke(ecr, options);
                 Logger.LogInformation("Creating subscription '{SubscriptionName}' under topic '{TopicName}'",
                                       subscriptionName,
                                       topicName);
@@ -544,8 +547,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
         }
 
-        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration ereg,
-                                                                     EventConsumerRegistration creg,
+        private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
+                                                                     EventConsumerRegistration ecr,
                                                                      ServiceBusProcessor processor,
                                                                      ProcessMessageEventArgs args)
             where TEvent : class
@@ -572,7 +575,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
-            var destination = await ShouldUseQueueAsync(ereg, cancellationToken) ? ereg.EventName : creg.ConsumerName;
+            var destination = await ShouldUseQueueAsync(reg, cancellationToken) ? reg.EventName : ecr.ConsumerName;
             activity?.AddTag(ActivityTagNames.MessagingDestination, destination); // name of the queue/subscription
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
 
@@ -583,7 +586,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             var context = await DeserializeAsync<TEvent>(scope: scope,
                                                          body: ms,
                                                          contentType: contentType,
-                                                         registration: ereg,
+                                                         registration: reg,
                                                          identifier: message.SequenceNumber.ToString(),
                                                          cancellationToken: cancellationToken);
 
@@ -595,13 +598,13 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             // set the extras
             context.SetServiceBusMessage(message);
 
-            var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(creg: creg,
+            var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
                                                                          @event: context,
                                                                          scope: scope,
                                                                          cancellationToken: cancellationToken);
 
             // Decide the action to execute then execute
-            var action = DecideAction(successful, creg.UnhandledErrorBehaviour, processor.AutoCompleteMessages);
+            var action = DecideAction(successful, ecr.UnhandledErrorBehaviour, processor.AutoCompleteMessages);
             Logger.LogDebug("Post Consume action: {Action} for message: {MessageId} from '{EntityPath}' containing Event: {EventId}.",
                             action,
                             messageId,

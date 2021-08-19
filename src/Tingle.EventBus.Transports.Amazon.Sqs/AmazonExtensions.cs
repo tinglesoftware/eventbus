@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Amazon.SimpleNotificationService.Model
 {
@@ -34,7 +35,7 @@ namespace Amazon.SQS.Model
     /// </summary>
     internal static class MessageExtensions
     {
-        public static bool TryGetAttribute(this Message message, string key, out string? value)
+        public static bool TryGetAttribute(this Message message, string key, [NotNullWhen(true)] out string? value)
         {
             if (message is null) throw new ArgumentNullException(nameof(message));
             if (string.IsNullOrWhiteSpace(key))

@@ -33,9 +33,9 @@ namespace Tingle.EventBus.Transports
         /// The suffix to append to deadletter entities.
         /// Dead letter entities are created on transports where they are not created by default,
         /// and therefore look like normal entities.
-        /// Defaults to <c>-dedletter</c>.
+        /// Defaults to <c>-deadletter</c>.
         /// </summary>
-        public string DeadLetterSuffix { get; set; } = "-deadleter";
+        public string DeadLetterSuffix { get; set; } = "-deadletter";
 
         /// <summary>
         /// The default value to use for <see cref="EntityKind"/> for events where it is not specified.
@@ -70,34 +70,34 @@ namespace Tingle.EventBus.Transports
         /// Ensures the value set for <see cref="EventRegistration.EntityKind"/> is among the allowed values.
         /// If no value is set, the default value (set via <see cref="DefaultEntityKind"/>) is set before checking.
         /// </summary>
-        /// <param name="ereg">The <see cref="EventRegistration"/> to check.</param>
+        /// <param name="reg">The <see cref="EventRegistration"/> to check.</param>
         /// <param name="allowed">The allowed values for <see cref="EntityKind"/>.</param>
-        public void EnsureAllowedEntityKind(EventRegistration ereg, params EntityKind[] allowed)
+        public void EnsureAllowedEntityKind(EventRegistration reg, params EntityKind[] allowed)
         {
-            if (ereg is null) throw new ArgumentNullException(nameof(ereg));
+            if (reg is null) throw new ArgumentNullException(nameof(reg));
             if (allowed is null) throw new ArgumentNullException(nameof(allowed));
 
             // ensure there is a value (use default if none)
-            ereg.EntityKind ??= DefaultEntityKind;
+            reg.EntityKind ??= DefaultEntityKind;
 
             // ensure the value is allowed
-            var ek = ereg.EntityKind.Value;
+            var ek = reg.EntityKind.Value;
             if (!allowed.Contains(ek))
             {
-                throw new InvalidOperationException($"'{nameof(EntityKind)}.{ek}' is not permitted for '{ereg.TransportName}' transport.");
+                throw new InvalidOperationException($"'{nameof(EntityKind)}.{ek}' is not permitted for '{reg.TransportName}' transport.");
             }
         }
 
         /// <summary>
         /// Set value for <see cref="EventRegistration.IdFormat"/> with prioritization of the transport default over the bus default.
         /// </summary>
-        /// <param name="ereg"></param>
+        /// <param name="reg"></param>
         /// <param name="busOptions"></param>
-        public void SetEventIdFormat(EventRegistration ereg, EventBusOptions busOptions)
+        public void SetEventIdFormat(EventRegistration reg, EventBusOptions busOptions)
         {
             // prioritize the transport
-            ereg.IdFormat ??= DefaultEventIdFormat;
-            ereg.IdFormat ??= busOptions.DefaultEventIdFormat;
+            reg.IdFormat ??= DefaultEventIdFormat;
+            reg.IdFormat ??= busOptions.DefaultEventIdFormat;
         }
     }
 }

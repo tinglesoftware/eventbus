@@ -54,11 +54,11 @@ namespace Tingle.EventBus
 
         /// <summary>
         /// Checks for health of the bus.
-        /// This function can be used by the Health Checks framework and may throw and execption during execution.
+        /// This function can be used by the Health Checks framework and may throw and exception during execution.
         /// </summary>
         /// <param name="data">Additional key-value pairs describing the health of the bus.</param>
         /// <param name="cancellationToken"></param>
-        /// <returns>A value indicating if the bus is healthly.</returns>
+        /// <returns>A value indicating if the bus is healthy.</returns>
         public async Task<bool> CheckHealthAsync(Dictionary<string, object> data,
                                                  CancellationToken cancellationToken = default)
         {
@@ -69,15 +69,12 @@ namespace Tingle.EventBus
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Get the name of the transport
-                var name = EventBusBuilder.GetTransportName(t.GetType());
-
                 // Check the health on the transport
-                var tdata = new Dictionary<string, object>();
-                healthy &= await t.CheckHealthAsync(tdata, cancellationToken);
+                var tData = new Dictionary<string, object>();
+                healthy &= await t.CheckHealthAsync(tData, cancellationToken);
 
                 // Combine the data dictionaries into one, keyed by the transport name
-                data[name] = tdata;
+                data[t.Name] = tData;
             }
 
             return healthy;
@@ -313,9 +310,9 @@ namespace Tingle.EventBus
 
             // For events that were not configured (e.g. publish only applications),
             // the IdFormat will still be null, we have to set it
-            if (reg.IdFormat is null && transport is IEventBusTransportWithOptions ebtwo)
+            if (reg.IdFormat is null && transport is IEventBusTransportWithOptions withOptions)
             {
-                var to = ebtwo.GetOptions();
+                var to = withOptions.GetOptions();
                 reg.IdFormat = to.DefaultEventIdFormat ?? options.DefaultEventIdFormat;
             }
 

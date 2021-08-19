@@ -1,6 +1,7 @@
 ﻿using Polly.Retry;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using Tingle.EventBus;
@@ -55,7 +56,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public HostInfo? HostInfo { get; set; }
 
         /// <summary>
-        /// Indicates if the messages/events procuded require guard against duplicate messages.
+        /// Indicates if the messages/events produced require guard against duplicate messages.
         /// If <see langword="true"/>, duplicate messages having the same <see cref="EventContext.Id"/>
         /// sent to the same destination within a duration of <see cref="DuplicateDetectionDuration"/> will be discarded.
         /// Defaults to <see langword="false"/>.
@@ -135,26 +136,27 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Get the consumer registration in a given event type.
         /// </summary>
-        /// <typeparam name="TEvent">The event type from wich to retrieve a <see cref="EventConsumerRegistration"/> for.</typeparam>
+        /// <typeparam name="TEvent">The event type from which to retrieve a <see cref="EventConsumerRegistration"/> for.</typeparam>
         /// <typeparam name="TConsumer">The consumer to configure.</typeparam>
-        /// <param name="ereg">
+        /// <param name="reg">
         /// When this method returns, contains the event registration associated with the specified event type,
         /// if the event type is found; otherwise, <see langword="null"/> is returned.
         /// This parameter is passed uninitialized.
         /// </param>
-        /// <param name="creg">
+        /// <param name="ecr">
         /// When this method returns, contains the consumer registration associated with the specified event type,
         /// if the event type is found; otherwise, <see langword="null"/> is returned.
         /// This parameter is passed uninitialized.
         /// </param>
         /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
-        internal bool TryGetConsumerRegistration<TEvent, TConsumer>(out EventRegistration ereg, out EventConsumerRegistration? creg)
+        internal bool TryGetConsumerRegistration<TEvent, TConsumer>([NotNullWhen(true)] out EventRegistration reg,
+                                                                    [NotNullWhen(true)] out EventConsumerRegistration? ecr)
         {
-            creg = default;
-            if (Registrations.TryGetValue(typeof(TEvent), out ereg))
+            ecr = default;
+            if (Registrations.TryGetValue(typeof(TEvent), out reg))
             {
-                creg = ereg.Consumers.SingleOrDefault(cr => cr.ConsumerType == typeof(TConsumer));
-                if (creg is not null) return true;
+                ecr = reg.Consumers.SingleOrDefault(cr => cr.ConsumerType == typeof(TConsumer));
+                if (ecr is not null) return true;
             }
             return false;
         }
@@ -162,7 +164,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Get the consumer registration in a given event type.
         /// </summary>
-        /// <typeparam name="TEvent">The event type from wich to retrieve a <see cref="EventConsumerRegistration"/> for.</typeparam>
+        /// <typeparam name="TEvent">The event type from which to retrieve a <see cref="EventConsumerRegistration"/> for.</typeparam>
         /// <typeparam name="TConsumer">The consumer to configure.</typeparam>
         /// <param name="registration">
         /// When this method returns, contains the consumer registration associated with the specified event type,
@@ -170,7 +172,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// This parameter is passed uninitialized.
         /// </param>
         /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
-        public bool TryGetConsumerRegistration<TEvent, TConsumer>(out EventConsumerRegistration? registration)
+        public bool TryGetConsumerRegistration<TEvent, TConsumer>([NotNullWhen(true)] out EventConsumerRegistration? registration)
         {
             return TryGetConsumerRegistration<TEvent, TConsumer>(out _, out registration);
         }
@@ -209,9 +211,9 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             if (configure is null) throw new ArgumentNullException(nameof(configure));
 
-            if (TryGetConsumerRegistration<TEvent, TConsumer>(out var ereg, out var creg) && creg is not null)
+            if (TryGetConsumerRegistration<TEvent, TConsumer>(out var reg, out var ecr) && ecr is not null)
             {
-                configure(ereg, creg);
+                configure(reg, ecr);
             }
 
             return this;
@@ -229,7 +231,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             if (configure is null) throw new ArgumentNullException(nameof(configure));
 
-            return ConfigureConsumer<TEvent, TConsumer>((ereg, creg) => configure(creg));
+            return ConfigureConsumer<TEvent, TConsumer>((reg, ecr) => configure(ecr));
         }
     }
 }

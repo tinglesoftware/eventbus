@@ -305,8 +305,7 @@ namespace Tingle.EventBus
         {
             // get the transport
             var reg = GetOrCreateRegistration<TEvent>();
-            var transportType = options.RegisteredTransportNames[reg.TransportName!];
-            var transport = transports.Single(t => t.GetType() == transportType);
+            var transport = transports.Single(t => t.Name == reg.TransportName);
 
             // For events that were not configured (e.g. publish only applications),
             // the IdFormat will still be null, we have to set it

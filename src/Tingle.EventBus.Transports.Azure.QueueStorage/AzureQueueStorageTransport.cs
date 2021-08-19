@@ -41,7 +41,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                           ILoggerFactory loggerFactory)
             : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            var cred = TransportOptions.Credentials!.Value;
+            var cred = TransportOptions.Credentials!.Value!;
             serviceClient = cred is AzureQueueStorageTransportCredentials aqstc
                     ? new QueueServiceClient(serviceUri: aqstc.ServiceUrl, credential: aqstc.TokenCredential)
                     : new QueueServiceClient(connectionString: (string)cred);
@@ -253,7 +253,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
                     // create the queue client
                     // queueUri has the format "https://{account_name}.queue.core.windows.net/{queue_name}" which can be made using "{serviceClient.Uri}/{queue_name}"
-                    var cred = TransportOptions.Credentials!.Value;
+                    var cred = TransportOptions.Credentials!.Value!;
                     queueClient = cred is AzureQueueStorageTransportCredentials aqstc
                         ? new QueueClient(queueUri: new Uri($"{serviceClient.Uri}/{name}"), credential: aqstc.TokenCredential, options: qco)
                         : new QueueClient(connectionString: (string)cred, queueName: name, options: qco);

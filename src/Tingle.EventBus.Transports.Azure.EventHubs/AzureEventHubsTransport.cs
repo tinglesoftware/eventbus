@@ -268,7 +268,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                     // Override values that must be overridden
 
                     // Create the producer client
-                    var cred = TransportOptions.Credentials!.Value;
+                    var cred = TransportOptions.Credentials!.Value!;
                     producer = cred is AzureEventHubsTransportCredentials aehtc
                             ? new EventHubProducerClient(fullyQualifiedNamespace: aehtc.FullyQualifiedNamespace,
                                                          eventHubName: name,
@@ -318,7 +318,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                      */
 
                     // blobContainerUri has the format "https://{account_name}.blob.core.windows.net/{container_name}" which can be made using "{BlobServiceUri}/{container_name}".
-                    var cred_bs = TransportOptions.BlobStorageCredentials!.Value;
+                    var cred_bs = TransportOptions.BlobStorageCredentials!.Value!;
                     var blobContainerClient = cred_bs is AzureBlobStorageCredentials abstc
                         ? new BlobContainerClient(blobContainerUri: new Uri($"{abstc.BlobServiceUrl}/{TransportOptions.BlobContainerName}"),
                                                   credential: abstc.TokenCredential)
@@ -342,7 +342,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
 
 
                     // Create the processor client
-                    var cred = TransportOptions.Credentials!.Value;
+                    var cred = TransportOptions.Credentials!.Value!;
                     processor = cred is AzureEventHubsTransportCredentials aehtc
                         ? new EventProcessorClient(checkpointStore: blobContainerClient,
                                                          consumerGroup: consumerGroup,

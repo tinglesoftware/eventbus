@@ -25,7 +25,7 @@ namespace Tingle.EventBus
         /// true if the message is found; otherwise, false.
         /// </returns>
         /// <exception cref="ArgumentNullException">The context is null</exception>
-        public static bool TryGetServiceBusMessage(this EventContext context, [NotNullWhen(true)] out ServiceBusReceivedMessage? message)
+        public static bool TryGetServiceBusReceivedMessage(this EventContext context, [NotNullWhen(true)] out ServiceBusReceivedMessage? message)
         {
             if (context is null) throw new ArgumentNullException(nameof(context));
 
@@ -46,7 +46,7 @@ namespace Tingle.EventBus
         /// <param name="context">The <see cref="EventContext"/> to update.</param>
         /// <param name="message">The value to set.</param>
         /// <returns>The updated context.</returns>
-        internal static T SetServiceBusMessage<T>(this T context, ServiceBusReceivedMessage message) where T : EventContext
+        internal static T SetServiceBusReceivedMessage<T>(this T context, ServiceBusReceivedMessage message) where T : EventContext
         {
             if (context is null) throw new ArgumentNullException(nameof(context));
             if (message is null) throw new ArgumentNullException(nameof(message));

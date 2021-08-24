@@ -590,7 +590,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                   entityPath);
 
             // set the extras
-            context.SetServiceBusMessage(message);
+            context.SetServiceBusReceivedMessage(message);
 
             var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
                                                                          @event: context,

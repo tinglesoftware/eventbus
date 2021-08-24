@@ -58,7 +58,7 @@ namespace Tingle.EventBus
         /// The serializer used for the event must support the value set.
         /// When set to <see langword="null"/>, the serializer used for the event decides what
         /// content type to use depending on its implementation.
-        /// For the default implementation, see <see cref="Serialization.DefaultJsonEventSerializer"/>.
+        /// For the default implementation, see <see cref="DefaultJsonEventSerializer"/>.
         /// </summary>
         public ContentType? ContentType { get; set; }
 
@@ -69,6 +69,11 @@ namespace Tingle.EventBus
         /// This information should not be passed on to serialization.
         /// </remarks>
         public IDictionary<string, object?> Items { get; set; } = new Dictionary<string, object?>();
+
+        /// <summary>
+        /// Identifier given by the transport for the event.
+        /// </summary>
+        public string? TransportIdentifier { get; internal init; }
     }
 
     /// <summary>
@@ -107,8 +112,11 @@ namespace Tingle.EventBus
         }
 
         // marked internal because of the forced null forgiving operator
-        internal EventContext(IEventPublisher publisher, EventEnvelope<T> envelope, ContentType? contentType)
-            : this(publisher, envelope.Event!, envelope, contentType) { }
+        internal EventContext(IEventPublisher publisher, EventEnvelope<T> envelope, ContentType? contentType, string? transportIdentifier)
+            : this(publisher, envelope.Event!, envelope, contentType)
+        {
+            TransportIdentifier = transportIdentifier;
+        }
 
         /// <summary>
         /// The event published or to be published.

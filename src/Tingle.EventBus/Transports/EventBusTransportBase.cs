@@ -167,7 +167,7 @@ namespace Tingle.EventBus.Transports
         /// <param name="body">The <see cref="BinaryData"/> containing the raw data.</param>
         /// <param name="contentType">The type of content contained in the <paramref name="body"/>.</param>
         /// <param name="registration">The bus registration for this event.</param>
-        /// <param name="identifier">Identifier given the transport for the event to be deserialized.</param>
+        /// <param name="identifier">Identifier given by the transport for the event to be deserialized.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(IServiceScope scope,

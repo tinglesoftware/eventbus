@@ -11,7 +11,7 @@ namespace Tingle.EventBus.Transports.InMemory
         private readonly SemaphoreSlim messageAvailable = new(0);
         private readonly SemaphoreSlim updateLock = new(1);
         private readonly TimeSpan deliveryDelay;
-        private Queue<InMemoryQueueMessage> queue = new();
+        private Queue<InMemoryMessage> queue = new();
 
         public InMemoryQueueEntity(string name, TimeSpan deliveryDelay)
         {
@@ -21,7 +21,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
         public string Name { get; }
 
-        public async Task EnqueueAsync(InMemoryQueueMessage item, CancellationToken cancellationToken = default)
+        public async Task EnqueueAsync(InMemoryMessage item, CancellationToken cancellationToken = default)
         {
             if (item is null) throw new ArgumentNullException(nameof(item));
 
@@ -43,7 +43,7 @@ namespace Tingle.EventBus.Transports.InMemory
             }
         }
 
-        public async Task EnqueueAsync(IEnumerable<InMemoryQueueMessage> items, CancellationToken cancellationToken = default)
+        public async Task EnqueueAsync(IEnumerable<InMemoryMessage> items, CancellationToken cancellationToken = default)
         {
             if (items is null) throw new ArgumentNullException(nameof(items));
 
@@ -68,7 +68,7 @@ namespace Tingle.EventBus.Transports.InMemory
             }
         }
 
-        public async Task<InMemoryQueueMessage> DequeueAsync(CancellationToken cancellationToken = default)
+        public async Task<InMemoryMessage> DequeueAsync(CancellationToken cancellationToken = default)
         {
             // wait to be notified of an item in the queue
             await messageAvailable.WaitAsync(cancellationToken);
@@ -103,7 +103,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
                 // make new items and recreate the queue
                 var items = queue.AsEnumerable().Except(new[] { matching });
-                queue = new Queue<InMemoryQueueMessage>(items);
+                queue = new Queue<InMemoryMessage>(items);
             }
             catch (Exception)
             {
@@ -117,7 +117,7 @@ namespace Tingle.EventBus.Transports.InMemory
             try
             {
                 // get matching
-                var matching = new List<InMemoryQueueMessage>();
+                var matching = new List<InMemoryMessage>();
                 foreach (var sn in sequenceNumbers)
                 {
                     var item = queue.SingleOrDefault(m => m.SequenceNumber == sn);
@@ -129,7 +129,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
                 // make new items and recreate the queue
                 var items = queue.AsEnumerable().Except(matching);
-                queue = new Queue<InMemoryQueueMessage>(items);
+                queue = new Queue<InMemoryMessage>(items);
             }
             catch (Exception)
             {

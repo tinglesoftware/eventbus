@@ -133,7 +133,7 @@ namespace Tingle.EventBus.Transports.InMemory
                                             registration: registration,
                                             cancellationToken: cancellationToken);
 
-            var message = new InMemoryQueueMessage(body)
+            var message = new InMemoryMessage(body)
             {
                 MessageId = @event.Id,
                 ContentType = @event.ContentType?.ToString(),
@@ -186,7 +186,7 @@ namespace Tingle.EventBus.Transports.InMemory
             }
 
             using var scope = CreateScope();
-            var messages = new List<InMemoryQueueMessage>();
+            var messages = new List<InMemoryMessage>();
 
             foreach (var @event in events)
             {
@@ -195,7 +195,7 @@ namespace Tingle.EventBus.Transports.InMemory
                                                 registration: registration,
                                                 cancellationToken: cancellationToken);
 
-                var message = new InMemoryQueueMessage(body)
+                var message = new InMemoryMessage(body)
                 {
                     MessageId = @event.Id,
                     CorrelationId = @event.CorrelationId,
@@ -343,7 +343,7 @@ namespace Tingle.EventBus.Transports.InMemory
         private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
                                                                      EventConsumerRegistration ecr,
                                                                      InMemoryQueueEntity queueEntity,
-                                                                     InMemoryQueueMessage message,
+                                                                     InMemoryMessage message,
                                                                      IServiceScope scope,
                                                                      CancellationToken cancellationToken)
             where TEvent : class

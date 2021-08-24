@@ -12,7 +12,7 @@ namespace Tingle.EventBus
         internal const string ItemsKeyMessage =  "inmemory.message";
 
         /// <summary>
-        /// Gets the <see cref="InMemoryQueueMessage"/> associated with the specified <see cref="EventContext"/>
+        /// Gets the <see cref="InMemoryMessage"/> associated with the specified <see cref="EventContext"/>
         /// if the event uses Azure Service Bus transport.
         /// </summary>
         /// <param name="context">The <see cref="EventContext"/> to use.</param>
@@ -25,11 +25,11 @@ namespace Tingle.EventBus
         /// true if the message is found; otherwise, false.
         /// </returns>
         /// <exception cref="ArgumentNullException">The context is null</exception>
-        public static bool TryGetInMemoryMessage(this EventContext context, [NotNullWhen(true)] out InMemoryQueueMessage? message)
+        public static bool TryGetInMemoryMessage(this EventContext context, [NotNullWhen(true)] out InMemoryMessage? message)
         {
             if (context is null) throw new ArgumentNullException(nameof(context));
 
-            if (context.Items.TryGetValue(ItemsKeyMessage, out var obj) && obj is InMemoryQueueMessage msg)
+            if (context.Items.TryGetValue(ItemsKeyMessage, out var obj) && obj is InMemoryMessage msg)
             {
                 message = msg;
                 return true;
@@ -40,13 +40,13 @@ namespace Tingle.EventBus
         }
 
         /// <summary>
-        /// Set the <see cref="InMemoryQueueMessage"/> for an event.
+        /// Set the <see cref="InMemoryMessage"/> for an event.
         /// </summary>
         /// <typeparam name="T">The context type.</typeparam>
         /// <param name="context">The <see cref="EventContext"/> to update.</param>
         /// <param name="message">The value to set.</param>
         /// <returns>The updated context.</returns>
-        internal static T SetInMemoryMessage<T>(this T context, InMemoryQueueMessage message) where T : EventContext
+        internal static T SetInMemoryMessage<T>(this T context, InMemoryMessage message) where T : EventContext
         {
             if (context is null) throw new ArgumentNullException(nameof(context));
             if (message is null) throw new ArgumentNullException(nameof(message));

@@ -10,8 +10,13 @@ namespace Tingle.EventBus.Transports.InMemory
         private readonly ChannelReader<InMemoryMessage> reader;
         private CancellationTokenSource? stoppingCts = new();
 
-        public InMemoryProcessor(ChannelReader<InMemoryMessage> reader)
+        public InMemoryProcessor(string entityPath, ChannelReader<InMemoryMessage> reader)
         {
+            if (string.IsNullOrWhiteSpace(EntityPath = entityPath))
+            {
+                throw new ArgumentException($"'{nameof(entityPath)}' cannot be null or whitespace.", nameof(entityPath));
+            }
+
             this.reader = reader ?? throw new ArgumentNullException(nameof(reader));
         }
 
@@ -25,6 +30,8 @@ namespace Tingle.EventBus.Transports.InMemory
                 _ = ProcessMessageAsync!.Invoke(args);
             }
         }
+
+        public string EntityPath { get; }
 
         /// <summary>
         /// The handler responsible for processing messages received from the Queue or Subscription.

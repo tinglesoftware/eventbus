@@ -12,15 +12,22 @@ namespace Tingle.EventBus.Transports.InMemory
         private static readonly TimeSpan waitTimeout = TimeSpan.FromSeconds(1);
 
         private readonly ChannelWriter<InMemoryMessage> writer;
+        private readonly SequenceNumberGenerator sng;
         private readonly SemaphoreSlim available = new(0);
         private readonly SemaphoreSlim updateLock = new(1);
         private readonly CancellationTokenSource stoppingCts = new();
 
         private List<InMemoryMessage> items = new();
 
-        public InMemorySender(ChannelWriter<InMemoryMessage> writer)
+        public InMemorySender(string entityPath, ChannelWriter<InMemoryMessage> writer, SequenceNumberGenerator sng)
         {
+            if (string.IsNullOrWhiteSpace(EntityPath = entityPath))
+            {
+                throw new ArgumentException($"'{nameof(entityPath)}' cannot be null or whitespace.", nameof(entityPath));
+            }
+
             this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
+            this.sng = sng ?? throw new ArgumentNullException(nameof(sng));
             _ = RunAsync(stoppingCts.Token);
         }
 
@@ -41,6 +48,8 @@ namespace Tingle.EventBus.Transports.InMemory
                 }
             }
         }
+
+        public string EntityPath { get; }
 
         /// <summary>
         /// Closes the producer.
@@ -72,6 +81,7 @@ namespace Tingle.EventBus.Transports.InMemory
                     throw new ArgumentException($"An item with the sequence number {message.SequenceNumber} is already present.", nameof(message));
                 }
 
+                message.SequenceNumber = sng.Generate();
                 items.Add(message);
                 available.Release();
             }
@@ -104,6 +114,12 @@ namespace Tingle.EventBus.Transports.InMemory
                     }
                 }
 
+                // set sequence numbers after validation check
+                foreach (var message in messages)
+                {
+                    message.SequenceNumber = sng.Generate();
+                }
+
                 items.AddRange(messages);
                 available.Release();
             }
@@ -112,6 +128,31 @@ namespace Tingle.EventBus.Transports.InMemory
                 updateLock.Release();
             }
         }
+
+        /// <summary>
+        /// Schedules a message to appear on the transport at a later time.
+        /// </summary>
+        /// <param name="message">The <see cref="InMemoryMessage"/> to schedule.</param>
+        /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
+        /// <returns></returns>
+        public async Task<long> ScheduleMessageAsync(InMemoryMessage message,CancellationToken cancellationToken = default)
+        {
+            await SendMessageAsync(message, cancellationToken);
+            return message.SequenceNumber;
+        }
+
+        /// <summary>
+        /// Schedules a set of messages to appear on the transport at a later time.
+        /// </summary>
+        /// <param name="messages">The messages to schedule.</param>
+        /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
+        /// <returns></returns>
+        public async Task<IReadOnlyList<long>> ScheduleMessagesAsync(IEnumerable<InMemoryMessage> messages, CancellationToken cancellationToken = default)
+        {
+            await SendMessagesAsync(messages, cancellationToken);
+            return messages.Select(m => m.SequenceNumber).ToArray();
+        }
+
 
         /// <summary>
         /// Cancels a message that was scheduled.

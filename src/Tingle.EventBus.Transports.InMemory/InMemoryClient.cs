@@ -6,6 +6,12 @@ namespace Tingle.EventBus.Transports.InMemory
     internal class InMemoryClient
     {
         private readonly ConcurrentDictionary<string, Channel<InMemoryMessage>> channels = new();
+        private readonly SequenceNumberGenerator sng;
+
+        public InMemoryClient(SequenceNumberGenerator sng)
+        {
+            this.sng = sng ?? throw new System.ArgumentNullException(nameof(sng));
+        }
 
         /// <summary>
         /// Creates an <see cref="InMemoryProcessor"/> instance that can be used to process messages
@@ -20,7 +26,7 @@ namespace Tingle.EventBus.Transports.InMemory
         public virtual InMemoryProcessor CreateProcessor(string queueName, InMemoryProcessorOptions options)
         {
             var channel = GetChannel(queueName);
-            return new InMemoryProcessor(channel.Reader);
+            return new InMemoryProcessor(entityPath: queueName, reader: channel.Reader);
         }
 
         /// <summary>
@@ -37,7 +43,7 @@ namespace Tingle.EventBus.Transports.InMemory
         public virtual InMemoryProcessor CreateProcessor(string topicName, string subscriptionName, InMemoryProcessorOptions options)
         {
             var channel = GetChannel(topicName);
-            return new InMemoryProcessor(channel.Reader);
+            return new InMemoryProcessor(entityPath: $"{topicName}/{subscriptionName}", reader: channel.Reader);
         }
 
         /// <summary>
@@ -49,7 +55,7 @@ namespace Tingle.EventBus.Transports.InMemory
         public virtual InMemorySender CreateSender(string queueOrTopicName)
         {
             var channel = GetChannel(queueOrTopicName);
-            return new InMemorySender(channel.Writer);
+            return new InMemorySender(entityPath: queueOrTopicName, writer: channel.Writer, sng: sng);
         }
 
         private Channel<InMemoryMessage> GetChannel(string queueOrTopicName)

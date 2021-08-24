@@ -76,7 +76,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// Sequence numbers monotonically increase. They roll over to 0 when the 48-64 bit
         /// range is exhausted. This property is read-only.
         /// </remarks>
-        public long SequenceNumber { get; internal init; }
+        public long SequenceNumber { get; internal set; }
 
         /// <summary>
         /// Gets the application properties bag, which can be used for custom message metadata.

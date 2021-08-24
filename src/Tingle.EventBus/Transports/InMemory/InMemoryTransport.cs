@@ -141,6 +141,12 @@ namespace Tingle.EventBus.Transports.InMemory
                 SequenceNumber = sng.Generate(),
             };
 
+            // If scheduled for later, set the value in the message
+            if (scheduled != null && scheduled > DateTimeOffset.UtcNow)
+            {
+                message.Scheduled = scheduled.Value.UtcDateTime;
+            }
+
             // Add custom properties
             message.Properties.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
                               .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
@@ -196,6 +202,12 @@ namespace Tingle.EventBus.Transports.InMemory
                     ContentType = @event.ContentType?.ToString(),
                     SequenceNumber = sng.Generate(),
                 };
+
+                // If scheduled for later, set the value in the message
+                if (scheduled != null && scheduled > DateTimeOffset.UtcNow)
+                {
+                    message.Scheduled = scheduled.Value.UtcDateTime;
+                }
 
                 // Add custom properties
                 message.Properties.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)

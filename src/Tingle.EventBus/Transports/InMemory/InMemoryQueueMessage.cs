@@ -87,5 +87,11 @@ namespace Tingle.EventBus.Transports.InMemory
         /// TimeSpan
         /// </remarks>
         public IDictionary<string, object> Properties { get; } = new Dictionary<string, object>();
+
+        /// <summary>
+        /// Gets the date and time in UTC at which the message will be enqueued.
+        /// This property returns the time in UTC.
+        /// </summary>
+        public DateTimeOffset Scheduled { get; set; }
     }
 }

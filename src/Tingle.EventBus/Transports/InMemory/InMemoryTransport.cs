@@ -346,6 +346,9 @@ namespace Tingle.EventBus.Transports.InMemory
                                   context.Id,
                                   queueEntity.Name);
 
+            // set the extras
+            context.SetInMemoryMessage(message);
+
             var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
                                                                         @event: context,
                                                                         scope: scope,

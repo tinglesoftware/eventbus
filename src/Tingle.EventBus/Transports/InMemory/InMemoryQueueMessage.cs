@@ -3,7 +3,11 @@ using System.Collections.Generic;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
-    internal class InMemoryQueueMessage
+    /// <summary>
+    /// The <see cref="InMemoryQueueMessage"/> is used to receive
+    /// and send data from and to InMemory entities.
+    /// </summary>
+    public class InMemoryQueueMessage
     {
         /// <summary>
         /// Creates a new message.

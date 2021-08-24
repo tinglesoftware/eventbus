@@ -1,11 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-  </PropertyGroup>
-
   <ItemGroup>
+    <ProjectReference Include="..\..\samples\SimpleConsumer\SimpleConsumer.csproj" />
     <ProjectReference Include="..\..\src\Tingle.EventBus.Transports.InMemory\Tingle.EventBus.Transports.InMemory.csproj" />
+    <ProjectReference Include="..\Tingle.EventBus.Tests\Tingle.EventBus.Tests.csproj" />
   </ItemGroup>
 
 </Project>

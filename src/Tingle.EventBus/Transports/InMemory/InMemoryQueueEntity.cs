@@ -10,10 +10,10 @@ namespace Tingle.EventBus.Transports.InMemory
     {
         private readonly SemaphoreSlim messageAvailable = new(0);
         private readonly SemaphoreSlim updateLock = new(1);
-        private readonly TimeSpan deliveryDelay;
+        private readonly TimeSpan? deliveryDelay;
         private Queue<InMemoryMessage> queue = new();
 
-        public InMemoryQueueEntity(string name, TimeSpan deliveryDelay)
+        public InMemoryQueueEntity(string name, TimeSpan? deliveryDelay)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             this.deliveryDelay = deliveryDelay;
@@ -78,9 +78,9 @@ namespace Tingle.EventBus.Transports.InMemory
             if (queue.TryDequeue(out var result))
             {
                 // if we have a delivery delay, apply id
-                if (deliveryDelay > TimeSpan.Zero)
+                if (deliveryDelay is not null && deliveryDelay > TimeSpan.Zero)
                 {
-                    await Task.Delay(deliveryDelay, cancellationToken);
+                    await Task.Delay(deliveryDelay.Value, cancellationToken);
                 }
 
                 return result;

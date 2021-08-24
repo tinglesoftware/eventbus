@@ -64,7 +64,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<InMemoryTestHarness>();
 
             // Set the delivery delay to zero for instance delivery
-            services.Configure<InMemoryTransportOptions>(o => o.DeliveryDelay = TimeSpan.Zero);
             services.AddSingleton<IPostConfigureOptions<InMemoryTestHarnessOptions>, InMemoryTestHarnessPostConfigureOptions>();
 
             return builder;

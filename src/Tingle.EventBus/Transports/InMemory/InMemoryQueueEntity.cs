@@ -23,6 +23,8 @@ namespace Tingle.EventBus.Transports.InMemory
 
         public async Task EnqueueAsync(InMemoryQueueMessage item, CancellationToken cancellationToken = default)
         {
+            if (item is null) throw new ArgumentNullException(nameof(item));
+
             await updateLock.WaitAsync(cancellationToken);
             try
             {
@@ -44,7 +46,26 @@ namespace Tingle.EventBus.Transports.InMemory
         public async Task EnqueueBatchAsync(IEnumerable<InMemoryQueueMessage> items, CancellationToken cancellationToken = default)
         {
             if (items is null) throw new ArgumentNullException(nameof(items));
-            foreach (var item in items) await EnqueueAsync(item, cancellationToken);
+
+            await updateLock.WaitAsync(cancellationToken);
+            try
+            {
+                foreach (var item in items)
+                {
+                    // ensure we do not have any duplicates for the sequence number.
+                    if (queue.Any(m => m.SequenceNumber == item.SequenceNumber))
+                    {
+                        throw new ArgumentException($"An item with the sequence number {item.SequenceNumber} is already present.", nameof(item));
+                    }
+
+                    queue.Enqueue(item);
+                    messageAvailable.Release(1);
+                }
+            }
+            catch (Exception)
+            {
+                updateLock.Release();
+            }
         }
 
         public async Task<InMemoryQueueMessage> DequeueAsync(CancellationToken cancellationToken = default)

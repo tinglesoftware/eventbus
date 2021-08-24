@@ -217,12 +217,12 @@ namespace Tingle.EventBus.Transports.InMemory
                                   string.Join("\r\n- ", events.Select(e => e.Id)));
             if (scheduled != null)
             {
-                _ = DelayThenExecuteAsync(scheduled.Value, (msgs, ct) => queueEntity.EnqueueBatchAsync(msgs, ct), messages);
+                _ = DelayThenExecuteAsync(scheduled.Value, (msgs, ct) => queueEntity.EnqueueAsync(msgs, ct), messages);
                 return messages.Select(msg => new ScheduledResult(id: msg.SequenceNumber, scheduled: scheduled.Value)).ToList();
             }
             else
             {
-                await queueEntity.EnqueueBatchAsync(messages);
+                await queueEntity.EnqueueAsync(messages);
                 return Array.Empty<ScheduledResult>(); // no sequence numbers available
             }
         }

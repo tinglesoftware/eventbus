@@ -43,7 +43,7 @@ namespace Tingle.EventBus.Transports.InMemory
             }
         }
 
-        public async Task EnqueueBatchAsync(IEnumerable<InMemoryQueueMessage> items, CancellationToken cancellationToken = default)
+        public async Task EnqueueAsync(IEnumerable<InMemoryQueueMessage> items, CancellationToken cancellationToken = default)
         {
             if (items is null) throw new ArgumentNullException(nameof(items));
 

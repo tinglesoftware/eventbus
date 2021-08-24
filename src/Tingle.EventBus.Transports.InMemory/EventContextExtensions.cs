@@ -25,11 +25,11 @@ namespace Tingle.EventBus
         /// true if the message is found; otherwise, false.
         /// </returns>
         /// <exception cref="ArgumentNullException">The context is null</exception>
-        public static bool TryGetInMemoryMessage(this EventContext context, [NotNullWhen(true)] out InMemoryMessage? message)
+        public static bool TryGetInMemoryReceivedMessage(this EventContext context, [NotNullWhen(true)] out InMemoryReceivedMessage? message)
         {
             if (context is null) throw new ArgumentNullException(nameof(context));
 
-            if (context.Items.TryGetValue(ItemsKeyMessage, out var obj) && obj is InMemoryMessage msg)
+            if (context.Items.TryGetValue(ItemsKeyMessage, out var obj) && obj is InMemoryReceivedMessage msg)
             {
                 message = msg;
                 return true;
@@ -46,7 +46,7 @@ namespace Tingle.EventBus
         /// <param name="context">The <see cref="EventContext"/> to update.</param>
         /// <param name="message">The value to set.</param>
         /// <returns>The updated context.</returns>
-        internal static T SetInMemoryMessage<T>(this T context, InMemoryMessage message) where T : EventContext
+        internal static T SetInMemoryReceivedMessage<T>(this T context, InMemoryReceivedMessage message) where T : EventContext
         {
             if (context is null) throw new ArgumentNullException(nameof(context));
             if (message is null) throw new ArgumentNullException(nameof(message));

@@ -228,19 +228,49 @@ namespace Tingle.EventBus.Transports.InMemory
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(string id,
-                                                 EventRegistration registration,
-                                                 CancellationToken cancellationToken = default)
+        public override async Task CancelAsync<TEvent>(string id,
+                                                       EventRegistration registration,
+                                                       CancellationToken cancellationToken = default)
         {
-            throw new NotSupportedException("InMemory transport does not support canceling published messages.");
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException($"'{nameof(id)}' cannot be null or whitespace", nameof(id));
+            }
+
+            if (!long.TryParse(id, out var seqNum))
+            {
+                throw new ArgumentException($"'{nameof(id)}' is malformed or invalid", nameof(id));
+            }
+
+            // get the entity and cancel the message accordingly
+            var queueEntity = await GetQueueAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
+            Logger.LogInformation("Canceling scheduled message: {SequenceNumber} on {EntityPath}", seqNum, queueEntity.Name);
+            await queueEntity.RemoveAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(IList<string> ids,
-                                                 EventRegistration registration,
-                                                 CancellationToken cancellationToken = default)
+        public override async Task CancelAsync<TEvent>(IList<string> ids,
+                                                       EventRegistration registration,
+                                                       CancellationToken cancellationToken = default)
         {
-            throw new NotSupportedException("InMemory transport does not support canceling published messages.");
+            if (ids is null) throw new ArgumentNullException(nameof(ids));
+
+            var seqNums = ids.Select(i =>
+            {
+                if (!long.TryParse(i, out var seqNum))
+                {
+                    throw new ArgumentException($"'{nameof(i)}' is malformed or invalid", nameof(i));
+                }
+                return seqNum;
+            }).ToList();
+
+            // get the entity and cancel the message accordingly
+            var queueEntity = await GetQueueAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
+            Logger.LogInformation("Canceling {EventsCount} scheduled messages on {EntityPath}:\r\n- {SequenceNumbers}",
+                                  ids.Count,
+                                  queueEntity.Name,
+                                  string.Join("\r\n- ", seqNums));
+            await queueEntity.RemoveAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken);
         }
 
         private async Task<InMemoryQueueEntity> GetQueueAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)

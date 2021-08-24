@@ -10,8 +10,8 @@ namespace Tingle.EventBus.Transports.InMemory
     {
         private readonly SemaphoreSlim messageAvailable = new(0);
         private readonly SemaphoreSlim updateLock = new(1);
-        private readonly Queue<InMemoryQueueMessage> queue = new();
         private readonly TimeSpan deliveryDelay;
+        private Queue<InMemoryQueueMessage> queue = new();
 
         public InMemoryQueueEntity(string name, TimeSpan deliveryDelay)
         {
@@ -52,6 +52,8 @@ namespace Tingle.EventBus.Transports.InMemory
             // wait to be notified of an item in the queue
             await messageAvailable.WaitAsync(cancellationToken);
 
+            // TODO: work on locking the updateLock since the queue is being modified
+
             if (queue.TryDequeue(out var result))
             {
                 // if we have a delivery delay, apply id
@@ -64,6 +66,54 @@ namespace Tingle.EventBus.Transports.InMemory
             }
 
             throw new NotImplementedException("This should not happen!");
+        }
+
+        public async Task RemoveAsync(long sequenceNumber, CancellationToken cancellationToken)
+        {
+            await updateLock.WaitAsync(cancellationToken);
+            try
+            {
+                // get matching
+                var matching = queue.SingleOrDefault(m => m.SequenceNumber == sequenceNumber);
+                if (matching is null)
+                {
+                    throw new ArgumentException($"An item with the sequence number {sequenceNumber} does not exist.", nameof(sequenceNumber));
+                }
+
+                // make new items and recreate the queue
+                var items = queue.AsEnumerable().Except(new[] { matching });
+                queue = new Queue<InMemoryQueueMessage>(items);
+            }
+            catch (Exception)
+            {
+                updateLock.Release();
+            }
+        }
+
+        public async Task RemoveAsync(IEnumerable<long> sequenceNumbers, CancellationToken cancellationToken)
+        {
+            await updateLock.WaitAsync(cancellationToken);
+            try
+            {
+                // get matching
+                var matching = new List<InMemoryQueueMessage>();
+                foreach (var sn in sequenceNumbers)
+                {
+                    var item = queue.SingleOrDefault(m => m.SequenceNumber == sn);
+                    if (item is null)
+                    {
+                        throw new ArgumentException($"An item with the sequence number {sn} does not exist.", nameof(sn));
+                    }
+                }
+
+                // make new items and recreate the queue
+                var items = queue.AsEnumerable().Except(matching);
+                queue = new Queue<InMemoryQueueMessage>(items);
+            }
+            catch (Exception)
+            {
+                updateLock.Release();
+            }
         }
     }
 }

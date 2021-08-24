@@ -5,7 +5,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Threading;
@@ -129,14 +128,12 @@ namespace Tingle.EventBus.Transports.InMemory
             }
 
             using var scope = CreateScope();
-            using var ms = new MemoryStream();
-            await SerializeAsync(scope: scope,
-                                 body: ms,
-                                 @event: @event,
-                                 registration: registration,
-                                 cancellationToken: cancellationToken);
+            var body = await SerializeAsync(scope: scope,
+                                            @event: @event,
+                                            registration: registration,
+                                            cancellationToken: cancellationToken);
 
-            var message = new InMemoryQueueMessage(await BinaryData.FromStreamAsync(ms, cancellationToken: cancellationToken))
+            var message = new InMemoryQueueMessage(body)
             {
                 MessageId = @event.Id,
                 ContentType = @event.ContentType?.ToString(),
@@ -190,14 +187,12 @@ namespace Tingle.EventBus.Transports.InMemory
 
             foreach (var @event in events)
             {
-                using var ms = new MemoryStream();
-                await SerializeAsync(scope: scope,
-                                     body: ms,
-                                     @event: @event,
-                                     registration: registration,
-                                     cancellationToken: cancellationToken);
+                var body = await SerializeAsync(scope: scope,
+                                                @event: @event,
+                                                registration: registration,
+                                                cancellationToken: cancellationToken);
 
-                var message = new InMemoryQueueMessage(await BinaryData.FromStreamAsync(ms, cancellationToken: cancellationToken))
+                var message = new InMemoryQueueMessage(body)
                 {
                     MessageId = @event.Id,
                     CorrelationId = @event.CorrelationId,

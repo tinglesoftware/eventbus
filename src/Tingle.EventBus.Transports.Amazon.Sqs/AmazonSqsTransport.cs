@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Threading;
@@ -122,17 +121,14 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             }
 
             using var scope = CreateScope();
-            using var ms = new MemoryStream();
-            await SerializeAsync(scope: scope,
-                                 body: ms,
-                                 @event: @event,
-                                 registration: registration,
-                                 cancellationToken: cancellationToken);
+            var body = await SerializeAsync(scope: scope,
+                                            @event: @event,
+                                            registration: registration,
+                                            cancellationToken: cancellationToken);
 
             // get the topic arn and send the message
             var topicArn = await GetTopicArnAsync(registration, cancellationToken);
-            var message = (await BinaryData.FromStreamAsync(ms, cancellationToken)).ToString();
-            var request = new PublishRequest(topicArn: topicArn, message: message);
+            var request = new PublishRequest(topicArn: topicArn, message: body.ToString());
             request.SetAttribute(AttributeNames.ContentType, @event.ContentType?.ToString())
                    .SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId)
                    .SetAttribute(AttributeNames.RequestId, @event.RequestId)
@@ -167,17 +163,14 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             // work on each event
             foreach (var @event in events)
             {
-                using var ms = new MemoryStream();
-                await SerializeAsync(scope: scope,
-                                     body: ms,
-                                     @event: @event,
-                                     registration: registration,
-                                     cancellationToken: cancellationToken);
+                var body = await SerializeAsync(scope: scope,
+                                                @event: @event,
+                                                registration: registration,
+                                                cancellationToken: cancellationToken);
 
                 // get the topic arn and send the message
                 var topicArn = await GetTopicArnAsync(registration, cancellationToken);
-                var message = (await BinaryData.FromStreamAsync(ms, cancellationToken)).ToString();
-                var request = new PublishRequest(topicArn: topicArn, message: message);
+                var request = new PublishRequest(topicArn: topicArn, message: body.ToString());
                 request.SetAttribute(AttributeNames.ContentType, @event.ContentType?.ToString())
                        .SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId)
                        .SetAttribute(AttributeNames.RequestId, @event.RequestId)

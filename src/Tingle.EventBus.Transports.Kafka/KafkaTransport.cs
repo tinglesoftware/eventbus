@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Threading;
@@ -132,12 +131,10 @@ namespace Tingle.EventBus.Transports.Kafka
             }
 
             using var scope = CreateScope();
-            using var ms = new MemoryStream();
-            await SerializeAsync(scope: scope,
-                                 body: ms,
-                                 @event: @event,
-                                 registration: registration,
-                                 cancellationToken: cancellationToken);
+            var body = await SerializeAsync(scope: scope,
+                                            @event: @event,
+                                            registration: registration,
+                                            cancellationToken: cancellationToken);
 
             // prepare the message
             var message = new Message<string, byte[]>();
@@ -147,7 +144,7 @@ namespace Tingle.EventBus.Transports.Kafka
                            .AddIfNotNull(AttributeNames.InitiatorId, @event.InitiatorId)
                            .AddIfNotNull(AttributeNames.ActivityId, Activity.Current?.Id);
             message.Key = @event.Id!;
-            message.Value = ms.ToArray();
+            message.Value = body.ToArray();
 
             // send the event
             var topic = registration.EventName;
@@ -179,12 +176,10 @@ namespace Tingle.EventBus.Transports.Kafka
             // work on each event
             foreach (var @event in events)
             {
-                using var ms = new MemoryStream();
-                await SerializeAsync(scope: scope,
-                                     body: ms,
-                                     @event: @event,
-                                     registration: registration,
-                                     cancellationToken: cancellationToken);
+                var body = await SerializeAsync(scope: scope,
+                                                @event: @event,
+                                                registration: registration,
+                                                cancellationToken: cancellationToken);
 
                 // prepare the message
                 var message = new Message<string, byte[]>();
@@ -194,7 +189,7 @@ namespace Tingle.EventBus.Transports.Kafka
                                .AddIfNotNull(AttributeNames.InitiatorId, @event.InitiatorId)
                                .AddIfNotNull(AttributeNames.ActivityId, Activity.Current?.Id);
                 message.Key = @event.Id!;
-                message.Value = ms.ToArray();
+                message.Value = body.ToArray();
 
                 // send the event
                 var topic = registration.EventName;

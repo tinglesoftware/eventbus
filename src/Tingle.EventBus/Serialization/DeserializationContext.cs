@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net.Mime;
 using Tingle.EventBus.Registrations;
 
@@ -16,12 +15,10 @@ namespace Tingle.EventBus.Serialization
         /// <param name="body">The <see cref="BinaryData"/> containing the raw data.</param>
         /// <param name="registration">Registration for this event being deserialized.</param>
         /// <param name="identifier">Identifier given the transport for the event to be deserialized.</param>
-        public DeserializationContext(BinaryData body,
-                                      EventRegistration registration,
-                                      string? identifier = null)
+        public DeserializationContext(BinaryData body, EventRegistration registration, string? identifier = null)
         {
             Body = body ?? throw new ArgumentNullException(nameof(body));
-            Registration = registration;
+            Registration = registration ?? throw new ArgumentNullException(nameof(registration));
             Identifier = identifier;
         }
 

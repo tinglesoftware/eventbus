@@ -9,7 +9,6 @@ using RabbitMQ.Client.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Net.Sockets;
@@ -123,16 +122,13 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             // serialize the event
             using var scope = CreateScope();
-            using var ms = new MemoryStream();
-            await SerializeAsync(scope: scope,
-                                 body: ms,
-                                 @event: @event,
-                                 registration: registration,
-                                 cancellationToken: cancellationToken);
+            var body = await SerializeAsync(scope: scope,
+                                            @event: @event,
+                                            registration: registration,
+                                            cancellationToken: cancellationToken);
 
             // publish message
             string? scheduledId = null;
-            var binary = await BinaryData.FromStreamAsync(ms, cancellationToken: cancellationToken);
             retryPolicy.Execute(() =>
             {
                 // setup properties
@@ -173,7 +169,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 channel.BasicPublish(exchange: name,
                                      routingKey: "",
                                      basicProperties: properties,
-                                     body: binary);
+                                     body: body);
             });
 
             return scheduledId != null && scheduled != null ? new ScheduledResult(id: scheduledId, scheduled: scheduled.Value) : null;
@@ -200,14 +196,11 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             var serializedEvents = new List<(EventContext<TEvent>, ContentType?, BinaryData)>();
             foreach (var @event in events)
             {
-                using var ms = new MemoryStream();
-                await SerializeAsync(scope: scope,
-                                     body: ms,
-                                     @event: @event,
-                                     registration: registration,
-                                     cancellationToken: cancellationToken);
-                var binary = await BinaryData.FromStreamAsync(ms, cancellationToken);
-                serializedEvents.Add((@event, @event.ContentType, binary));
+                var body = await SerializeAsync(scope: scope,
+                                                @event: @event,
+                                                registration: registration,
+                                                cancellationToken: cancellationToken);
+                serializedEvents.Add((@event, @event.ContentType, body));
             }
 
             retryPolicy.Execute(() =>

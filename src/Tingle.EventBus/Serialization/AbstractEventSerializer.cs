@@ -88,40 +88,43 @@ namespace Tingle.EventBus.Serialization
         }
 
         /// <inheritdoc/>
-        public async Task SerializeAsync<T>(Stream stream,
-                                            EventContext<T> context,
+        public async Task SerializeAsync<T>(SerializationContext<T> context,
                                             CancellationToken cancellationToken = default)
              where T : class
         {
             // Assume first media type if none is specified
-            context.ContentType ??= new ContentType(SupportedMediaTypes[0]);
+            context.Event.ContentType ??= new ContentType(SupportedMediaTypes[0]);
 
             // Ensure the content type is supported
-            if (!SupportedMediaTypes.Contains(context.ContentType.MediaType, StringComparer.OrdinalIgnoreCase))
+            if (!SupportedMediaTypes.Contains(context.Event.ContentType.MediaType, StringComparer.OrdinalIgnoreCase))
             {
-                throw new NotSupportedException($"The ContentType '{context.ContentType}' is not supported by this serializer");
+                throw new NotSupportedException($"The ContentType '{context.Event.ContentType}' is not supported by this serializer");
             }
 
             // Create the envelope for the event
             var hostInfo = OptionsAccessor.CurrentValue.HostInfo;
+            var @event = context.Event;
             var envelope = new EventEnvelope<T>
             {
-                Id = context.Id,
-                RequestId = context.RequestId,
-                CorrelationId = context.CorrelationId,
-                InitiatorId = context.InitiatorId,
-                Event = context.Event,
-                Expires = context.Expires,
-                Sent = context.Sent,
-                Headers = context.Headers,
+                Id = @event.Id,
+                RequestId = @event.RequestId,
+                CorrelationId = @event.CorrelationId,
+                InitiatorId = @event.InitiatorId,
+                Event = @event.Event,
+                Expires = @event.Expires,
+                Sent = @event.Sent,
+                Headers = @event.Headers,
                 Host = hostInfo,
             };
 
             // Serialize
+            var stream = new MemoryStream();
             await SerializeEnvelopeAsync(stream: stream, envelope: envelope, cancellationToken: cancellationToken);
 
             // Return to the begining of the stream
             stream.Seek(0, SeekOrigin.Begin);
+
+            context.Body = await BinaryData.FromStreamAsync(stream, cancellationToken);
         }
 
         /// <summary>

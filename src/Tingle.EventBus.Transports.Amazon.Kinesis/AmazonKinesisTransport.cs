@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -89,18 +88,16 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             }
 
             using var scope = CreateScope();
-            using var ms = new MemoryStream();
-            await SerializeAsync(scope: scope,
-                                 body: ms,
-                                 @event: @event,
-                                 registration: registration,
-                                 cancellationToken: cancellationToken);
+            var body = await SerializeAsync(scope: scope,
+                                            @event: @event,
+                                            registration: registration,
+                                            cancellationToken: cancellationToken);
 
             // prepare the record
             var streamName = registration.EventName;
             var request = new PutRecordRequest
             {
-                Data = ms,
+                Data = body.ToMemoryStream(),
                 PartitionKey = TransportOptions.PartitionKeyResolver(@event),
                 StreamName = streamName,
             };
@@ -132,16 +129,14 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             // work on each event
             foreach (var @event in events)
             {
-                using var ms = new MemoryStream();
-                await SerializeAsync(scope: scope,
-                                     body: ms,
-                                     @event: @event,
-                                     registration: registration,
-                                     cancellationToken: cancellationToken);
+                var body = await SerializeAsync(scope: scope,
+                                                @event: @event,
+                                                registration: registration,
+                                                cancellationToken: cancellationToken);
 
                 var record = new PutRecordsRequestEntry
                 {
-                    Data = ms,
+                    Data = body.ToMemoryStream(),
                     PartitionKey = TransportOptions.PartitionKeyResolver(@event),
                 };
                 records.Add(record);

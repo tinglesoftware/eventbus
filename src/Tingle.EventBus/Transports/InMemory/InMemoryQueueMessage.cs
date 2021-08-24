@@ -65,7 +65,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <summary>
         /// Gets or sets the body of the message.
         /// </summary>
-        public BinaryData Body { get; set; }
+        public BinaryData Body { get; }
 
         /// <summary>
         /// Gets the unique number assigned to a message by the transport.
@@ -86,6 +86,6 @@ namespace Tingle.EventBus.Transports.InMemory
         /// long, ulong, float, double, decimal, bool, Guid, string, Uri, DateTime, DateTimeOffset,
         /// TimeSpan
         /// </remarks>
-        public IDictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
+        public IDictionary<string, object> Properties { get; } = new Dictionary<string, object>();
     }
 }

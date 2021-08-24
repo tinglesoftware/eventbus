@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,6 +26,12 @@ namespace Tingle.EventBus.Transports.InMemory
             await updateLock.WaitAsync(cancellationToken);
             try
             {
+                // ensure we do not have any duplicates for the sequence number.
+                if (queue.Any(m => m.SequenceNumber == item.SequenceNumber))
+                {
+                    throw new ArgumentException($"An item with the sequence number {item.SequenceNumber} is already present.", nameof(item));
+                }
+
                 queue.Enqueue(item);
                 messageAvailable.Release(1);
             }

@@ -193,7 +193,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 var seqNum = await sender.ScheduleMessageAsync(message: message,
                                                                scheduledEnqueueTime: message.ScheduledEnqueueTime,
                                                                cancellationToken: cancellationToken);
-                return new ScheduledResult(id: seqNum.ToString(), scheduled: scheduled.Value); // return the sequence number
+                return new ScheduledResult(id: seqNum, scheduled: scheduled.Value); // return the sequence number
             }
             else
             {
@@ -262,7 +262,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 var seqNums = await sender.ScheduleMessagesAsync(messages: messages,
                                                                  scheduledEnqueueTime: messages.First().ScheduledEnqueueTime,
                                                                  cancellationToken: cancellationToken);
-                return seqNums.Select(n => new ScheduledResult(id: n.ToString(), scheduled: scheduled.Value)).ToList(); // return the sequence numbers
+                return seqNums.Select(n => new ScheduledResult(id: n, scheduled: scheduled.Value)).ToList(); // return the sequence numbers
             }
             else
             {

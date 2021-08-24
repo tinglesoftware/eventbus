@@ -158,7 +158,7 @@ namespace Tingle.EventBus.Transports.InMemory
             if (scheduled != null)
             {
                 _ = DelayThenExecuteAsync(scheduled.Value, (msg, ct) => queueEntity.EnqueueAsync(msg, ct), message);
-                return new ScheduledResult(id: message.SequenceNumber.ToString(), scheduled: scheduled.Value);
+                return new ScheduledResult(id: message.SequenceNumber, scheduled: scheduled.Value);
             }
             else
             {
@@ -218,7 +218,7 @@ namespace Tingle.EventBus.Transports.InMemory
             if (scheduled != null)
             {
                 _ = DelayThenExecuteAsync(scheduled.Value, (msgs, ct) => queueEntity.EnqueueBatchAsync(msgs, ct), messages);
-                return messages.Select(msg => new ScheduledResult(id: msg.SequenceNumber.ToString(), scheduled: scheduled.Value)).ToList();
+                return messages.Select(msg => new ScheduledResult(id: msg.SequenceNumber, scheduled: scheduled.Value)).ToList();
             }
             else
             {

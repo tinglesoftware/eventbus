@@ -164,7 +164,7 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis
             // return the sequence numbers
             if (scheduled is not null)
             {
-                return response.Records.Select(m => new ScheduledResult(id: m.SequenceNumber.ToString(), scheduled: scheduled.Value)).ToList();
+                return response.Records.Select(m => new ScheduledResult(id: m.SequenceNumber, scheduled: scheduled.Value)).ToList();
             }
             else
             {

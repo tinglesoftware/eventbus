@@ -152,7 +152,7 @@ namespace Tingle.EventBus.Transports.Kafka
             // Should we check persistence status?
 
             // return the sequence number
-            return scheduled != null ? new ScheduledResult(id: result.Offset.Value.ToString(), scheduled: scheduled.Value) : null;
+            return scheduled != null ? new ScheduledResult(id: result.Offset.Value, scheduled: scheduled.Value) : null;
         }
 
         /// <inheritdoc/>
@@ -171,7 +171,7 @@ namespace Tingle.EventBus.Transports.Kafka
             }
 
             using var scope = CreateScope();
-            var sequenceNumbers = new List<string>();
+            var sequenceNumbers = new List<long>();
 
             // work on each event
             foreach (var @event in events)
@@ -197,7 +197,7 @@ namespace Tingle.EventBus.Transports.Kafka
                 // Should we check persistence status?
 
                 // collect the sequence number
-                sequenceNumbers.Add(result.Offset.Value.ToString());
+                sequenceNumbers.Add(result.Offset.Value);
             }
 
             // return the sequence numbers

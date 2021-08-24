@@ -38,7 +38,7 @@ namespace Tingle.EventBus.Serialization
         public string? Identifier { get; }
 
         /// <summary>
-        /// Type of content contained in the <see cref="Stream"/>.
+        /// Type of content contained in the <see cref="Body"/>.
         /// </summary>
         public ContentType? ContentType { get; set; }
     }

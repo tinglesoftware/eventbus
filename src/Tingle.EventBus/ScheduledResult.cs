@@ -13,6 +13,13 @@ namespace Tingle.EventBus
         /// </summary>
         /// <param name="id">Scheduling identifier returned by transport.</param>
         /// <param name="scheduled">Time at which the event will be availed by the transport.</param>
+        public ScheduledResult(long id, DateTimeOffset scheduled) : this(id.ToString(), scheduled) { }
+
+        /// <summary>
+        /// Creates and instance of <see cref="ScheduledResult"/>.
+        /// </summary>
+        /// <param name="id">Scheduling identifier returned by transport.</param>
+        /// <param name="scheduled">Time at which the event will be availed by the transport.</param>
         public ScheduledResult(string id, DateTimeOffset scheduled)
         {
             Id = id ?? throw new ArgumentNullException(nameof(id));

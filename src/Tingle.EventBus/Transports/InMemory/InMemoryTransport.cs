@@ -138,6 +138,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 MessageId = @event.Id,
                 ContentType = @event.ContentType?.ToString(),
                 CorrelationId = @event.CorrelationId,
+                SequenceNumber = sng.Generate(),
             };
 
             // Add custom properties
@@ -156,16 +157,12 @@ namespace Tingle.EventBus.Transports.InMemory
                                   scheduled);
             if (scheduled != null)
             {
-                _ = DelayThenExecuteAsync(scheduled.Value, (msg, ct) =>
-                {
-                    queueEntity.Enqueue(msg);
-                    return Task.CompletedTask;
-                }, message);
-                return new ScheduledResult(id: sng.Generate(), scheduled: scheduled.Value);
+                _ = DelayThenExecuteAsync(scheduled.Value, (msg, ct) => queueEntity.EnqueueAsync(msg, ct), message);
+                return new ScheduledResult(id: message.SequenceNumber, scheduled: scheduled.Value);
             }
             else
             {
-                queueEntity.Enqueue(message);
+                await queueEntity.EnqueueAsync(message);
                 return null; // no sequence number available
             }
         }
@@ -197,6 +194,7 @@ namespace Tingle.EventBus.Transports.InMemory
                     MessageId = @event.Id,
                     CorrelationId = @event.CorrelationId,
                     ContentType = @event.ContentType?.ToString(),
+                    SequenceNumber = sng.Generate(),
                 };
 
                 // Add custom properties
@@ -219,34 +217,60 @@ namespace Tingle.EventBus.Transports.InMemory
                                   string.Join("\r\n- ", events.Select(e => e.Id)));
             if (scheduled != null)
             {
-                _ = DelayThenExecuteAsync(scheduled.Value, (msgs, ct) =>
-                {
-                    queueEntity.EnqueueBatch(msgs);
-                    return Task.CompletedTask;
-                }, messages);
-                return events.Select(_ => new ScheduledResult(id: sng.Generate(), scheduled: scheduled.Value)).ToList();
+                _ = DelayThenExecuteAsync(scheduled.Value, (msgs, ct) => queueEntity.EnqueueAsync(msgs, ct), messages);
+                return messages.Select(msg => new ScheduledResult(id: msg.SequenceNumber, scheduled: scheduled.Value)).ToList();
             }
             else
             {
-                queueEntity.EnqueueBatch(messages);
+                await queueEntity.EnqueueAsync(messages);
                 return Array.Empty<ScheduledResult>(); // no sequence numbers available
             }
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(string id,
-                                                 EventRegistration registration,
-                                                 CancellationToken cancellationToken = default)
+        public override async Task CancelAsync<TEvent>(string id,
+                                                       EventRegistration registration,
+                                                       CancellationToken cancellationToken = default)
         {
-            throw new NotSupportedException("InMemory transport does not support canceling published messages.");
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException($"'{nameof(id)}' cannot be null or whitespace", nameof(id));
+            }
+
+            if (!long.TryParse(id, out var seqNum))
+            {
+                throw new ArgumentException($"'{nameof(id)}' is malformed or invalid", nameof(id));
+            }
+
+            // get the entity and cancel the message accordingly
+            var queueEntity = await GetQueueAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
+            Logger.LogInformation("Canceling scheduled message: {SequenceNumber} on {EntityPath}", seqNum, queueEntity.Name);
+            await queueEntity.RemoveAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(IList<string> ids,
-                                                 EventRegistration registration,
-                                                 CancellationToken cancellationToken = default)
+        public override async Task CancelAsync<TEvent>(IList<string> ids,
+                                                       EventRegistration registration,
+                                                       CancellationToken cancellationToken = default)
         {
-            throw new NotSupportedException("InMemory transport does not support canceling published messages.");
+            if (ids is null) throw new ArgumentNullException(nameof(ids));
+
+            var seqNums = ids.Select(i =>
+            {
+                if (!long.TryParse(i, out var seqNum))
+                {
+                    throw new ArgumentException($"'{nameof(i)}' is malformed or invalid", nameof(i));
+                }
+                return seqNum;
+            }).ToList();
+
+            // get the entity and cancel the message accordingly
+            var queueEntity = await GetQueueAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
+            Logger.LogInformation("Canceling {EventsCount} scheduled messages on {EntityPath}:\r\n- {SequenceNumbers}",
+                                  ids.Count,
+                                  queueEntity.Name,
+                                  string.Join("\r\n- ", seqNums));
+            await queueEntity.RemoveAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken);
         }
 
         private async Task<InMemoryQueueEntity> GetQueueAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
@@ -335,7 +359,7 @@ namespace Tingle.EventBus.Transports.InMemory
             Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueEntity.Name);
             var contentType = new ContentType(message.ContentType);
             var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                         body: message.Body!,
+                                                         body: message.Body,
                                                          contentType: contentType,
                                                          registration: reg,
                                                          identifier: messageId,
@@ -345,6 +369,9 @@ namespace Tingle.EventBus.Transports.InMemory
                                   messageId,
                                   context.Id,
                                   queueEntity.Name);
+
+            // set the extras
+            context.SetInMemoryMessage(message);
 
             var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
                                                                         @event: context,
@@ -366,7 +393,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 {
                     // get the dead letter queue and send the mesage there
                     var dlqEntity = await GetQueueAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
-                    dlqEntity.Enqueue(message);
+                    await dlqEntity.EnqueueAsync(message);
                 }
             }
         }

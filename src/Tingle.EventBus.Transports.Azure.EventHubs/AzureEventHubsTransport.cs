@@ -166,7 +166,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             await producer.SendAsync(new[] { data }, cancellationToken);
 
             // return the sequence number
-            return scheduled != null ? new ScheduledResult(id: data.SequenceNumber.ToString(), scheduled: scheduled.Value) : null;
+            return scheduled != null ? new ScheduledResult(id: data.SequenceNumber, scheduled: scheduled.Value) : null;
         }
 
         /// <inheritdoc/>
@@ -218,7 +218,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             await producer.SendAsync(datas, cancellationToken);
 
             // return the sequence numbers
-            return scheduled != null ? datas.Select(m => new ScheduledResult(id: m.SequenceNumber.ToString(), scheduled: scheduled.Value)).ToList() : null;
+            return scheduled != null ? datas.Select(m => new ScheduledResult(id: m.SequenceNumber, scheduled: scheduled.Value)).ToList() : null;
         }
 
         /// <inheritdoc/>

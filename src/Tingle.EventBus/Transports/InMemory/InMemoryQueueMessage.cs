@@ -3,13 +3,12 @@ using System.Collections.Generic;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
-    internal class InMemoryQueueMessage
+    /// <summary>
+    /// The <see cref="InMemoryQueueMessage"/> is used to receive
+    /// and send data from and to InMemory entities.
+    /// </summary>
+    public class InMemoryQueueMessage
     {
-        /// <summary>
-        /// Creates a new message.
-        /// </summary>
-        public InMemoryQueueMessage() { }
-
         /// <summary>
         /// Creates a new message from the specified string, using UTF-8 encoding.
         /// </summary>
@@ -20,7 +19,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// Creates a new message from the specified payload.
         /// </summary>
         /// <param name="body">The payload of the message in bytes.</param>
-        public InMemoryQueueMessage(byte[] body) : this(BinaryData.FromBytes(body)) { }
+        public InMemoryQueueMessage(ReadOnlyMemory<byte> body) : this(BinaryData.FromBytes(body)) { }
 
         /// <summary>
         /// Creates a new message from specified <see cref="BinaryData"/> instance.
@@ -28,7 +27,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <param name="body">The payload of the message.</param>
         public InMemoryQueueMessage(BinaryData body)
         {
-            Body = body;
+            Body = body ?? throw new ArgumentNullException(nameof(body));
         }
 
         /// <summary>
@@ -66,7 +65,18 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <summary>
         /// Gets or sets the body of the message.
         /// </summary>
-        public BinaryData? Body { get; set; }
+        public BinaryData Body { get; set; }
+
+        /// <summary>
+        /// Gets the unique number assigned to a message by the transport.
+        /// </summary>
+        /// <remarks>
+        /// The sequence number is a unique 64-bit integer assigned to a message as it is
+        /// accepted and stored by the transport and functions as its true identifier.
+        /// Sequence numbers monotonically increase. They roll over to 0 when the 48-64 bit
+        /// range is exhausted. This property is read-only.
+        /// </remarks>
+        public long SequenceNumber { get; internal init; }
 
         /// <summary>
         /// Gets the application properties bag, which can be used for custom message metadata.

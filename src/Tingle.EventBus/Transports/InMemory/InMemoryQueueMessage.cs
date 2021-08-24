@@ -10,11 +10,6 @@ namespace Tingle.EventBus.Transports.InMemory
     public class InMemoryQueueMessage
     {
         /// <summary>
-        /// Creates a new message.
-        /// </summary>
-        public InMemoryQueueMessage() : this(default(ReadOnlyMemory<byte>)) { }
-
-        /// <summary>
         /// Creates a new message from the specified string, using UTF-8 encoding.
         /// </summary>
         /// <param name="body">The payload of the message as a string.</param>
@@ -32,7 +27,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <param name="body">The payload of the message.</param>
         public InMemoryQueueMessage(BinaryData body)
         {
-            Body = body;
+            Body = body ?? throw new ArgumentNullException(nameof(body));
         }
 
         /// <summary>

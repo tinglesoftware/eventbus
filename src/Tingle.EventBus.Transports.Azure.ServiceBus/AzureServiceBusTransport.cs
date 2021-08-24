@@ -155,7 +155,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                  registration: registration,
                                  cancellationToken: cancellationToken);
 
-            var message = new ServiceBusMessage(ms.ToArray())
+            var message = new ServiceBusMessage(await BinaryData.FromStreamAsync(ms, cancellationToken: cancellationToken))
             {
                 MessageId = @event.Id,
                 ContentType = @event.ContentType?.ToString(),
@@ -222,7 +222,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                      registration: registration,
                                      cancellationToken: cancellationToken);
 
-                var message = new ServiceBusMessage(ms.ToArray())
+                var message = new ServiceBusMessage(await BinaryData.FromStreamAsync(ms, cancellationToken: cancellationToken))
                 {
                     MessageId = @event.Id,
                     ContentType = @event.ContentType?.ToString(),

@@ -132,6 +132,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             // publish message
             string? scheduledId = null;
+            var binary = await BinaryData.FromStreamAsync(ms, cancellationToken: cancellationToken);
             retryPolicy.Execute(() =>
             {
                 // setup properties
@@ -172,7 +173,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 channel.BasicPublish(exchange: name,
                                      routingKey: "",
                                      basicProperties: properties,
-                                     body: ms.ToArray());
+                                     body: binary);
             });
 
             return scheduledId != null && scheduled != null ? new ScheduledResult(id: scheduledId, scheduled: scheduled.Value) : null;
@@ -196,7 +197,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             using var scope = CreateScope();
 
-            var serializedEvents = new List<(EventContext<TEvent>, ContentType?, ReadOnlyMemory<byte>)>();
+            var serializedEvents = new List<(EventContext<TEvent>, ContentType?, BinaryData)>();
             foreach (var @event in events)
             {
                 using var ms = new MemoryStream();
@@ -205,7 +206,8 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                                      @event: @event,
                                      registration: registration,
                                      cancellationToken: cancellationToken);
-                serializedEvents.Add((@event, @event.ContentType, ms.ToArray()));
+                var binary = await BinaryData.FromStreamAsync(ms, cancellationToken);
+                serializedEvents.Add((@event, @event.ContentType, binary));
             }
 
             retryPolicy.Execute(() =>
@@ -334,7 +336,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             Logger.LogDebug("Processing '{MessageId}'", messageId);
             using var scope = CreateScope();
-            using var ms = new MemoryStream(args.Body.ToArray());
+            using var ms = new BinaryData(args.Body).ToStream();
             var contentType = GetContentType(args.BasicProperties);
             var context = await DeserializeAsync<TEvent>(scope: scope,
                                                          body: ms,

@@ -136,7 +136,7 @@ namespace Tingle.EventBus.Transports.InMemory
                                  registration: registration,
                                  cancellationToken: cancellationToken);
 
-            var message = new InMemoryQueueMessage(ms.ToArray())
+            var message = new InMemoryQueueMessage(await BinaryData.FromStreamAsync(ms, cancellationToken: cancellationToken))
             {
                 MessageId = @event.Id,
                 ContentType = @event.ContentType?.ToString(),
@@ -197,7 +197,7 @@ namespace Tingle.EventBus.Transports.InMemory
                                      registration: registration,
                                      cancellationToken: cancellationToken);
 
-                var message = new InMemoryQueueMessage(ms.ToArray())
+                var message = new InMemoryQueueMessage(await BinaryData.FromStreamAsync(ms, cancellationToken: cancellationToken))
                 {
                     MessageId = @event.Id,
                     CorrelationId = @event.CorrelationId,
@@ -338,7 +338,7 @@ namespace Tingle.EventBus.Transports.InMemory
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
 
             Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueEntity.Name);
-            using var ms = new MemoryStream(message.Body.ToArray());
+            using var ms = message.Body!.ToStream();
             var contentType = new ContentType(message.ContentType);
             var context = await DeserializeAsync<TEvent>(scope: scope,
                                                          body: ms,

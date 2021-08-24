@@ -150,7 +150,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                  registration: registration,
                                  cancellationToken: cancellationToken);
 
-            var data = new EventData(ms.ToArray());
+            var data = new EventData(await BinaryData.FromStreamAsync(ms, cancellationToken: cancellationToken));
             data.Properties.AddIfNotDefault(AttributeNames.Id, @event.Id)
                            .AddIfNotDefault(AttributeNames.CorrelationId, @event.CorrelationId)
                            .AddIfNotDefault(AttributeNames.ContentType, @event.ContentType?.ToString())
@@ -201,7 +201,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                      registration: registration,
                                      cancellationToken: cancellationToken);
 
-                var data = new EventData(ms.ToArray());
+                var data = new EventData(await BinaryData.FromStreamAsync(ms, cancellationToken: cancellationToken));
                 data.Properties.AddIfNotDefault(AttributeNames.Id, @event.Id)
                                .AddIfNotDefault(AttributeNames.CorrelationId, @event.CorrelationId)
                                .AddIfNotDefault(AttributeNames.ContentType, @event.ContentType?.ToString())
@@ -421,7 +421,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                             processor.EventHubName,
                             processor.ConsumerGroup);
             using var scope = CreateScope();
-            using var ms = new MemoryStream(data.Body.ToArray());
+            using var ms = new BinaryData(data.Body).ToStream();
             var contentType = contentType_str == null ? null : new ContentType(contentType_str.ToString());
             var context = await DeserializeAsync<TEvent>(scope: scope,
                                                          body: ms,

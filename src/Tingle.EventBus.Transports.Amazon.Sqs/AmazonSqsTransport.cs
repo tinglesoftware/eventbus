@@ -12,7 +12,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Diagnostics;
@@ -132,7 +131,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
 
             // get the topic arn and send the message
             var topicArn = await GetTopicArnAsync(registration, cancellationToken);
-            var message = Encoding.UTF8.GetString(ms.ToArray());
+            var message = (await BinaryData.FromStreamAsync(ms, cancellationToken)).ToString();
             var request = new PublishRequest(topicArn: topicArn, message: message);
             request.SetAttribute(AttributeNames.ContentType, @event.ContentType?.ToString())
                    .SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId)
@@ -177,7 +176,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
 
                 // get the topic arn and send the message
                 var topicArn = await GetTopicArnAsync(registration, cancellationToken);
-                var message = Encoding.UTF8.GetString(ms.ToArray());
+                var message = (await BinaryData.FromStreamAsync(ms, cancellationToken)).ToString();
                 var request = new PublishRequest(topicArn: topicArn, message: message);
                 request.SetAttribute(AttributeNames.ContentType, @event.ContentType?.ToString())
                        .SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId)
@@ -392,7 +391,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             activity?.AddTag(ActivityTagNames.MessagingUrl, queueUrl);
 
             Logger.LogDebug("Processing '{MessageId}' from '{QueueUrl}'", messageId, queueUrl);
-            using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.Body));
+            using var ms = new BinaryData(message.Body).ToStream();
             message.TryGetAttribute("Content-Type", out var contentType_str);
             var contentType = contentType_str == null ? null : new ContentType(contentType_str);
 

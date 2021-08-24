@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Diagnostics;
@@ -116,7 +115,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
             // get the queue client and send the message
             var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
-            var message = Encoding.UTF8.GetString(ms.ToArray());
+            var message = (await BinaryData.FromStreamAsync(ms, cancellationToken)).ToString();
             Logger.LogInformation("Sending {Id} to '{QueueName}'. Scheduled: {Scheduled}", @event.Id, queueClient.Name, scheduled);
             var response = await queueClient.SendMessageAsync(messageText: message,
                                                               visibilityTimeout: visibilityTimeout,
@@ -158,7 +157,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                 var ttl = @event.Expires - DateTimeOffset.UtcNow;
 
                 // send the message
-                var message = Encoding.UTF8.GetString(ms.ToArray());
+                var message = (await BinaryData.FromStreamAsync(ms, cancellationToken)).ToString();
                 Logger.LogInformation("Sending {Id} to '{QueueName}'. Scheduled: {Scheduled}", @event.Id, queueClient.Name, scheduled);
                 var response = await queueClient.SendMessageAsync(messageText: message,
                                                                   visibilityTimeout: visibilityTimeout,
@@ -352,7 +351,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
 
             Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueClient.Name);
-            using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.MessageText));
+            using var ms = new BinaryData(message.MessageText).ToStream();
             var context = await DeserializeAsync<TEvent>(scope: scope,
                                                          body: ms, // There is no way to get this yet
                                                          contentType: null,

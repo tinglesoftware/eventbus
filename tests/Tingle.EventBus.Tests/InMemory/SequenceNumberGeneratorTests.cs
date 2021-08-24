@@ -12,11 +12,9 @@ namespace Tingle.EventBus.Tests.InMemory
         {
             var sng = new SequenceNumberGenerator();
             var current = sng.Generate();
-            var currentUL = ulong.Parse(current);
             await Task.Delay(TimeSpan.FromSeconds(1));
             var next = sng.Generate();
-            var nextUL = ulong.Parse(next);
-            Assert.Equal(1UL, nextUL - currentUL);
+            Assert.Equal(1, next - current);
         }
     }
 }

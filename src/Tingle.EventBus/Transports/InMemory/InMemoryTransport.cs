@@ -138,6 +138,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 MessageId = @event.Id,
                 ContentType = @event.ContentType?.ToString(),
                 CorrelationId = @event.CorrelationId,
+                SequenceNumber = sng.Generate(),
             };
 
             // Add custom properties
@@ -157,7 +158,7 @@ namespace Tingle.EventBus.Transports.InMemory
             if (scheduled != null)
             {
                 _ = DelayThenExecuteAsync(scheduled.Value, (msg, ct) => queueEntity.EnqueueAsync(msg, ct), message);
-                return new ScheduledResult(id: sng.Generate(), scheduled: scheduled.Value);
+                return new ScheduledResult(id: message.SequenceNumber.ToString(), scheduled: scheduled.Value);
             }
             else
             {
@@ -193,6 +194,7 @@ namespace Tingle.EventBus.Transports.InMemory
                     MessageId = @event.Id,
                     CorrelationId = @event.CorrelationId,
                     ContentType = @event.ContentType?.ToString(),
+                    SequenceNumber = sng.Generate(),
                 };
 
                 // Add custom properties
@@ -216,7 +218,7 @@ namespace Tingle.EventBus.Transports.InMemory
             if (scheduled != null)
             {
                 _ = DelayThenExecuteAsync(scheduled.Value, (msgs, ct) => queueEntity.EnqueueBatchAsync(msgs, ct), messages);
-                return events.Select(_ => new ScheduledResult(id: sng.Generate(), scheduled: scheduled.Value)).ToList();
+                return messages.Select(msg => new ScheduledResult(id: msg.SequenceNumber.ToString(), scheduled: scheduled.Value)).ToList();
             }
             else
             {

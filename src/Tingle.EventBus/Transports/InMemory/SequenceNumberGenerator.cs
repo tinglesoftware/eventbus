@@ -8,7 +8,7 @@ namespace Tingle.EventBus.Transports.InMemory
     /// </summary>
     public class SequenceNumberGenerator
     {
-        private int currentValue;
+        private long currentValue;
 
         ///
         public SequenceNumberGenerator()
@@ -17,14 +17,7 @@ namespace Tingle.EventBus.Transports.InMemory
             currentValue = random.Next();
         }
 
-        /// <summary>
-        /// Generate the next sequence number.
-        /// </summary>
-        /// <returns></returns>
-        public string Generate()
-        {
-            var v = Interlocked.Increment(ref currentValue);
-            return ((ulong)v).ToString();
-        }
+        /// <summary>Generate the next sequence number.</summary>
+        public long Generate() => Interlocked.Increment(ref currentValue);
     }
 }

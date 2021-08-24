@@ -335,7 +335,7 @@ namespace Tingle.EventBus.Transports.InMemory
             Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueEntity.Name);
             var contentType = new ContentType(message.ContentType);
             var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                         body: message.Body!,
+                                                         body: message.Body,
                                                          contentType: contentType,
                                                          registration: reg,
                                                          identifier: messageId,

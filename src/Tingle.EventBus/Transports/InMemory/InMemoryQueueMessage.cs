@@ -8,7 +8,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <summary>
         /// Creates a new message.
         /// </summary>
-        public InMemoryQueueMessage() { }
+        public InMemoryQueueMessage() : this(default(ReadOnlyMemory<byte>)) { }
 
         /// <summary>
         /// Creates a new message from the specified string, using UTF-8 encoding.
@@ -20,7 +20,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// Creates a new message from the specified payload.
         /// </summary>
         /// <param name="body">The payload of the message in bytes.</param>
-        public InMemoryQueueMessage(byte[] body) : this(BinaryData.FromBytes(body)) { }
+        public InMemoryQueueMessage(ReadOnlyMemory<byte> body) : this(BinaryData.FromBytes(body)) { }
 
         /// <summary>
         /// Creates a new message from specified <see cref="BinaryData"/> instance.
@@ -66,7 +66,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <summary>
         /// Gets or sets the body of the message.
         /// </summary>
-        public BinaryData? Body { get; set; }
+        public BinaryData Body { get; set; }
 
         /// <summary>
         /// Gets the application properties bag, which can be used for custom message metadata.

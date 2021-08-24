@@ -87,7 +87,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 items.Add(message);
                 available.Release();
             }
-            catch (Exception)
+            finally
             {
                 updateLock.Release();
             }
@@ -125,7 +125,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 items.AddRange(messages);
                 available.Release();
             }
-            catch (Exception)
+            finally
             {
                 updateLock.Release();
             }
@@ -179,7 +179,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 // make new items and recreate the queue
                 items = items.AsEnumerable().Except(new[] { matching }).ToList();
             }
-            catch (Exception)
+            finally
             {
                 updateLock.Release();
             }
@@ -212,7 +212,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 // make new items and recreate the queue
                 items = items.AsEnumerable().Except(matching).ToList();
             }
-            catch (Exception)
+            finally
             {
                 updateLock.Release();
             }

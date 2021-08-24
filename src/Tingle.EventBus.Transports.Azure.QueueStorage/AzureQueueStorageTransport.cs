@@ -6,9 +6,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Diagnostics;
@@ -100,12 +98,10 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                                           CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
-            using var ms = new MemoryStream();
-            await SerializeAsync(scope: scope,
-                                 body: ms,
-                                 @event: @event,
-                                 registration: registration,
-                                 cancellationToken: cancellationToken);
+            var body = await SerializeAsync(scope: scope,
+                                            @event: @event,
+                                            registration: registration,
+                                            cancellationToken: cancellationToken);
 
 
             // if scheduled for later, calculate the visibility timeout
@@ -116,9 +112,8 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
 
             // get the queue client and send the message
             var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
-            var message = Encoding.UTF8.GetString(ms.ToArray());
             Logger.LogInformation("Sending {Id} to '{QueueName}'. Scheduled: {Scheduled}", @event.Id, queueClient.Name, scheduled);
-            var response = await queueClient.SendMessageAsync(messageText: message,
+            var response = await queueClient.SendMessageAsync(messageText: body.ToString(),
                                                               visibilityTimeout: visibilityTimeout,
                                                               timeToLive: ttl,
                                                               cancellationToken: cancellationToken);
@@ -145,12 +140,10 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
             foreach (var @event in events)
             {
-                using var ms = new MemoryStream();
-                await SerializeAsync(scope: scope,
-                                     body: ms,
-                                     @event: @event,
-                                     registration: registration,
-                                     cancellationToken: cancellationToken);
+                var body = await SerializeAsync(scope: scope,
+                                                @event: @event,
+                                                registration: registration,
+                                                cancellationToken: cancellationToken);
                 // if scheduled for later, calculate the visibility timeout
                 var visibilityTimeout = scheduled - DateTimeOffset.UtcNow;
 
@@ -158,9 +151,8 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                 var ttl = @event.Expires - DateTimeOffset.UtcNow;
 
                 // send the message
-                var message = Encoding.UTF8.GetString(ms.ToArray());
                 Logger.LogInformation("Sending {Id} to '{QueueName}'. Scheduled: {Scheduled}", @event.Id, queueClient.Name, scheduled);
-                var response = await queueClient.SendMessageAsync(messageText: message,
+                var response = await queueClient.SendMessageAsync(messageText: body.ToString(),
                                                                   visibilityTimeout: visibilityTimeout,
                                                                   timeToLive: ttl,
                                                                   cancellationToken: cancellationToken);
@@ -352,9 +344,8 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
 
             Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueClient.Name);
-            using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.MessageText));
             var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                         body: ms, // There is no way to get this yet
+                                                         body: message.Body,
                                                          contentType: null,
                                                          registration: reg,
                                                          identifier: (AzureQueueStorageSchedulingId)message,

@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Net.Mime;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Serialization
@@ -14,16 +12,10 @@ namespace Tingle.EventBus.Serialization
         /// Serialize an event into a stream of bytes.
         /// </summary>
         /// <typeparam name="T">The event type to be serialized.</typeparam>
-        /// <param name="stream">
-        /// The stream to serialize to.
-        /// (It must be writeable, i.e. <see cref="Stream.CanWrite"/> must be true).
-        /// </param>
-        /// <param name="context">The context of the event to be serialized.</param>
+        /// <param name="context">The <see cref="SerializationContext{T}"/> to use.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task SerializeAsync<T>(Stream stream,
-                               EventContext<T> context,
-                               CancellationToken cancellationToken = default) where T : class;
+        Task SerializeAsync<T>(SerializationContext<T> context, CancellationToken cancellationToken = default) where T : class;
 
         /// <summary>
         /// Deserialize an event from a stream of bytes.
@@ -32,7 +24,6 @@ namespace Tingle.EventBus.Serialization
         /// <param name="context">The <see cref="DeserializationContext"/> to use.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<EventContext<T>?> DeserializeAsync<T>(DeserializationContext context,
-                                                   CancellationToken cancellationToken = default) where T : class;
+        Task<EventContext<T>?> DeserializeAsync<T>(DeserializationContext context, CancellationToken cancellationToken = default) where T : class;
     }
 }

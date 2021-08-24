@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net.Mime;
 using Tingle.EventBus.Registrations;
 
@@ -13,30 +12,20 @@ namespace Tingle.EventBus.Serialization
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="stream">
-        /// The <see cref="System.IO.Stream"/> containing the raw data.
-        /// (It must be readable, i.e. <see cref="Stream.CanRead"/> must be true).
-        /// </param>
+        /// <param name="body">The <see cref="BinaryData"/> containing the raw data.</param>
         /// <param name="registration">Registration for this event being deserialized.</param>
         /// <param name="identifier">Identifier given the transport for the event to be deserialized.</param>
-        public DeserializationContext(Stream stream,
-                                      EventRegistration registration,
-                                      string? identifier = null)
+        public DeserializationContext(BinaryData body, EventRegistration registration, string? identifier = null)
         {
-            Stream = stream ?? throw new ArgumentNullException(nameof(stream));
-            if (!stream.CanRead)
-            {
-                throw new InvalidOperationException("The supplied stream must be readable");
-            }
-
-            Registration = registration;
+            Body = body ?? throw new ArgumentNullException(nameof(body));
+            Registration = registration ?? throw new ArgumentNullException(nameof(registration));
             Identifier = identifier;
         }
 
         /// <summary>
-        /// The <see cref="System.IO.Stream"/> containing the raw data.
+        /// The <see cref="BinaryData"/> containing the raw data.
         /// </summary>
-        public Stream Stream { get; }
+        public BinaryData Body { get; }
 
         /// <summary>
         /// Registration for this event being deserialized.

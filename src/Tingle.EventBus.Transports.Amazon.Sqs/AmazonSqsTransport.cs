@@ -9,10 +9,8 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net.Mime;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Diagnostics;
@@ -123,17 +121,14 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             }
 
             using var scope = CreateScope();
-            using var ms = new MemoryStream();
-            await SerializeAsync(scope: scope,
-                                 body: ms,
-                                 @event: @event,
-                                 registration: registration,
-                                 cancellationToken: cancellationToken);
+            var body = await SerializeAsync(scope: scope,
+                                            @event: @event,
+                                            registration: registration,
+                                            cancellationToken: cancellationToken);
 
             // get the topic arn and send the message
             var topicArn = await GetTopicArnAsync(registration, cancellationToken);
-            var message = Encoding.UTF8.GetString(ms.ToArray());
-            var request = new PublishRequest(topicArn: topicArn, message: message);
+            var request = new PublishRequest(topicArn: topicArn, message: body.ToString());
             request.SetAttribute(AttributeNames.ContentType, @event.ContentType?.ToString())
                    .SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId)
                    .SetAttribute(AttributeNames.RequestId, @event.RequestId)
@@ -168,17 +163,14 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             // work on each event
             foreach (var @event in events)
             {
-                using var ms = new MemoryStream();
-                await SerializeAsync(scope: scope,
-                                     body: ms,
-                                     @event: @event,
-                                     registration: registration,
-                                     cancellationToken: cancellationToken);
+                var body = await SerializeAsync(scope: scope,
+                                                @event: @event,
+                                                registration: registration,
+                                                cancellationToken: cancellationToken);
 
                 // get the topic arn and send the message
                 var topicArn = await GetTopicArnAsync(registration, cancellationToken);
-                var message = Encoding.UTF8.GetString(ms.ToArray());
-                var request = new PublishRequest(topicArn: topicArn, message: message);
+                var request = new PublishRequest(topicArn: topicArn, message: body.ToString());
                 request.SetAttribute(AttributeNames.ContentType, @event.ContentType?.ToString())
                        .SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId)
                        .SetAttribute(AttributeNames.RequestId, @event.RequestId)
@@ -392,13 +384,12 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             activity?.AddTag(ActivityTagNames.MessagingUrl, queueUrl);
 
             Logger.LogDebug("Processing '{MessageId}' from '{QueueUrl}'", messageId, queueUrl);
-            using var ms = new MemoryStream(Encoding.UTF8.GetBytes(message.Body));
             message.TryGetAttribute("Content-Type", out var contentType_str);
             var contentType = contentType_str == null ? null : new ContentType(contentType_str);
 
             using var scope = CreateScope();
             var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                         body: ms,
+                                                         body: new BinaryData(message.Body),
                                                          contentType: contentType,
                                                          registration: reg,
                                                          identifier: messageId,

@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Threading;
@@ -148,14 +147,12 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                                           CancellationToken cancellationToken = default)
         {
             using var scope = CreateScope();
-            using var ms = new MemoryStream();
-            await SerializeAsync(scope: scope,
-                                 body: ms,
-                                 @event: @event,
-                                 registration: registration,
-                                 cancellationToken: cancellationToken);
+            var body = await SerializeAsync(scope: scope,
+                                            @event: @event,
+                                            registration: registration,
+                                            cancellationToken: cancellationToken);
 
-            var message = new ServiceBusMessage(ms.ToArray())
+            var message = new ServiceBusMessage(body)
             {
                 MessageId = @event.Id,
                 ContentType = @event.ContentType?.ToString(),
@@ -215,14 +212,12 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             var messages = new List<ServiceBusMessage>();
             foreach (var @event in events)
             {
-                using var ms = new MemoryStream();
-                await SerializeAsync(scope: scope,
-                                     body: ms,
-                                     @event: @event,
-                                     registration: registration,
-                                     cancellationToken: cancellationToken);
+                var body = await SerializeAsync(scope: scope,
+                                                @event: @event,
+                                                registration: registration,
+                                                cancellationToken: cancellationToken);
 
-                var message = new ServiceBusMessage(ms.ToArray())
+                var message = new ServiceBusMessage(body)
                 {
                     MessageId = @event.Id,
                     ContentType = @event.ContentType?.ToString(),
@@ -581,10 +576,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             Logger.LogDebug("Processing '{MessageId}' from '{EntityPath}'", messageId, entityPath);
             using var scope = CreateScope();
-            using var ms = message.Body.ToStream();
             var contentType = new ContentType(message.ContentType);
             var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                         body: ms,
+                                                         body: message.Body,
                                                          contentType: contentType,
                                                          registration: reg,
                                                          identifier: message.SequenceNumber.ToString(),

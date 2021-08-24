@@ -6,20 +6,31 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
-    internal class InMemoryQueueEntity
+    internal class InMemoryTransportEntity
     {
-        private readonly SemaphoreSlim messageAvailable = new(0);
-        private readonly SemaphoreSlim updateLock = new(1);
-        private readonly TimeSpan? deliveryDelay;
-        private Queue<InMemoryMessage> queue = new();
-
-        public InMemoryQueueEntity(string name, TimeSpan? deliveryDelay)
+        public InMemoryTransportEntity(string name)
         {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            this.deliveryDelay = deliveryDelay;
+            if (string.IsNullOrWhiteSpace(Name = name))
+            {
+                throw new ArgumentException($"'{nameof(name)}' cannot be null or whitespace.", nameof(name));
+            }
         }
 
         public string Name { get; }
+
+    }
+
+    internal class InMemoryTransportDataEntity : InMemoryTransportEntity
+    {
+        private readonly SemaphoreSlim messageAvailable = new(0);
+        private readonly SemaphoreSlim updateLock = new(1);
+        private readonly TimeSpan? availabilityDelay;
+        private Queue<InMemoryMessage> queue = new();
+
+        public InMemoryTransportDataEntity(string name, TimeSpan? availabilityDelay) : base(name)
+        {
+            this.availabilityDelay = availabilityDelay;
+        }
 
         public async Task EnqueueAsync(InMemoryMessage item, CancellationToken cancellationToken = default)
         {
@@ -78,9 +89,9 @@ namespace Tingle.EventBus.Transports.InMemory
             if (queue.TryDequeue(out var result))
             {
                 // if we have a delivery delay, apply id
-                if (deliveryDelay is not null && deliveryDelay > TimeSpan.Zero)
+                if (availabilityDelay is not null && availabilityDelay > TimeSpan.Zero)
                 {
-                    await Task.Delay(deliveryDelay.Value, cancellationToken);
+                    await Task.Delay(availabilityDelay.Value, cancellationToken);
                 }
 
                 return result;
@@ -136,5 +147,21 @@ namespace Tingle.EventBus.Transports.InMemory
                 updateLock.Release();
             }
         }
+    }
+
+    internal class InMemoryTransportQueue : InMemoryTransportDataEntity
+    {
+        public InMemoryTransportQueue(string name, TimeSpan? availabilityDelay) : base(name, availabilityDelay) { }
+    }
+
+    internal class InMemoryTransportTopic : InMemoryTransportEntity
+    {
+        public InMemoryTransportTopic(string name) : base(name) { }
+    }
+
+    internal class InMemoryTransportSubscription : InMemoryTransportDataEntity
+    {
+        public InMemoryTransportSubscription(string topicName, string subscriptionName, TimeSpan? availabilityDelay)
+            : base($"{topicName}/{subscriptionName}", availabilityDelay) { }
     }
 }

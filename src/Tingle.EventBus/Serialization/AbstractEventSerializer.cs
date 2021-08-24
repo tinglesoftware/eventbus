@@ -119,6 +119,9 @@ namespace Tingle.EventBus.Serialization
 
             // Serialize
             await SerializeEnvelopeAsync(stream: stream, envelope: envelope, cancellationToken: cancellationToken);
+
+            // Return to the begining of the stream
+            stream.Seek(0, SeekOrigin.Begin);
         }
 
         /// <summary>

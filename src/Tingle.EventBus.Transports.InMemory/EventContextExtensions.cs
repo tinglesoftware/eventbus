@@ -9,7 +9,7 @@ namespace Tingle.EventBus
     /// </summary>
     public static class EventContextExtensions
     {
-        internal const string ItemsKeyMessage =  "inmemory.message";
+        internal const string ItemsKeyMessage = "inmemory.received-message";
 
         /// <summary>
         /// Gets the <see cref="InMemoryMessage"/> associated with the specified <see cref="EventContext"/>

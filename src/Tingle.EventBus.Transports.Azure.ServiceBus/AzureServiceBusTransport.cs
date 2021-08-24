@@ -581,10 +581,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
 
             Logger.LogDebug("Processing '{MessageId}' from '{EntityPath}'", messageId, entityPath);
             using var scope = CreateScope();
-            using var ms = message.Body.ToStream();
             var contentType = new ContentType(message.ContentType);
             var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                         body: ms,
+                                                         body: message.Body,
                                                          contentType: contentType,
                                                          registration: reg,
                                                          identifier: message.SequenceNumber.ToString(),

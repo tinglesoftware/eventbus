@@ -336,10 +336,9 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
             Logger.LogDebug("Processing '{MessageId}'", messageId);
             using var scope = CreateScope();
-            using var ms = new BinaryData(args.Body).ToStream();
             var contentType = GetContentType(args.BasicProperties);
             var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                         body: ms,
+                                                         body: new BinaryData(args.Body),
                                                          contentType: contentType,
                                                          registration: reg,
                                                          identifier: messageId,

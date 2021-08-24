@@ -391,13 +391,12 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             activity?.AddTag(ActivityTagNames.MessagingUrl, queueUrl);
 
             Logger.LogDebug("Processing '{MessageId}' from '{QueueUrl}'", messageId, queueUrl);
-            using var ms = new BinaryData(message.Body).ToStream();
             message.TryGetAttribute("Content-Type", out var contentType_str);
             var contentType = contentType_str == null ? null : new ContentType(contentType_str);
 
             using var scope = CreateScope();
             var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                         body: ms,
+                                                         body: new BinaryData(message.Body),
                                                          contentType: contentType,
                                                          registration: reg,
                                                          identifier: messageId,

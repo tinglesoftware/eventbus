@@ -68,7 +68,7 @@ namespace Tingle.EventBus.Serialization
             }
 
             // Deserialize
-            var stream = context.Stream;
+            using var stream = context.Body.ToStream();
             var envelope = await DeserializeToEnvelopeAsync<T>(stream: stream, contentType: contentType, cancellationToken: cancellationToken);
             if (envelope is null)
             {

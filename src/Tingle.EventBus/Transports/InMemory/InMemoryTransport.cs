@@ -338,10 +338,9 @@ namespace Tingle.EventBus.Transports.InMemory
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
 
             Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueEntity.Name);
-            using var ms = message.Body!.ToStream();
             var contentType = new ContentType(message.ContentType);
             var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                         body: ms,
+                                                         body: message.Body!,
                                                          contentType: contentType,
                                                          registration: reg,
                                                          identifier: messageId,

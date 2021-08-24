@@ -13,30 +13,22 @@ namespace Tingle.EventBus.Serialization
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="stream">
-        /// The <see cref="System.IO.Stream"/> containing the raw data.
-        /// (It must be readable, i.e. <see cref="Stream.CanRead"/> must be true).
-        /// </param>
+        /// <param name="body">The <see cref="BinaryData"/> containing the raw data.</param>
         /// <param name="registration">Registration for this event being deserialized.</param>
         /// <param name="identifier">Identifier given the transport for the event to be deserialized.</param>
-        public DeserializationContext(Stream stream,
+        public DeserializationContext(BinaryData body,
                                       EventRegistration registration,
                                       string? identifier = null)
         {
-            Stream = stream ?? throw new ArgumentNullException(nameof(stream));
-            if (!stream.CanRead)
-            {
-                throw new InvalidOperationException("The supplied stream must be readable");
-            }
-
+            Body = body ?? throw new ArgumentNullException(nameof(body));
             Registration = registration;
             Identifier = identifier;
         }
 
         /// <summary>
-        /// The <see cref="System.IO.Stream"/> containing the raw data.
+        /// The <see cref="BinaryData"/> containing the raw data.
         /// </summary>
-        public Stream Stream { get; }
+        public BinaryData Body { get; }
 
         /// <summary>
         /// Registration for this event being deserialized.

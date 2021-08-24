@@ -421,10 +421,9 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                             processor.EventHubName,
                             processor.ConsumerGroup);
             using var scope = CreateScope();
-            using var ms = new BinaryData(data.Body).ToStream();
             var contentType = contentType_str == null ? null : new ContentType(contentType_str.ToString());
             var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                         body: ms,
+                                                         body: data.EventBody,
                                                          contentType: contentType,
                                                          registration: reg,
                                                          identifier: data.SequenceNumber.ToString(),

@@ -351,9 +351,8 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
 
             Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueClient.Name);
-            using var ms = new BinaryData(message.MessageText).ToStream();
             var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                         body: ms, // There is no way to get this yet
+                                                         body: message.Body,
                                                          contentType: null,
                                                          registration: reg,
                                                          identifier: (AzureQueueStorageSchedulingId)message,

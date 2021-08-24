@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
-    internal sealed class InMemorySender // TODO: handle disposing
+    internal sealed class InMemorySender
     {
         private static readonly TimeSpan waitTimeout = TimeSpan.FromSeconds(1);
 

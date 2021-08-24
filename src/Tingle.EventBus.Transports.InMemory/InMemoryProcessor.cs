@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
-    internal class InMemoryProcessor // TODO: handle disposing
+    internal class InMemoryProcessor
     {
         private readonly ChannelReader<InMemoryMessage> reader;
         private CancellationTokenSource? stoppingCts = new();
@@ -50,7 +50,6 @@ namespace Tingle.EventBus.Transports.InMemory
                 throw new InvalidOperationException($"'{nameof(ProcessMessageAsync)}' should be set prior to start processing");
             }
 
-            // TODO: connect to the channel here?
             stoppingCts = new CancellationTokenSource();
             _ = RunAsync(stoppingCts.Token);
             return Task.CompletedTask;

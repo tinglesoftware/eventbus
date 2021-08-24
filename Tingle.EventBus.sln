@@ -26,6 +26,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Azure.QueueStorage", "src\Tingle.EventBus.Transports.Azure.QueueStorage\Tingle.EventBus.Transports.Azure.QueueStorage.csproj", "{07C3232C-687A-4C85-9A67-9BEF854BB91F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tingle.EventBus.Transports.InMemory", "src\Tingle.EventBus.Transports.InMemory\Tingle.EventBus.Transports.InMemory.csproj", "{51E174CE-44A5-49D7-92E8-3521B04838E7}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Kafka", "src\Tingle.EventBus.Transports.Kafka\Tingle.EventBus.Transports.Kafka.csproj", "{2664F6EA-94DB-4E14-A5B3-43FBCCF472E3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.RabbitMQ", "src\Tingle.EventBus.Transports.RabbitMQ\Tingle.EventBus.Transports.RabbitMQ.csproj", "{1BCD0C98-D061-4143-B00F-0031FBCD5E5E}"
@@ -144,6 +146,10 @@ Global
 		{2FEC41FE-188B-4B02-943B-0FEAB0E1FA39}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FEC41FE-188B-4B02-943B-0FEAB0E1FA39}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2FEC41FE-188B-4B02-943B-0FEAB0E1FA39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51E174CE-44A5-49D7-92E8-3521B04838E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51E174CE-44A5-49D7-92E8-3521B04838E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51E174CE-44A5-49D7-92E8-3521B04838E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51E174CE-44A5-49D7-92E8-3521B04838E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -169,6 +175,7 @@ Global
 		{E9D6F25A-0586-4409-A3EB-A72B6E89A71C} = {62F603F3-FF36-4E36-AC0C-08D1883525BE}
 		{ED1E8BA4-9538-42AB-9759-4FC4233A36B1} = {62F603F3-FF36-4E36-AC0C-08D1883525BE}
 		{2FEC41FE-188B-4B02-943B-0FEAB0E1FA39} = {62F603F3-FF36-4E36-AC0C-08D1883525BE}
+		{51E174CE-44A5-49D7-92E8-3521B04838E7} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9E5CC03E-DDE6-4455-9D5D-03617DE5DBD8}

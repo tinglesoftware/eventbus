@@ -16,12 +16,4 @@
     <PackageReference Include="System.Text.Json" Version="5.0.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <!--
-      This packages is necessary to use Use C# 9's init and record features in in older target frameworks.
-      https://github.com/manuelroemer/IsExternalInit
-    -->
-    <PackageReference Include="IsExternalInit" Version="1.0.1" PrivateAssets="all" />
-  </ItemGroup>
-
 </Project>

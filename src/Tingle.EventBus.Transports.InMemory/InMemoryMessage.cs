@@ -65,7 +65,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <summary>
         /// Gets or sets the body of the message.
         /// </summary>
-        public BinaryData Body { get; }
+        public BinaryData Body { get; set; }
 
         /// <summary>
         /// Gets the unique number assigned to a message by the transport.

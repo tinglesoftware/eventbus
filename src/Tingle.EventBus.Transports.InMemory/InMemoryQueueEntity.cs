@@ -6,31 +6,23 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
-    internal class InMemoryTransportEntity
-    {
-        public InMemoryTransportEntity(string name)
-        {
-            if (string.IsNullOrWhiteSpace(Name = name))
-            {
-                throw new ArgumentException($"'{nameof(name)}' cannot be null or whitespace.", nameof(name));
-            }
-        }
-
-        public string Name { get; }
-
-    }
-
-    internal class InMemoryTransportDataEntity : InMemoryTransportEntity
+    internal class InMemoryTransportQueue
     {
         private readonly SemaphoreSlim messageAvailable = new(0);
         private readonly SemaphoreSlim updateLock = new(1);
         private readonly TimeSpan? availabilityDelay;
         private Queue<InMemoryMessage> queue = new();
 
-        public InMemoryTransportDataEntity(string name, TimeSpan? availabilityDelay) : base(name)
+        public InMemoryTransportQueue(string name, TimeSpan? availabilityDelay)
         {
+            if (string.IsNullOrWhiteSpace(Name = name))
+            {
+                throw new ArgumentException($"'{nameof(name)}' cannot be null or whitespace.", nameof(name));
+            }
             this.availabilityDelay = availabilityDelay;
         }
+
+        public string Name { get; }
 
         public async Task EnqueueAsync(InMemoryMessage item, CancellationToken cancellationToken = default)
         {
@@ -147,21 +139,5 @@ namespace Tingle.EventBus.Transports.InMemory
                 updateLock.Release();
             }
         }
-    }
-
-    internal class InMemoryTransportQueue : InMemoryTransportDataEntity
-    {
-        public InMemoryTransportQueue(string name, TimeSpan? availabilityDelay) : base(name, availabilityDelay) { }
-    }
-
-    internal class InMemoryTransportTopic : InMemoryTransportEntity
-    {
-        public InMemoryTransportTopic(string name) : base(name) { }
-    }
-
-    internal class InMemoryTransportSubscription : InMemoryTransportDataEntity
-    {
-        public InMemoryTransportSubscription(string topicName, string subscriptionName, TimeSpan? availabilityDelay)
-            : base($"{topicName}/{subscriptionName}", availabilityDelay) { }
     }
 }

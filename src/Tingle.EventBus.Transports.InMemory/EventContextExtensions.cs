@@ -7,7 +7,7 @@ namespace Tingle.EventBus
     /// <summary>
     /// Extension methods on <see cref="EventContext"/> and <see cref="EventContext{T}"/>.
     /// </summary>
-    public static partial class EventContextExtensions
+    public static class EventContextExtensions
     {
         internal const string ItemsKeyMessage =  "inmemory.message";
 

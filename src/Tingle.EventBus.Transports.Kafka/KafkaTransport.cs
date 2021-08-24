@@ -292,14 +292,14 @@ namespace Tingle.EventBus.Transports.Kafka
             using var log_scope = BeginLoggingScopeForConsume(id: messageKey, correlationId: correlationId);
 
             // Instrumentation
-            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
+            using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId);
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
 
             Logger.LogDebug("Processing '{MessageKey}", messageKey);
             using var scope = CreateScope();
-            var contentType = contentType_str == null ? null : new ContentType(contentType_str.ToString());
+            var contentType = contentType_str == null ? null : new ContentType(contentType_str);
             var context = await DeserializeAsync<TEvent>(scope: scope,
                                                          body: new BinaryData(message.Value),
                                                          contentType: contentType,

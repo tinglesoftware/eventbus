@@ -17,7 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public void PostConfigure(string name, InMemoryTestHarnessOptions options)
         {
-            var ticks = transportOptions.DeliveryDelay.Ticks;
+            var ticks = transportOptions.DeliveryDelay?.Ticks ?? 0;
             ticks = Math.Max(0, ticks); // should not be less than zero
 
             // Add 50ms from the delivery delay

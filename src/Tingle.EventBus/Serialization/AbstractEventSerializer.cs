@@ -84,7 +84,7 @@ namespace Tingle.EventBus.Serialization
 
             // Create the context
             var publisher = serviceProvider.GetRequiredService<IEventPublisher>();
-            return new EventContext<T>(publisher, envelope, contentType);
+            return new EventContext<T>(publisher: publisher, envelope: envelope, contentType: contentType, transportIdentifier: context.Identifier);
         }
 
         /// <inheritdoc/>

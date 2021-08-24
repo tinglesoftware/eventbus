@@ -21,7 +21,7 @@ namespace Tingle.EventBus.Transports.InMemory
     [TransportName(TransportNames.InMemory)]
     public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>, IDisposable
     {
-        private readonly Dictionary<(Type, bool), InMemoryQueueEntity> queuesCache = new();
+        private readonly Dictionary<(Type, bool), InMemoryTransportQueue> queuesCache = new();
         private readonly SemaphoreSlim queuesCacheLock = new(1, 1); // only one at a time.
         private readonly CancellationTokenSource stoppingCts = new();
         private readonly List<Task> receiverTasks = new();
@@ -36,18 +36,18 @@ namespace Tingle.EventBus.Transports.InMemory
         /// 
         /// </summary>
         /// <param name="serviceScopeFactory"></param>
-        /// <param name="sng"></param>
         /// <param name="busOptionsAccessor"></param>
         /// <param name="transportOptionsAccessor"></param>
         /// <param name="loggerFactory"></param>
+        /// <param name="sng"></param>
         public InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
-                                 SequenceNumberGenerator sng,
                                  IOptions<EventBusOptions> busOptionsAccessor,
                                  IOptions<InMemoryTransportOptions> transportOptionsAccessor,
-                                 ILoggerFactory loggerFactory)
+                                 ILoggerFactory loggerFactory,
+                                 SequenceNumberGenerator sng)
             : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            this.sng = sng;
+            this.sng = sng ?? throw new ArgumentNullException(nameof(sng));
         }
 
         /// <summary>
@@ -133,13 +133,19 @@ namespace Tingle.EventBus.Transports.InMemory
                                             registration: registration,
                                             cancellationToken: cancellationToken);
 
-            var message = new InMemoryQueueMessage(body)
+            var message = new InMemoryMessage(body)
             {
                 MessageId = @event.Id,
                 ContentType = @event.ContentType?.ToString(),
                 CorrelationId = @event.CorrelationId,
                 SequenceNumber = sng.Generate(),
             };
+
+            // If scheduled for later, set the value in the message
+            if (scheduled != null && scheduled > DateTimeOffset.UtcNow)
+            {
+                message.Scheduled = scheduled.Value.UtcDateTime;
+            }
 
             // Add custom properties
             message.Properties.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
@@ -180,7 +186,7 @@ namespace Tingle.EventBus.Transports.InMemory
             }
 
             using var scope = CreateScope();
-            var messages = new List<InMemoryQueueMessage>();
+            var messages = new List<InMemoryMessage>();
 
             foreach (var @event in events)
             {
@@ -189,13 +195,19 @@ namespace Tingle.EventBus.Transports.InMemory
                                                 registration: registration,
                                                 cancellationToken: cancellationToken);
 
-                var message = new InMemoryQueueMessage(body)
+                var message = new InMemoryMessage(body)
                 {
                     MessageId = @event.Id,
                     CorrelationId = @event.CorrelationId,
                     ContentType = @event.ContentType?.ToString(),
                     SequenceNumber = sng.Generate(),
                 };
+
+                // If scheduled for later, set the value in the message
+                if (scheduled != null && scheduled > DateTimeOffset.UtcNow)
+                {
+                    message.Scheduled = scheduled.Value.UtcDateTime;
+                }
 
                 // Add custom properties
                 message.Properties.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
@@ -273,7 +285,7 @@ namespace Tingle.EventBus.Transports.InMemory
             await queueEntity.RemoveAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken);
         }
 
-        private async Task<InMemoryQueueEntity> GetQueueAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
+        private async Task<InMemoryTransportQueue> GetQueueAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
         {
             await queuesCacheLock.WaitAsync(cancellationToken);
 
@@ -284,7 +296,7 @@ namespace Tingle.EventBus.Transports.InMemory
                     var name = reg.EventName!;
                     if (deadletter) name += TransportOptions.DeadLetterSuffix;
 
-                    queue = new InMemoryQueueEntity(name: name, TransportOptions.DeliveryDelay);
+                    queue = new InMemoryTransportQueue(name: name, TransportOptions.DeliveryDelay);
 
                     queuesCache[(reg.EventType, deadletter)] = queue;
                 }
@@ -330,8 +342,8 @@ namespace Tingle.EventBus.Transports.InMemory
 
         private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
                                                                      EventConsumerRegistration ecr,
-                                                                     InMemoryQueueEntity queueEntity,
-                                                                     InMemoryQueueMessage message,
+                                                                     InMemoryTransportQueue queueEntity,
+                                                                     InMemoryMessage message,
                                                                      IServiceScope scope,
                                                                      CancellationToken cancellationToken)
             where TEvent : class

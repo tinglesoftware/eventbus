@@ -14,7 +14,7 @@ namespace Tingle.EventBus.Serialization
         /// </summary>
         /// <param name="body">The <see cref="BinaryData"/> containing the raw data.</param>
         /// <param name="registration">Registration for this event being deserialized.</param>
-        /// <param name="identifier">Identifier given the transport for the event to be deserialized.</param>
+        /// <param name="identifier">Identifier given by the transport for the event to be deserialized.</param>
         public DeserializationContext(BinaryData body, EventRegistration registration, string? identifier = null)
         {
             Body = body ?? throw new ArgumentNullException(nameof(body));
@@ -33,7 +33,7 @@ namespace Tingle.EventBus.Serialization
         public EventRegistration Registration { get; }
 
         /// <summary>
-        /// Identifier given the transport for the event to be deserialized.
+        /// Identifier given by the transport for the event to be deserialized.
         /// </summary>
         public string? Identifier { get; }
 

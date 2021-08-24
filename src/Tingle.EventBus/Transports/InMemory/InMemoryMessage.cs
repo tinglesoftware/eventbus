@@ -4,28 +4,28 @@ using System.Collections.Generic;
 namespace Tingle.EventBus.Transports.InMemory
 {
     /// <summary>
-    /// The <see cref="InMemoryQueueMessage"/> is used to receive
+    /// The <see cref="InMemoryMessage"/> is used to receive
     /// and send data from and to InMemory entities.
     /// </summary>
-    public class InMemoryQueueMessage
+    public class InMemoryMessage
     {
         /// <summary>
         /// Creates a new message from the specified string, using UTF-8 encoding.
         /// </summary>
         /// <param name="body">The payload of the message as a string.</param>
-        public InMemoryQueueMessage(string body) : this(BinaryData.FromString(body)) { }
+        public InMemoryMessage(string body) : this(BinaryData.FromString(body)) { }
 
         /// <summary>
         /// Creates a new message from the specified payload.
         /// </summary>
         /// <param name="body">The payload of the message in bytes.</param>
-        public InMemoryQueueMessage(ReadOnlyMemory<byte> body) : this(BinaryData.FromBytes(body)) { }
+        public InMemoryMessage(ReadOnlyMemory<byte> body) : this(BinaryData.FromBytes(body)) { }
 
         /// <summary>
         /// Creates a new message from specified <see cref="BinaryData"/> instance.
         /// </summary>
         /// <param name="body">The payload of the message.</param>
-        public InMemoryQueueMessage(BinaryData body)
+        public InMemoryMessage(BinaryData body)
         {
             Body = body ?? throw new ArgumentNullException(nameof(body));
         }
@@ -65,7 +65,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <summary>
         /// Gets or sets the body of the message.
         /// </summary>
-        public BinaryData Body { get; set; }
+        public BinaryData Body { get; }
 
         /// <summary>
         /// Gets the unique number assigned to a message by the transport.
@@ -86,6 +86,12 @@ namespace Tingle.EventBus.Transports.InMemory
         /// long, ulong, float, double, decimal, bool, Guid, string, Uri, DateTime, DateTimeOffset,
         /// TimeSpan
         /// </remarks>
-        public IDictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
+        public IDictionary<string, object> Properties { get; } = new Dictionary<string, object>();
+
+        /// <summary>
+        /// Gets the date and time in UTC at which the message will be enqueued.
+        /// This property returns the time in UTC.
+        /// </summary>
+        public DateTimeOffset Scheduled { get; set; }
     }
 }

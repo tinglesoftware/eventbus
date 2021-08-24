@@ -10,8 +10,9 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         /// <summary>
         /// The duration of time for which to delay delivery of a message after dequeuing.
-        /// Default value is 1 second.
+        /// <see langword="null"/> does not apply any delay.
+        /// Default value is <see langword="null"/>.
         /// </summary>
-        public TimeSpan DeliveryDelay { get; set; } = TimeSpan.FromSeconds(1);
+        public TimeSpan? DeliveryDelay { get; set; }
     }
 }

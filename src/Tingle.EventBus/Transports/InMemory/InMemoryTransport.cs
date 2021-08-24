@@ -156,16 +156,12 @@ namespace Tingle.EventBus.Transports.InMemory
                                   scheduled);
             if (scheduled != null)
             {
-                _ = DelayThenExecuteAsync(scheduled.Value, (msg, ct) =>
-                {
-                    queueEntity.Enqueue(msg);
-                    return Task.CompletedTask;
-                }, message);
+                _ = DelayThenExecuteAsync(scheduled.Value, (msg, ct) => queueEntity.EnqueueAsync(msg, ct), message);
                 return new ScheduledResult(id: sng.Generate(), scheduled: scheduled.Value);
             }
             else
             {
-                queueEntity.Enqueue(message);
+                await queueEntity.EnqueueAsync(message);
                 return null; // no sequence number available
             }
         }
@@ -219,16 +215,12 @@ namespace Tingle.EventBus.Transports.InMemory
                                   string.Join("\r\n- ", events.Select(e => e.Id)));
             if (scheduled != null)
             {
-                _ = DelayThenExecuteAsync(scheduled.Value, (msgs, ct) =>
-                {
-                    queueEntity.EnqueueBatch(msgs);
-                    return Task.CompletedTask;
-                }, messages);
+                _ = DelayThenExecuteAsync(scheduled.Value, (msgs, ct) => queueEntity.EnqueueBatchAsync(msgs, ct), messages);
                 return events.Select(_ => new ScheduledResult(id: sng.Generate(), scheduled: scheduled.Value)).ToList();
             }
             else
             {
-                queueEntity.EnqueueBatch(messages);
+                await queueEntity.EnqueueBatchAsync(messages);
                 return Array.Empty<ScheduledResult>(); // no sequence numbers available
             }
         }
@@ -369,7 +361,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 {
                     // get the dead letter queue and send the mesage there
                     var dlqEntity = await GetQueueAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
-                    dlqEntity.Enqueue(message);
+                    await dlqEntity.EnqueueAsync(message);
                 }
             }
         }

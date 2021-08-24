@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +8,8 @@ namespace Tingle.EventBus.Transports.InMemory
     internal class InMemoryQueueEntity
     {
         private readonly SemaphoreSlim messageAvailable = new(0);
-        private readonly ConcurrentQueue<InMemoryQueueMessage> queue = new();
+        private readonly SemaphoreSlim updateLock = new(1);
+        private readonly Queue<InMemoryQueueMessage> queue = new();
         private readonly TimeSpan deliveryDelay;
 
         public InMemoryQueueEntity(string name, TimeSpan deliveryDelay)
@@ -20,16 +20,24 @@ namespace Tingle.EventBus.Transports.InMemory
 
         public string Name { get; }
 
-        public void Enqueue(InMemoryQueueMessage item)
+        public async Task EnqueueAsync(InMemoryQueueMessage item, CancellationToken cancellationToken = default)
         {
-            queue.Enqueue(item);
-            messageAvailable.Release(1);
+            await updateLock.WaitAsync(cancellationToken);
+            try
+            {
+                queue.Enqueue(item);
+                messageAvailable.Release(1);
+            }
+            catch (Exception)
+            {
+                updateLock.Release();
+            }
         }
 
-        public void EnqueueBatch(IEnumerable<InMemoryQueueMessage> items)
+        public async Task EnqueueBatchAsync(IEnumerable<InMemoryQueueMessage> items, CancellationToken cancellationToken = default)
         {
             if (items is null) throw new ArgumentNullException(nameof(items));
-            foreach (var item in items) Enqueue(item);
+            foreach (var item in items) await EnqueueAsync(item, cancellationToken);
         }
 
         public async Task<InMemoryQueueMessage> DequeueAsync(CancellationToken cancellationToken = default)

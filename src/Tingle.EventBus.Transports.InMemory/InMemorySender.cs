@@ -39,11 +39,13 @@ namespace Tingle.EventBus.Transports.InMemory
                 await available.WaitAsync(waitTimeout, cancellationToken);
 
                 var cached = items.ToList(); // just incase it is changed
-                foreach (var i in cached)
+                foreach (var msg in cached)
                 {
-                    if (i.Scheduled <= DateTimeOffset.UtcNow)
+                    if (msg.Scheduled <= DateTimeOffset.UtcNow)
                     {
-                        await writer.WriteAsync(i, cancellationToken);
+                        // write the message and remove it
+                        await writer.WriteAsync(msg, cancellationToken);
+                        items.Remove(msg);
                     }
                 }
             }

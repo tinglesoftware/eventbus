@@ -24,8 +24,8 @@ namespace Tingle.EventBus.Serializers
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
         /// <param name="loggerFactory"></param>
         public XmlEventSerializer(IServiceProvider serviceProvider,
-                                         IOptionsMonitor<EventBusOptions> optionsAccessor,
-                                         ILoggerFactory loggerFactory)
+                                  IOptionsMonitor<EventBusOptions> optionsAccessor,
+                                  ILoggerFactory loggerFactory)
             : base(serviceProvider, optionsAccessor, loggerFactory) { }
 
         /// <inheritdoc/>
@@ -36,8 +36,8 @@ namespace Tingle.EventBus.Serializers
                                                                                   ContentType? contentType,
                                                                                   CancellationToken cancellationToken = default)
         {
-            var serializer = new XmlSerializer(typeof(EventEnvelope<T>));
-            var envelope = (EventEnvelope<T>?)serializer.Deserialize(stream);
+            var serializer = new XmlSerializer(typeof(XmlEventEnvelope<T>));
+            var envelope = (XmlEventEnvelope<T>?)serializer.Deserialize(stream);
             return Task.FromResult<IEventEnvelope<T>?>(envelope);
         }
 
@@ -46,8 +46,8 @@ namespace Tingle.EventBus.Serializers
                                                           EventEnvelope<T> envelope,
                                                           CancellationToken cancellationToken = default)
         {
-            var serializer = new XmlSerializer(typeof(EventEnvelope<T>));
-            serializer.Serialize(stream, envelope);
+            var serializer = new XmlSerializer(typeof(XmlEventEnvelope<T>));
+            serializer.Serialize(stream, new XmlEventEnvelope<T>(envelope));
             return Task.CompletedTask;
         }
     }

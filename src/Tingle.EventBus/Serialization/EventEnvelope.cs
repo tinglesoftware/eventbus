@@ -8,44 +8,28 @@ namespace Tingle.EventBus.Serialization
     /// </summary>
     public class EventEnvelope : IEventEnvelope
     {
-        /// <summary>
-        /// The unique identifier of the event.
-        /// </summary>
+        /// <inheritdoc/>
         public string? Id { get; set; }
 
-        /// <summary>
-        /// The unique identifier of the request associated with the event.
-        /// </summary>
+        /// <inheritdoc/>
         public string? RequestId { get; set; }
 
-        /// <summary>
-        /// A value shared between related events.
-        /// </summary>
+        /// <inheritdoc/>
         public string? CorrelationId { get; set; }
 
-        /// <summary>
-        /// The unique identifier of the initiator of the event.
-        /// </summary>
+        /// <inheritdoc/>
         public string? InitiatorId { get; set; }
 
-        /// <summary>
-        /// The specific time at which the event expires.
-        /// </summary>
+        /// <inheritdoc/>
         public DateTimeOffset? Expires { get; set; }
 
-        /// <summary>
-        /// The specific time the event was sent.
-        /// </summary>
+        /// <inheritdoc/>
         public DateTimeOffset? Sent { get; set; }
 
-        /// <summary>
-        /// The headers published alongside the event.
-        /// </summary>
+        /// <inheritdoc/>
         public IDictionary<string, object> Headers { get; set; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
-        /// <summary>
-        /// Information about the host on which the event was generated.
-        /// </summary>
+        /// <inheritdoc/>
         public HostInfo? Host { get; set; }
     }
 
@@ -54,9 +38,7 @@ namespace Tingle.EventBus.Serialization
     /// </summary>
     public class EventEnvelope<T> : EventEnvelope, IEventEnvelope<T> where T : class
     {
-        /// <summary>
-        /// The event published or to be published.
-        /// </summary>
+        /// <inheritdoc/>
         public T? Event { get; set; }
     }
 }

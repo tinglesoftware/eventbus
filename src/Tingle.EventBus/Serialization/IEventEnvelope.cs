@@ -6,57 +6,57 @@ namespace Tingle.EventBus.Serialization
     /// <summary>
     /// An envelope of a event as represented when serialized.
     /// </summary>
-    public class EventEnvelope : IEventEnvelope
+    public interface IEventEnvelope
     {
         /// <summary>
         /// The unique identifier of the event.
         /// </summary>
-        public string? Id { get; set; }
+        string? Id { get; }
 
         /// <summary>
         /// The unique identifier of the request associated with the event.
         /// </summary>
-        public string? RequestId { get; set; }
+        string? RequestId { get; }
 
         /// <summary>
         /// A value shared between related events.
         /// </summary>
-        public string? CorrelationId { get; set; }
+        string? CorrelationId { get; }
 
         /// <summary>
         /// The unique identifier of the initiator of the event.
         /// </summary>
-        public string? InitiatorId { get; set; }
+        string? InitiatorId { get; }
 
         /// <summary>
         /// The specific time at which the event expires.
         /// </summary>
-        public DateTimeOffset? Expires { get; set; }
+        DateTimeOffset? Expires { get; }
 
         /// <summary>
         /// The specific time the event was sent.
         /// </summary>
-        public DateTimeOffset? Sent { get; set; }
+        DateTimeOffset? Sent { get; }
 
         /// <summary>
         /// The headers published alongside the event.
         /// </summary>
-        public IDictionary<string, object> Headers { get; set; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        IDictionary<string, object> Headers { get; }
 
         /// <summary>
         /// Information about the host on which the event was generated.
         /// </summary>
-        public HostInfo? Host { get; set; }
+        HostInfo? Host { get; }
     }
 
     /// <summary>
     /// An envelope of a event as represented when serialized.
     /// </summary>
-    public class EventEnvelope<T> : EventEnvelope, IEventEnvelope<T> where T : class
+    public interface IEventEnvelope<T> : IEventEnvelope where T : class
     {
         /// <summary>
         /// The event published or to be published.
         /// </summary>
-        public T? Event { get; set; }
+        T? Event { get; }
     }
 }

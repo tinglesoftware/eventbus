@@ -1,5 +1,6 @@
-﻿using System.Threading.Channels;
+﻿using System;
 using System.Collections.Concurrent;
+using System.Threading.Channels;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
@@ -10,7 +11,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
         public InMemoryClient(SequenceNumberGenerator sng)
         {
-            this.sng = sng ?? throw new System.ArgumentNullException(nameof(sng));
+            this.sng = sng ?? throw new ArgumentNullException(nameof(sng));
         }
 
         /// <summary>

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
-    internal sealed class InMemorySender
+    internal sealed class InMemorySender : IDisposable
     {
         private static readonly TimeSpan waitTimeout = TimeSpan.FromSeconds(1);
 
@@ -100,7 +100,7 @@ namespace Tingle.EventBus.Transports.InMemory
             await updateLock.WaitAsync(cancellationToken);
             try
             {
-                // set sequence numbers after validation check
+                // set sequence numbers
                 foreach (var message in messages)
                 {
                     message.SequenceNumber = sng.Generate();
@@ -121,7 +121,7 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <param name="message">The <see cref="InMemoryMessage"/> to schedule.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns></returns>
-        public async Task<long> ScheduleMessageAsync(InMemoryMessage message,CancellationToken cancellationToken = default)
+        public async Task<long> ScheduleMessageAsync(InMemoryMessage message, CancellationToken cancellationToken = default)
         {
             await SendMessageAsync(message, cancellationToken);
             return message.SequenceNumber;
@@ -138,7 +138,6 @@ namespace Tingle.EventBus.Transports.InMemory
             await SendMessagesAsync(messages, cancellationToken);
             return messages.Select(m => m.SequenceNumber).ToArray();
         }
-
 
         /// <summary>
         /// Cancels a message that was scheduled.
@@ -160,7 +159,7 @@ namespace Tingle.EventBus.Transports.InMemory
                     throw new ArgumentException($"An item with the sequence number {sequenceNumber} does not exist.", nameof(sequenceNumber));
                 }
 
-                // make new items and recreate the queue
+                // make new items and replace
                 items = items.AsEnumerable().Except(new[] { matching }).ToList();
             }
             finally
@@ -193,13 +192,20 @@ namespace Tingle.EventBus.Transports.InMemory
                     }
                 }
 
-                // make new items and recreate the queue
+                // make new items and replace
                 items = items.AsEnumerable().Except(matching).ToList();
             }
             finally
             {
                 updateLock.Release();
             }
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            stoppingCts.Cancel();
+            writer.Complete();
         }
     }
 }

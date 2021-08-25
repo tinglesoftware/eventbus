@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
-    internal class InMemoryProcessor
+    internal class InMemoryProcessor : IDisposable
     {
         private readonly ChannelReader<InMemoryMessage> reader;
-        private CancellationTokenSource? stoppingCts = new();
+        private CancellationTokenSource stoppingCts = new();
 
         public InMemoryProcessor(string entityPath, ChannelReader<InMemoryMessage> reader)
         {
@@ -58,9 +58,14 @@ namespace Tingle.EventBus.Transports.InMemory
         ///
         public Task StopProcessingAsync(CancellationToken cancellationToken = default)
         {
-            stoppingCts?.Cancel();
-            stoppingCts = null;
+            stoppingCts.Cancel();
             return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            stoppingCts.Cancel();
         }
     }
 }

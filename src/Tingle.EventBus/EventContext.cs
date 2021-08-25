@@ -99,7 +99,7 @@ namespace Tingle.EventBus
         /// <param name="event">Value for <see cref="Event"/>.</param>
         /// <param name="envelope">Envelope containing details for the event.</param>
         /// <param name="contentType">Value for <see cref="EventContext.ContentType"/></param>
-        public EventContext(IEventPublisher publisher, T @event, EventEnvelope envelope, ContentType? contentType) : this(publisher, @event)
+        public EventContext(IEventPublisher publisher, T @event, IEventEnvelope envelope, ContentType? contentType) : this(publisher, @event)
         {
             Id = envelope.Id;
             RequestId = envelope.RequestId;
@@ -112,7 +112,7 @@ namespace Tingle.EventBus
         }
 
         // marked internal because of the forced null forgiving operator
-        internal EventContext(IEventPublisher publisher, EventEnvelope<T> envelope, ContentType? contentType, string? transportIdentifier)
+        internal EventContext(IEventPublisher publisher, IEventEnvelope<T> envelope, ContentType? contentType, string? transportIdentifier)
             : this(publisher, envelope.Event!, envelope, contentType)
         {
             TransportIdentifier = transportIdentifier;

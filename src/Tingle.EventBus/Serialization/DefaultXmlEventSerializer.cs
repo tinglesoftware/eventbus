@@ -31,13 +31,13 @@ namespace Tingle.EventBus.Serialization
         protected override IList<string> SupportedMediaTypes => new[] { "application/xml", "text/xml", };
 
         /// <inheritdoc/>
-        protected override Task<EventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                                 ContentType? contentType,
-                                                                                 CancellationToken cancellationToken = default)
+        protected override Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
+                                                                                  ContentType? contentType,
+                                                                                  CancellationToken cancellationToken = default)
         {
             var serializer = new XmlSerializer(typeof(EventEnvelope<T>));
             var envelope = (EventEnvelope<T>?)serializer.Deserialize(stream);
-            return Task.FromResult(envelope);
+            return Task.FromResult<IEventEnvelope<T>?>(envelope);
         }
 
         /// <inheritdoc/>

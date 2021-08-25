@@ -138,9 +138,9 @@ namespace Tingle.EventBus.Serialization
         /// <param name="contentType">The type of content contained in the <paramref name="stream"/>.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected abstract Task<EventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                                 ContentType? contentType,
-                                                                                 CancellationToken cancellationToken = default)
+        protected abstract Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
+                                                                                  ContentType? contentType,
+                                                                                  CancellationToken cancellationToken = default)
             where T : class;
 
         /// <summary>

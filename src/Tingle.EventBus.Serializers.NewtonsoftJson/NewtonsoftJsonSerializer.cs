@@ -41,9 +41,9 @@ namespace Tingle.EventBus.Serializers
         protected override IList<string> SupportedMediaTypes => JsonContentTypes;
 
         /// <inheritdoc/>
-        protected override Task<EventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                                 ContentType? contentType,
-                                                                                 CancellationToken cancellationToken = default)
+        protected override Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
+                                                                                  ContentType? contentType,
+                                                                                  CancellationToken cancellationToken = default)
         {
             // get the encoding and always default to UTF-8
             var encoding = Encoding.GetEncoding(contentType?.CharSet ?? Encoding.UTF8.BodyName);
@@ -56,7 +56,7 @@ namespace Tingle.EventBus.Serializers
                                             leaveOpen: true);
             using var jr = new JsonTextReader(sr);
             var envelope = serializer.Deserialize<EventEnvelope<T>>(jr);
-            return Task.FromResult(envelope);
+            return Task.FromResult<IEventEnvelope<T>?>(envelope);
         }
 
         /// <inheritdoc/>

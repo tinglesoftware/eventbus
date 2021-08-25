@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Registrations;
+using Tingle.EventBus.Transports.InMemory.Client;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
@@ -225,7 +226,7 @@ namespace Tingle.EventBus.Transports.InMemory
             }
 
             // Add to published list
-            published.AddBatch(events);
+            AddBatch(published, events);
 
             // Get the queue and send the message accordingly
             var sender = await GetSenderAsync(registration, cancellationToken);
@@ -421,6 +422,17 @@ namespace Tingle.EventBus.Transports.InMemory
             {
                 // Add to failed list
                 failed.Add(context);
+            }
+        }
+
+        internal static void AddBatch<T>(ConcurrentBag<T> bag, IEnumerable<T> items)
+        {
+            if (bag is null) throw new ArgumentNullException(nameof(bag));
+            if (items is null) throw new ArgumentNullException(nameof(items));
+
+            foreach (var item in items)
+            {
+                bag.Add(item);
             }
         }
     }

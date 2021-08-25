@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Threading;
 
-namespace Tingle.EventBus.Transports.InMemory
+namespace Tingle.EventBus.Transports.InMemory.Client
 {
     /// <summary>
     /// The <see cref="ProcessMessageEventArgs"/> contain event args that are specific
     /// to the <see cref="InMemoryReceivedMessage"/> that is being processed.
     /// </summary>
-    public class ProcessMessageEventArgs : EventArgs
+    internal class ProcessMessageEventArgs : EventArgs
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessMessageEventArgs"/> class.

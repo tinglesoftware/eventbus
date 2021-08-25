@@ -1,8 +1,8 @@
 ﻿using System.Threading.Channels;
 
-namespace Tingle.EventBus.Transports.InMemory
+namespace Tingle.EventBus.Transports.InMemory.Client
 {
-    class BroadcastChannel<T> : Channel<T>
+    internal class BroadcastChannel<T> : Channel<T>
     {
         public BroadcastChannel()
         {

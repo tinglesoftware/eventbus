@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
 
-namespace Tingle.EventBus.Transports.InMemory
+namespace Tingle.EventBus.Transports.InMemory.Client
 {
     internal class InMemoryClient
     {

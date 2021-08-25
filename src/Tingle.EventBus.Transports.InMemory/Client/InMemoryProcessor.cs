@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace Tingle.EventBus.Transports.InMemory
+namespace Tingle.EventBus.Transports.InMemory.Client
 {
     internal class InMemoryProcessor : IDisposable
     {

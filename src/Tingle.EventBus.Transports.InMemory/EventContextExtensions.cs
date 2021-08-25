@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using Tingle.EventBus.Transports.InMemory;
+using Tingle.EventBus.Transports.InMemory.Client;
 
 namespace Tingle.EventBus
 {
@@ -12,7 +12,7 @@ namespace Tingle.EventBus
         internal const string ItemsKeyMessage = "inmemory.received-message";
 
         /// <summary>
-        /// Gets the <see cref="InMemoryMessage"/> associated with the specified <see cref="EventContext"/>
+        /// Gets the <see cref="InMemoryReceivedMessage"/> associated with the specified <see cref="EventContext"/>
         /// if the event uses Azure Service Bus transport.
         /// </summary>
         /// <param name="context">The <see cref="EventContext"/> to use.</param>
@@ -40,7 +40,7 @@ namespace Tingle.EventBus
         }
 
         /// <summary>
-        /// Set the <see cref="InMemoryMessage"/> for an event.
+        /// Set the <see cref="InMemoryReceivedMessage"/> for an event.
         /// </summary>
         /// <typeparam name="T">The context type.</typeparam>
         /// <param name="context">The <see cref="EventContext"/> to update.</param>

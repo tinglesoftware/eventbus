@@ -8,36 +8,37 @@ using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus.Serialization
+namespace Tingle.EventBus.Serializers
 {
     /// <summary>
     /// The default implementation of <see cref="IEventSerializer"/> for XML.
     /// </summary>
-    public class DefaultXmlEventSerializer : AbstractEventSerializer
+    public class XmlEventSerializer : AbstractEventSerializer
     {
         /// <summary>
-        /// Creates an instance of <see cref="DefaultXmlEventSerializer"/>.
+        /// Creates an instance of <see cref="XmlEventSerializer"/>.
         /// </summary>
         /// <param name="serviceProvider"></param>
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
         /// <param name="loggerFactory"></param>
-        public DefaultXmlEventSerializer(IServiceProvider serviceProvider,
-                                         IOptionsMonitor<EventBusOptions> optionsAccessor,
-                                         ILoggerFactory loggerFactory)
+        public XmlEventSerializer(IServiceProvider serviceProvider,
+                                  IOptionsMonitor<EventBusOptions> optionsAccessor,
+                                  ILoggerFactory loggerFactory)
             : base(serviceProvider, optionsAccessor, loggerFactory) { }
 
         /// <inheritdoc/>
         protected override IList<string> SupportedMediaTypes => new[] { "application/xml", "text/xml", };
 
         /// <inheritdoc/>
-        protected override Task<EventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                                 ContentType? contentType,
-                                                                                 CancellationToken cancellationToken = default)
+        protected override Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
+                                                                                  ContentType? contentType,
+                                                                                  CancellationToken cancellationToken = default)
         {
-            var serializer = new XmlSerializer(typeof(EventEnvelope<T>));
-            var envelope = (EventEnvelope<T>?)serializer.Deserialize(stream);
-            return Task.FromResult(envelope);
+            var serializer = new XmlSerializer(typeof(XmlEventEnvelope<T>));
+            var envelope = (XmlEventEnvelope<T>?)serializer.Deserialize(stream);
+            return Task.FromResult<IEventEnvelope<T>?>(envelope);
         }
 
         /// <inheritdoc/>
@@ -45,8 +46,8 @@ namespace Tingle.EventBus.Serialization
                                                           EventEnvelope<T> envelope,
                                                           CancellationToken cancellationToken = default)
         {
-            var serializer = new XmlSerializer(typeof(EventEnvelope<T>));
-            serializer.Serialize(stream, envelope);
+            var serializer = new XmlSerializer(typeof(XmlEventEnvelope<T>));
+            serializer.Serialize(stream, new XmlEventEnvelope<T>(envelope));
             return Task.CompletedTask;
         }
     }

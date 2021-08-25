@@ -18,6 +18,8 @@ namespace MultiEventsConsumer
 
                     services.AddEventBus(builder =>
                     {
+                        builder.UseDefaultXmlSerializer();
+
                         // Transport agnostic configuration
                         builder.Configure(o =>
                         {

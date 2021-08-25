@@ -31,9 +31,9 @@ namespace Tingle.EventBus.Serialization
         protected override IList<string> SupportedMediaTypes => JsonContentTypes;
 
         /// <inheritdoc/>
-        protected override async Task<EventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                                       ContentType? contentType,
-                                                                                       CancellationToken cancellationToken = default)
+        protected override async Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
+                                                                                        ContentType? contentType,
+                                                                                        CancellationToken cancellationToken = default)
         {
             var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;
             return await JsonSerializer.DeserializeAsync<EventEnvelope<T>>(utf8Json: stream,

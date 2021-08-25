@@ -302,7 +302,7 @@ namespace Tingle.EventBus.Transports.InMemory
                 {
                     // Create the sender
                     var name = reg.EventName!;
-                    sender = inMemoryClient.CreateSender(queueOrTopicName: name);
+                    sender = inMemoryClient.CreateSender(name: name, broadcast: reg.EntityKind == EntityKind.Broadcast);
                     sendersCache[reg.EventType] = sender;
                 }
 

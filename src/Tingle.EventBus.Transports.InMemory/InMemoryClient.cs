@@ -43,26 +43,46 @@ namespace Tingle.EventBus.Transports.InMemory
         /// <returns>An <see cref="InMemoryProcessor"/> scoped to the specified topic and subscription.</returns>
         public virtual InMemoryProcessor CreateProcessor(string topicName, string subscriptionName, InMemoryProcessorOptions options)
         {
-            var channel = GetChannel(topicName);
-            return new InMemoryProcessor(entityPath: $"{topicName}/{subscriptionName}", reader: channel.Reader);
+            var parent = GetChannel(entityPath: topicName, broadcast: true);
+            var entityPath = $"{topicName}/{subscriptionName}";
+            var channel = GetChannel(entityPath: entityPath);
+            ((BroadcastChannelWriter<InMemoryMessage>)parent.Writer).Children.Add(channel.Writer);
+            return new InMemoryProcessor(entityPath: entityPath, reader: channel.Reader);
         }
 
         /// <summary>
         /// Creates an <see cref="InMemorySender"/> instance that can be used to sending messages
         /// to a specific queue or topic.
         /// </summary>
-        /// <param name="queueOrTopicName">The queue or topic to create a Azure.Messaging.ServiceBus.ServiceBusSender for.</param>
+        /// <param name="name">The queue or topic to create a Azure.Messaging.ServiceBus.ServiceBusSender for.</param>
+        /// <param name="broadcast">Whether the channel is for broadcast (topic) or not.</param>
         /// <returns>An <see cref="InMemorySender"/> scoped to the specified queue or topic.</returns>
-        public virtual InMemorySender CreateSender(string queueOrTopicName)
+        public virtual InMemorySender CreateSender(string name, bool broadcast)
         {
-            var channel = GetChannel(queueOrTopicName);
-            return new InMemorySender(entityPath: queueOrTopicName, writer: channel.Writer, sng: sng);
+            var channel = GetChannel(entityPath: name, broadcast: broadcast);
+            return new InMemorySender(entityPath: name, writer: channel.Writer, sng: sng);
         }
 
-        private Channel<InMemoryMessage> GetChannel(string queueOrTopicName)
+        private Channel<InMemoryMessage> GetChannel(string entityPath, bool broadcast = false)
         {
-            // TODO: pass options to the channel
-            return channels.GetOrAdd(queueOrTopicName, (name) => Channel.CreateUnbounded<InMemoryMessage>());
+            return channels.GetOrAdd(entityPath, _ =>
+            {
+                if (broadcast)
+                {
+                    return new BroadcastChannel<InMemoryMessage>();
+                }
+                else
+                {
+                    var options = new UnboundedChannelOptions
+                    {
+                        AllowSynchronousContinuations = false,
+                        SingleReader = false,
+                        SingleWriter = false,
+                    };
+                    return Channel.CreateUnbounded<InMemoryMessage>(options);
+                }
+            });
         }
+
     }
 }

@@ -121,7 +121,7 @@ namespace Tingle.EventBus.Serialization
             var stream = new MemoryStream();
             await SerializeEnvelopeAsync(stream: stream, envelope: envelope, cancellationToken: cancellationToken);
 
-            // Return to the begining of the stream
+            // Return to the beginning of the stream
             stream.Seek(0, SeekOrigin.Begin);
 
             context.Body = await BinaryData.FromStreamAsync(stream, cancellationToken);

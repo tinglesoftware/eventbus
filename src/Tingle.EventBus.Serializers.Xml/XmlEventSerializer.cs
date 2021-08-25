@@ -8,21 +8,22 @@ using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus.Serialization
+namespace Tingle.EventBus.Serializers
 {
     /// <summary>
     /// The default implementation of <see cref="IEventSerializer"/> for XML.
     /// </summary>
-    public class DefaultXmlEventSerializer : AbstractEventSerializer
+    public class XmlEventSerializer : AbstractEventSerializer
     {
         /// <summary>
-        /// Creates an instance of <see cref="DefaultXmlEventSerializer"/>.
+        /// Creates an instance of <see cref="XmlEventSerializer"/>.
         /// </summary>
         /// <param name="serviceProvider"></param>
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
         /// <param name="loggerFactory"></param>
-        public DefaultXmlEventSerializer(IServiceProvider serviceProvider,
+        public XmlEventSerializer(IServiceProvider serviceProvider,
                                          IOptionsMonitor<EventBusOptions> optionsAccessor,
                                          ILoggerFactory loggerFactory)
             : base(serviceProvider, optionsAccessor, loggerFactory) { }

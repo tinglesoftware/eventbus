@@ -118,7 +118,7 @@ namespace Tingle.EventBus.Serialization
             };
 
             // Serialize
-            var stream = new MemoryStream();
+            using var stream = new MemoryStream();
             await SerializeEnvelopeAsync(stream: stream, envelope: envelope, cancellationToken: cancellationToken);
 
             // Return to the beginning of the stream

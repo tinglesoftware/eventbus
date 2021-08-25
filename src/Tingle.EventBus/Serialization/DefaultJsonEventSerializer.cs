@@ -37,8 +37,8 @@ namespace Tingle.EventBus.Serialization
         {
             var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;
             return await JsonSerializer.DeserializeAsync<EventEnvelope<T>>(utf8Json: stream,
-                                                                             options: serializerOptions,
-                                                                             cancellationToken: cancellationToken);
+                                                                           options: serializerOptions,
+                                                                           cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>

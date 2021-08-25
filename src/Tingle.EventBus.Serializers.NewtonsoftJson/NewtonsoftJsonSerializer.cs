@@ -49,7 +49,11 @@ namespace Tingle.EventBus.Serializers
             var encoding = Encoding.GetEncoding(contentType?.CharSet ?? Encoding.UTF8.BodyName);
 
             // Deserialize
-            using var sr = new StreamReader(stream, encoding);
+            using var sr = new StreamReader(stream: stream,
+                                            encoding: encoding,
+                                            detectEncodingFromByteOrderMarks: true,
+                                            bufferSize: 512,
+                                            leaveOpen: true);
             using var jr = new JsonTextReader(sr);
             var envelope = serializer.Deserialize<EventEnvelope<T>>(jr);
             return Task.FromResult(envelope);
@@ -61,7 +65,10 @@ namespace Tingle.EventBus.Serializers
                                                           CancellationToken cancellationToken = default)
         {
             // Serialize
-            using var sw = new StreamWriter(stream);
+            using var sw = new StreamWriter(stream: stream,
+                                            encoding: Encoding.UTF8,
+                                            bufferSize: 512,
+                                            leaveOpen: true);
             using var jw = new JsonTextWriter(sw);
             serializer.Serialize(jw, envelope);
 

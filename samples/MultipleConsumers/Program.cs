@@ -16,6 +16,8 @@ namespace MultipleConsumers
                 {
                     services.AddEventBus(builder =>
                     {
+                        builder.UseDefaultNewtonsoftJsonSerializer();
+
                         // Transport agnostic configuration
                         builder.Configure(o =>
                         {

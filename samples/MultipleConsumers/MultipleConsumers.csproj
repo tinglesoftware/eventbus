@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Tingle.EventBus.Serializers.NewtonsoftJson\Tingle.EventBus.Serializers.NewtonsoftJson.csproj" />
     <ProjectReference Include="..\..\src\Tingle.EventBus.Transports.InMemory\Tingle.EventBus.Transports.InMemory.csproj" />
   </ItemGroup>
 

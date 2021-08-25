@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Core" Version="1.17.0" />
+    <PackageReference Include="Azure.Core" Version="1.18.0" />
     <PackageReference Include="Tingle.Extensions.AnyOf" Version="3.4.4" />
   </ItemGroup>
 

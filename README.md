@@ -53,6 +53,7 @@ A number fo the documents below are still a work in progress and would be added 
 * [Build a custom event serializer](./samples/CustomEventSerializer)
 * [Build a custom event configurator](./samples/CustomEventConfigurator)
 * [Consume multiple events in one consumer](./samples/MultiEventsConsumer)
+* [Consume same event in multiple consumers](./samples/MultipleConsumers)
 * [In memory background processing](./samples/InMemoryBackgroundProcessing)
 
 ## Issues &amp; Comments

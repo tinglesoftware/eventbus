@@ -23,6 +23,9 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 // Set the IdFormat
                 options.SetEventIdFormat(reg, busOptions);
+
+                // Ensure the entity type is allowed
+                options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast, EntityKind.Queue);
             }
         }
     }

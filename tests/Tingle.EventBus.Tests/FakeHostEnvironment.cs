@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Tingle.EventBus.Tests
 {
-    internal class FakeHostEnvironment : IHostEnvironment
+    public class FakeHostEnvironment : IHostEnvironment
     {
         public FakeHostEnvironment() { } // Required for DI
 

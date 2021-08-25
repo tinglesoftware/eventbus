@@ -584,8 +584,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                                                          identifier: message.SequenceNumber.ToString(),
                                                          cancellationToken: cancellationToken);
 
-            Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{EntityPath}'",
-                                  messageId,
+            Logger.LogInformation("Received message: '{SequenceNumber}' containing Event '{Id}' from '{EntityPath}'",
+                                  message.SequenceNumber,
                                   context.Id,
                                   entityPath);
 

@@ -9,7 +9,7 @@ namespace Tingle.EventBus
     /// </summary>
     public static class EventContextExtensions
     {
-        internal const string ItemsKeyMessage =  "azure.servicebus.message";
+        internal const string ItemsKeyMessage =  "azure.servicebus.received-message";
 
         /// <summary>
         /// Gets the <see cref="ServiceBusReceivedMessage"/> associated with the specified <see cref="EventContext"/>

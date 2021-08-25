@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Registrations;
+using Tingle.EventBus.Transports.InMemory.Client;
 
 namespace Tingle.EventBus.Transports.InMemory
 {
@@ -19,18 +20,17 @@ namespace Tingle.EventBus.Transports.InMemory
     /// This implementation should only be used for unit testing or similar scenarios as it does not offer persistence.
     /// </summary>
     [TransportName(TransportNames.InMemory)]
-    public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>, IDisposable
+    public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
     {
-        private readonly Dictionary<(Type, bool), InMemoryTransportQueue> queuesCache = new();
-        private readonly SemaphoreSlim queuesCacheLock = new(1, 1); // only one at a time.
-        private readonly CancellationTokenSource stoppingCts = new();
-        private readonly List<Task> receiverTasks = new();
+        private readonly Dictionary<Type, InMemorySender> sendersCache = new();
+        private readonly SemaphoreSlim sendersCacheLock = new(1, 1); // only one at a time.
+        private readonly Dictionary<string, InMemoryProcessor> processorsCache = new();
+        private readonly SemaphoreSlim processorsCacheLock = new(1, 1); // only one at a time.
+        private readonly InMemoryClient inMemoryClient;
 
         private readonly ConcurrentBag<EventContext> published = new();
         private readonly ConcurrentBag<EventContext> consumed = new();
         private readonly ConcurrentBag<EventContext> failed = new();
-
-        private readonly SequenceNumberGenerator sng;
 
         /// <summary>
         /// 
@@ -47,7 +47,7 @@ namespace Tingle.EventBus.Transports.InMemory
                                  SequenceNumberGenerator sng)
             : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
         {
-            this.sng = sng ?? throw new ArgumentNullException(nameof(sng));
+            inMemoryClient = new InMemoryClient(sng);
         }
 
         /// <summary>
@@ -78,18 +78,25 @@ namespace Tingle.EventBus.Transports.InMemory
         {
             await base.StartAsync(cancellationToken);
 
-            if (receiverTasks.Count > 0)
-            {
-                throw new InvalidOperationException("The bus has already been started.");
-            }
-
             var registrations = GetRegistrations();
             foreach (var reg in registrations)
             {
                 foreach (var ecr in reg.Consumers)
                 {
-                    var t = ReceiveAsync(reg: reg, ecr: ecr, cancellationToken: stoppingCts.Token);
-                    receiverTasks.Add(t);
+                    var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken);
+
+                    // register handlers for error and processing
+                    processor.ProcessMessageAsync += delegate (ProcessMessageEventArgs args)
+                    {
+                        var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+                        var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
+                        var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
+                        return (Task)method.Invoke(this, new object[] { reg, ecr, processor, args, });
+                    };
+
+                    // start processing
+                    Logger.LogInformation("Starting processing on {EntityPath}", processor.EntityPath);
+                    await processor.StartProcessingAsync(cancellationToken: cancellationToken);
                 }
             }
         }
@@ -99,19 +106,22 @@ namespace Tingle.EventBus.Transports.InMemory
         {
             await base.StopAsync(cancellationToken);
 
-            // Stop called without start or there was no consumers registered
-            if (receiverTasks.Count == 0) return;
+            var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
+            foreach (var (key, proc) in clients)
+            {
+                Logger.LogDebug("Stopping client: {Processor}", key);
 
-            try
-            {
-                // Signal cancellation to the executing methods/tasks
-                stoppingCts.Cancel();
-            }
-            finally
-            {
-                // Wait until the tasks complete or the stop token triggers
-                var tasks = receiverTasks.Concat(new[] { Task.Delay(Timeout.Infinite, cancellationToken), });
-                await Task.WhenAny(tasks);
+                try
+                {
+                    await proc.StopProcessingAsync(cancellationToken);
+                    processorsCache.Remove(key);
+
+                    Logger.LogDebug("Stopped processor for {Processor}", key);
+                }
+                catch (Exception exception)
+                {
+                    Logger.LogWarning(exception, "Stop processor faulted for {Processor}", key);
+                }
             }
         }
 
@@ -138,7 +148,6 @@ namespace Tingle.EventBus.Transports.InMemory
                 MessageId = @event.Id,
                 ContentType = @event.ContentType?.ToString(),
                 CorrelationId = @event.CorrelationId,
-                SequenceNumber = sng.Generate(),
             };
 
             // If scheduled for later, set the value in the message
@@ -156,19 +165,19 @@ namespace Tingle.EventBus.Transports.InMemory
             published.Add(@event);
 
             // Get the queue and send the message accordingly
-            var queueEntity = await GetQueueAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
-            Logger.LogInformation("Sending {Id} to '{QueueName}'. Scheduled: {Scheduled}",
+            var sender = await GetSenderAsync(registration, cancellationToken);
+            Logger.LogInformation("Sending {Id} to '{EntityPath}'. Scheduled: {Scheduled}",
                                   @event.Id,
-                                  queueEntity.Name,
+                                  sender.EntityPath,
                                   scheduled);
             if (scheduled != null)
             {
-                _ = DelayThenExecuteAsync(scheduled.Value, (msg, ct) => queueEntity.EnqueueAsync(msg, ct), message);
-                return new ScheduledResult(id: message.SequenceNumber, scheduled: scheduled.Value);
+                var seqNum = await sender.ScheduleMessageAsync(message: message, cancellationToken: cancellationToken);
+                return new ScheduledResult(id: seqNum, scheduled: scheduled.Value); // return the sequence number
             }
             else
             {
-                await queueEntity.EnqueueAsync(message);
+                await sender.SendMessageAsync(message);
                 return null; // no sequence number available
             }
         }
@@ -200,7 +209,6 @@ namespace Tingle.EventBus.Transports.InMemory
                     MessageId = @event.Id,
                     CorrelationId = @event.CorrelationId,
                     ContentType = @event.ContentType?.ToString(),
-                    SequenceNumber = sng.Generate(),
                 };
 
                 // If scheduled for later, set the value in the message
@@ -218,23 +226,23 @@ namespace Tingle.EventBus.Transports.InMemory
             }
 
             // Add to published list
-            published.AddBatch(events);
+            AddBatch(published, events);
 
             // Get the queue and send the message accordingly
-            var queueEntity = await GetQueueAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
+            var sender = await GetSenderAsync(registration, cancellationToken);
             Logger.LogInformation("Sending {EventsCount} messages to '{EntityPath}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
                                   events.Count,
-                                  queueEntity.Name,
+                                  sender.EntityPath,
                                   scheduled,
                                   string.Join("\r\n- ", events.Select(e => e.Id)));
             if (scheduled != null)
             {
-                _ = DelayThenExecuteAsync(scheduled.Value, (msgs, ct) => queueEntity.EnqueueAsync(msgs, ct), messages);
-                return messages.Select(msg => new ScheduledResult(id: msg.SequenceNumber, scheduled: scheduled.Value)).ToList();
+                var seqNums = await sender.ScheduleMessagesAsync(messages: messages, cancellationToken: cancellationToken);
+                return seqNums.Select(n => new ScheduledResult(id: n, scheduled: scheduled.Value)).ToList(); // return the sequence numbers
             }
             else
             {
-                await queueEntity.EnqueueAsync(messages);
+                await sender.SendMessagesAsync(messages);
                 return Array.Empty<ScheduledResult>(); // no sequence numbers available
             }
         }
@@ -255,9 +263,9 @@ namespace Tingle.EventBus.Transports.InMemory
             }
 
             // get the entity and cancel the message accordingly
-            var queueEntity = await GetQueueAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
-            Logger.LogInformation("Canceling scheduled message: {SequenceNumber} on {EntityPath}", seqNum, queueEntity.Name);
-            await queueEntity.RemoveAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken);
+            var sender = await GetSenderAsync(registration, cancellationToken);
+            Logger.LogInformation("Canceling scheduled message: {SequenceNumber} on {EntityPath}", seqNum, sender.EntityPath);
+            await sender.CancelScheduledMessageAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken);
         }
 
         /// <inheritdoc/>
@@ -277,87 +285,100 @@ namespace Tingle.EventBus.Transports.InMemory
             }).ToList();
 
             // get the entity and cancel the message accordingly
-            var queueEntity = await GetQueueAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
+            var sender = await GetSenderAsync(registration, cancellationToken);
             Logger.LogInformation("Canceling {EventsCount} scheduled messages on {EntityPath}:\r\n- {SequenceNumbers}",
                                   ids.Count,
-                                  queueEntity.Name,
+                                  sender.EntityPath,
                                   string.Join("\r\n- ", seqNums));
-            await queueEntity.RemoveAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken);
+            await sender.CancelScheduledMessagesAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken);
         }
 
-        private async Task<InMemoryTransportQueue> GetQueueAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
+        private async Task<InMemorySender> GetSenderAsync(EventRegistration reg, CancellationToken cancellationToken)
         {
-            await queuesCacheLock.WaitAsync(cancellationToken);
+            await sendersCacheLock.WaitAsync(cancellationToken);
 
             try
             {
-                if (!queuesCache.TryGetValue((reg.EventType, deadletter), out var queue))
+                if (!sendersCache.TryGetValue(reg.EventType, out var sender))
                 {
+                    // Create the sender
                     var name = reg.EventName!;
-                    if (deadletter) name += TransportOptions.DeadLetterSuffix;
-
-                    queue = new InMemoryTransportQueue(name: name, TransportOptions.DeliveryDelay);
-
-                    queuesCache[(reg.EventType, deadletter)] = queue;
+                    sender = inMemoryClient.CreateSender(name: name, broadcast: reg.EntityKind == EntityKind.Broadcast);
+                    sendersCache[reg.EventType] = sender;
                 }
 
-                return queue;
+                return sender;
             }
             finally
             {
-                queuesCacheLock.Release();
+                sendersCacheLock.Release();
             }
         }
 
-        private async Task ReceiveAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
+        private async Task<InMemoryProcessor> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
         {
-            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-            var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
-            var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
+            await processorsCacheLock.WaitAsync(cancellationToken);
 
-            var queueEntity = await GetQueueAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
-            var queueName = queueEntity.Name;
-
-            while (!cancellationToken.IsCancellationRequested)
+            try
             {
-                try
+                var topicName = reg.EventName!;
+                var subscriptionName = ecr.ConsumerName!;
+
+                var key = $"{topicName}/{subscriptionName}";
+                if (!processorsCache.TryGetValue(key, out var processor))
                 {
-                    var message = await queueEntity.DequeueAsync(cancellationToken);
-                    Logger.LogDebug("Received a message on '{QueueName}'", queueName);
-                    using var scope = CreateScope(); // shared
-                    await (Task)method.Invoke(this, new object[] { reg, ecr, queueEntity, message, scope, cancellationToken, });
+                    // Create the processor options
+                    var inpo = new InMemoryProcessorOptions { };
+
+                    // Create the processor.
+                    if (reg.EntityKind == EntityKind.Queue)
+                    {
+                        // Create the processor for the Queue
+                        Logger.LogDebug("Creating processor for queue '{QueueName}'", topicName);
+                        processor = inMemoryClient.CreateProcessor(queueName: topicName, options: inpo);
+                    }
+                    else
+                    {
+                        // Create the processor for the Subscription
+                        Logger.LogDebug("Creating processor for topic '{TopicName}' and subscription '{Subscription}'",
+                                        topicName,
+                                        subscriptionName);
+                        processor = inMemoryClient.CreateProcessor(topicName: topicName,
+                                                                   subscriptionName: subscriptionName,
+                                                                   options: inpo);
+                    }
+
+                    processorsCache[key] = processor;
                 }
-                catch (TaskCanceledException)
-                {
-                    // Ignore
-                    // Thrown from inside Task.Delay(...) if cancellation token is canceled
-                }
-                catch (OperationCanceledException)
-                {
-                    // Ignore
-                    // Thrown from calls to cancellationToken.ThrowIfCancellationRequested(...)
-                }
+
+                return processor;
+            }
+            finally
+            {
+                processorsCacheLock.Release();
             }
         }
 
         private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
                                                                      EventConsumerRegistration ecr,
-                                                                     InMemoryTransportQueue queueEntity,
-                                                                     InMemoryMessage message,
-                                                                     IServiceScope scope,
-                                                                     CancellationToken cancellationToken)
+                                                                     InMemoryProcessor processor,
+                                                                     ProcessMessageEventArgs args)
             where TEvent : class
             where TConsumer : IEventConsumer<TEvent>
         {
+            var entityPath = processor.EntityPath;
+            var message = args.Message;
             var messageId = message.MessageId;
+            var cancellationToken = args.CancellationToken;
 
             message.Properties.TryGetValue(AttributeNames.ActivityId, out var parentActivityId);
 
             using var log_scope = BeginLoggingScopeForConsume(id: messageId,
-                                                              correlationId: null,
+                                                              correlationId: message.CorrelationId,
+                                                              sequenceNumber: message.SequenceNumber.ToString(),
                                                               extras: new Dictionary<string, string?>
                                                               {
-                                                                  ["QueueName"] = queueEntity.Name,
+                                                                  ["EntityPath"] = entityPath,
                                                               });
 
             // Instrumentation
@@ -365,25 +386,27 @@ namespace Tingle.EventBus.Transports.InMemory
             activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
             activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
             activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
-            activity?.AddTag(ActivityTagNames.MessagingDestination, queueEntity.Name);
-            activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
+            var destination = reg.EntityKind == EntityKind.Queue ? reg.EventName : ecr.ConsumerName;
+            activity?.AddTag(ActivityTagNames.MessagingDestination, destination); // name of the queue/subscription
+            activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
 
-            Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueEntity.Name);
+            Logger.LogDebug("Processing '{MessageId}' from '{EntityPath}'", messageId, entityPath);
+            using var scope = CreateScope();
             var contentType = new ContentType(message.ContentType);
             var context = await DeserializeAsync<TEvent>(scope: scope,
                                                          body: message.Body,
                                                          contentType: contentType,
                                                          registration: reg,
-                                                         identifier: messageId,
+                                                         identifier: message.SequenceNumber.ToString(),
                                                          cancellationToken: cancellationToken);
 
-            Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueName}'",
-                                  messageId,
+            Logger.LogInformation("Received message: '{SequenceNumber}' containing Event '{Id}' from '{EntityPath}'",
+                                  message.SequenceNumber,
                                   context.Id,
-                                  queueEntity.Name);
+                                  entityPath);
 
             // set the extras
-            context.SetInMemoryMessage(message);
+            context.SetInMemoryReceivedMessage(message);
 
             var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
                                                                         @event: context,
@@ -399,37 +422,18 @@ namespace Tingle.EventBus.Transports.InMemory
             {
                 // Add to failed list
                 failed.Add(context);
-
-                // Deadletter if needed
-                if (ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
-                {
-                    // get the dead letter queue and send the mesage there
-                    var dlqEntity = await GetQueueAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
-                    await dlqEntity.EnqueueAsync(message);
-                }
             }
         }
 
-        private async Task DelayThenExecuteAsync<TArg>(DateTimeOffset scheduled, Func<TArg, CancellationToken, Task> action, TArg arg, CancellationToken cancellationToken = default)
+        internal static void AddBatch<T>(ConcurrentBag<T> bag, IEnumerable<T> items)
         {
-            if (action is null)
+            if (bag is null) throw new ArgumentNullException(nameof(bag));
+            if (items is null) throw new ArgumentNullException(nameof(items));
+
+            foreach (var item in items)
             {
-                throw new ArgumentNullException(nameof(action));
+                bag.Add(item);
             }
-
-            var remainder = scheduled - DateTimeOffset.UtcNow;
-            if (remainder > TimeSpan.Zero)
-            {
-                await Task.Delay(remainder, cancellationToken);
-            }
-
-            await action(arg, cancellationToken);
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            stoppingCts.Cancel();
         }
     }
 }

@@ -77,12 +77,6 @@ namespace Tingle.EventBus.Transports.InMemory
             await updateLock.WaitAsync(cancellationToken);
             try
             {
-                // ensure we do not have any duplicates for the sequence number.
-                if (items.Any(m => m.SequenceNumber == message.SequenceNumber))
-                {
-                    throw new ArgumentException($"An item with the sequence number {message.SequenceNumber} is already present.", nameof(message));
-                }
-
                 message.SequenceNumber = sng.Generate();
                 items.Add(message);
                 available.Release();
@@ -106,16 +100,6 @@ namespace Tingle.EventBus.Transports.InMemory
             await updateLock.WaitAsync(cancellationToken);
             try
             {
-                // ensure we do not have any duplicates for the sequence number.
-                var duplicates = messages.Select(m => m.SequenceNumber).Intersect(items.Select(i => i.SequenceNumber)).ToList();
-                foreach (var message in messages)
-                {
-                    if (messages.Any(m => m.SequenceNumber == message.SequenceNumber))
-                    {
-                        throw new ArgumentException($"An item with the sequence number {message.SequenceNumber} is already present.", nameof(message));
-                    }
-                }
-
                 // set sequence numbers after validation check
                 foreach (var message in messages)
                 {

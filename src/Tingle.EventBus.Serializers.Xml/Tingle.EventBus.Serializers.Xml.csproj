@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Description>
+      EventBus serializer for XML.
+      $(Description)
+    </Description>
+    <PackageTags>$(PackageTags);Serializers;XML</PackageTags>
+    <RootNamespace>Tingle.EventBus.Serializers</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tingle.EventBus\Tingle.EventBus.csproj" />
+  </ItemGroup>
+
+</Project>

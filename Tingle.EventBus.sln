@@ -12,6 +12,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus", "src\Ting
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Serializers.NewtonsoftJson", "src\Tingle.EventBus.Serializers.NewtonsoftJson\Tingle.EventBus.Serializers.NewtonsoftJson.csproj", "{B292B03E-7909-49F4-9295-F9F1FED0EF02}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Serializers.Xml", "src\Tingle.EventBus.Serializers.Xml\Tingle.EventBus.Serializers.Xml.csproj", "{C897FE6B-2F1D-4C71-8F3B-4330226AB220}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Amazon.Abstractions", "src\Tingle.EventBus.Transports.Amazon.Abstractions\Tingle.EventBus.Transports.Amazon.Abstractions.csproj", "{1ED48501-B1A3-4882-B67A-FC39278505BE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tingle.EventBus.Transports.Amazon.Kinesis", "src\Tingle.EventBus.Transports.Amazon.Kinesis\Tingle.EventBus.Transports.Amazon.Kinesis.csproj", "{7432F6AC-265B-4226-B285-AE9ABB33F4AD}"
@@ -78,6 +80,10 @@ Global
 		{B292B03E-7909-49F4-9295-F9F1FED0EF02}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B292B03E-7909-49F4-9295-F9F1FED0EF02}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B292B03E-7909-49F4-9295-F9F1FED0EF02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C897FE6B-2F1D-4C71-8F3B-4330226AB220}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C897FE6B-2F1D-4C71-8F3B-4330226AB220}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C897FE6B-2F1D-4C71-8F3B-4330226AB220}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C897FE6B-2F1D-4C71-8F3B-4330226AB220}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1ED48501-B1A3-4882-B67A-FC39278505BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1ED48501-B1A3-4882-B67A-FC39278505BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1ED48501-B1A3-4882-B67A-FC39278505BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -169,6 +175,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{967CBEC5-4A2D-4635-905D-6AA2DFE1341F} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{B292B03E-7909-49F4-9295-F9F1FED0EF02} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
+		{C897FE6B-2F1D-4C71-8F3B-4330226AB220} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{1ED48501-B1A3-4882-B67A-FC39278505BE} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{7432F6AC-265B-4226-B285-AE9ABB33F4AD} = {3647730E-193B-45E9-8ECE-DDA7494C9030}
 		{9D2FB610-EBAB-434C-A7C3-6FB20C3D0C3E} = {3647730E-193B-45E9-8ECE-DDA7494C9030}

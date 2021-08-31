@@ -10,8 +10,8 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         /// <summary>
         /// The duration of time to delay.
-        /// Defaults to the <see cref="InMemoryTransportOptions.DeliveryDelay"/> plus 50ms (0.05 sec).
+        /// Defaults to 50ms (0.05 sec).
         /// </summary>
-        public TimeSpan DefaultDelay { get; set; }
+        public TimeSpan DefaultDelay { get; set; } = TimeSpan.FromMilliseconds(50);
     }
 }

@@ -1,8 +1,7 @@
 ﻿using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using System;
-using Tingle.EventBus;
-using Tingle.EventBus.Registrations;
+using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

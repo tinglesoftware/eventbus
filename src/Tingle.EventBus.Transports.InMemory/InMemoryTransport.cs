@@ -9,8 +9,8 @@ using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
-using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Transports.InMemory.Client;
 
 namespace Tingle.EventBus.Transports.InMemory
@@ -157,9 +157,9 @@ namespace Tingle.EventBus.Transports.InMemory
             }
 
             // Add custom properties
-            message.Properties.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
-                              .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
-                              .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
+            message.Properties.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+                              .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
+                              .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
             // Add to published list
             published.Add(@event);
@@ -218,9 +218,9 @@ namespace Tingle.EventBus.Transports.InMemory
                 }
 
                 // Add custom properties
-                message.Properties.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
-                                  .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
-                                  .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
+                message.Properties.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+                                  .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
+                                  .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
                 messages.Add(message);
             }
@@ -371,7 +371,7 @@ namespace Tingle.EventBus.Transports.InMemory
             var messageId = message.MessageId;
             var cancellationToken = args.CancellationToken;
 
-            message.Properties.TryGetValue(AttributeNames.ActivityId, out var parentActivityId);
+            message.Properties.TryGetValue(MetadataNames.ActivityId, out var parentActivityId);
 
             using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                               correlationId: message.CorrelationId,

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Tingle.EventBus.Registrations;
+using Tingle.EventBus.Configuration;
 
 namespace Tingle.EventBus.Transports.Amazon.Kinesis
 {

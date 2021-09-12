@@ -10,8 +10,8 @@ using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
-using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Azure.ServiceBus
 {
@@ -178,9 +178,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             }
 
             // Add custom properties
-            message.ApplicationProperties.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
-                                         .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
-                                         .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
+            message.ApplicationProperties.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+                                         .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
+                                         .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
             // Get the sender and send the message accordingly
             var sender = await GetSenderAsync(registration, cancellationToken);
@@ -243,9 +243,9 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
                 }
 
                 // Add custom properties
-                message.ApplicationProperties.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
-                                             .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
-                                             .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
+                message.ApplicationProperties.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+                                             .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
+                                             .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
                 messages.Add(message);
             }
@@ -554,7 +554,7 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
             var messageId = message.MessageId;
             var cancellationToken = args.CancellationToken;
 
-            message.ApplicationProperties.TryGetValue(AttributeNames.ActivityId, out var parentActivityId);
+            message.ApplicationProperties.TryGetValue(MetadataNames.ActivityId, out var parentActivityId);
 
             using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                               correlationId: message.CorrelationId,

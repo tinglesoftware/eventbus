@@ -1,4 +1,4 @@
-﻿namespace Tingle.EventBus
+﻿namespace Tingle.EventBus.Configuration
 {
     /// <summary>
     /// The preferred entity type for events.

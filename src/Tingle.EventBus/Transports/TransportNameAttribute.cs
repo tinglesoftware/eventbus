@@ -1,4 +1,5 @@
 ﻿using System;
+using Tingle.EventBus.Configuration;
 
 namespace Tingle.EventBus.Transports
 {

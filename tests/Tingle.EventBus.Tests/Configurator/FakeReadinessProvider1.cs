@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Readiness;
-using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Tests.Configurator
 {

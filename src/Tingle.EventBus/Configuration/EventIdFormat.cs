@@ -1,4 +1,4 @@
-﻿namespace Tingle.EventBus
+﻿namespace Tingle.EventBus.Configuration
 {
     /// <summary>
     /// The preferred format to use for values generated for<see cref="EventContext.Id"/>.

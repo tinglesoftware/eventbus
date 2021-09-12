@@ -14,8 +14,8 @@ using System.Net.Mime;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
-using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.RabbitMQ
 {
@@ -157,9 +157,9 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                 }
 
                 // Add custom properties
-                properties.Headers.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
-                                  .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
-                                  .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
+                properties.Headers.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+                                  .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
+                                  .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
                 // do actual publish
                 Logger.LogInformation("Sending {Id} to '{ExchangeName}'. Scheduled: {Scheduled}",
@@ -233,9 +233,9 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     }
 
                     // Add custom properties
-                    properties.Headers.AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
-                                      .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
-                                      .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
+                    properties.Headers.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+                                      .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
+                                      .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
                     // add to batch
                     batch.Add(exchange: name, routingKey: "", mandatory: false, properties: properties, body: body);
@@ -317,7 +317,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                                                               });
 
             object? parentActivityId = null;
-            args.BasicProperties?.Headers.TryGetValue(AttributeNames.ActivityId, out parentActivityId);
+            args.BasicProperties?.Headers.TryGetValue(MetadataNames.ActivityId, out parentActivityId);
 
             // Instrumentation
             using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());

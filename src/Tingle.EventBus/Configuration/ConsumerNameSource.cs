@@ -1,4 +1,4 @@
-﻿namespace Tingle.EventBus
+﻿namespace Tingle.EventBus.Configuration
 {
     /// <summary>
     /// The source used when generating names for consumers.

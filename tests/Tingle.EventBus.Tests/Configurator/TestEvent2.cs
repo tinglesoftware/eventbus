@@ -1,4 +1,6 @@
-﻿namespace Tingle.EventBus.Tests.Configurator
+﻿using Tingle.EventBus.Configuration;
+
+namespace Tingle.EventBus.Tests.Configurator
 {
     [EventName("sample-event")]
     [EventSerializer(typeof(FakeEventSerializer1))]

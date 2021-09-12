@@ -13,8 +13,8 @@ using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
-using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Amazon.Sqs
 {
@@ -129,11 +129,11 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             // get the topic arn and send the message
             var topicArn = await GetTopicArnAsync(registration, cancellationToken);
             var request = new PublishRequest(topicArn: topicArn, message: body.ToString());
-            request.SetAttribute(AttributeNames.ContentType, @event.ContentType?.ToString())
-                   .SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId)
-                   .SetAttribute(AttributeNames.RequestId, @event.RequestId)
-                   .SetAttribute(AttributeNames.InitiatorId, @event.InitiatorId)
-                   .SetAttribute(AttributeNames.ActivityId, Activity.Current?.Id);
+            request.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
+                   .SetAttribute(MetadataNames.CorrelationId, @event.CorrelationId)
+                   .SetAttribute(MetadataNames.RequestId, @event.RequestId)
+                   .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
+                   .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
             Logger.LogInformation("Sending {Id} to '{TopicArn}'. Scheduled: {Scheduled}", @event.Id, topicArn, scheduled);
             var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
@@ -171,11 +171,11 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                 // get the topic arn and send the message
                 var topicArn = await GetTopicArnAsync(registration, cancellationToken);
                 var request = new PublishRequest(topicArn: topicArn, message: body.ToString());
-                request.SetAttribute(AttributeNames.ContentType, @event.ContentType?.ToString())
-                       .SetAttribute(AttributeNames.CorrelationId, @event.CorrelationId)
-                       .SetAttribute(AttributeNames.RequestId, @event.RequestId)
-                       .SetAttribute(AttributeNames.InitiatorId, @event.InitiatorId)
-                       .SetAttribute(AttributeNames.ActivityId, Activity.Current?.Id);
+                request.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
+                       .SetAttribute(MetadataNames.CorrelationId, @event.CorrelationId)
+                       .SetAttribute(MetadataNames.RequestId, @event.RequestId)
+                       .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
+                       .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
                 Logger.LogInformation("Sending {Id} to '{TopicArn}'. Scheduled: {Scheduled}", @event.Id, topicArn, scheduled);
                 var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
                 response.EnsureSuccess();
@@ -359,9 +359,9 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
             where TConsumer : IEventConsumer<TEvent>
         {
             var messageId = message.MessageId;
-            message.TryGetAttribute(AttributeNames.CorrelationId, out var correlationId);
-            message.TryGetAttribute(AttributeNames.SequenceNumber, out var sequenceNumber);
-            message.TryGetAttribute(AttributeNames.ActivityId, out var parentActivityId);
+            message.TryGetAttribute(MetadataNames.CorrelationId, out var correlationId);
+            message.TryGetAttribute(MetadataNames.SequenceNumber, out var sequenceNumber);
+            message.TryGetAttribute(MetadataNames.ActivityId, out var parentActivityId);
 
             using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                               correlationId: correlationId,

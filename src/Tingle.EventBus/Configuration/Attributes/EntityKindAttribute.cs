@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Tingle.EventBus
+namespace Tingle.EventBus.Configuration
 {
     /// <summary>
     /// Specify the EntityKind used for this event contract/type, overriding the generated one.

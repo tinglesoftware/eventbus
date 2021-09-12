@@ -1,4 +1,4 @@
-﻿namespace Tingle.EventBus
+﻿namespace Tingle.EventBus.Configuration
 {
     /// <summary>
     /// The behaviour to follow when an unhandled error in a consumer's

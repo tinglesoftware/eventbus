@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using Tingle.EventBus;
+using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

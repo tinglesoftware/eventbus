@@ -1,3 +1,4 @@
+using Tingle.EventBus.Configuration;
 using Xunit;
 
 namespace Tingle.EventBus.Transports.Azure.ServiceBus.Tests

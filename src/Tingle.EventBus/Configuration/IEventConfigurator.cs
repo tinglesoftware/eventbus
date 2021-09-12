@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace Tingle.EventBus.Registrations
+namespace Tingle.EventBus.Configuration
 {
     /// <summary>
     /// Abstraction for configuring instances of <see cref="EventRegistration"/>.

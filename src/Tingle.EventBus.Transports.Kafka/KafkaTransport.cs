@@ -10,8 +10,8 @@ using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
-using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Kafka
 {
@@ -138,11 +138,11 @@ namespace Tingle.EventBus.Transports.Kafka
 
             // prepare the message
             var message = new Message<string, byte[]>();
-            message.Headers.AddIfNotNull(AttributeNames.CorrelationId, @event.CorrelationId)
-                           .AddIfNotNull(AttributeNames.ContentType, @event.ContentType?.ToString())
-                           .AddIfNotNull(AttributeNames.RequestId, @event.RequestId)
-                           .AddIfNotNull(AttributeNames.InitiatorId, @event.InitiatorId)
-                           .AddIfNotNull(AttributeNames.ActivityId, Activity.Current?.Id);
+            message.Headers.AddIfNotNull(MetadataNames.CorrelationId, @event.CorrelationId)
+                           .AddIfNotNull(MetadataNames.ContentType, @event.ContentType?.ToString())
+                           .AddIfNotNull(MetadataNames.RequestId, @event.RequestId)
+                           .AddIfNotNull(MetadataNames.InitiatorId, @event.InitiatorId)
+                           .AddIfNotNull(MetadataNames.ActivityId, Activity.Current?.Id);
             message.Key = @event.Id!;
             message.Value = body.ToArray();
 
@@ -183,11 +183,11 @@ namespace Tingle.EventBus.Transports.Kafka
 
                 // prepare the message
                 var message = new Message<string, byte[]>();
-                message.Headers.AddIfNotNull(AttributeNames.CorrelationId, @event.CorrelationId)
-                               .AddIfNotNull(AttributeNames.ContentType, @event.ContentType?.ToString())
-                               .AddIfNotNull(AttributeNames.RequestId, @event.RequestId)
-                               .AddIfNotNull(AttributeNames.InitiatorId, @event.InitiatorId)
-                               .AddIfNotNull(AttributeNames.ActivityId, Activity.Current?.Id);
+                message.Headers.AddIfNotNull(MetadataNames.CorrelationId, @event.CorrelationId)
+                               .AddIfNotNull(MetadataNames.ContentType, @event.ContentType?.ToString())
+                               .AddIfNotNull(MetadataNames.RequestId, @event.RequestId)
+                               .AddIfNotNull(MetadataNames.InitiatorId, @event.InitiatorId)
+                               .AddIfNotNull(MetadataNames.ActivityId, Activity.Current?.Id);
                 message.Key = @event.Id!;
                 message.Value = body.ToArray();
 
@@ -285,9 +285,9 @@ namespace Tingle.EventBus.Transports.Kafka
         {
             var message = result.Message;
             var messageKey = message.Key;
-            message.Headers.TryGetValue(AttributeNames.CorrelationId, out var correlationId);
-            message.Headers.TryGetValue(AttributeNames.ContentType, out var contentType_str);
-            message.Headers.TryGetValue(AttributeNames.ActivityId, out var parentActivityId);
+            message.Headers.TryGetValue(MetadataNames.CorrelationId, out var correlationId);
+            message.Headers.TryGetValue(MetadataNames.ContentType, out var contentType_str);
+            message.Headers.TryGetValue(MetadataNames.ActivityId, out var parentActivityId);
 
             using var log_scope = BeginLoggingScopeForConsume(id: messageKey, correlationId: correlationId);
 

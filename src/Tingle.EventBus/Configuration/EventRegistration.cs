@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus.Registrations
+namespace Tingle.EventBus.Configuration
 {
     /// <summary>
     /// Represents a registration for an event.

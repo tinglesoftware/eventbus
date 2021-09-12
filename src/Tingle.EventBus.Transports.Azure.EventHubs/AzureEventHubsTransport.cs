@@ -13,8 +13,8 @@ using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
-using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Azure.EventHubs
 {
@@ -148,14 +148,14 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                             cancellationToken: cancellationToken);
 
             var data = new EventData(body);
-            data.Properties.AddIfNotDefault(AttributeNames.Id, @event.Id)
-                           .AddIfNotDefault(AttributeNames.CorrelationId, @event.CorrelationId)
-                           .AddIfNotDefault(AttributeNames.ContentType, @event.ContentType?.ToString())
-                           .AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
-                           .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
-                           .AddIfNotDefault(AttributeNames.EventName, registration.EventName)
-                           .AddIfNotDefault(AttributeNames.EventType, registration.EventType.FullName)
-                           .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
+            data.Properties.AddIfNotDefault(MetadataNames.Id, @event.Id)
+                           .AddIfNotDefault(MetadataNames.CorrelationId, @event.CorrelationId)
+                           .AddIfNotDefault(MetadataNames.ContentType, @event.ContentType?.ToString())
+                           .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+                           .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
+                           .AddIfNotDefault(MetadataNames.EventName, registration.EventName)
+                           .AddIfNotDefault(MetadataNames.EventType, registration.EventType.FullName)
+                           .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
             // get the producer and send the event accordingly
             var producer = await GetProducerAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
@@ -197,14 +197,14 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                                                 cancellationToken: cancellationToken);
 
                 var data = new EventData(body);
-                data.Properties.AddIfNotDefault(AttributeNames.Id, @event.Id)
-                               .AddIfNotDefault(AttributeNames.CorrelationId, @event.CorrelationId)
-                               .AddIfNotDefault(AttributeNames.ContentType, @event.ContentType?.ToString())
-                               .AddIfNotDefault(AttributeNames.RequestId, @event.RequestId)
-                               .AddIfNotDefault(AttributeNames.InitiatorId, @event.InitiatorId)
-                               .AddIfNotDefault(AttributeNames.EventName, registration.EventName)
-                               .AddIfNotDefault(AttributeNames.EventType, registration.EventType.FullName)
-                               .AddIfNotDefault(AttributeNames.ActivityId, Activity.Current?.Id);
+                data.Properties.AddIfNotDefault(MetadataNames.Id, @event.Id)
+                               .AddIfNotDefault(MetadataNames.CorrelationId, @event.CorrelationId)
+                               .AddIfNotDefault(MetadataNames.ContentType, @event.ContentType?.ToString())
+                               .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+                               .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
+                               .AddIfNotDefault(MetadataNames.EventName, registration.EventName)
+                               .AddIfNotDefault(MetadataNames.EventType, registration.EventType.FullName)
+                               .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
                 datas.Add(data);
             }
 
@@ -383,20 +383,20 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
             var data = args.Data;
             var cancellationToken = args.CancellationToken;
 
-            data.Properties.TryGetValue(AttributeNames.Id, out var eventId);
-            data.Properties.TryGetValue(AttributeNames.CorrelationId, out var correlationId);
-            data.Properties.TryGetValue(AttributeNames.ContentType, out var contentType_str);
-            data.Properties.TryGetValue(AttributeNames.EventName, out var eventName);
-            data.Properties.TryGetValue(AttributeNames.EventType, out var eventType);
-            data.Properties.TryGetValue(AttributeNames.ActivityId, out var parentActivityId);
+            data.Properties.TryGetValue(MetadataNames.Id, out var eventId);
+            data.Properties.TryGetValue(MetadataNames.CorrelationId, out var correlationId);
+            data.Properties.TryGetValue(MetadataNames.ContentType, out var contentType_str);
+            data.Properties.TryGetValue(MetadataNames.EventName, out var eventName);
+            data.Properties.TryGetValue(MetadataNames.EventType, out var eventType);
+            data.Properties.TryGetValue(MetadataNames.ActivityId, out var parentActivityId);
 
             using var log_scope = BeginLoggingScopeForConsume(id: eventId?.ToString(),
                                                               correlationId: correlationId?.ToString(),
                                                               sequenceNumber: data.SequenceNumber.ToString(),
                                                               extras: new Dictionary<string, string?>
                                                               {
-                                                                  [AttributeNames.EventName] = eventName?.ToString(),
-                                                                  [AttributeNames.EventType] = eventType?.ToString(),
+                                                                  [MetadataNames.EventName] = eventName?.ToString(),
+                                                                  [MetadataNames.EventType] = eventType?.ToString(),
                                                                   ["PartitionKey"] = data.PartitionKey,
                                                                   ["EventHubName"] = processor.EventHubName,
                                                                   ["ConsumerGroup"] = processor.ConsumerGroup,

@@ -8,10 +8,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Ids;
 using Tingle.EventBus.Readiness;
-using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Transports;
 
 namespace Tingle.EventBus

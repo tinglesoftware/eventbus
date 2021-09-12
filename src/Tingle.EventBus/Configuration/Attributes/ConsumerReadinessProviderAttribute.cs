@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Tingle.EventBus
+namespace Tingle.EventBus.Configuration
 {
     /// <summary>
     /// Specify the readiness provider type used for an event consumer event, overriding the default one.

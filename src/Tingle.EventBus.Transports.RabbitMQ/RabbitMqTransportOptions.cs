@@ -1,5 +1,5 @@
 ﻿using RabbitMQ.Client;
-using Tingle.EventBus;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection

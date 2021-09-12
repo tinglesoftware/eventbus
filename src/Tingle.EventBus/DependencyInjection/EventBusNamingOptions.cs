@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Tingle.EventBus;
+using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

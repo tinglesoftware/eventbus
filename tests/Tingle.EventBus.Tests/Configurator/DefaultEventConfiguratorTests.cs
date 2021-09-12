@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Readiness;
-using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
 using Xunit;
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Tingle.EventBus.Configuration;
 
 namespace MultipleConsumers
 {
@@ -31,7 +32,7 @@ namespace MultipleConsumers
                         builder.AddInMemoryTransport(o =>
                         {
                             // default to Broadcast kind so that we get pub-sub behaviour
-                            o.DefaultEntityKind = Tingle.EventBus.EntityKind.Broadcast;
+                            o.DefaultEntityKind = EntityKind.Broadcast;
                         });
                     });
 

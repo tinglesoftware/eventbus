@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using Tingle.EventBus;
-using Tingle.EventBus.Registrations;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Serialization;
 using Tingle.EventBus.Transports;
 

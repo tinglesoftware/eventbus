@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Linq;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Readiness;
 using Tingle.EventBus.Serialization;
 

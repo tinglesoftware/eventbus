@@ -1,5 +1,5 @@
 ﻿using CustomEventSerializer.Models;
-using Tingle.EventBus;
+using Tingle.EventBus.Configuration;
 
 namespace CustomEventSerializer
 {

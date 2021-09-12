@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Tingle.EventBus
+namespace Tingle.EventBus.Configuration
 {
     /// <summary>
     /// Specify the serializer type used for an event contract/type, overriding the default one.

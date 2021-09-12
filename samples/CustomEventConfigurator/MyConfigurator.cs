@@ -9,12 +9,12 @@ namespace CustomEventConfigurator
         {
             if (registration.EventType == typeof(SampleEvent1))
             {
-                registration.EntityKind = Tingle.EventBus.EntityKind.Queue;
+                registration.EntityKind = EntityKind.Queue;
             }
 
             if (registration.EventType == typeof(SampleEvent2))
             {
-                registration.IdFormat = Tingle.EventBus.EventIdFormat.LongHex;
+                registration.IdFormat = EventIdFormat.LongHex;
             }
         }
     }

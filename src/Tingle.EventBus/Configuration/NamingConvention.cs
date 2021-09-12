@@ -1,4 +1,4 @@
-﻿namespace Tingle.EventBus
+﻿namespace Tingle.EventBus.Configuration
 {
     /// <summary>
     /// The naming convention used when generating names from types.

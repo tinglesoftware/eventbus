@@ -1,6 +1,7 @@
 ﻿using Amazon.Kinesis;
 using System;
 using Tingle.EventBus;
+using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

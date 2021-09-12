@@ -16,7 +16,7 @@ namespace Tingle.EventBus.Retries
         /// For example: 850ms, 1455ms, 3060ms. 
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="command"></param>
+        /// <param name="event"></param>
         /// <param name="medianFirstRetryDelay">
         /// The median delay to target before the first retry, call it f (= f * 2^0).
         /// Choose this value both to approximate the first delay, and to scale the remainder of the series.
@@ -32,14 +32,14 @@ namespace Tingle.EventBus.Retries
         /// </param>
         /// <param name="fastFirst">Whether the first retry will be immediate or not.</param>
         /// <returns></returns>
-        public static T WithJitterDelays<T>(this T command, TimeSpan medianFirstRetryDelay, int retries, int? seed = null, bool fastFirst = false)
+        public static T WithJitterDelays<T>(this T @event, TimeSpan medianFirstRetryDelay, int retries, int? seed = null, bool fastFirst = false)
             where T : IRetryableEvent
         {
             var delays = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: medianFirstRetryDelay,
                                                              retryCount: retries,
                                                              seed: seed,
                                                              fastFirst: fastFirst);
-            return command.WithDelays(delays);
+            return @event.WithDelays(delays);
         }
 
         /// <summary>
@@ -48,17 +48,17 @@ namespace Tingle.EventBus.Retries
         /// For example: 100ms, 200ms, 400ms, 800ms, ...
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="command"></param>
+        /// <param name="event"></param>
         /// <param name="initialDelay">The duration value for the wait before the first retry.</param>
         /// <param name="retries">The maximum number of retries to use, in addition to the original call.</param>
         /// <param name="factor">The exponent to multiply each subsequent duration by.</param>
         /// <param name="fastFirst">Whether the first retry will be immediate or not.</param>
         /// <returns></returns>
-        public static T WithExponentialDelays<T>(this T command, TimeSpan initialDelay, int retries, double factor = 2, bool fastFirst = false)
+        public static T WithExponentialDelays<T>(this T @event, TimeSpan initialDelay, int retries, double factor = 2, bool fastFirst = false)
             where T : IRetryableEvent
         {
             var delays = Backoff.ExponentialBackoff(initialDelay: initialDelay, retryCount: retries, factor: factor, fastFirst: fastFirst);
-            return command.WithDelays(delays);
+            return @event.WithDelays(delays);
         }
 
         /// <summary>
@@ -67,17 +67,17 @@ namespace Tingle.EventBus.Retries
         /// For example: 100ms, 200ms, 300ms, 400ms, ...
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="command"></param>
+        /// <param name="event"></param>
         /// <param name="initialDelay">The duration value for the first retry.</param>
         /// <param name="retries">The maximum number of retries to use, in addition to the original call.</param>
         /// <param name="factor">The linear factor to use for increasing the duration on subsequent calls.</param>
         /// <param name="fastFirst">Whether the first retry will be immediate or not.</param>
         /// <returns></returns>
-        public static T WithLinearDelays<T>(this T command, TimeSpan initialDelay, int retries, double factor = 2, bool fastFirst = false)
+        public static T WithLinearDelays<T>(this T @event, TimeSpan initialDelay, int retries, double factor = 2, bool fastFirst = false)
             where T : IRetryableEvent
         {
             var delays = Backoff.LinearBackoff(initialDelay: initialDelay, retryCount: retries, factor: factor, fastFirst: fastFirst);
-            return command.WithDelays(delays);
+            return @event.WithDelays(delays);
         }
 
         /// <summary>
@@ -86,22 +86,22 @@ namespace Tingle.EventBus.Retries
         /// For example: 200ms, 200ms, 200ms, ...
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="command"></param>
+        /// <param name="event"></param>
         /// <param name="delay">The constant wait duration before each retry.</param>
         /// <param name="retries">The maximum number of retries to use, in addition to the original call.</param>
         /// <param name="fastFirst">Whether the first retry will be immediate or not.</param>
         /// <returns></returns>
-        public static T WithConstantDelays<T>(this T command, TimeSpan delay, int retries, bool fastFirst = false)
+        public static T WithConstantDelays<T>(this T @event, TimeSpan delay, int retries, bool fastFirst = false)
             where T : IRetryableEvent
         {
             var delays = Backoff.ConstantBackoff(delay: delay, retryCount: retries, fastFirst: fastFirst);
-            return command.WithDelays(delays);
+            return @event.WithDelays(delays);
         }
 
-        private static T WithDelays<T>(this T command, IEnumerable<TimeSpan> delays) where T : IRetryableEvent
+        private static T WithDelays<T>(this T @event, IEnumerable<TimeSpan> delays) where T : IRetryableEvent
         {
-            command.Delays = delays.ToList();
-            return command;
+            @event.Delays = delays.ToList();
+            return @event;
         }
 
         #endregion
@@ -112,26 +112,26 @@ namespace Tingle.EventBus.Retries
         /// 
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="command"></param>
+        /// <param name="event"></param>
         /// <param name="attempt"></param>
         /// <returns></returns>
-        public static T AddAttempt<T>(this T command, DateTimeOffset attempt) where T : IRetryableEvent
+        public static T AddAttempt<T>(this T @event, DateTimeOffset attempt) where T : IRetryableEvent
         {
-            var attempts = command.Attempts;
+            var attempts = @event.Attempts;
             attempts.Add(attempt);
 
-            return command;
+            return @event;
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="command"></param>
+        /// <param name="event"></param>
         /// <returns></returns>
-        public static T AddAttempt<T>(this T command) where T : IRetryableEvent
+        public static T AddAttempt<T>(this T @event) where T : IRetryableEvent
         {
-            return command.AddAttempt(DateTimeOffset.UtcNow);
+            return @event.AddAttempt(DateTimeOffset.UtcNow);
         }
 
         /// <summary>Whether this event is doing it's last attempt.</summary>

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Tingle.EventBus.Readiness;
 
-namespace Tingle.EventBus.Registrations
+namespace Tingle.EventBus.Configuration
 {
     /// <summary>
     /// Represents a registration for a consumer of an event.

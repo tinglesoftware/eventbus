@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tingle.EventBus;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Ids;
 using Tingle.EventBus.Readiness;
-using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
 using Tingle.EventBus.Transports;
 

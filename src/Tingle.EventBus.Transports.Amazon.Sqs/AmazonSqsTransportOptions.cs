@@ -4,7 +4,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using System;
 using Tingle.EventBus;
-using Tingle.EventBus.Registrations;
+using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

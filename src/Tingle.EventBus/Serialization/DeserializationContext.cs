@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Net.Mime;
-using Tingle.EventBus.Registrations;
+using Tingle.EventBus.Configuration;
 
 namespace Tingle.EventBus.Serialization
 {

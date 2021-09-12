@@ -2,11 +2,10 @@
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Linq;
-using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Readiness;
 using Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus.Registrations
+namespace Tingle.EventBus.Configuration
 {
     /// <summary>
     /// Default implementation of <see cref="IEventConfigurator"/>.

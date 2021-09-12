@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Tingle.EventBus.Registrations;
+using Tingle.EventBus.Configuration;
 
 namespace CustomEventConfigurator
 {

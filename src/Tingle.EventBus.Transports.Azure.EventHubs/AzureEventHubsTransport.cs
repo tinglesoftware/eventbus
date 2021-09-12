@@ -13,8 +13,8 @@ using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
-using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Azure.EventHubs
 {

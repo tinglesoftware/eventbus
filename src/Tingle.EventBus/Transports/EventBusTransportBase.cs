@@ -7,8 +7,8 @@ using System.Net.Mime;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
-using Tingle.EventBus.Registrations;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Transports

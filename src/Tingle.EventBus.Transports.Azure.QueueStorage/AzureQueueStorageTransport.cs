@@ -9,8 +9,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
-using Tingle.EventBus.Registrations;
 
 namespace Tingle.EventBus.Transports.Azure.QueueStorage
 {

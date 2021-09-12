@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Tingle.EventBus.Registrations;
+using Tingle.EventBus.Configuration;
 
 namespace CustomEventConfigurator
 {

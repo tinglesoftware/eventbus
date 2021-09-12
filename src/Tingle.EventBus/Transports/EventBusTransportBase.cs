@@ -309,9 +309,9 @@ namespace Tingle.EventBus.Transports
                                                           IDictionary<string, string?>? extras = null)
         {
             var state = new Dictionary<string, string>();
-            state.AddIfNotDefault(AttributeNames.Id, id);
-            state.AddIfNotDefault(AttributeNames.CorrelationId, correlationId);
-            state.AddIfNotDefault(AttributeNames.SequenceNumber, sequenceNumber);
+            state.AddIfNotDefault(MetadataNames.Id, id);
+            state.AddIfNotDefault(MetadataNames.CorrelationId, correlationId);
+            state.AddIfNotDefault(MetadataNames.SequenceNumber, sequenceNumber);
 
             // if there are extras, add them
             if (extras != null)

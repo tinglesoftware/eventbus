@@ -1,9 +1,9 @@
 ﻿namespace Tingle.EventBus
 {
     /// <summary>
-    /// Attribute and property names added alongside a message/event if the transport supports
+    /// Name of attributes/properties/metadata added alongside a message/event if the transport supports.
     /// </summary>
-    public static class AttributeNames
+    public static class MetadataNames
     {
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string Id = "Id";

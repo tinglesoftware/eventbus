@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Tingle.EventBus.Retries;
 
 namespace Tingle.EventBus
 {
@@ -159,5 +160,50 @@ namespace Tingle.EventBus
 
         #endregion
 
+        #region Retries
+
+        /// <summary>Publish an event.</summary>
+        /// <typeparam name="TEvent">The event type.</typeparam>
+        /// <param name="publisher">The <see cref="IEventPublisher"/> to extend.</param>
+        /// <param name="event">The event to publish.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static Task<ScheduledResult?> ScheduleRetryAsync<TEvent>(this IEventPublisher publisher,
+                                                                        TEvent @event,
+                                                                        CancellationToken cancellationToken = default)
+            where TEvent : class, IRetryableEvent
+        {
+            if (@event.TryGetNextRetryDelay(out var delay))
+            {
+                // Publish
+                return publisher.PublishAsync<TEvent>(@event: @event,
+                                                      delay: delay,
+                                                      cancellationToken: cancellationToken);
+            }
+            return Task.FromResult<ScheduledResult?>(null);
+        }
+
+        /// <summary>Publish an event.</summary>
+        /// <typeparam name="TEvent">The event type.</typeparam>
+        /// <param name="publisher">The <see cref="IEventPublisher"/> to extend.</param>
+        /// <param name="event">The event to publish.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static Task<ScheduledResult?> ScheduleRetryAsync<TEvent>(this IEventPublisher publisher,
+                                                                        EventContext<TEvent> @event,
+                                                                        CancellationToken cancellationToken = default)
+            where TEvent : class, IRetryableEvent
+        {
+            if (@event.Event.TryGetNextRetryDelay(out var delay))
+            {
+                // Publish
+                return publisher.PublishAsync<TEvent>(@event: @event,
+                                                      delay: delay,
+                                                      cancellationToken: cancellationToken);
+            }
+            return Task.FromResult<ScheduledResult?>(null);
+        }
+
+        #endregion
     }
 }

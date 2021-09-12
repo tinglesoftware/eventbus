@@ -1,6 +1,7 @@
 ﻿using Polly.Contrib.WaitAndRetry;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Tingle.EventBus.Retries
@@ -142,6 +143,25 @@ namespace Tingle.EventBus.Retries
             if (@event.Attempts is null) throw new ArgumentNullException(nameof(@event.Attempts));
 
             return (@event.Delays.Count - @event.Attempts.Count) == 1;
+        }
+
+        /// <summary>Trys to get the delay for the next retry if any.</summary>
+        /// <param name="event"></param>
+        /// <param name="delay"></param>
+        /// <returns></returns>
+        public static bool TryGetNextRetryDelay(this IRetryableEvent @event, [NotNullWhen(true)] out TimeSpan? delay)
+        {
+            var attempts = @event.Attempts;
+            var delays = @event.Delays;
+
+            if (attempts.Count >= (delays.Count + 1))
+            {
+                delay = null;
+                return false;
+            }
+
+            delay = @event.Delays.Skip(attempts.Count - 1).First();
+            return true;
         }
 
         #endregion

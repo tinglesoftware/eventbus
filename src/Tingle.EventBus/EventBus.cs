@@ -59,6 +59,7 @@ namespace Tingle.EventBus
         /// <param name="data">Additional key-value pairs describing the health of the bus.</param>
         /// <param name="cancellationToken"></param>
         /// <returns>A value indicating if the bus is healthy.</returns>
+        [Obsolete(ConstStrings.HealthChecksObsolete)]
         public async Task<bool> CheckHealthAsync(Dictionary<string, object> data,
                                                  CancellationToken cancellationToken = default)
         {

@@ -9,6 +9,7 @@ namespace Tingle.EventBus.Health
     /// <summary>
     /// Implementation of <see cref="IHealthCheck"/> for <see cref="EventBus"/>
     /// </summary>
+    [Obsolete(ConstStrings.HealthChecksObsolete)]
     public class EventBusHealthCheck : IHealthCheck
     {
         private readonly EventBus bus;

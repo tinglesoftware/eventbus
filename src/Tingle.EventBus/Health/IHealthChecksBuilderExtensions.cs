@@ -15,6 +15,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder">The <see cref="IHealthChecksBuilder"/>.</param>
         /// <param name="name">The health check name.</param>
         /// <returns>The <see cref="IHealthChecksBuilder"/>.</returns>
+        [System.Obsolete(ConstStrings.HealthChecksObsolete)]
         public static IHealthChecksBuilder AddEventBus(this IHealthChecksBuilder builder, string name = "eventbus")
         {
             return builder.AddCheck<EventBusHealthCheck>(name, tags: new[] { "eventbus", });

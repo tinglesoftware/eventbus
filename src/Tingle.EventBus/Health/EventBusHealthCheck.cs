@@ -9,7 +9,7 @@ namespace Tingle.EventBus.Health
     /// <summary>
     /// Implementation of <see cref="IHealthCheck"/> for <see cref="EventBus"/>
     /// </summary>
-    [Obsolete("Migrate to AspNetCore.Diagnostics.HealthChecks or build custom health checks for your workflow.")]
+    [Obsolete(ConstStrings.HealthChecksObsolete)]
     public class EventBusHealthCheck : IHealthCheck
     {
         private readonly EventBus bus;

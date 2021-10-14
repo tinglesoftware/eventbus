@@ -61,30 +61,6 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus
         }
 
         /// <inheritdoc/>
-        public override async Task<bool> CheckHealthAsync(Dictionary<string, object> data,
-                                                          CancellationToken cancellationToken = default)
-        {
-            Logger.LogDebug("Listing Queues ...");
-            var queues = managementClient.GetQueuesRuntimePropertiesAsync(cancellationToken).AsPages();
-            await foreach (var _ in queues) ; // there's nothing to do
-            var registrations = GetRegistrations();
-            if (registrations.Any(r => r.EntityKind == EntityKind.Broadcast))
-            {
-                Logger.LogDebug("Listing Topics ...");
-                var topics = managementClient.GetTopicsRuntimePropertiesAsync(cancellationToken);
-                await foreach (var t in topics)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    Logger.LogDebug("Listing Subscriptions for '{TopicName}' topic ...", t.Name);
-                    var subscriptions = managementClient.GetSubscriptionsRuntimePropertiesAsync(t.Name, cancellationToken);
-                    await foreach (var _ in subscriptions) ; // there's nothing to do
-                }
-            }
-            return true;
-        }
-
-        /// <inheritdoc/>
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             await base.StartAsync(cancellationToken);

@@ -18,17 +18,6 @@ namespace Tingle.EventBus.Transports
         string Name { get; }
 
         /// <summary>
-        /// Checks for health of the transport.
-        /// This function can be used by the Health Checks framework and may throw and exception during execution.
-        /// </summary>
-        /// <param name="data">Additional key-value pairs describing the health of the transport.</param>
-        /// <param name="cancellationToken"></param>
-        /// <returns>A value indicating if the bus is healthy.</returns>
-        [Obsolete(ConstStrings.HealthChecksObsolete)]
-        Task<bool> CheckHealthAsync(Dictionary<string, object> data,
-                                    CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Publish an event on the transport.
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>

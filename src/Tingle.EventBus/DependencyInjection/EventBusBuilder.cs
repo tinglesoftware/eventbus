@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,11 @@ namespace Microsoft.Extensions.DependencyInjection
             Services.AddSingleton<EventBus>();
             Services.AddHostedService(p => p.GetRequiredService<EventBus>());
             UseDefaultSerializer<DefaultJsonEventSerializer>();
-            UseDefaultReadinessProvider<DefaultReadinessProvider>();
+
+            // Register health/readiness services needed
+            Services.AddSingleton<DefaultReadinessProvider>();
+            Services.AddSingleton<IHealthCheckPublisher>(p => p.GetRequiredService<DefaultReadinessProvider>());
+            Services.AddSingleton<IReadinessProvider>(p => p.GetRequiredService<DefaultReadinessProvider>());
         }
 
         /// <summary>

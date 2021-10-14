@@ -57,19 +57,6 @@ namespace Tingle.EventBus.Transports.RabbitMQ
         }
 
         /// <inheritdoc/>
-        public override async Task<bool> CheckHealthAsync(Dictionary<string, object> data,
-                                                          CancellationToken cancellationToken = default)
-        {
-            if (!IsConnected)
-            {
-                await TryConnectAsync(cancellationToken);
-            }
-
-            using var channel = connection!.CreateModel();
-            return channel.IsOpen;
-        }
-
-        /// <inheritdoc/>
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             await base.StartAsync(cancellationToken);

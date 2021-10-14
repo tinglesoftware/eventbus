@@ -66,14 +66,6 @@ namespace Tingle.EventBus.Transports.InMemory
         internal ConcurrentBag<EventContext> Failed => failed;
 
         /// <inheritdoc/>
-        public override Task<bool> CheckHealthAsync(Dictionary<string, object> data,
-                                                    CancellationToken cancellationToken = default)
-        {
-            // InMemory is always healthy
-            return Task.FromResult(true);
-        }
-
-        /// <inheritdoc/>
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             await base.StartAsync(cancellationToken);

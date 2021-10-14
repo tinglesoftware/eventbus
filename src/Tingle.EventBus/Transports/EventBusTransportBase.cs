@@ -67,10 +67,6 @@ namespace Tingle.EventBus.Transports
         EventBusTransportOptionsBase IEventBusTransportWithOptions.GetOptions() => TransportOptions;
 
         /// <inheritdoc/>
-        public abstract Task<bool> CheckHealthAsync(Dictionary<string, object> data,
-                                                    CancellationToken cancellationToken = default);
-
-        /// <inheritdoc/>
         public abstract Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
                                                                     EventRegistration registration,
                                                                     DateTimeOffset? scheduled = null,

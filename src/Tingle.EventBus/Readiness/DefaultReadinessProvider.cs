@@ -11,30 +11,29 @@ using Tingle.EventBus.Configuration;
 
 namespace Tingle.EventBus.Readiness
 {
-    internal class DefaultReadinessProvider : IReadinessProvider
+    internal class DefaultReadinessProvider : IReadinessProvider, IHealthCheckPublisher
     {
-        private readonly IServiceScopeFactory scopeFactory;
         private readonly EventBusReadinessOptions options;
         private readonly ILogger logger;
 
-        public DefaultReadinessProvider(IServiceScopeFactory scopeFactory,
-                                        IOptions<EventBusOptions> optionsAccessor,
+        private HealthReport? healthReport;
+
+        public DefaultReadinessProvider(IOptions<EventBusOptions> optionsAccessor,
                                         ILogger<DefaultReadinessProvider> logger)
         {
-            this.scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
             options = optionsAccessor?.Value?.Readiness ?? throw new ArgumentNullException(nameof(optionsAccessor));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public Task<bool> IsReadyAsync(CancellationToken cancellationToken = default)
-            => InternalIsReadyAsync(allowed: null /* no filters */, cancellationToken: cancellationToken);
+            => Task.FromResult(InternalIsReady(allowed: null /* no filters */));
 
         /// <inheritdoc/>
         public Task<bool> IsReadyAsync(EventRegistration reg,
                                        EventConsumerRegistration ecr,
                                        CancellationToken cancellationToken = default)
-            => InternalIsReadyAsync(allowed: ecr.ReadinessTags, cancellationToken: cancellationToken);
+            => Task.FromResult(InternalIsReady(allowed: ecr.ReadinessTags));
 
         /// <inheritdoc/>
         public async Task WaitReadyAsync(CancellationToken cancellationToken = default)
@@ -47,16 +46,15 @@ namespace Tingle.EventBus.Readiness
             logger.ReadinessCheck(timeout);
             using var cts_timeout = new CancellationTokenSource(timeout);
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts_timeout.Token);
-            var ct = cts.Token;
             var ready = false;
             try
             {
                 do
                 {
-                    ready = await InternalIsReadyAsync(allowed: null /* no filters */, cancellationToken: ct);
+                    ready = InternalIsReady(allowed: null /* no filters */);
                     if (!ready)
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(1), ct); // delay for a second
+                        await Task.Delay(TimeSpan.FromSeconds(1), cts.Token); // delay for a second
                     }
                 } while (!ready);
             }
@@ -67,7 +65,7 @@ namespace Tingle.EventBus.Readiness
             }
         }
 
-        private async Task<bool> InternalIsReadyAsync(ICollection<string>? allowed, CancellationToken cancellationToken)
+        private bool InternalIsReady(ICollection<string>? allowed)
         {
             // If disabled, do not proceed
             if (!options.Enabled)
@@ -76,33 +74,24 @@ namespace Tingle.EventBus.Readiness
                 return true;
             }
 
-            /*
-             * Simplest implementation is to use the health checks registered in the application.
-             *
-             * If the customization is required per event or consumer, the reg and ecr arguments
-             * will serve that purpose but only in a custom implementation of IReadinessProvider
-             */
-            using var scope = scopeFactory.CreateScope();
-            var provider = scope.ServiceProvider;
-            var hcs = provider.GetService<HealthCheckService>();
-            if (hcs != null)
-            {
-                bool predicate(HealthCheckRegistration r) => ShouldInclude(registration: r, excludeSelf: options.ExcludeSelf, allowed: allowed);
-                var report = await hcs.CheckHealthAsync(predicate: predicate, cancellationToken: cancellationToken);
-                return report.Status == HealthStatus.Healthy;
-            }
+            // if the health report is not set, we are not ready.
+            if (healthReport is null) return false;
 
-            return true;
+            // if the report already says healthy, there is no need to proceed
+            if (healthReport.Status == HealthStatus.Healthy) return true;
+
+            // at this point, we are not healthy but what we care about might be healthy
+            // so we filter by tags
+            var entries = healthReport.Entries.Select(kvp => kvp.Value).Where(e => ShouldInclude(e, allowed));
+            return entries.All(e => e.Status == HealthStatus.Healthy);
         }
 
-        private static bool ShouldInclude(HealthCheckRegistration registration, bool excludeSelf, ICollection<string>? allowed)
+        private static bool ShouldInclude(HealthReportEntry entry, ICollection<string>? allowed)
         {
-            if (registration is null) throw new ArgumentNullException(nameof(registration));
-
-            var r_tags = registration.Tags?.ToList() ?? new List<string>();
+            var r_tags = entry.Tags ?? Array.Empty<string>();
 
             // Exclude the bus if configured to do so
-            if (excludeSelf && r_tags.Contains("eventbus")) return false;
+            if (r_tags.Contains("eventbus")) return false;
 
             /*
              * If allowed is null, means there is no filtering so we include the registration.
@@ -110,6 +99,12 @@ namespace Tingle.EventBus.Readiness
              * If so, we should include the registration
              */
             return allowed == null || allowed.Intersect(r_tags, StringComparer.OrdinalIgnoreCase).Any();
+        }
+
+        Task IHealthCheckPublisher.PublishAsync(HealthReport report, CancellationToken cancellationToken)
+        {
+            Interlocked.Exchange(ref healthReport, report);
+            return Task.CompletedTask;
         }
     }
 }

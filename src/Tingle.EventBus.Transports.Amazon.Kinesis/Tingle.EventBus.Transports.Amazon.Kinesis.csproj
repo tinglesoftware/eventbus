@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Kinesis" Version="3.7.0.80" />
+    <PackageReference Include="AWSSDK.Kinesis" Version="3.7.0.82" />
   </ItemGroup>
 
   <ItemGroup>

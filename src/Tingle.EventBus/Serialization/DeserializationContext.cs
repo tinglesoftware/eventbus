@@ -12,15 +12,22 @@ namespace Tingle.EventBus.Serialization
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="serviceProvider">The provider to use to resolve any required services in the given scope.</param>
         /// <param name="body">The <see cref="BinaryData"/> containing the raw data.</param>
         /// <param name="registration">Registration for this event being deserialized.</param>
         /// <param name="identifier">Identifier given by the transport for the event to be deserialized.</param>
-        public DeserializationContext(BinaryData body, EventRegistration registration, string? identifier = null)
+        public DeserializationContext(IServiceProvider serviceProvider, BinaryData body, EventRegistration registration, string? identifier = null)
         {
+            ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             Body = body ?? throw new ArgumentNullException(nameof(body));
             Registration = registration ?? throw new ArgumentNullException(nameof(registration));
             Identifier = identifier;
         }
+
+        /// <summary>
+        /// The provider to use to resolve any required services in the given scope.
+        /// </summary>
+        public IServiceProvider ServiceProvider { get; }
 
         /// <summary>
         /// The <see cref="BinaryData"/> containing the raw data.

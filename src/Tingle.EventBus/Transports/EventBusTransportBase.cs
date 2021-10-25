@@ -244,7 +244,7 @@ namespace Tingle.EventBus.Transports
             try
             {
                 // Resolve the consumer
-                var consumer = scope.ServiceProvider.GetRequiredService<TConsumer>();
+                var consumer = ActivatorUtilities.GetServiceOrCreateInstance<TConsumer>(scope.ServiceProvider);
 
                 // Invoke handler method, with retry if specified
                 var retryPolicy = ecr.RetryPolicy;

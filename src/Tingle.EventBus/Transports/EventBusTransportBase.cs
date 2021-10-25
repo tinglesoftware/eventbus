@@ -241,11 +241,11 @@ namespace Tingle.EventBus.Transports
             where TConsumer : IEventConsumer<TEvent>
             where TEvent : class
         {
-            // Resolve the consumer
-            var consumer = scope.ServiceProvider.GetRequiredService<TConsumer>();
-
             try
             {
+                // Resolve the consumer
+                var consumer = ActivatorUtilities.GetServiceOrCreateInstance<TConsumer>(scope.ServiceProvider);
+
                 // Invoke handler method, with retry if specified
                 var retryPolicy = ecr.RetryPolicy;
                 if (retryPolicy != null)

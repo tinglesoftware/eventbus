@@ -139,9 +139,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new InvalidOperationException($"Abstract consumer types are not allowed.");
             }
 
-            // register the consumer for resolution
-            Services.AddScoped(consumerType);
-
             var genericConsumerType = typeof(IEventConsumer<>);
             var eventTypes = new List<Type>();
 
@@ -208,9 +205,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public EventBusBuilder RemoveConsumer<TConsumer>() where TConsumer : class, IEventConsumer
         {
-            // Deregister from services collection
-            Services.RemoveAll<TConsumer>();
-
             // Remove the event types
             return Configure(options =>
             {

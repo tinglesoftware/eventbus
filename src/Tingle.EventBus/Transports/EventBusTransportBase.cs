@@ -130,18 +130,16 @@ namespace Tingle.EventBus.Transports
         /// Deserialize an event from a stream of bytes.
         /// </summary>
         /// <typeparam name="TEvent">The event type to be deserialized.</typeparam>
-        /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="ctx">The <see cref="DeserializationContext"/> to use.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(IServiceScope scope,
-                                                                            DeserializationContext ctx,
+        protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(DeserializationContext ctx,
                                                                             CancellationToken cancellationToken = default)
             where TEvent : class
         {
             // Get the serializer
             var registration = ctx.Registration;
-            var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType!);
+            var serializer = (IEventSerializer)ctx.ServiceProvider.GetRequiredService(registration.EventSerializerType!);
 
             // Deserialize the content into a context
             var context = await serializer.DeserializeAsync<TEvent>(ctx, cancellationToken);
@@ -174,26 +172,27 @@ namespace Tingle.EventBus.Transports
                                                                             CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            var ctx = new DeserializationContext(body, registration, identifier) { ContentType = contentType, };
-            return await DeserializeAsync<TEvent>(scope, ctx, cancellationToken);
+            var ctx = new DeserializationContext(scope.ServiceProvider, body, registration, identifier)
+            {
+                ContentType = contentType,
+            };
+            return await DeserializeAsync<TEvent>(ctx, cancellationToken);
         }
 
         /// <summary>
         /// Serialize an event into a stream of bytes.
         /// </summary>
         /// <typeparam name="TEvent">The event type to be serialized.</typeparam>
-        /// <param name="scope">The scope in which to resolve required services.</param>
         /// <param name="ctx">The <see cref="SerializationContext{T}"/> to use.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task SerializeAsync<TEvent>(IServiceScope scope,
-                                                    SerializationContext<TEvent> ctx,
+        protected async Task SerializeAsync<TEvent>(SerializationContext<TEvent> ctx,
                                                     CancellationToken cancellationToken = default)
             where TEvent : class
         {
             // Get the serializer
             var registration = ctx.Registration;
-            var serializer = (IEventSerializer)scope.ServiceProvider.GetRequiredService(registration.EventSerializerType!);
+            var serializer = (IEventSerializer)ctx.ServiceProvider.GetRequiredService(registration.EventSerializerType!);
 
             // Serialize
             await serializer.SerializeAsync(ctx, cancellationToken);
@@ -214,8 +213,8 @@ namespace Tingle.EventBus.Transports
                                                                 CancellationToken cancellationToken = default)
             where TEvent : class
         {
-            var ctx = new SerializationContext<TEvent>(@event, registration);
-            await SerializeAsync(scope, ctx, cancellationToken);
+            var ctx = new SerializationContext<TEvent>(scope.ServiceProvider, @event, registration);
+            await SerializeAsync(ctx, cancellationToken);
 
             return ctx.Body!;
         }

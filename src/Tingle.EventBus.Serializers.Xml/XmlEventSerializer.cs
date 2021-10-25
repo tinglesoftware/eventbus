@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Mime;
@@ -20,13 +19,11 @@ namespace Tingle.EventBus.Serializers
         /// <summary>
         /// Creates an instance of <see cref="XmlEventSerializer"/>.
         /// </summary>
-        /// <param name="serviceProvider"></param>
         /// <param name="optionsAccessor">The options for configuring the serializer.</param>
         /// <param name="loggerFactory"></param>
-        public XmlEventSerializer(IServiceProvider serviceProvider,
-                                  IOptionsMonitor<EventBusOptions> optionsAccessor,
+        public XmlEventSerializer(IOptionsMonitor<EventBusOptions> optionsAccessor,
                                   ILoggerFactory loggerFactory)
-            : base(serviceProvider, optionsAccessor, loggerFactory) { }
+            : base(optionsAccessor, loggerFactory) { }
 
         /// <inheritdoc/>
         protected override IList<string> SupportedMediaTypes => new[] { "application/xml", "text/xml", };

@@ -9,7 +9,7 @@ namespace Tingle.EventBus.Serialization
     /// </summary>
     public sealed class DeserializationContext
     {
-        /// <summary>Creates and instance of <see cref="DeserializationContext{T}"/>.</summary>
+        /// <summary>Creates and instance of <see cref="DeserializationContext"/>.</summary>
         /// <param name="serviceProvider">The provider to use to resolve any required services in the given scope.</param>
         /// <param name="body">The <see cref="BinaryData"/> containing the raw data.</param>
         /// <param name="registration">Registration for this event being deserialized.</param>

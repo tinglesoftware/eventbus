@@ -17,10 +17,9 @@ namespace CustomEventSerializer
     {
         private readonly JsonSerializer serializer = JsonSerializer.CreateDefault();
 
-        public AzureDevOpsEventSerializer(IServiceProvider serviceProvider,
-                                          IOptionsMonitor<EventBusOptions> optionsAccessor,
+        public AzureDevOpsEventSerializer(IOptionsMonitor<EventBusOptions> optionsAccessor,
                                           ILoggerFactory loggerFactory)
-            : base(serviceProvider, optionsAccessor, loggerFactory) { }
+            : base(optionsAccessor, loggerFactory) { }
 
         /// <inheritdoc/>
         protected override IList<string> SupportedMediaTypes => JsonContentTypes;

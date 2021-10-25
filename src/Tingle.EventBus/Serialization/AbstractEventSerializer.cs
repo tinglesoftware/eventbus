@@ -23,17 +23,13 @@ namespace Tingle.EventBus.Serialization
 
         private static readonly Regex trimPattern = new("(Serializer|EventSerializer)$", RegexOptions.Compiled);
 
-        private readonly IServiceProvider serviceProvider;
-
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="serviceProvider"></param>
         /// <param name="optionsAccessor"></param>
         /// <param name="loggerFactory"></param>
-        protected AbstractEventSerializer(IServiceProvider serviceProvider, IOptionsMonitor<EventBusOptions> optionsAccessor, ILoggerFactory loggerFactory)
+        protected AbstractEventSerializer(IOptionsMonitor<EventBusOptions> optionsAccessor, ILoggerFactory loggerFactory)
         {
-            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             OptionsAccessor = optionsAccessor ?? throw new ArgumentNullException(nameof(optionsAccessor));
 
             // Create a well-scoped logger
@@ -83,7 +79,7 @@ namespace Tingle.EventBus.Serialization
             }
 
             // Create the context
-            var publisher = serviceProvider.GetRequiredService<IEventPublisher>();
+            var publisher = context.ServiceProvider.GetRequiredService<IEventPublisher>();
             return new EventContext<T>(publisher: publisher, envelope: envelope, contentType: contentType, transportIdentifier: context.Identifier);
         }
 

@@ -1,10 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>
-      EventBus serializer for Newtonsoft.Json.
-      $(Description)
-    </Description>
+    <Description>A serializer implementation for Tingle.EventBus using Newtonsoft.Json</Description>
     <PackageTags>$(PackageTags);Serializers;Newtonsoft</PackageTags>
     <RootNamespace>Tingle.EventBus.Serializers</RootNamespace>
   </PropertyGroup>

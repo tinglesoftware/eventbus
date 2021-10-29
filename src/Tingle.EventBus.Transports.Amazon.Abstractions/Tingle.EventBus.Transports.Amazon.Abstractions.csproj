@@ -1,10 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>
-      EventBus transport abstractions for Amazon/AWS.
-      $(Description)
-    </Description>
+    <Description>Shared EventBus transport components for Amazon.</Description>
     <PackageTags>$(PackageTags);Amazon;AWS</PackageTags>
   </PropertyGroup>
 

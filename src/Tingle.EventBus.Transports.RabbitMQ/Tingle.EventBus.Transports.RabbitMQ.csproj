@@ -1,9 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>
-      EventBus transport for RabbitMQ.
-      $(Description)</Description>
+    <Description>RabbitMQ transport implementation for Tingle.EventBus.</Description>
     <PackageTags>$(PackageTags);RabbitMQ</PackageTags>
   </PropertyGroup>
 

@@ -1,10 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>
-      EventBus serializer for XML.
-      $(Description)
-    </Description>
+    <Description>A serializer implementation for Tingle.EventBus using System.Xml</Description>
     <PackageTags>$(PackageTags);Serializers;XML</PackageTags>
     <RootNamespace>Tingle.EventBus.Serializers</RootNamespace>
     <IsPackable>false</IsPackable> <!-- to be published later -->

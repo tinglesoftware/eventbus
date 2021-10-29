@@ -1,9 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>
-      EventBus transport for Kafka.
-      $(Description)</Description>
+    <Description>Kafka transport implementation for Tingle.EventBus.</Description>
     <PackageTags>$(PackageTags);Kafka</PackageTags>
   </PropertyGroup>
 

@@ -1,10 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>
-      EventBus transport for InMemory use.
-      $(Description)
-    </Description>
+    <Description>InMemory transport implementation for Tingle.EventBus (to be used primarily for testing purposes).</Description>
     <PackageTags>$(PackageTags);InMemory</PackageTags>
   </PropertyGroup>
 

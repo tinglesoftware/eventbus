@@ -9,7 +9,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Tingle.EventBus.Serializers.Xml\Tingle.EventBus.Serializers.Xml.csproj" />
     <ProjectReference Include="..\..\src\Tingle.EventBus.Transports.InMemory\Tingle.EventBus.Transports.InMemory.csproj" />
   </ItemGroup>
 

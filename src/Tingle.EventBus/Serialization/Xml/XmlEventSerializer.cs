@@ -7,9 +7,8 @@ using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus.Serializers
+namespace Tingle.EventBus.Serialization.Xml
 {
     /// <summary>
     /// The default implementation of <see cref="IEventSerializer"/> for XML.

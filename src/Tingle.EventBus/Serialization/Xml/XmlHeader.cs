@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace Tingle.EventBus.Serialization
+namespace Tingle.EventBus.Serialization.Xml
 {
     ///
     [XmlType("Header")]

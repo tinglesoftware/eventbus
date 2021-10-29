@@ -1,4 +1,4 @@
-﻿namespace Tingle.EventBus.Serializers
+﻿namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Options for configuring XML based event serializer.

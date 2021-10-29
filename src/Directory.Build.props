@@ -7,11 +7,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Deterministic>true</Deterministic>
     <!--<IsPackable>true</IsPackable>-->
-    <NoWarn>$(NoWarn);CA1031</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Description>Event-Based framework for distributed applications.</Description>
     <PackageTags>EventBus</PackageTags>
   </PropertyGroup>
 

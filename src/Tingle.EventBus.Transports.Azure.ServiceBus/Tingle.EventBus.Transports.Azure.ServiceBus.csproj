@@ -1,11 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <Description>
-      EventBus transport for Azure Service Bus.
-      $(Description)
-    </Description>
+    <Description>Azure Service Bus transport implementation for Tingle.EventBus.</Description>
     <PackageTags>$(PackageTags);Azure;ServiceBus</PackageTags>
   </PropertyGroup>
 

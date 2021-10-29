@@ -1,13 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <Description>
-      EventBus transport for Azure Queue Storage.
-      $(Description)
-    </Description>
+    <Description>Azure Queue Storage transport implementation for Tingle.EventBus.</Description>
     <PackageTags>$(PackageTags);Azure;Queues;QueueStorage</PackageTags>
-    <NoWarn>$(NoWarn);CA1063</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

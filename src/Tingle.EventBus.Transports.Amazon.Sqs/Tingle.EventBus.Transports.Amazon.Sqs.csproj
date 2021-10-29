@@ -3,7 +3,6 @@
   <PropertyGroup>
     <Description>Amazon SQS transport implementation for Tingle.EventBus.</Description>
     <PackageTags>$(PackageTags);Amazon;AWS;SQS;SNS</PackageTags>
-    <NoWarn>$(NoWarn);CA1063</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

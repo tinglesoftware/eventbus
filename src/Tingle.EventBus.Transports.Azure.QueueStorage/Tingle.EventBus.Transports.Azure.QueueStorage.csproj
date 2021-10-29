@@ -3,7 +3,6 @@
   <PropertyGroup>
     <Description>Azure Queue Storage transport implementation for Tingle.EventBus.</Description>
     <PackageTags>$(PackageTags);Azure;Queues;QueueStorage</PackageTags>
-    <NoWarn>$(NoWarn);CA1063</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

@@ -41,7 +41,7 @@ namespace Tingle.EventBus.Serialization
         /// <summary>
         /// The headers published alongside the event.
         /// </summary>
-        IDictionary<string, object> Headers { get; }
+        IDictionary<string, string> Headers { get; }
 
         /// <summary>
         /// Information about the host on which the event was generated.

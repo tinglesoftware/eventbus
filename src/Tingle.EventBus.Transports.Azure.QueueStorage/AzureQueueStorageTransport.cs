@@ -350,7 +350,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             // if the event contains the parent activity id, set it
             if (context.Headers.TryGetValue(HeaderNames.ActivityId, out var parentActivityId))
             {
-                activity?.SetParentId(parentId: parentActivityId!.ToString());
+                activity?.SetParentId(parentId: parentActivityId);
             }
 
             var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,

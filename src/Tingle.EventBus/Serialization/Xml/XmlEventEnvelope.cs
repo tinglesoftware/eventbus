@@ -48,12 +48,12 @@ namespace Tingle.EventBus.Serialization.Xml
 
         /// <inheritdoc/>
         [XmlIgnore]
-        IDictionary<string, object> IEventEnvelope.Headers
+        IDictionary<string, string> IEventEnvelope.Headers
         {
             get
             {
-                var pairs = Headers.Select(h => (KeyValuePair<string, object>)h);
-                return new Dictionary<string, object>(pairs, StringComparer.OrdinalIgnoreCase);
+                var pairs = Headers.Select(h => (KeyValuePair<string, string>)h);
+                return new Dictionary<string, string>(pairs, StringComparer.OrdinalIgnoreCase);
             }
         }
 

@@ -27,7 +27,7 @@ namespace Tingle.EventBus.Serialization
         public DateTimeOffset? Sent { get; set; }
 
         /// <inheritdoc/>
-        public IDictionary<string, object> Headers { get; set; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        public IDictionary<string, string> Headers { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         /// <inheritdoc/>
         public HostInfo? Host { get; set; }

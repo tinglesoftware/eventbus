@@ -20,7 +20,7 @@ namespace Tingle.EventBus.Transports.InMemory
             // Ensure we have the InMemoryTransport resolved
             if (transports is null) throw new ArgumentNullException(nameof(transports));
             transport = transports.OfType<InMemoryTransport>().SingleOrDefault()
-                ?? throw new ArgumentException("The InMemoryTransport must be added. Ensure 'services.AddInMemoryTransport()' has been called.", nameof(transport));
+                ?? throw new ArgumentException("The InMemoryTransport must be added. Ensure 'services.AddInMemoryTransport()' has been called.", nameof(transports));
 
             options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
         }

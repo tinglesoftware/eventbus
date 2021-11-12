@@ -372,7 +372,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     channel.ExchangeDeclare(exchange: exchangeName, type: "fanout");
                     channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
                     channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: "");
-                    channel.CallbackException += delegate (object sender, CallbackExceptionEventArgs e)
+                    channel.CallbackException += delegate (object? sender, CallbackExceptionEventArgs e)
                     {
                         Logger.LogError(e.Exception, "Callback exception for {Subscription}", key);
                         var _ = ConnectConsumersAsync(CancellationToken.None); // do not await or chain token
@@ -435,7 +435,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
 
         private bool IsConnected => connection is not null && connection.IsOpen && !disposed;
 
-        private void OnConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
+        private void OnConnectionBlocked(object? sender, ConnectionBlockedEventArgs e)
         {
             if (disposed) return;
 
@@ -444,7 +444,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             TryConnect();
         }
 
-        private void OnCallbackException(object sender, CallbackExceptionEventArgs e)
+        private void OnCallbackException(object? sender, CallbackExceptionEventArgs e)
         {
             if (disposed) return;
 
@@ -453,7 +453,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
             TryConnect();
         }
 
-        private void OnConnectionShutdown(object sender, ShutdownEventArgs reason)
+        private void OnConnectionShutdown(object? sender, ShutdownEventArgs reason)
         {
             if (disposed) return;
 

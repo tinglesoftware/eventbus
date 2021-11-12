@@ -74,7 +74,7 @@ namespace Tingle.EventBus.Configuration
                 var name = type.GetCustomAttributes(false).OfType<EventNameAttribute>().SingleOrDefault()?.EventName;
                 if (name == null)
                 {
-                    var typeName = options.UseFullTypeNames ? type.FullName : type.Name;
+                    var typeName = options.UseFullTypeNames ? type.FullName! : type.Name;
                     typeName = options.TrimCommonSuffixes(typeName);
                     name = typeName;
                     name = options.ApplyNamingConvention(name);
@@ -120,7 +120,7 @@ namespace Tingle.EventBus.Configuration
                     var name = type.GetCustomAttributes(false).OfType<ConsumerNameAttribute>().SingleOrDefault()?.ConsumerName;
                     if (name == null)
                     {
-                        var typeName = options.UseFullTypeNames ? type.FullName : type.Name;
+                        var typeName = options.UseFullTypeNames ? type.FullName! : type.Name;
                         typeName = options.TrimCommonSuffixes(typeName);
                         name = options.ConsumerNameSource switch
                         {

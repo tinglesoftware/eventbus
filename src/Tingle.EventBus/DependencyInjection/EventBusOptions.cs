@@ -149,7 +149,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// This parameter is passed uninitialized.
         /// </param>
         /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
-        internal bool TryGetConsumerRegistration<TEvent, TConsumer>([NotNullWhen(true)] out EventRegistration reg,
+        internal bool TryGetConsumerRegistration<TEvent, TConsumer>([NotNullWhen(true)] out EventRegistration? reg,
                                                                     [NotNullWhen(true)] out EventConsumerRegistration? ecr)
         {
             ecr = default;

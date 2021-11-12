@@ -384,7 +384,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
             Logger.LogDebug("Processing '{MessageId}' from '{EntityPath}'", messageId, entityPath);
             using var scope = CreateScope();
-            var contentType = new ContentType(message.ContentType);
+            var contentType = message.ContentType is not null ? new ContentType(message.ContentType) : null;
             var context = await DeserializeAsync<TEvent>(scope: scope,
                                                          body: message.Body,
                                                          contentType: contentType,

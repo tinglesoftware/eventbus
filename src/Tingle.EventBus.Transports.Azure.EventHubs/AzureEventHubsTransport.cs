@@ -400,7 +400,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                             processor.EventHubName,
                             processor.ConsumerGroup);
             using var scope = CreateScope();
-            var contentType = contentType_str == null ? null : new ContentType(contentType_str.ToString());
+            var contentType = contentType_str is string ctts ? new ContentType(ctts) : null;
             var context = await DeserializeAsync<TEvent>(scope: scope,
                                                          body: data.EventBody,
                                                          contentType: contentType,

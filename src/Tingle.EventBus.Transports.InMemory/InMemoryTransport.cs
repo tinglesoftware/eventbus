@@ -169,7 +169,7 @@ namespace Tingle.EventBus.Transports.InMemory
             }
             else
             {
-                await sender.SendMessageAsync(message);
+                await sender.SendMessageAsync(message, cancellationToken);
                 return null; // no sequence number available
             }
         }
@@ -234,7 +234,7 @@ namespace Tingle.EventBus.Transports.InMemory
             }
             else
             {
-                await sender.SendMessagesAsync(messages);
+                await sender.SendMessagesAsync(messages, cancellationToken);
                 return Array.Empty<ScheduledResult>(); // no sequence numbers available
             }
         }

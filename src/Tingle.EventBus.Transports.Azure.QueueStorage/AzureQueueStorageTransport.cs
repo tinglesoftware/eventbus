@@ -276,7 +276,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             {
                 try
                 {
-                    var response = await queueClient.ReceiveMessagesAsync();
+                    var response = await queueClient.ReceiveMessagesAsync(cancellationToken);
                     var messages = response.Value;
 
                     // if the response is empty, introduce a delay

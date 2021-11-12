@@ -17,7 +17,7 @@ namespace Tingle.EventBus.Tests.Configurator
             // when not set, use default
             var registration = new EventRegistration(typeof(TestEvent1));
             Assert.Null(registration.EventSerializerType);
-            configurator.ConfigureSerializer(registration);
+            DefaultEventConfigurator.ConfigureSerializer(registration);
             Assert.Equal(typeof(IEventSerializer), registration.EventSerializerType);
         }
 
@@ -29,7 +29,7 @@ namespace Tingle.EventBus.Tests.Configurator
             // attribute is respected
             var registration = new EventRegistration(typeof(TestEvent2));
             Assert.Null(registration.EventSerializerType);
-            configurator.ConfigureSerializer(registration);
+            DefaultEventConfigurator.ConfigureSerializer(registration);
             Assert.Equal(typeof(FakeEventSerializer1), registration.EventSerializerType);
         }
 
@@ -40,7 +40,7 @@ namespace Tingle.EventBus.Tests.Configurator
 
             // attribute is respected
             var registration = new EventRegistration(typeof(TestEvent3));
-            var ex = Assert.Throws<InvalidOperationException>(() => configurator.ConfigureSerializer(registration));
+            var ex = Assert.Throws<InvalidOperationException>(() => DefaultEventConfigurator.ConfigureSerializer(registration));
             Assert.Equal("The type 'Tingle.EventBus.Tests.Configurator.FakeEventSerializer2' is used"
                        + " as a serializer but does not implement 'Tingle.EventBus.Serialization.IEventSerializer'",
                 ex.Message);
@@ -66,7 +66,7 @@ namespace Tingle.EventBus.Tests.Configurator
             options.Naming.Convention = namingConvention;
             options.Naming.UseFullTypeNames = useFullTypeNames;
             var registration = new EventRegistration(eventType);
-            configurator.ConfigureEventName(registration, options.Naming);
+            DefaultEventConfigurator.ConfigureEventName(registration, options.Naming);
             Assert.Equal(expected, registration.EventName);
         }
 
@@ -156,7 +156,7 @@ namespace Tingle.EventBus.Tests.Configurator
             registration.Consumers.Add(new EventConsumerRegistration(consumerType));
 
             var creg = Assert.Single(registration.Consumers);
-            configurator.ConfigureEventName(registration, options.Naming);
+            DefaultEventConfigurator.ConfigureEventName(registration, options.Naming);
             configurator.ConfigureConsumerNames(registration, options.Naming);
             Assert.Equal(expected, creg.ConsumerName);
         }
@@ -170,7 +170,7 @@ namespace Tingle.EventBus.Tests.Configurator
             var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
 
             var registration = new EventRegistration(eventType);
-            configurator.ConfigureEntityKind(registration);
+            DefaultEventConfigurator.ConfigureEntityKind(registration);
             Assert.Equal(expected, registration.EntityKind);
         }
 
@@ -184,7 +184,7 @@ namespace Tingle.EventBus.Tests.Configurator
             var creg = new EventConsumerRegistration(typeof(TestConsumer1));
             ereg.Consumers.Add(creg);
             Assert.Null(creg.ReadinessProviderType);
-            configurator.ConfigureReadinessProviders(ereg);
+            DefaultEventConfigurator.ConfigureReadinessProviders(ereg);
             Assert.Equal(typeof(IReadinessProvider), creg.ReadinessProviderType);
         }
 
@@ -198,7 +198,7 @@ namespace Tingle.EventBus.Tests.Configurator
             var creg = new EventConsumerRegistration(typeof(TestConsumer2));
             ereg.Consumers.Add(creg);
             Assert.Null(creg.ReadinessProviderType);
-            configurator.ConfigureReadinessProviders(ereg);
+            DefaultEventConfigurator.ConfigureReadinessProviders(ereg);
             Assert.Equal(typeof(FakeReadinessProvider1), creg.ReadinessProviderType);
         }
 
@@ -212,7 +212,7 @@ namespace Tingle.EventBus.Tests.Configurator
             var creg = new EventConsumerRegistration(typeof(TestConsumer3));
             ereg.Consumers.Add(creg);
             Assert.Null(creg.ReadinessProviderType);
-            var ex = Assert.Throws<InvalidOperationException>(() => configurator.ConfigureReadinessProviders(ereg));
+            var ex = Assert.Throws<InvalidOperationException>(() => DefaultEventConfigurator.ConfigureReadinessProviders(ereg));
             Assert.Equal("The type 'Tingle.EventBus.Tests.Configurator.FakeReadinessProvider2' is used"
                        + " as a readiness provider but does not implement 'Tingle.EventBus.Readiness.IReadinessProvider'",
                 ex.Message);

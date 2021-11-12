@@ -40,7 +40,7 @@ namespace Tingle.EventBus.Configuration
             ConfigureReadinessProviders(registration);
         }
 
-        internal void ConfigureTransportName(EventRegistration reg, EventBusOptions options)
+        internal static void ConfigureTransportName(EventRegistration reg, EventBusOptions options)
         {
             // If the event transport name has not been specified, attempt to get from the attribute
             var type = reg.EventType;
@@ -64,7 +64,7 @@ namespace Tingle.EventBus.Configuration
             }
         }
 
-        internal void ConfigureEventName(EventRegistration reg, EventBusNamingOptions options)
+        internal static void ConfigureEventName(EventRegistration reg, EventBusNamingOptions options)
         {
             // set the event name, if not set
             if (string.IsNullOrWhiteSpace(reg.EventName))
@@ -85,7 +85,7 @@ namespace Tingle.EventBus.Configuration
             }
         }
 
-        internal void ConfigureEntityKind(EventRegistration reg)
+        internal static void ConfigureEntityKind(EventRegistration reg)
         {
             // set the entity kind, if not set and there is an attribute
             if (reg.EntityKind == null)
@@ -139,7 +139,7 @@ namespace Tingle.EventBus.Configuration
             }
         }
 
-        internal void ConfigureSerializer(EventRegistration reg)
+        internal static void ConfigureSerializer(EventRegistration reg)
         {
             // If the event serializer has not been specified, attempt to get from the attribute
             var attrs = reg.EventType.GetCustomAttributes(false);
@@ -155,7 +155,7 @@ namespace Tingle.EventBus.Configuration
             }
         }
 
-        internal void ConfigureReadinessProviders(EventRegistration reg)
+        internal static void ConfigureReadinessProviders(EventRegistration reg)
         {
             foreach (var ecr in reg.Consumers)
             {

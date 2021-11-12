@@ -277,7 +277,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ
                     consumer.Received += delegate (object sender, BasicDeliverEventArgs @event)
                     {
                         var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-                        var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
+                        var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
                         var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
                         return (Task)method.Invoke(this, new object[] { reg, ecr, channel, @event, CancellationToken.None, }); // do not chain CancellationToken
                     };

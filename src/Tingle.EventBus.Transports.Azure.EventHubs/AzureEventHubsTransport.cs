@@ -72,7 +72,7 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs
                     processor.ProcessEventAsync += delegate (ProcessEventArgs args)
                     {
                         var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-                        var mt = GetType().GetMethod(nameof(OnEventReceivedAsync), flags);
+                        var mt = GetType().GetMethod(nameof(OnEventReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
                         var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
                         return (Task)method.Invoke(this, new object[] { reg, ecr, processor, args, });
                     };

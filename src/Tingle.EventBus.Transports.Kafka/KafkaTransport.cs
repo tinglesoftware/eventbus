@@ -215,7 +215,7 @@ namespace Tingle.EventBus.Transports.Kafka
         private async Task ProcessAsync(CancellationToken cancellationToken)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-            var mt = GetType().GetMethod(nameof(OnEventReceivedAsync), flags);
+            var mt = GetType().GetMethod(nameof(OnEventReceivedAsync), flags) ?? throw new InvalidOperationException("Method should not be null");
 
             while (!cancellationToken.IsCancellationRequested)
             {

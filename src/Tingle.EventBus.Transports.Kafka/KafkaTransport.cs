@@ -240,7 +240,7 @@ namespace Tingle.EventBus.Transports.Kafka
                     // form the generic method
                     var ecr = reg.Consumers.Single(); // only one consumer per event
                     var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
-                    await (Task)method.Invoke(this, new object[] { reg, ecr, result, cancellationToken, });
+                    await (Task)method.Invoke(this, new object[] { reg, ecr, result, cancellationToken, })!;
 
 
                     // if configured to checkpoint at intervals, respect it

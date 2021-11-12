@@ -292,7 +292,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                         using var scope = CreateScope(); // shared
                         foreach (var message in messages)
                         {
-                            await (Task)method.Invoke(this, new object[] { reg, ecr, queueClient, message, scope, cancellationToken, });
+                            await (Task)method.Invoke(this, new object[] { reg, ecr, queueClient, message, scope, cancellationToken, })!;
                         }
                     }
                 }

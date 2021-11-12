@@ -83,7 +83,7 @@ namespace Tingle.EventBus.Transports.InMemory
                         var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
                         var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
                         var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
-                        return (Task)method.Invoke(this, new object[] { reg, ecr, processor, args, });
+                        return (Task)method.Invoke(this, new object[] { reg, ecr, processor, args, })!;
                     };
 
                     // start processing

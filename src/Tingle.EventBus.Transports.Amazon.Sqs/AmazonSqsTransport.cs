@@ -323,7 +323,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                         using var scope = CreateScope(); // shared
                         foreach (var message in messages)
                         {
-                            await (Task)method.Invoke(this, new object[] { reg, ecr, queueUrl, message, cancellationToken, });
+                            await (Task)method.Invoke(this, new object[] { reg, ecr, queueUrl, message, cancellationToken, })!;
                         }
                     }
                 }

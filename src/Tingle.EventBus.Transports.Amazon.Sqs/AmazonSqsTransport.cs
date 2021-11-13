@@ -33,6 +33,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         private readonly List<Task> receiverTasks = new();
         private readonly AmazonSimpleNotificationServiceClient snsClient;
         private readonly AmazonSQSClient sqsClient;
+        private bool disposedValue;
 
         /// <summary>
         /// 
@@ -415,10 +416,26 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                                                cancellationToken: cancellationToken);
         }
 
+        ///
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    stoppingCts.Cancel();
+                }
+
+                disposedValue = true;
+            }
+        }
+
         /// <inheritdoc/>
         public void Dispose()
         {
-            stoppingCts.Cancel();
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -29,6 +29,7 @@ namespace Tingle.EventBus.Transports.Kafka
         private readonly CancellationTokenSource stoppingCts = new();
         private readonly List<Task> receiverTasks = new();
         private readonly IAdminClient adminClient;
+        private bool disposedValue;
 
         /// <summary>
         /// 
@@ -316,10 +317,26 @@ namespace Tingle.EventBus.Transports.Kafka
             // TODO: find a better way to handle the checkpointing when there is an error
         }
 
+        ///
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    stoppingCts.Cancel();
+                }
+
+                disposedValue = true;
+            }
+        }
+
         /// <inheritdoc/>
         public void Dispose()
         {
-            stoppingCts.Cancel();
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

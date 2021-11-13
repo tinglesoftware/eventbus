@@ -257,7 +257,7 @@ namespace Microsoft.Extensions.Logging
 
         public static void DeserializationResultedInNull(this ILogger logger, DeserializationContext context)
         {
-            logger.DeserializationResultedInNull(id: context.Identifier, eventType: context.Registration.EventType.FullName);
+            logger.DeserializationResultedInNull(id: context.Identifier, eventType: context.Registration.EventType.FullName!);
         }
 
         public static void DeserializedEventShouldNotBeNull(this ILogger logger, string? id, string? eventId, string eventType)
@@ -269,7 +269,7 @@ namespace Microsoft.Extensions.Logging
         {
             logger.DeserializedEventShouldNotBeNull(id: context.Identifier,
                                                     eventId: eventId,
-                                                    eventType: context.Registration.EventType.FullName);
+                                                    eventType: context.Registration.EventType.FullName!);
         }
 
         #endregion

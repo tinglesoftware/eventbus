@@ -29,6 +29,7 @@ namespace Tingle.EventBus.Transports.Kafka
         private readonly CancellationTokenSource stoppingCts = new();
         private readonly List<Task> receiverTasks = new();
         private readonly IAdminClient adminClient;
+        private bool disposedValue;
 
         /// <summary>
         /// 
@@ -215,7 +216,7 @@ namespace Tingle.EventBus.Transports.Kafka
         private async Task ProcessAsync(CancellationToken cancellationToken)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-            var mt = GetType().GetMethod(nameof(OnEventReceivedAsync), flags);
+            var mt = GetType().GetMethod(nameof(OnEventReceivedAsync), flags) ?? throw new InvalidOperationException("Method should not be null");
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -240,7 +241,7 @@ namespace Tingle.EventBus.Transports.Kafka
                     // form the generic method
                     var ecr = reg.Consumers.Single(); // only one consumer per event
                     var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
-                    await (Task)method.Invoke(this, new object[] { reg, ecr, result, cancellationToken, });
+                    await (Task)method.Invoke(this, new object[] { reg, ecr, result, cancellationToken, })!;
 
 
                     // if configured to checkpoint at intervals, respect it
@@ -316,10 +317,26 @@ namespace Tingle.EventBus.Transports.Kafka
             // TODO: find a better way to handle the checkpointing when there is an error
         }
 
+        ///
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    stoppingCts.Cancel();
+                }
+
+                disposedValue = true;
+            }
+        }
+
         /// <inheritdoc/>
         public void Dispose()
         {
-            stoppingCts.Cancel();
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -8,8 +8,8 @@ namespace Tingle.EventBus.Diagnostics
     public static class EventBusActivitySource
     {
         private static readonly AssemblyName AssemblyName = typeof(EventBusActivitySource).Assembly.GetName();
-        private static readonly string ActivitySourceName = AssemblyName.Name;
-        private static readonly Version Version = AssemblyName.Version;
+        private static readonly string ActivitySourceName = AssemblyName.Name!;
+        private static readonly Version Version = AssemblyName.Version!;
         private static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
 
         /// <summary>

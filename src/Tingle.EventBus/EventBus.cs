@@ -49,7 +49,7 @@ namespace Tingle.EventBus
             this.configurators = configurators?.ToList() ?? throw new ArgumentNullException(nameof(configurators));
             this.transports = transports?.ToList() ?? throw new ArgumentNullException(nameof(transports));
             options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
-            logger = loggerFactory?.CreateLogger(LogCategoryNames.EventBus) ?? throw new ArgumentNullException(nameof(logger));
+            logger = loggerFactory?.CreateLogger(LogCategoryNames.EventBus) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <summary>

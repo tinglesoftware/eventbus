@@ -33,6 +33,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         private readonly List<Task> receiverTasks = new();
         private readonly AmazonSimpleNotificationServiceClient snsClient;
         private readonly AmazonSQSClient sqsClient;
+        private bool disposedValue;
 
         /// <summary>
         /// 
@@ -299,7 +300,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
         private async Task ReceiveAsync(EventRegistration reg, EventConsumerRegistration ecr, string queueUrl, CancellationToken cancellationToken)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-            var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
+            var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
             var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
 
             while (!cancellationToken.IsCancellationRequested)
@@ -323,7 +324,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                         using var scope = CreateScope(); // shared
                         foreach (var message in messages)
                         {
-                            await (Task)method.Invoke(this, new object[] { reg, ecr, queueUrl, message, cancellationToken, });
+                            await (Task)method.Invoke(this, new object[] { reg, ecr, queueUrl, message, cancellationToken, })!;
                         }
                     }
                 }
@@ -415,10 +416,26 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs
                                                cancellationToken: cancellationToken);
         }
 
+        ///
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    stoppingCts.Cancel();
+                }
+
+                disposedValue = true;
+            }
+        }
+
         /// <inheritdoc/>
         public void Dispose()
         {
-            stoppingCts.Cancel();
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

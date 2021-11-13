@@ -31,9 +31,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.HostInfo = new HostInfo
                 {
                     ApplicationName = environment.ApplicationName,
-                    ApplicationVersion = entry.GetName().Version.ToString(),
+                    ApplicationVersion = entry.GetName().Version?.ToString(),
                     EnvironmentName = environment.EnvironmentName,
-                    LibraryVersion = typeof(EventBus).Assembly.GetName().Version.ToString(),
+                    LibraryVersion = typeof(EventBus).Assembly.GetName().Version?.ToString(),
                     MachineName = Environment.MachineName,
                     OperatingSystem = Environment.OSVersion.ToString(),
                 };

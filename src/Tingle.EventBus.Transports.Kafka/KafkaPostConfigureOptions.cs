@@ -34,7 +34,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // ensure we have a config
             options.AdminConfig ??= new AdminClientConfig
             {
-                BootstrapServers = string.Join(",", options.BootstrapServers)
+                BootstrapServers = options.BootstrapServers is null ? "" : string.Join(",", options.BootstrapServers)
             };
 
             if (string.IsNullOrWhiteSpace(options.AdminConfig.BootstrapServers))

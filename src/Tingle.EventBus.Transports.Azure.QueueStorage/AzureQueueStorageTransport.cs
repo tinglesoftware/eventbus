@@ -25,6 +25,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         private readonly CancellationTokenSource stoppingCts = new();
         private readonly List<Task> receiverTasks = new();
         private readonly QueueServiceClient serviceClient;
+        private bool disposedValue;
 
         /// <summary>
         /// 
@@ -267,7 +268,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
         private async Task ReceiveAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
         {
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-            var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
+            var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
             var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
 
             var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
@@ -276,7 +277,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
             {
                 try
                 {
-                    var response = await queueClient.ReceiveMessagesAsync();
+                    var response = await queueClient.ReceiveMessagesAsync(cancellationToken);
                     var messages = response.Value;
 
                     // if the response is empty, introduce a delay
@@ -292,7 +293,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                         using var scope = CreateScope(); // shared
                         foreach (var message in messages)
                         {
-                            await (Task)method.Invoke(this, new object[] { reg, ecr, queueClient, message, scope, cancellationToken, });
+                            await (Task)method.Invoke(this, new object[] { reg, ecr, queueClient, message, scope, cancellationToken, })!;
                         }
                     }
                 }
@@ -372,10 +373,26 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage
                                                  cancellationToken: cancellationToken);
         }
 
+        ///
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    stoppingCts.Cancel();
+                }
+
+                disposedValue = true;
+            }
+        }
+
         /// <inheritdoc/>
         public void Dispose()
         {
-            stoppingCts.Cancel();
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -81,9 +81,9 @@ namespace Tingle.EventBus.Transports.InMemory
                     processor.ProcessMessageAsync += delegate (ProcessMessageEventArgs args)
                     {
                         var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-                        var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags);
+                        var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
                         var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
-                        return (Task)method.Invoke(this, new object[] { reg, ecr, processor, args, });
+                        return (Task)method.Invoke(this, new object[] { reg, ecr, processor, args, })!;
                     };
 
                     // start processing
@@ -169,7 +169,7 @@ namespace Tingle.EventBus.Transports.InMemory
             }
             else
             {
-                await sender.SendMessageAsync(message);
+                await sender.SendMessageAsync(message, cancellationToken);
                 return null; // no sequence number available
             }
         }
@@ -234,7 +234,7 @@ namespace Tingle.EventBus.Transports.InMemory
             }
             else
             {
-                await sender.SendMessagesAsync(messages);
+                await sender.SendMessagesAsync(messages, cancellationToken);
                 return Array.Empty<ScheduledResult>(); // no sequence numbers available
             }
         }
@@ -384,7 +384,7 @@ namespace Tingle.EventBus.Transports.InMemory
 
             Logger.LogDebug("Processing '{MessageId}' from '{EntityPath}'", messageId, entityPath);
             using var scope = CreateScope();
-            var contentType = new ContentType(message.ContentType);
+            var contentType = message.ContentType is not null ? new ContentType(message.ContentType) : null;
             var context = await DeserializeAsync<TEvent>(scope: scope,
                                                          body: message.Body,
                                                          contentType: contentType,

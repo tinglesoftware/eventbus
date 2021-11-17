@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.21.0" />
-    <PackageReference Include="Tingle.Extensions.AnyOf" Version="3.4.5" />
+    <PackageReference Include="Tingle.Extensions.AnyOf" Version="3.5.1" />
   </ItemGroup>
 
   <ItemGroup>

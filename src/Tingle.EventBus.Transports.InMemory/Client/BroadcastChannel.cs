@@ -1,12 +1,11 @@
 ﻿using System.Threading.Channels;
 
-namespace Tingle.EventBus.Transports.InMemory.Client
+namespace Tingle.EventBus.Transports.InMemory.Client;
+
+internal class BroadcastChannel<T> : Channel<T>
 {
-    internal class BroadcastChannel<T> : Channel<T>
+    public BroadcastChannel()
     {
-        public BroadcastChannel()
-        {
-            Writer = new BroadcastChannelWriter<T>();
-        }
+        Writer = new BroadcastChannelWriter<T>();
     }
 }

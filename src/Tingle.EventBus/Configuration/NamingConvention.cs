@@ -1,28 +1,27 @@
-﻿namespace Tingle.EventBus.Configuration
+﻿namespace Tingle.EventBus.Configuration;
+
+/// <summary>
+/// The naming convention used when generating names from types.
+/// </summary>
+public enum NamingConvention
 {
     /// <summary>
-    /// The naming convention used when generating names from types.
+    /// The type name is unchanged.
     /// </summary>
-    public enum NamingConvention
-    {
-        /// <summary>
-        /// The type name is unchanged.
-        /// </summary>
-        Unchanged,
+    Unchanged,
 
-        /// <summary>
-        /// The type name is converted to <see href="https://en.wiktionary.org/wiki/kebab_case">Kebab case</see>
-        /// </summary>
-        KebabCase,
+    /// <summary>
+    /// The type name is converted to <see href="https://en.wiktionary.org/wiki/kebab_case">Kebab case</see>
+    /// </summary>
+    KebabCase,
 
-        /// <summary>
-        /// The type name is converted to <see href="https://en.wiktionary.org/wiki/snake_case">Snake case</see>.
-        /// </summary>
-        SnakeCase,
+    /// <summary>
+    /// The type name is converted to <see href="https://en.wiktionary.org/wiki/snake_case">Snake case</see>.
+    /// </summary>
+    SnakeCase,
 
-        /// <summary>
-        /// The type name is transformed into a lower case string with a period between words.
-        /// </summary>
-        DotCase,
-    }
+    /// <summary>
+    /// The type name is transformed into a lower case string with a period between words.
+    /// </summary>
+    DotCase,
 }

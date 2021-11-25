@@ -1,11 +1,10 @@
 ﻿using CustomEventSerializer.Models;
 using Tingle.EventBus.Configuration;
 
-namespace CustomEventSerializer
+namespace CustomEventSerializer;
+
+[EventSerializer(typeof(AzureDevOpsEventSerializer))]
+public sealed class AzureDevOpsCodePushed
 {
-    [EventSerializer(typeof(AzureDevOpsEventSerializer))]
-    public sealed class AzureDevOpsCodePushed
-    {
-        public AzureDevOpsEventResource? Resource { get; set; }
-    }
+    public AzureDevOpsEventResource? Resource { get; set; }
 }

@@ -1,35 +1,33 @@
 ﻿using Microsoft.Extensions.Options;
-using System;
 using Tingle.EventBus.Transports.Amazon.Kinesis;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace Microsoft.Extensions.DependencyInjection;
+
+/// <summary>
+/// Extension methods on <see cref="EventBusBuilder"/> for Amazon Kinesis.
+/// </summary>
+public static class EventBusBuilderExtensions
 {
     /// <summary>
-    /// Extension methods on <see cref="EventBusBuilder"/> for Amazon Kinesis.
+    /// Add Amazon Kinesis as the underlying transport for the Event Bus.
     /// </summary>
-    public static class EventBusBuilderExtensions
+    /// <param name="builder"></param>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    public static EventBusBuilder AddAmazonKinesisTransport(this EventBusBuilder builder, Action<AmazonKinesisTransportOptions> configure)
     {
-        /// <summary>
-        /// Add Amazon Kinesis as the underlying transport for the Event Bus.
-        /// </summary>
-        /// <param name="builder"></param>
-        /// <param name="configure"></param>
-        /// <returns></returns>
-        public static EventBusBuilder AddAmazonKinesisTransport(this EventBusBuilder builder, Action<AmazonKinesisTransportOptions> configure)
-        {
-            if (builder == null) throw new ArgumentNullException(nameof(builder));
-            if (configure is null) throw new ArgumentNullException(nameof(configure));
+        if (builder == null) throw new ArgumentNullException(nameof(builder));
+        if (configure is null) throw new ArgumentNullException(nameof(configure));
 
-            var services = builder.Services;
+        var services = builder.Services;
 
-            // Configure the options for Amazon Kinesis
-            services.Configure(configure);
-            services.AddSingleton<IPostConfigureOptions<AmazonKinesisTransportOptions>, AmazonKinesisPostConfigureOptions>();
+        // Configure the options for Amazon Kinesis
+        services.Configure(configure);
+        services.AddSingleton<IPostConfigureOptions<AmazonKinesisTransportOptions>, AmazonKinesisPostConfigureOptions>();
 
-            // Register the transport
-            builder.AddTransport<AmazonKinesisTransport, AmazonKinesisTransportOptions>();
+        // Register the transport
+        builder.AddTransport<AmazonKinesisTransport, AmazonKinesisTransportOptions>();
 
-            return builder;
-        }
+        return builder;
     }
 }

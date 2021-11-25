@@ -1,33 +1,31 @@
 ﻿using Microsoft.Extensions.Options;
-using System;
 using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace Microsoft.Extensions.DependencyInjection;
+
+/// <summary>
+/// A class to finish the configuration of instances of <see cref="InMemoryTransportOptions"/>.
+/// </summary>
+internal class InMemoryTransportPostConfigureOptions : IPostConfigureOptions<InMemoryTransportOptions>
 {
-    /// <summary>
-    /// A class to finish the configuration of instances of <see cref="InMemoryTransportOptions"/>.
-    /// </summary>
-    internal class InMemoryTransportPostConfigureOptions : IPostConfigureOptions<InMemoryTransportOptions>
+    private readonly EventBusOptions busOptions;
+
+    public InMemoryTransportPostConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
     {
-        private readonly EventBusOptions busOptions;
+        busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
+    }
 
-        public InMemoryTransportPostConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    public void PostConfigure(string name, InMemoryTransportOptions options)
+    {
+        var registrations = busOptions.GetRegistrations(TransportNames.InMemory);
+        foreach (var reg in registrations)
         {
-            busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
-        }
+            // Set the IdFormat
+            options.SetEventIdFormat(reg, busOptions);
 
-        public void PostConfigure(string name, InMemoryTransportOptions options)
-        {
-            var registrations = busOptions.GetRegistrations(TransportNames.InMemory);
-            foreach (var reg in registrations)
-            {
-                // Set the IdFormat
-                options.SetEventIdFormat(reg, busOptions);
-
-                // Ensure the entity type is allowed
-                options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast, EntityKind.Queue);
-            }
+            // Ensure the entity type is allowed
+            options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast, EntityKind.Queue);
         }
     }
 }

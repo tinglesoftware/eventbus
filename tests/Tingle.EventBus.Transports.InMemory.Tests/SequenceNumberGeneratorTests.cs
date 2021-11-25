@@ -1,20 +1,16 @@
-﻿using System;
-using System.Threading.Tasks;
-using Tingle.EventBus.Transports.InMemory.Client;
-using Xunit;
+﻿using Tingle.EventBus.Transports.InMemory.Client;
 
-namespace Tingle.EventBus.Tests.InMemory
+namespace Tingle.EventBus.Tests.InMemory;
+
+public class SequenceNumberGeneratorTests
 {
-    public class SequenceNumberGeneratorTests
+    [Fact]
+    public async Task Generate_Works()
     {
-        [Fact]
-        public async Task Generate_Works()
-        {
-            var sng = new SequenceNumberGenerator();
-            var current = sng.Generate();
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            var next = sng.Generate();
-            Assert.Equal(1, next - current);
-        }
+        var sng = new SequenceNumberGenerator();
+        var current = sng.Generate();
+        await Task.Delay(TimeSpan.FromSeconds(1));
+        var next = sng.Generate();
+        Assert.Equal(1, next - current);
     }
 }

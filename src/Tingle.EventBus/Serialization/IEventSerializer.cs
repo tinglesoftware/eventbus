@@ -1,29 +1,25 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿namespace Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus.Serialization
+/// <summary>
+/// A message serializer is responsible for serializing and deserializing an event.
+/// </summary>
+public interface IEventSerializer
 {
     /// <summary>
-    /// A message serializer is responsible for serializing and deserializing an event.
+    /// Serialize an event into a stream of bytes.
     /// </summary>
-    public interface IEventSerializer
-    {
-        /// <summary>
-        /// Serialize an event into a stream of bytes.
-        /// </summary>
-        /// <typeparam name="T">The event type to be serialized.</typeparam>
-        /// <param name="context">The <see cref="SerializationContext{T}"/> to use.</param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        Task SerializeAsync<T>(SerializationContext<T> context, CancellationToken cancellationToken = default) where T : class;
+    /// <typeparam name="T">The event type to be serialized.</typeparam>
+    /// <param name="context">The <see cref="SerializationContext{T}"/> to use.</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task SerializeAsync<T>(SerializationContext<T> context, CancellationToken cancellationToken = default) where T : class;
 
-        /// <summary>
-        /// Deserialize an event from a stream of bytes.
-        /// </summary>
-        /// <typeparam name="T">The event type to be deserialized.</typeparam>
-        /// <param name="context">The <see cref="DeserializationContext"/> to use.</param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        Task<EventContext<T>?> DeserializeAsync<T>(DeserializationContext context, CancellationToken cancellationToken = default) where T : class;
-    }
+    /// <summary>
+    /// Deserialize an event from a stream of bytes.
+    /// </summary>
+    /// <typeparam name="T">The event type to be deserialized.</typeparam>
+    /// <param name="context">The <see cref="DeserializationContext"/> to use.</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<EventContext<T>?> DeserializeAsync<T>(DeserializationContext context, CancellationToken cancellationToken = default) where T : class;
 }

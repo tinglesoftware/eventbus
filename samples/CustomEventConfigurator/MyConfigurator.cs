@@ -1,21 +1,19 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Tingle.EventBus.Configuration;
+﻿using Tingle.EventBus.Configuration;
 
-namespace CustomEventConfigurator
+namespace CustomEventConfigurator;
+
+class MyConfigurator : IEventConfigurator
 {
-    class MyConfigurator : IEventConfigurator
+    public void Configure(EventRegistration registration, EventBusOptions options)
     {
-        public void Configure(EventRegistration registration, EventBusOptions options)
+        if (registration.EventType == typeof(SampleEvent1))
         {
-            if (registration.EventType == typeof(SampleEvent1))
-            {
-                registration.EntityKind = EntityKind.Queue;
-            }
+            registration.EntityKind = EntityKind.Queue;
+        }
 
-            if (registration.EventType == typeof(SampleEvent2))
-            {
-                registration.IdFormat = EventIdFormat.LongHex;
-            }
+        if (registration.EventType == typeof(SampleEvent2))
+        {
+            registration.IdFormat = EventIdFormat.LongHex;
         }
     }
 }

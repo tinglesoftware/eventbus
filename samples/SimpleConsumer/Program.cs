@@ -1,33 +1,23 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+﻿using SimpleConsumer;
 
-namespace SimpleConsumer
-{
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
+var host = Host.CreateDefaultBuilder(args)
+               .ConfigureServices((hostContext, services) =>
+               {
+                   services.AddSingleton<EventCounter>();
+                   services.AddEventBus(builder =>
+                   {
+                       // Transport agnostic configuration
+                       builder.Configure(o =>
+                       {
+                           o.Naming.Scope = "dev"; // queues will be prefixed by 'dev'
+                           o.Naming.UseFullTypeNames = false;
+                       });
+                       builder.AddConsumer<SampleEventConsumer>();
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureServices((hostContext, services) =>
-                {
-                    services.AddSingleton<EventCounter>();
-                    services.AddEventBus(builder =>
-                    {
-                        // Transport agnostic configuration
-                        builder.Configure(o =>
-                        {
-                            o.Naming.Scope = "dev"; // queues will be prefixed by 'dev'
-                            o.Naming.UseFullTypeNames = false;
-                        });
-                        builder.AddConsumer<SampleEventConsumer>();
+                       // Transport specific configuration
+                       builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");
+                   });
+               })
+               .Build();
 
-                        // Transport specific configuration
-                        builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");
-                    });
-                });
-    }
-}
+await host.RunAsync();

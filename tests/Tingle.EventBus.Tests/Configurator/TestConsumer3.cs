@@ -1,16 +1,12 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Tingle.EventBus.Configuration;
+﻿using Tingle.EventBus.Configuration;
 
-namespace Tingle.EventBus.Tests.Configurator
+namespace Tingle.EventBus.Tests.Configurator;
+
+[ConsumerReadinessProvider(typeof(FakeReadinessProvider2))]
+internal class TestConsumer3 : IEventConsumer<TestEvent3>
 {
-    [ConsumerReadinessProvider(typeof(FakeReadinessProvider2))]
-    internal class TestConsumer3 : IEventConsumer<TestEvent3>
+    public Task ConsumeAsync(EventContext<TestEvent3> context, CancellationToken cancellationToken = default)
     {
-        public Task ConsumeAsync(EventContext<TestEvent3> context, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+        throw new NotImplementedException();
     }
 }

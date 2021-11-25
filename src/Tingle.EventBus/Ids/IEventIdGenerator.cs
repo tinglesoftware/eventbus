@@ -1,17 +1,16 @@
 ﻿using Tingle.EventBus.Configuration;
 
-namespace Tingle.EventBus.Ids
+namespace Tingle.EventBus.Ids;
+
+/// <summary>
+/// Generator for event identifiers
+/// </summary>
+public interface IEventIdGenerator
 {
     /// <summary>
-    /// Generator for event identifiers
+    /// Generate value for <see cref="EventContext.Id"/>.
     /// </summary>
-    public interface IEventIdGenerator
-    {
-        /// <summary>
-        /// Generate value for <see cref="EventContext.Id"/>.
-        /// </summary>
-        /// <param name="reg">The <see cref="EventRegistration"/> for which to generate for.</param>
-        /// <returns></returns>
-        string Generate(EventRegistration reg);
-    }
+    /// <param name="reg">The <see cref="EventRegistration"/> for which to generate for.</param>
+    /// <returns></returns>
+    string Generate(EventRegistration reg);
 }

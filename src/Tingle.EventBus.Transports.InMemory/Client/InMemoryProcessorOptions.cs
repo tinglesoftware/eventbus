@@ -1,6 +1,5 @@
-﻿namespace Tingle.EventBus.Transports.InMemory
+﻿namespace Tingle.EventBus.Transports.InMemory;
+
+internal class InMemoryProcessorOptions
 {
-    internal class InMemoryProcessorOptions
-    {
-    }
 }

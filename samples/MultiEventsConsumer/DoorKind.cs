@@ -1,12 +1,11 @@
-﻿namespace MultiEventsConsumer
+﻿namespace MultiEventsConsumer;
+
+public enum DoorKind
 {
-    public enum DoorKind
-    {
-        FrontLeft,
-        FrontRight,
-        RearLeft,
-        ReadRight,
-        Hood,
-        Trunk,
-    }
+    FrontLeft,
+    FrontRight,
+    RearLeft,
+    ReadRight,
+    Hood,
+    Trunk,
 }

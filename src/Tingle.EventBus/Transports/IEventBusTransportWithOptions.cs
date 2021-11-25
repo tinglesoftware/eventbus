@@ -1,7 +1,6 @@
-﻿namespace Tingle.EventBus.Transports
+﻿namespace Tingle.EventBus.Transports;
+
+internal interface IEventBusTransportWithOptions
 {
-    internal interface IEventBusTransportWithOptions
-    {
-        EventBusTransportOptionsBase GetOptions();
-    }
+    EventBusTransportOptionsBase GetOptions();
 }

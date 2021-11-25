@@ -1,39 +1,32 @@
-﻿using Tingle.EventBus.Configuration;
+﻿using MultipleConsumers;
+using Tingle.EventBus.Configuration;
 
-namespace MultipleConsumers;
+var host = Host.CreateDefaultBuilder(args)
+               .ConfigureServices((hostContext, services) =>
+               {
+                   services.AddEventBus(builder =>
+                   {
+                       builder.UseDefaultNewtonsoftJsonSerializer();
 
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        CreateHostBuilder(args).Build().Run();
-    }
+                       // Transport agnostic configuration
+                       builder.Configure(o =>
+                       {
+                           o.Naming.Scope = "dev"; // queues will be prefixed by 'dev'
+                           o.Naming.UseFullTypeNames = false;
+                       });
+                       builder.AddConsumer<FirstEventConsumer>();
+                       builder.AddConsumer<SecondEventConsumer>();
 
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .ConfigureServices((hostContext, services) =>
-            {
-                services.AddEventBus(builder =>
-                {
-                    builder.UseDefaultNewtonsoftJsonSerializer();
+                       // Transport specific configuration
+                       builder.AddInMemoryTransport(o =>
+                       {
+                           // default to Broadcast kind so that we get pub-sub behaviour
+                           o.DefaultEntityKind = EntityKind.Broadcast;
+                       });
+                   });
 
-                    // Transport agnostic configuration
-                    builder.Configure(o =>
-                    {
-                        o.Naming.Scope = "dev"; // queues will be prefixed by 'dev'
-                        o.Naming.UseFullTypeNames = false;
-                    });
-                    builder.AddConsumer<FirstEventConsumer>();
-                    builder.AddConsumer<SecondEventConsumer>();
+                   services.AddHostedService<PublisherService>();
+               })
+               .Build();
 
-                    // Transport specific configuration
-                    builder.AddInMemoryTransport(o =>
-                    {
-                        // default to Broadcast kind so that we get pub-sub behaviour
-                        o.DefaultEntityKind = EntityKind.Broadcast;
-                    });
-                });
-
-                services.AddHostedService<PublisherService>();
-            });
-}
+await host.RunAsync();

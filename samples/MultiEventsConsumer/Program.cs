@@ -1,34 +1,26 @@
-﻿namespace MultiEventsConsumer;
+﻿var host = Host.CreateDefaultBuilder(args)
+               .ConfigureServices((hostContext, services) =>
+               {
+                   services.AddDistributedMemoryCache();
 
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        CreateHostBuilder(args).Build().Run();
-    }
+                   services.AddEventBus(builder =>
+                   {
+                       builder.UseDefaultXmlSerializer();
 
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .ConfigureServices((hostContext, services) =>
-            {
-                services.AddDistributedMemoryCache();
+                       // Transport agnostic configuration
+                       builder.Configure(o =>
+                       {
+                           o.Naming.Scope = "dev"; // queues will be prefixed by 'dev'
+                           o.Naming.UseFullTypeNames = false;
+                       });
+                       builder.AddConsumer<MultiEventsConsumer.MultiEventsConsumer>();
 
-                services.AddEventBus(builder =>
-                {
-                    builder.UseDefaultXmlSerializer();
+                       // Transport specific configuration
+                       builder.AddInMemoryTransport();
+                   });
 
-                    // Transport agnostic configuration
-                    builder.Configure(o =>
-                    {
-                        o.Naming.Scope = "dev"; // queues will be prefixed by 'dev'
-                        o.Naming.UseFullTypeNames = false;
-                    });
-                    builder.AddConsumer<MultiEventsConsumer>();
+                   services.AddHostedService<MultiEventsConsumer.DummyProducerService>();
+               })
+               .Build();
 
-                    // Transport specific configuration
-                    builder.AddInMemoryTransport();
-                });
-
-                services.AddHostedService<DummyProducerService>();
-            });
-}
+await host.RunAsync();

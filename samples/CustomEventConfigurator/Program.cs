@@ -1,35 +1,28 @@
-﻿using Tingle.EventBus.Configuration;
+﻿using CustomEventConfigurator;
+using Tingle.EventBus.Configuration;
 
-namespace CustomEventConfigurator;
+var host = Host.CreateDefaultBuilder(args)
+               .ConfigureServices((hostContext, services) =>
+               {
+                   services.AddEventBus(builder =>
+                   {
+                       // Transport agnostic configuration
+                       builder.Configure(o =>
+                       {
+                           o.Naming.Scope = "dev"; // queues will be prefixed by 'dev'
+                           o.Naming.UseFullTypeNames = false;
+                       });
+                       builder.AddConsumer<SampleConsumer1>();
+                       builder.AddConsumer<SampleConsumer2>();
 
-class Program
-{
-    public static void Main(string[] args)
-    {
-        CreateHostBuilder(args).Build().Run();
-    }
+                       // Setup extra configurators
+                       // You can have as many as you like, these are called after the default one.
+                       builder.Services.AddSingleton<IEventConfigurator, MyConfigurator>();
 
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .ConfigureServices((hostContext, services) =>
-            {
-                services.AddEventBus(builder =>
-                {
-                    // Transport agnostic configuration
-                    builder.Configure(o =>
-                    {
-                        o.Naming.Scope = "dev"; // queues will be prefixed by 'dev'
-                        o.Naming.UseFullTypeNames = false;
-                    });
-                    builder.AddConsumer<SampleConsumer1>();
-                    builder.AddConsumer<SampleConsumer2>();
+                       // Transport specific configuration
+                       builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");
+                   });
+               })
+               .Build();
 
-                    // Setup extra configurators
-                    // You can have as many as you like, these are called after the default one.
-                    builder.Services.AddSingleton<IEventConfigurator, MyConfigurator>();
-
-                    // Transport specific configuration
-                    builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");
-                });
-            });
-}
+await host.RunAsync();

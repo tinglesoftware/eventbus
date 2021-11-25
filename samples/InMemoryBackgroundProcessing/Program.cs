@@ -16,16 +16,16 @@ public class Program
             {
                 services.AddEventBus(builder =>
                 {
-                        // Transport agnostic configuration
-                        builder.Configure(o =>
+                    // Transport agnostic configuration
+                    builder.Configure(o =>
                     {
                         o.Naming.Scope = "dev"; // queues will be prefixed by 'dev'
-                            o.Naming.UseFullTypeNames = false;
+                        o.Naming.UseFullTypeNames = false;
                     });
                     builder.AddConsumer<VideoUploadedConsumer>();
 
-                        // Transport specific configuration
-                        builder.AddInMemoryTransport();
+                    // Transport specific configuration
+                    builder.AddInMemoryTransport();
                 });
 
                 services.AddHostedService<ProducerService>();

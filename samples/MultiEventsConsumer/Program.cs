@@ -20,16 +20,16 @@ public class Program
                 {
                     builder.UseDefaultXmlSerializer();
 
-                        // Transport agnostic configuration
-                        builder.Configure(o =>
+                    // Transport agnostic configuration
+                    builder.Configure(o =>
                     {
                         o.Naming.Scope = "dev"; // queues will be prefixed by 'dev'
-                            o.Naming.UseFullTypeNames = false;
+                        o.Naming.UseFullTypeNames = false;
                     });
                     builder.AddConsumer<MultiEventsConsumer>();
 
-                        // Transport specific configuration
-                        builder.AddInMemoryTransport();
+                    // Transport specific configuration
+                    builder.AddInMemoryTransport();
                 });
 
                 services.AddHostedService<DummyProducerService>();

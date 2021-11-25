@@ -19,20 +19,20 @@ public class Program
                 {
                     builder.UseDefaultNewtonsoftJsonSerializer();
 
-                        // Transport agnostic configuration
-                        builder.Configure(o =>
+                    // Transport agnostic configuration
+                    builder.Configure(o =>
                     {
                         o.Naming.Scope = "dev"; // queues will be prefixed by 'dev'
-                            o.Naming.UseFullTypeNames = false;
+                        o.Naming.UseFullTypeNames = false;
                     });
                     builder.AddConsumer<FirstEventConsumer>();
                     builder.AddConsumer<SecondEventConsumer>();
 
-                        // Transport specific configuration
-                        builder.AddInMemoryTransport(o =>
+                    // Transport specific configuration
+                    builder.AddInMemoryTransport(o =>
                     {
-                            // default to Broadcast kind so that we get pub-sub behaviour
-                            o.DefaultEntityKind = EntityKind.Broadcast;
+                        // default to Broadcast kind so that we get pub-sub behaviour
+                        o.DefaultEntityKind = EntityKind.Broadcast;
                     });
                 });
 

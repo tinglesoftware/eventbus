@@ -17,16 +17,16 @@ public class Program
                 services.AddSingleton<EventCounter>();
                 services.AddEventBus(builder =>
                 {
-                        // Transport agnostic configuration
-                        builder.Configure(o =>
+                    // Transport agnostic configuration
+                    builder.Configure(o =>
                     {
                         o.Naming.Scope = "dev"; // queues will be prefixed by 'dev'
-                            o.Naming.UseFullTypeNames = false;
+                        o.Naming.UseFullTypeNames = false;
                     });
                     builder.AddConsumer<SampleEventConsumer>();
 
-                        // Transport specific configuration
-                        builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");
+                    // Transport specific configuration
+                    builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");
                 });
             });
 }

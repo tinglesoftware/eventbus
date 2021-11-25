@@ -118,15 +118,15 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
         string? scheduledId = null;
         retryPolicy.Execute(() =>
         {
-                // setup properties
-                var properties = channel.CreateBasicProperties();
+            // setup properties
+            var properties = channel.CreateBasicProperties();
             properties.MessageId = @event.Id;
             properties.CorrelationId = @event.CorrelationId;
             properties.ContentEncoding = @event.ContentType?.CharSet;
             properties.ContentType = @event.ContentType?.MediaType;
 
-                // if scheduled for later, set the delay in the message
-                if (scheduled != null)
+            // if scheduled for later, set the delay in the message
+            if (scheduled != null)
             {
                 var delay = Math.Max(0, (scheduled.Value - DateTimeOffset.UtcNow).TotalMilliseconds);
                 if (delay > 0)
@@ -136,23 +136,23 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
                 }
             }
 
-                // if expiry is set in the future, set the ttl in the message
-                if (@event.Expires != null && @event.Expires > DateTimeOffset.UtcNow)
+            // if expiry is set in the future, set the ttl in the message
+            if (@event.Expires != null && @event.Expires > DateTimeOffset.UtcNow)
             {
                 var ttl = @event.Expires.Value - DateTimeOffset.UtcNow;
                 properties.Expiration = ((long)ttl.TotalMilliseconds).ToString();
             }
 
-                // Add custom properties
-                properties.Headers.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
-                              .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
-                              .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
+            // Add custom properties
+            properties.Headers.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+                          .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
+                          .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
-                // do actual publish
-                Logger.LogInformation("Sending {Id} to '{ExchangeName}'. Scheduled: {Scheduled}",
-                                  @event.Id,
-                                  name,
-                                  scheduled);
+            // do actual publish
+            Logger.LogInformation("Sending {Id} to '{ExchangeName}'. Scheduled: {Scheduled}",
+                              @event.Id,
+                              name,
+                              scheduled);
             channel.BasicPublish(exchange: name,
                                  routingKey: "",
                                  basicProperties: properties,
@@ -195,15 +195,15 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
             var batch = channel.CreateBasicPublishBatch();
             foreach (var (@event, contentType, body) in serializedEvents)
             {
-                    // setup properties
-                    var properties = channel.CreateBasicProperties();
+                // setup properties
+                var properties = channel.CreateBasicProperties();
                 properties.MessageId = @event.Id;
                 properties.CorrelationId = @event.CorrelationId;
                 properties.ContentEncoding = contentType?.CharSet;
                 properties.ContentType = contentType?.MediaType;
 
-                    // if scheduled for later, set the delay in the message
-                    if (scheduled != null)
+                // if scheduled for later, set the delay in the message
+                if (scheduled != null)
                 {
                     var delay = Math.Max(0, (scheduled.Value - DateTimeOffset.UtcNow).TotalMilliseconds);
                     if (delay > 0)
@@ -212,28 +212,28 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
                     }
                 }
 
-                    // if expiry is set in the future, set the ttl in the message
-                    if (@event.Expires != null && @event.Expires > DateTimeOffset.UtcNow)
+                // if expiry is set in the future, set the ttl in the message
+                if (@event.Expires != null && @event.Expires > DateTimeOffset.UtcNow)
                 {
                     var ttl = @event.Expires.Value - DateTimeOffset.UtcNow;
                     properties.Expiration = ((long)ttl.TotalMilliseconds).ToString();
                 }
 
-                    // Add custom properties
-                    properties.Headers.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
-                                  .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
-                                  .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
+                // Add custom properties
+                properties.Headers.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+                              .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
+                              .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
-                    // add to batch
-                    batch.Add(exchange: name, routingKey: "", mandatory: false, properties: properties, body: body);
+                // add to batch
+                batch.Add(exchange: name, routingKey: "", mandatory: false, properties: properties, body: body);
             }
 
-                // do actual publish
-                Logger.LogInformation("Sending {EventsCount} messages to '{ExchangeName}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
-                                  events.Count,
-                                  name,
-                                  scheduled,
-                                  string.Join("\r\n- ", events.Select(e => e.Id)));
+            // do actual publish
+            Logger.LogInformation("Sending {EventsCount} messages to '{ExchangeName}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
+                              events.Count,
+                              name,
+                              scheduled,
+                              string.Join("\r\n- ", events.Select(e => e.Id)));
             batch.Publish();
         });
 
@@ -280,7 +280,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
                     var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
                     var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
                     return (Task)method.Invoke(this, new object[] { reg, ecr, channel, @event, CancellationToken.None, })!; // do not chain CancellationToken
-                    };
+                };
                 channel.BasicConsume(queue: queueName, autoAck: false, consumer);
             }
         }
@@ -376,7 +376,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
                 {
                     Logger.LogError(e.Exception, "Callback exception for {Subscription}", key);
                     var _ = ConnectConsumersAsync(CancellationToken.None); // do not await or chain token
-                    };
+                };
 
                 subscriptionChannelsCache[key] = channel;
             }

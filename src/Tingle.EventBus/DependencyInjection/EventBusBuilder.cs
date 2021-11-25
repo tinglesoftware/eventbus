@@ -168,20 +168,20 @@ public class EventBusBuilder
         {
             foreach (var et in eventTypes)
             {
-                    // get or create a simple EventRegistration
-                    if (!options.Registrations.TryGetValue(et, out var reg))
+                // get or create a simple EventRegistration
+                if (!options.Registrations.TryGetValue(et, out var reg))
                 {
                     reg = options.Registrations[et] = new EventRegistration(et);
                 }
 
-                    // create a ConsumerRegistration
-                    var ecr = new EventConsumerRegistration(consumerType: consumerType);
+                // create a ConsumerRegistration
+                var ecr = new EventConsumerRegistration(consumerType: consumerType);
 
-                    // call the configuration function
-                    configure?.Invoke(reg, ecr);
+                // call the configuration function
+                configure?.Invoke(reg, ecr);
 
-                    // add the consumer to the registration
-                    reg.Consumers.Add(ecr);
+                // add the consumer to the registration
+                reg.Consumers.Add(ecr);
             }
         });
     }

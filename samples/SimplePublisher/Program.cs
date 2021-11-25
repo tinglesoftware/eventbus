@@ -16,15 +16,15 @@ public class Program
             {
                 services.AddEventBus(builder =>
                 {
-                        // Transport agnostic configuration
-                        builder.Configure(o =>
+                    // Transport agnostic configuration
+                    builder.Configure(o =>
                     {
                         o.Naming.Scope = "dev"; // queues will be prefixed by 'dev'
-                            o.Naming.UseFullTypeNames = false;
+                        o.Naming.UseFullTypeNames = false;
                     });
 
-                        // Transport specific configuration
-                        builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");
+                    // Transport specific configuration
+                    builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");
                 });
 
                 services.AddHostedService<PublisherService>();

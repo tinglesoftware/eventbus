@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Tingle.EventBus.Retries;
+﻿namespace Tingle.EventBus.Retries;
 
 /// <summary>
 /// Represents an event (or command) that can be retried and carries its own retry schedule.

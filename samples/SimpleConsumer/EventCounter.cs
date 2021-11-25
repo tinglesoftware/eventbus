@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace SimpleConsumer;
+﻿namespace SimpleConsumer;
 
 public class EventCounter
 {

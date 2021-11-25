@@ -1,5 +1,4 @@
 ﻿using Azure.Messaging.ServiceBus;
-using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Tingle.EventBus;

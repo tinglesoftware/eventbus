@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Tingle.EventBus.Tests.Configurator;
+﻿namespace Tingle.EventBus.Tests.Configurator;
 
 internal class TestConsumer1 : IEventConsumer<TestEvent1>
 {

@@ -1,6 +1,5 @@
 ﻿using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
-using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Tingle.EventBus;

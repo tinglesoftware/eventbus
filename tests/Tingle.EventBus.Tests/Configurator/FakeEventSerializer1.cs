@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Tingle.EventBus.Serialization;
+﻿using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Tests.Configurator;
 

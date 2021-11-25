@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace System;
+﻿namespace System;
 
 /// <summary>
 /// Extension methods for <see cref="BinaryData"/>

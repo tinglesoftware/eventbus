@@ -1,7 +1,6 @@
 ﻿using Amazon;
 using Amazon.Runtime;
 using Microsoft.Extensions.Options;
-using System;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

@@ -1,6 +1,4 @@
 ﻿using Polly.Retry;
-using System;
-using System.Collections.Generic;
 using Tingle.EventBus.Readiness;
 
 namespace Tingle.EventBus.Configuration;

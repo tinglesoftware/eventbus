@@ -1,10 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Tingle.EventBus;
-
-namespace InMemoryBackgroundProcessing;
+﻿namespace InMemoryBackgroundProcessing;
 
 internal class ProducerService : BackgroundService
 {

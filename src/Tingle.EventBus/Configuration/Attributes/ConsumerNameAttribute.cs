@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Tingle.EventBus.Configuration;
+﻿namespace Tingle.EventBus.Configuration;
 
 /// <summary>
 /// Specify the ConsumerName used for this consumer type, overriding the generated one.

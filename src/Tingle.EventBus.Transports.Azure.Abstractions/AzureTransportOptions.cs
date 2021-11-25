@@ -1,5 +1,4 @@
-﻿using System;
-using Tingle.EventBus.Transports;
+﻿using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

@@ -1,10 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Tingle.EventBus;
-
-namespace InMemoryBackgroundProcessing;
+﻿namespace InMemoryBackgroundProcessing;
 
 public class VideoUploadedConsumer : IEventConsumer<VideoUploaded>
 {

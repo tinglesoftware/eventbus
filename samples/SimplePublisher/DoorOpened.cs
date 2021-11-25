@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SimplePublisher;
+﻿namespace SimplePublisher;
 
 public class DoorOpened
 {

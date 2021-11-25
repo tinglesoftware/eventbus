@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Tingle.EventBus.Serialization;
+﻿namespace Tingle.EventBus.Serialization;
 
 /// <summary>
 /// An envelope of a event as represented when serialized.

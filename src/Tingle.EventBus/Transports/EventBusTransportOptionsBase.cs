@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Polly.Retry;
-using System;
-using System.Linq;
 using Tingle.EventBus.Configuration;
 
 namespace Tingle.EventBus.Transports;

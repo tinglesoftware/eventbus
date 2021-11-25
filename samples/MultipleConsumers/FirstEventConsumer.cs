@@ -1,10 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Tingle.EventBus;
-
-namespace MultipleConsumers;
+﻿namespace MultipleConsumers;
 
 public class FirstEventConsumer : IEventConsumer<DoorOpened>
 {

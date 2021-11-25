@@ -1,7 +1,4 @@
-﻿using System;
-using Tingle.EventBus.Readiness;
-
-namespace Microsoft.Extensions.DependencyInjection;
+﻿namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// Specifies options for readiness checks.

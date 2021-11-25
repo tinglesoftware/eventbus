@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MultiEventsConsumer;
+﻿namespace MultiEventsConsumer;
 
 public class DoorOpened
 {

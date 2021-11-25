@@ -1,12 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Tingle.EventBus;
-
-namespace MultiEventsConsumer;
+﻿namespace MultiEventsConsumer;
 
 internal class DummyProducerService : BackgroundService
 {

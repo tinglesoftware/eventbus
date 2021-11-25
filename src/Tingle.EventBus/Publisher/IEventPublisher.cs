@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Tingle.EventBus;
+﻿namespace Tingle.EventBus;
 
 /// <summary>
 /// Contract describing a publisher of events.

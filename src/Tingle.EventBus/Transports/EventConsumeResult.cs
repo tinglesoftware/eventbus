@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Tingle.EventBus.Transports;
+﻿namespace Tingle.EventBus.Transports;
 
 /// <summary>
 /// Represents the result from consuming an event.

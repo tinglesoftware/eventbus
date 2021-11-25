@@ -1,5 +1,4 @@
-﻿using System;
-using Tingle.EventBus.Configuration;
+﻿using Tingle.EventBus.Configuration;
 
 namespace Tingle.EventBus.Serialization;
 

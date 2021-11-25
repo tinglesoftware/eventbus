@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using System;
 using Tingle.EventBus.Serialization.Xml;
 
 namespace Microsoft.Extensions.DependencyInjection;

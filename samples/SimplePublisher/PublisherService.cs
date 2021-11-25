@@ -1,10 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Tingle.EventBus;
-
-namespace SimplePublisher;
+﻿namespace SimplePublisher;
 
 public class PublisherService : BackgroundService
 {

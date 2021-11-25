@@ -1,11 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Tingle.EventBus;
-
-namespace CustomEventSerializer;
+﻿namespace CustomEventSerializer;
 
 internal class AzureDevOpsEventsConsumer : IEventConsumer<AzureDevOpsCodePushed>
 {

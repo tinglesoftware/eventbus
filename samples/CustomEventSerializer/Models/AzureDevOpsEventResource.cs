@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace CustomEventSerializer.Models;
+﻿namespace CustomEventSerializer.Models;
 
 public class AzureDevOpsEventResource
 {

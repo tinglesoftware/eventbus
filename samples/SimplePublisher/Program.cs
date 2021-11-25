@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-
-namespace SimplePublisher;
+﻿namespace SimplePublisher;
 
 public class Program
 {

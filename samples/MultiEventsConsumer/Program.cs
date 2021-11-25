@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-
-namespace MultiEventsConsumer;
+﻿namespace MultiEventsConsumer;
 
 public class Program
 {

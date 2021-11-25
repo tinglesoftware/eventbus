@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Tingle.EventBus.Configuration;
-using Xunit;
 
 namespace Tingle.EventBus.Tests;
 

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-
-namespace Tingle.EventBus.Transports.InMemory.Client;
+﻿namespace Tingle.EventBus.Transports.InMemory.Client;
 
 /// <summary>
 /// A sequence number generator for InMemory transport

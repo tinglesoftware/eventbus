@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CustomEventSerializer.Models;
+﻿namespace CustomEventSerializer.Models;
 
 public class AzureDevOpsEventResourceRepository
 {

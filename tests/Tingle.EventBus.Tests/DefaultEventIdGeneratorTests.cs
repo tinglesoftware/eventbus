@@ -1,7 +1,5 @@
-﻿using System;
-using Tingle.EventBus.Configuration;
+﻿using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Ids;
-using Xunit;
 
 namespace Tingle.EventBus.Tests;
 

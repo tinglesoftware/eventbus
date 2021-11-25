@@ -1,6 +1,5 @@
 ﻿using Amazon.Kinesis;
 using Microsoft.Extensions.Options;
-using System;
 using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 

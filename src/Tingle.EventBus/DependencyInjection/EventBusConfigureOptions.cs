@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using System;
 using Tingle.EventBus;
 using Tingle.EventBus.Serialization;
 

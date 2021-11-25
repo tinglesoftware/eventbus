@@ -6,14 +6,9 @@ using Polly.Retry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net.Mime;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
 

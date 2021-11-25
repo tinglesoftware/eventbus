@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Tingle.EventBus;
+﻿namespace Tingle.EventBus;
 
 /// <summary>
 /// Represents the result from scheduling a delayed event.

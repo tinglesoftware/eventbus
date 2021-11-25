@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MultipleConsumers;
+﻿namespace MultipleConsumers;
 
 public class DoorOpened
 {

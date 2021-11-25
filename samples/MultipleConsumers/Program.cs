@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Tingle.EventBus.Configuration;
+﻿using Tingle.EventBus.Configuration;
 
 namespace MultipleConsumers;
 

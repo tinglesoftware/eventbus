@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-
-namespace SimpleConsumer;
+﻿namespace SimpleConsumer;
 
 public class Program
 {

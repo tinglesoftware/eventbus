@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Tingle.EventBus.Transports.InMemory.Client;
-using Xunit;
+﻿using Tingle.EventBus.Transports.InMemory.Client;
 
 namespace Tingle.EventBus.Tests.InMemory;
 

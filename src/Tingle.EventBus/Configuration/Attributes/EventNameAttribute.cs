@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Tingle.EventBus.Configuration;
+﻿namespace Tingle.EventBus.Configuration;
 
 /// <summary>
 /// Specify the EventName used for this event contract/type, overriding the generated one.

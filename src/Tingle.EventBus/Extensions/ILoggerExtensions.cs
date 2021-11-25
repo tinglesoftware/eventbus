@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Tingle.EventBus;
+﻿using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Serialization;
 

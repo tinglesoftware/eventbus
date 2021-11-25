@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CustomEventConfigurator;
+﻿namespace CustomEventConfigurator;
 
 public class SampleEvent2
 {

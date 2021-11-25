@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using System;
 using Tingle.EventBus.Transports.Amazon.Kinesis;
 
 namespace Microsoft.Extensions.DependencyInjection;

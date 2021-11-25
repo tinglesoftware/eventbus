@@ -1,10 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Tingle.EventBus.Transports.InMemory;
-using Xunit;
 
 namespace Tingle.EventBus.Tests.InMemory;
 

@@ -1,5 +1,4 @@
 ﻿using Azure.Storage.Queues.Models;
-using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Tingle.EventBus.Transports.Azure.QueueStorage;

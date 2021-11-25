@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Tingle.EventBus.Retries;
+﻿namespace Tingle.EventBus.Retries;
 
 /// <summary>Abstract implementation of <see cref="IRetryableEvent"/>.</summary>
 public abstract record AbstractRetryableEvent : IRetryableEvent

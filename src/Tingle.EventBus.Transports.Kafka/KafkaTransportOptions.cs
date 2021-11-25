@@ -1,7 +1,5 @@
 ﻿using Confluent.Kafka;
 using Confluent.Kafka.Admin;
-using System;
-using System.Collections.Generic;
 using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Transports;

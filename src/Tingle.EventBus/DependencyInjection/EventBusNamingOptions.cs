@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.Hosting;
-using System;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Tingle.EventBus.Configuration;
 

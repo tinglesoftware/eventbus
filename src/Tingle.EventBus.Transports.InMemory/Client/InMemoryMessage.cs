@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Tingle.EventBus.Transports.InMemory.Client;
+﻿namespace Tingle.EventBus.Transports.InMemory.Client;
 
 /// <summary>
 /// The <see cref="InMemoryMessage"/> is used to receive

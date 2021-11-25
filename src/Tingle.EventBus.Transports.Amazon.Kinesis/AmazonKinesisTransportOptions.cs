@@ -1,5 +1,4 @@
 ﻿using Amazon.Kinesis;
-using System;
 using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 

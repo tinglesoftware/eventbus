@@ -5,173 +5,172 @@ using System.Linq;
 using Tingle.EventBus.Readiness;
 using Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus.Configuration
+namespace Tingle.EventBus.Configuration;
+
+/// <summary>
+/// Default implementation of <see cref="IEventConfigurator"/>.
+/// </summary>
+internal class DefaultEventConfigurator : IEventConfigurator
 {
-    /// <summary>
-    /// Default implementation of <see cref="IEventConfigurator"/>.
-    /// </summary>
-    internal class DefaultEventConfigurator : IEventConfigurator
+    private readonly IHostEnvironment environment;
+
+    public DefaultEventConfigurator(IHostEnvironment environment)
     {
-        private readonly IHostEnvironment environment;
+        this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
+    }
 
-        public DefaultEventConfigurator(IHostEnvironment environment)
+    /// <inheritdoc/>
+    public void Configure(EventRegistration registration, EventBusOptions options)
+    {
+        if (registration is null) throw new ArgumentNullException(nameof(registration));
+        if (options is null) throw new ArgumentNullException(nameof(options));
+
+        // set transport name
+        ConfigureTransportName(registration, options);
+
+        // set event name and kind
+        ConfigureEventName(registration, options.Naming);
+        ConfigureEntityKind(registration);
+
+        // set the consumer names
+        ConfigureConsumerNames(registration, options.Naming);
+
+        // set the serializer and the readiness provider
+        ConfigureSerializer(registration);
+        ConfigureReadinessProviders(registration);
+    }
+
+    internal static void ConfigureTransportName(EventRegistration reg, EventBusOptions options)
+    {
+        // If the event transport name has not been specified, attempt to get from the attribute
+        var type = reg.EventType;
+        reg.TransportName ??= type.GetCustomAttributes(false).OfType<EventTransportNameAttribute>().SingleOrDefault()?.Name;
+
+        // If the event transport name has not been set, try the default one
+        reg.TransportName ??= options.DefaultTransportName;
+
+        // Set the transport name from the default, if not set
+        if (string.IsNullOrWhiteSpace(reg.TransportName))
         {
-            this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
+            throw new InvalidOperationException($"Unable to set the transport for event '{type.FullName}'."
+                                              + $" Either set the '{nameof(options.DefaultTransportName)}' option"
+                                              + $" or use the '{typeof(EventTransportNameAttribute).FullName}' on the event.");
         }
 
-        /// <inheritdoc/>
-        public void Configure(EventRegistration registration, EventBusOptions options)
+        // Ensure the transport name set has been registered
+        if (!options.RegisteredTransportNames.ContainsKey(reg.TransportName))
         {
-            if (registration is null) throw new ArgumentNullException(nameof(registration));
-            if (options is null) throw new ArgumentNullException(nameof(options));
-
-            // set transport name
-            ConfigureTransportName(registration, options);
-
-            // set event name and kind
-            ConfigureEventName(registration, options.Naming);
-            ConfigureEntityKind(registration);
-
-            // set the consumer names
-            ConfigureConsumerNames(registration, options.Naming);
-
-            // set the serializer and the readiness provider
-            ConfigureSerializer(registration);
-            ConfigureReadinessProviders(registration);
+            throw new InvalidOperationException($"Transport '{reg.TransportName}' on event '{type.FullName}' must be registered.");
         }
+    }
 
-        internal static void ConfigureTransportName(EventRegistration reg, EventBusOptions options)
+    internal static void ConfigureEventName(EventRegistration reg, EventBusNamingOptions options)
+    {
+        // set the event name, if not set
+        if (string.IsNullOrWhiteSpace(reg.EventName))
         {
-            // If the event transport name has not been specified, attempt to get from the attribute
             var type = reg.EventType;
-            reg.TransportName ??= type.GetCustomAttributes(false).OfType<EventTransportNameAttribute>().SingleOrDefault()?.Name;
-
-            // If the event transport name has not been set, try the default one
-            reg.TransportName ??= options.DefaultTransportName;
-
-            // Set the transport name from the default, if not set
-            if (string.IsNullOrWhiteSpace(reg.TransportName))
+            // prioritize the attribute if available, otherwise get the type name
+            var name = type.GetCustomAttributes(false).OfType<EventNameAttribute>().SingleOrDefault()?.EventName;
+            if (name == null)
             {
-                throw new InvalidOperationException($"Unable to set the transport for event '{type.FullName}'."
-                                                  + $" Either set the '{nameof(options.DefaultTransportName)}' option"
-                                                  + $" or use the '{typeof(EventTransportNameAttribute).FullName}' on the event.");
+                var typeName = options.UseFullTypeNames ? type.FullName! : type.Name;
+                typeName = options.TrimCommonSuffixes(typeName);
+                name = typeName;
+                name = options.ApplyNamingConvention(name);
+                name = options.AppendScope(name);
+                name = options.ReplaceInvalidCharacters(name);
             }
+            reg.EventName = name;
+        }
+    }
 
-            // Ensure the transport name set has been registered
-            if (!options.RegisteredTransportNames.ContainsKey(reg.TransportName))
+    internal static void ConfigureEntityKind(EventRegistration reg)
+    {
+        // set the entity kind, if not set and there is an attribute
+        if (reg.EntityKind == null)
+        {
+            var type = reg.EventType;
+            var kind = type.GetCustomAttributes(false).OfType<EntityKindAttribute>().SingleOrDefault()?.Kind;
+            if (kind != null)
             {
-                throw new InvalidOperationException($"Transport '{reg.TransportName}' on event '{type.FullName}' must be registered.");
+                reg.EntityKind = kind;
             }
         }
+    }
 
-        internal static void ConfigureEventName(EventRegistration reg, EventBusNamingOptions options)
+    internal void ConfigureConsumerNames(EventRegistration reg, EventBusNamingOptions options)
+    {
+        // ensure we have the event name set
+        if (string.IsNullOrWhiteSpace(reg.EventName))
         {
-            // set the event name, if not set
-            if (string.IsNullOrWhiteSpace(reg.EventName))
+            throw new InvalidOperationException($"The {nameof(reg.EventName)} for must be set before setting names of the consumer.");
+        }
+
+        // prefix is either the one provided or the application name
+        var prefix = options.ConsumerNamePrefix ?? environment.ApplicationName;
+
+        foreach (var ecr in reg.Consumers)
+        {
+            // set the consumer name, if not set
+            if (string.IsNullOrWhiteSpace(ecr.ConsumerName))
             {
-                var type = reg.EventType;
+                var type = ecr.ConsumerType;
                 // prioritize the attribute if available, otherwise get the type name
-                var name = type.GetCustomAttributes(false).OfType<EventNameAttribute>().SingleOrDefault()?.EventName;
+                var name = type.GetCustomAttributes(false).OfType<ConsumerNameAttribute>().SingleOrDefault()?.ConsumerName;
                 if (name == null)
                 {
                     var typeName = options.UseFullTypeNames ? type.FullName! : type.Name;
                     typeName = options.TrimCommonSuffixes(typeName);
-                    name = typeName;
+                    name = options.ConsumerNameSource switch
+                    {
+                        ConsumerNameSource.TypeName => typeName,
+                        ConsumerNameSource.Prefix => prefix,
+                        ConsumerNameSource.PrefixAndTypeName => $"{prefix}.{typeName}",
+                        _ => throw new InvalidOperationException($"'{nameof(options.ConsumerNameSource)}.{options.ConsumerNameSource}' is not supported"),
+                    };
                     name = options.ApplyNamingConvention(name);
                     name = options.AppendScope(name);
                     name = options.ReplaceInvalidCharacters(name);
                 }
-                reg.EventName = name;
+                // Appending the EventName to the consumer name can ensure it is unique
+                ecr.ConsumerName = options.SuffixConsumerName ? options.Join(name, reg.EventName) : name;
             }
         }
+    }
 
-        internal static void ConfigureEntityKind(EventRegistration reg)
+    internal static void ConfigureSerializer(EventRegistration reg)
+    {
+        // If the event serializer has not been specified, attempt to get from the attribute
+        var attrs = reg.EventType.GetCustomAttributes(false);
+        reg.EventSerializerType ??= attrs.OfType<EventSerializerAttribute>().SingleOrDefault()?.SerializerType;
+        reg.EventSerializerType ??= typeof(IEventSerializer); // use the default when not provided
+
+        // Ensure the serializer is either default or it implements IEventSerializer
+        if (reg.EventSerializerType != typeof(IEventSerializer)
+            && !typeof(IEventSerializer).IsAssignableFrom(reg.EventSerializerType))
         {
-            // set the entity kind, if not set and there is an attribute
-            if (reg.EntityKind == null)
-            {
-                var type = reg.EventType;
-                var kind = type.GetCustomAttributes(false).OfType<EntityKindAttribute>().SingleOrDefault()?.Kind;
-                if (kind != null)
-                {
-                    reg.EntityKind = kind;
-                }
-            }
+            throw new InvalidOperationException($"The type '{reg.EventSerializerType.FullName}' is used as a serializer "
+                                              + $"but does not implement '{typeof(IEventSerializer).FullName}'");
         }
+    }
 
-        internal void ConfigureConsumerNames(EventRegistration reg, EventBusNamingOptions options)
+    internal static void ConfigureReadinessProviders(EventRegistration reg)
+    {
+        foreach (var ecr in reg.Consumers)
         {
-            // ensure we have the event name set
-            if (string.IsNullOrWhiteSpace(reg.EventName))
+            // If the readiness provider has not been specified, attempt to get from the attribute
+            var type = ecr.ConsumerType;
+            var attrs = type.GetCustomAttributes(false);
+            ecr.ReadinessProviderType ??= attrs.OfType<ConsumerReadinessProviderAttribute>().SingleOrDefault()?.ReadinessProviderType;
+            ecr.ReadinessProviderType ??= typeof(IReadinessProvider); // use the default when not provided
+
+            // Ensure the provider is either default or it implements IReadinessProvider
+            if (ecr.ReadinessProviderType != typeof(IReadinessProvider)
+                && !typeof(IReadinessProvider).IsAssignableFrom(ecr.ReadinessProviderType))
             {
-                throw new InvalidOperationException($"The {nameof(reg.EventName)} for must be set before setting names of the consumer.");
-            }
-
-            // prefix is either the one provided or the application name
-            var prefix = options.ConsumerNamePrefix ?? environment.ApplicationName;
-
-            foreach (var ecr in reg.Consumers)
-            {
-                // set the consumer name, if not set
-                if (string.IsNullOrWhiteSpace(ecr.ConsumerName))
-                {
-                    var type = ecr.ConsumerType;
-                    // prioritize the attribute if available, otherwise get the type name
-                    var name = type.GetCustomAttributes(false).OfType<ConsumerNameAttribute>().SingleOrDefault()?.ConsumerName;
-                    if (name == null)
-                    {
-                        var typeName = options.UseFullTypeNames ? type.FullName! : type.Name;
-                        typeName = options.TrimCommonSuffixes(typeName);
-                        name = options.ConsumerNameSource switch
-                        {
-                            ConsumerNameSource.TypeName => typeName,
-                            ConsumerNameSource.Prefix => prefix,
-                            ConsumerNameSource.PrefixAndTypeName => $"{prefix}.{typeName}",
-                            _ => throw new InvalidOperationException($"'{nameof(options.ConsumerNameSource)}.{options.ConsumerNameSource}' is not supported"),
-                        };
-                        name = options.ApplyNamingConvention(name);
-                        name = options.AppendScope(name);
-                        name = options.ReplaceInvalidCharacters(name);
-                    }
-                    // Appending the EventName to the consumer name can ensure it is unique
-                    ecr.ConsumerName = options.SuffixConsumerName ? options.Join(name, reg.EventName) : name;
-                }
-            }
-        }
-
-        internal static void ConfigureSerializer(EventRegistration reg)
-        {
-            // If the event serializer has not been specified, attempt to get from the attribute
-            var attrs = reg.EventType.GetCustomAttributes(false);
-            reg.EventSerializerType ??= attrs.OfType<EventSerializerAttribute>().SingleOrDefault()?.SerializerType;
-            reg.EventSerializerType ??= typeof(IEventSerializer); // use the default when not provided
-
-            // Ensure the serializer is either default or it implements IEventSerializer
-            if (reg.EventSerializerType != typeof(IEventSerializer)
-                && !typeof(IEventSerializer).IsAssignableFrom(reg.EventSerializerType))
-            {
-                throw new InvalidOperationException($"The type '{reg.EventSerializerType.FullName}' is used as a serializer "
-                                                  + $"but does not implement '{typeof(IEventSerializer).FullName}'");
-            }
-        }
-
-        internal static void ConfigureReadinessProviders(EventRegistration reg)
-        {
-            foreach (var ecr in reg.Consumers)
-            {
-                // If the readiness provider has not been specified, attempt to get from the attribute
-                var type = ecr.ConsumerType;
-                var attrs = type.GetCustomAttributes(false);
-                ecr.ReadinessProviderType ??= attrs.OfType<ConsumerReadinessProviderAttribute>().SingleOrDefault()?.ReadinessProviderType;
-                ecr.ReadinessProviderType ??= typeof(IReadinessProvider); // use the default when not provided
-
-                // Ensure the provider is either default or it implements IReadinessProvider
-                if (ecr.ReadinessProviderType != typeof(IReadinessProvider)
-                    && !typeof(IReadinessProvider).IsAssignableFrom(ecr.ReadinessProviderType))
-                {
-                    throw new InvalidOperationException($"The type '{ecr.ReadinessProviderType.FullName}' is used as a readiness provider "
-                                                      + $"but does not implement '{typeof(IReadinessProvider).FullName}'");
-                }
+                throw new InvalidOperationException($"The type '{ecr.ReadinessProviderType.FullName}' is used as a readiness provider "
+                                                  + $"but does not implement '{typeof(IReadinessProvider).FullName}'");
             }
         }
     }

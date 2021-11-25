@@ -1,8 +1,7 @@
-﻿namespace MultiEventsConsumer
+﻿namespace MultiEventsConsumer;
+
+public enum DoorState
 {
-    public enum DoorState
-    {
-        Open,
-        Closed
-    }
+    Open,
+    Closed
 }

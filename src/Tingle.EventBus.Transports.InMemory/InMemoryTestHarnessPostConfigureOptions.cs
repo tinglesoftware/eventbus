@@ -1,15 +1,14 @@
 ﻿using Microsoft.Extensions.Options;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace Microsoft.Extensions.DependencyInjection;
+
+/// <summary>
+/// A class to finish the configuration of instances of <see cref="InMemoryTestHarnessOptions"/>.
+/// </summary>
+internal class InMemoryTestHarnessPostConfigureOptions : IPostConfigureOptions<InMemoryTestHarnessOptions>
 {
-    /// <summary>
-    /// A class to finish the configuration of instances of <see cref="InMemoryTestHarnessOptions"/>.
-    /// </summary>
-    internal class InMemoryTestHarnessPostConfigureOptions : IPostConfigureOptions<InMemoryTestHarnessOptions>
+    public void PostConfigure(string name, InMemoryTestHarnessOptions options)
     {
-        public void PostConfigure(string name, InMemoryTestHarnessOptions options)
-        {
-            // intentionally left bank for future use
-        }
+        // intentionally left bank for future use
     }
 }

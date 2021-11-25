@@ -1,28 +1,27 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-namespace Confluent.Kafka
-{
-    internal static class KafkaExtensions
-    {
-        public static Headers AddIfNotNull(this Headers headers, string key, string? value)
-        {
-            if (!string.IsNullOrWhiteSpace(value))
-            {
-                headers.Add(key, Encoding.UTF8.GetBytes(value));
-            }
-            return headers;
-        }
+namespace Confluent.Kafka;
 
-        public static bool TryGetValue(this Headers headers, string key, [NotNullWhen(true)] out string? value)
+internal static class KafkaExtensions
+{
+    public static Headers AddIfNotNull(this Headers headers, string key, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
         {
-            if (headers.TryGetLastBytes(key, out var bytes))
-            {
-                value = Encoding.UTF8.GetString(bytes);
-                return true;
-            }
-            value = null;
-            return false;
+            headers.Add(key, Encoding.UTF8.GetBytes(value));
         }
+        return headers;
+    }
+
+    public static bool TryGetValue(this Headers headers, string key, [NotNullWhen(true)] out string? value)
+    {
+        if (headers.TryGetLastBytes(key, out var bytes))
+        {
+            value = Encoding.UTF8.GetString(bytes);
+            return true;
+        }
+        value = null;
+        return false;
     }
 }

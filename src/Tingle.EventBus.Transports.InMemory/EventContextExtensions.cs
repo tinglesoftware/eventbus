@@ -2,57 +2,56 @@
 using System.Diagnostics.CodeAnalysis;
 using Tingle.EventBus.Transports.InMemory.Client;
 
-namespace Tingle.EventBus
+namespace Tingle.EventBus;
+
+/// <summary>
+/// Extension methods on <see cref="EventContext"/> and <see cref="EventContext{T}"/>.
+/// </summary>
+public static class EventContextExtensions
 {
+    internal const string ItemsKeyMessage = "inmemory.received-message";
+
     /// <summary>
-    /// Extension methods on <see cref="EventContext"/> and <see cref="EventContext{T}"/>.
+    /// Gets the <see cref="InMemoryReceivedMessage"/> associated with the specified <see cref="EventContext"/>
+    /// if the event uses Azure Service Bus transport.
     /// </summary>
-    public static class EventContextExtensions
+    /// <param name="context">The <see cref="EventContext"/> to use.</param>
+    /// <param name="message">
+    /// When this method returns, the value, if found; otherwise,
+    /// the default value for the type of the value parameter.
+    /// This parameter is passed uninitialized.
+    /// </param>
+    /// <returns>
+    /// true if the message is found; otherwise, false.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">The context is null</exception>
+    public static bool TryGetInMemoryReceivedMessage(this EventContext context, [NotNullWhen(true)] out InMemoryReceivedMessage? message)
     {
-        internal const string ItemsKeyMessage = "inmemory.received-message";
+        if (context is null) throw new ArgumentNullException(nameof(context));
 
-        /// <summary>
-        /// Gets the <see cref="InMemoryReceivedMessage"/> associated with the specified <see cref="EventContext"/>
-        /// if the event uses Azure Service Bus transport.
-        /// </summary>
-        /// <param name="context">The <see cref="EventContext"/> to use.</param>
-        /// <param name="message">
-        /// When this method returns, the value, if found; otherwise,
-        /// the default value for the type of the value parameter.
-        /// This parameter is passed uninitialized.
-        /// </param>
-        /// <returns>
-        /// true if the message is found; otherwise, false.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">The context is null</exception>
-        public static bool TryGetInMemoryReceivedMessage(this EventContext context, [NotNullWhen(true)] out InMemoryReceivedMessage? message)
+        if (context.Items.TryGetValue(ItemsKeyMessage, out var obj) && obj is InMemoryReceivedMessage msg)
         {
-            if (context is null) throw new ArgumentNullException(nameof(context));
-
-            if (context.Items.TryGetValue(ItemsKeyMessage, out var obj) && obj is InMemoryReceivedMessage msg)
-            {
-                message = msg;
-                return true;
-            }
-
-            message = default;
-            return false;
+            message = msg;
+            return true;
         }
 
-        /// <summary>
-        /// Set the <see cref="InMemoryReceivedMessage"/> for an event.
-        /// </summary>
-        /// <typeparam name="T">The context type.</typeparam>
-        /// <param name="context">The <see cref="EventContext"/> to update.</param>
-        /// <param name="message">The value to set.</param>
-        /// <returns>The updated context.</returns>
-        internal static T SetInMemoryReceivedMessage<T>(this T context, InMemoryReceivedMessage message) where T : EventContext
-        {
-            if (context is null) throw new ArgumentNullException(nameof(context));
-            if (message is null) throw new ArgumentNullException(nameof(message));
+        message = default;
+        return false;
+    }
 
-            context.Items[ItemsKeyMessage] = message;
-            return context;
-        }
+    /// <summary>
+    /// Set the <see cref="InMemoryReceivedMessage"/> for an event.
+    /// </summary>
+    /// <typeparam name="T">The context type.</typeparam>
+    /// <param name="context">The <see cref="EventContext"/> to update.</param>
+    /// <param name="message">The value to set.</param>
+    /// <returns>The updated context.</returns>
+    internal static T SetInMemoryReceivedMessage<T>(this T context, InMemoryReceivedMessage message) where T : EventContext
+    {
+        if (context is null) throw new ArgumentNullException(nameof(context));
+        if (message is null) throw new ArgumentNullException(nameof(message));
+
+        context.Items[ItemsKeyMessage] = message;
+        return context;
     }
 }

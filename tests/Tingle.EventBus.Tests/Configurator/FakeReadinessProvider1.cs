@@ -3,25 +3,24 @@ using System.Threading.Tasks;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Readiness;
 
-namespace Tingle.EventBus.Tests.Configurator
+namespace Tingle.EventBus.Tests.Configurator;
+
+public class FakeReadinessProvider1 : IReadinessProvider
 {
-    public class FakeReadinessProvider1 : IReadinessProvider
+    public Task<bool> IsReadyAsync(CancellationToken cancellationToken = default)
     {
-        public Task<bool> IsReadyAsync(CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
+        throw new System.NotImplementedException();
+    }
 
-        public Task<bool> IsReadyAsync(EventRegistration ereg,
-                                       EventConsumerRegistration creg,
-                                       CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
+    public Task<bool> IsReadyAsync(EventRegistration ereg,
+                                   EventConsumerRegistration creg,
+                                   CancellationToken cancellationToken = default)
+    {
+        throw new System.NotImplementedException();
+    }
 
-        public Task WaitReadyAsync(CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
+    public Task WaitReadyAsync(CancellationToken cancellationToken = default)
+    {
+        throw new System.NotImplementedException();
     }
 }

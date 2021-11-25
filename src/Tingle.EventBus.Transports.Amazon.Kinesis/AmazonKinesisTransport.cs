@@ -11,173 +11,172 @@ using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Configuration;
 
-namespace Tingle.EventBus.Transports.Amazon.Kinesis
+namespace Tingle.EventBus.Transports.Amazon.Kinesis;
+
+/// <summary>
+/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using
+/// Amazon Kinesis as the transport.
+/// </summary>
+[TransportName(TransportNames.AmazonKinesis)]
+public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTransportOptions>
 {
+    private readonly AmazonKinesisClient kinesisClient;
+
     /// <summary>
-    /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using
-    /// Amazon Kinesis as the transport.
+    /// 
     /// </summary>
-    [TransportName(TransportNames.AmazonKinesis)]
-    public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTransportOptions>
+    /// <param name="serviceScopeFactory"></param>
+    /// <param name="busOptionsAccessor"></param>
+    /// <param name="transportOptionsAccessor"></param>
+    /// <param name="loggerFactory"></param>
+    public AmazonKinesisTransport(IServiceScopeFactory serviceScopeFactory,
+                                  IOptions<EventBusOptions> busOptionsAccessor,
+                                  IOptions<AmazonKinesisTransportOptions> transportOptionsAccessor,
+                                  ILoggerFactory loggerFactory)
+        : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
     {
-        private readonly AmazonKinesisClient kinesisClient;
+        kinesisClient = new AmazonKinesisClient(credentials: TransportOptions.Credentials,
+                                                clientConfig: TransportOptions.KinesisConfig);
+    }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="serviceScopeFactory"></param>
-        /// <param name="busOptionsAccessor"></param>
-        /// <param name="transportOptionsAccessor"></param>
-        /// <param name="loggerFactory"></param>
-        public AmazonKinesisTransport(IServiceScopeFactory serviceScopeFactory,
-                                      IOptions<EventBusOptions> busOptionsAccessor,
-                                      IOptions<AmazonKinesisTransportOptions> transportOptionsAccessor,
-                                      ILoggerFactory loggerFactory)
-            : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
+    /// <inheritdoc/>
+    public override async Task StartAsync(CancellationToken cancellationToken)
+    {
+        await base.StartAsync(cancellationToken);
+
+        // if there are consumers for this transport, throw exception
+        var registrations = GetRegistrations();
+        if (registrations.Count > 0)
         {
-            kinesisClient = new AmazonKinesisClient(credentials: TransportOptions.Credentials,
-                                                    clientConfig: TransportOptions.KinesisConfig);
+            // Consuming is not yet supported on this bus due to it's complexity
+            throw new NotSupportedException("Amazon Kinesis does not support consumers yet due to complexity requirements from KCL.");
+        }
+    }
+
+    /// <inheritdoc/>
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        await base.StopAsync(cancellationToken);
+
+        // if there are consumers for this transport, throw exception
+        var registrations = GetRegistrations();
+        if (registrations.Count > 0)
+        {
+            // Consuming is not yet supported on this bus due to it's complexity
+            throw new NotSupportedException("Amazon Kinesis does not support consumers yet due to complexity requirements from KCL.");
+        }
+    }
+
+    /// <inheritdoc/>
+    public override async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                      EventRegistration registration,
+                                                                      DateTimeOffset? scheduled = null,
+                                                                      CancellationToken cancellationToken = default)
+    {
+        // log warning when trying to publish scheduled message
+        if (scheduled != null)
+        {
+            Logger.LogWarning("Amazon Kinesis does not support delay or scheduled publish");
         }
 
-        /// <inheritdoc/>
-        public override async Task StartAsync(CancellationToken cancellationToken)
-        {
-            await base.StartAsync(cancellationToken);
+        using var scope = CreateScope();
+        var body = await SerializeAsync(scope: scope,
+                                        @event: @event,
+                                        registration: registration,
+                                        cancellationToken: cancellationToken);
 
-            // if there are consumers for this transport, throw exception
-            var registrations = GetRegistrations();
-            if (registrations.Count > 0)
-            {
-                // Consuming is not yet supported on this bus due to it's complexity
-                throw new NotSupportedException("Amazon Kinesis does not support consumers yet due to complexity requirements from KCL.");
-            }
+        // prepare the record
+        var streamName = registration.EventName;
+        var request = new PutRecordRequest
+        {
+            Data = body.ToMemoryStream(),
+            PartitionKey = TransportOptions.PartitionKeyResolver(@event),
+            StreamName = streamName,
+        };
+
+        // send the event
+        Logger.LogInformation("Sending {Id} to '{StreamName}'. Scheduled: {Scheduled}", @event.Id, streamName, scheduled);
+        var response = await kinesisClient.PutRecordAsync(request, cancellationToken);
+        response.EnsureSuccess();
+
+        // return the sequence number
+        return scheduled != null ? new ScheduledResult(id: response.SequenceNumber, scheduled: scheduled.Value) : null;
+    }
+
+    /// <inheritdoc/>
+    public override async Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                             EventRegistration registration,
+                                                                             DateTimeOffset? scheduled = null,
+                                                                             CancellationToken cancellationToken = default)
+    {
+        // log warning when trying to publish scheduled message
+        if (scheduled != null)
+        {
+            Logger.LogWarning("Amazon Kinesis does not support delay or scheduled publish");
         }
 
-        /// <inheritdoc/>
-        public override async Task StopAsync(CancellationToken cancellationToken)
+        using var scope = CreateScope();
+        var records = new List<PutRecordsRequestEntry>();
+
+        // work on each event
+        foreach (var @event in events)
         {
-            await base.StopAsync(cancellationToken);
-
-            // if there are consumers for this transport, throw exception
-            var registrations = GetRegistrations();
-            if (registrations.Count > 0)
-            {
-                // Consuming is not yet supported on this bus due to it's complexity
-                throw new NotSupportedException("Amazon Kinesis does not support consumers yet due to complexity requirements from KCL.");
-            }
-        }
-
-        /// <inheritdoc/>
-        public override async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                          EventRegistration registration,
-                                                                          DateTimeOffset? scheduled = null,
-                                                                          CancellationToken cancellationToken = default)
-        {
-            // log warning when trying to publish scheduled message
-            if (scheduled != null)
-            {
-                Logger.LogWarning("Amazon Kinesis does not support delay or scheduled publish");
-            }
-
-            using var scope = CreateScope();
             var body = await SerializeAsync(scope: scope,
                                             @event: @event,
                                             registration: registration,
                                             cancellationToken: cancellationToken);
 
-            // prepare the record
-            var streamName = registration.EventName;
-            var request = new PutRecordRequest
+            var record = new PutRecordsRequestEntry
             {
                 Data = body.ToMemoryStream(),
                 PartitionKey = TransportOptions.PartitionKeyResolver(@event),
-                StreamName = streamName,
             };
-
-            // send the event
-            Logger.LogInformation("Sending {Id} to '{StreamName}'. Scheduled: {Scheduled}", @event.Id, streamName, scheduled);
-            var response = await kinesisClient.PutRecordAsync(request, cancellationToken);
-            response.EnsureSuccess();
-
-            // return the sequence number
-            return scheduled != null ? new ScheduledResult(id: response.SequenceNumber, scheduled: scheduled.Value) : null;
+            records.Add(record);
         }
 
-        /// <inheritdoc/>
-        public override async Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                                 EventRegistration registration,
-                                                                                 DateTimeOffset? scheduled = null,
-                                                                                 CancellationToken cancellationToken = default)
+        // prepare the request
+        var streamName = registration.EventName;
+        var request = new PutRecordsRequest
         {
-            // log warning when trying to publish scheduled message
-            if (scheduled != null)
-            {
-                Logger.LogWarning("Amazon Kinesis does not support delay or scheduled publish");
-            }
+            StreamName = streamName,
+            Records = records,
+        };
 
-            using var scope = CreateScope();
-            var records = new List<PutRecordsRequestEntry>();
+        // send the events
+        Logger.LogInformation("Sending {EventsCount} messages to '{StreamName}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
+                              events.Count,
+                              streamName,
+                              scheduled,
+                              string.Join("\r\n- ", events.Select(e => e.Id)));
+        var response = await kinesisClient.PutRecordsAsync(request, cancellationToken);
+        response.EnsureSuccess();
 
-            // work on each event
-            foreach (var @event in events)
-            {
-                var body = await SerializeAsync(scope: scope,
-                                                @event: @event,
-                                                registration: registration,
-                                                cancellationToken: cancellationToken);
+        // Should we check for failed records and throw exception?
 
-                var record = new PutRecordsRequestEntry
-                {
-                    Data = body.ToMemoryStream(),
-                    PartitionKey = TransportOptions.PartitionKeyResolver(@event),
-                };
-                records.Add(record);
-            }
-
-            // prepare the request
-            var streamName = registration.EventName;
-            var request = new PutRecordsRequest
-            {
-                StreamName = streamName,
-                Records = records,
-            };
-
-            // send the events
-            Logger.LogInformation("Sending {EventsCount} messages to '{StreamName}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
-                                  events.Count,
-                                  streamName,
-                                  scheduled,
-                                  string.Join("\r\n- ", events.Select(e => e.Id)));
-            var response = await kinesisClient.PutRecordsAsync(request, cancellationToken);
-            response.EnsureSuccess();
-
-            // Should we check for failed records and throw exception?
-
-            // return the sequence numbers
-            if (scheduled is not null)
-            {
-                return response.Records.Select(m => new ScheduledResult(id: m.SequenceNumber, scheduled: scheduled.Value)).ToList();
-            }
-            else
-            {
-                return Array.Empty<ScheduledResult>();
-            }
-        }
-
-        /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(string id,
-                                                 EventRegistration registration,
-                                                 CancellationToken cancellationToken = default)
+        // return the sequence numbers
+        if (scheduled is not null)
         {
-            throw new NotSupportedException("Amazon Kinesis does not support canceling published events.");
+            return response.Records.Select(m => new ScheduledResult(id: m.SequenceNumber, scheduled: scheduled.Value)).ToList();
         }
-
-        /// <inheritdoc/>
-        public override Task CancelAsync<TEvent>(IList<string> ids,
-                                                 EventRegistration registration,
-                                                 CancellationToken cancellationToken = default)
+        else
         {
-            throw new NotSupportedException("Amazon Kinesis does not support canceling published events.");
+            return Array.Empty<ScheduledResult>();
         }
+    }
+
+    /// <inheritdoc/>
+    public override Task CancelAsync<TEvent>(string id,
+                                             EventRegistration registration,
+                                             CancellationToken cancellationToken = default)
+    {
+        throw new NotSupportedException("Amazon Kinesis does not support canceling published events.");
+    }
+
+    /// <inheritdoc/>
+    public override Task CancelAsync<TEvent>(IList<string> ids,
+                                             EventRegistration registration,
+                                             CancellationToken cancellationToken = default)
+    {
+        throw new NotSupportedException("Amazon Kinesis does not support canceling published events.");
     }
 }

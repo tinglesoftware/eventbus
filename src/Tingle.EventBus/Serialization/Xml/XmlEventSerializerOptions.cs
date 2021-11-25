@@ -1,10 +1,9 @@
-﻿namespace Microsoft.Extensions.DependencyInjection
+﻿namespace Microsoft.Extensions.DependencyInjection;
+
+/// <summary>
+/// Options for configuring XML based event serializer.
+/// </summary>
+public class XmlEventSerializerOptions
 {
-    /// <summary>
-    /// Options for configuring XML based event serializer.
-    /// </summary>
-    public class XmlEventSerializerOptions
-    {
-        // intentionally left blank for future use
-    }
+    // intentionally left blank for future use
 }

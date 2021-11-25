@@ -3,20 +3,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Tingle.EventBus.Serialization;
 
-namespace Tingle.EventBus.Tests.Configurator
-{
-    internal class FakeEventSerializer1 : IEventSerializer
-    {
-        /// <inheritdoc/>
-        public Task<EventContext<T>?> DeserializeAsync<T>(DeserializationContext context, CancellationToken cancellationToken = default) where T : class
-        {
-            throw new NotImplementedException();
-        }
+namespace Tingle.EventBus.Tests.Configurator;
 
-        /// <inheritdoc/>
-        public Task SerializeAsync<T>(SerializationContext<T> context, CancellationToken cancellationToken = default) where T : class
-        {
-            throw new NotImplementedException();
-        }
+internal class FakeEventSerializer1 : IEventSerializer
+{
+    /// <inheritdoc/>
+    public Task<EventContext<T>?> DeserializeAsync<T>(DeserializationContext context, CancellationToken cancellationToken = default) where T : class
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public Task SerializeAsync<T>(SerializationContext<T> context, CancellationToken cancellationToken = default) where T : class
+    {
+        throw new NotImplementedException();
     }
 }

@@ -1,22 +1,21 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Tingle.EventBus.Serializers
+namespace Tingle.EventBus.Serializers;
+
+/// <summary>
+/// Options for configuring NewtonsoftJson based serializer.
+/// </summary>
+public class NewtonsoftJsonSerializerOptions
 {
     /// <summary>
-    /// Options for configuring NewtonsoftJson based serializer.
+    /// The options to use for serialization.
     /// </summary>
-    public class NewtonsoftJsonSerializerOptions
+    public JsonSerializerSettings SerializerSettings { get; set; } = new JsonSerializerSettings
     {
-        /// <summary>
-        /// The options to use for serialization.
-        /// </summary>
-        public JsonSerializerSettings SerializerSettings { get; set; } = new JsonSerializerSettings
-        {
-            Formatting = Formatting.None, // less data used
-            NullValueHandling = NullValueHandling.Ignore,
+        Formatting = Formatting.None, // less data used
+        NullValueHandling = NullValueHandling.Ignore,
 
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-        };
-    }
+        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+    };
 }

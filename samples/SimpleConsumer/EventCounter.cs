@@ -1,16 +1,15 @@
 ﻿using System.Threading;
 
-namespace SimpleConsumer
+namespace SimpleConsumer;
+
+public class EventCounter
 {
-    public class EventCounter
+    private int count = 0;
+
+    public int Count => count;
+
+    public void Consumed()
     {
-        private int count = 0;
-
-        public int Count => count;
-
-        public void Consumed()
-        {
-            Interlocked.Increment(ref count);
-        }
+        Interlocked.Increment(ref count);
     }
 }

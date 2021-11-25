@@ -1,9 +1,8 @@
-﻿namespace CustomEventSerializer.Models
+﻿namespace CustomEventSerializer.Models;
+
+public class AzureDevOpsEventResourceRefUpdate
 {
-    public class AzureDevOpsEventResourceRefUpdate
-    {
-        public string? Name { get; set; }
-        public string? OldObjectId { get; set; }
-        public string? NewObjectId { get; set; }
-    }
+    public string? Name { get; set; }
+    public string? OldObjectId { get; set; }
+    public string? NewObjectId { get; set; }
 }

@@ -77,6 +77,29 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     /// </summary>
     public IDictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
 
+    /// <summary>
+    /// Sets <see cref="UnhandledErrorBehaviour"/> to <paramref name="behaviour"/>.
+    /// </summary>
+    /// <param name="behaviour">The value to set.</param>
+    /// <returns>The <see cref="EventConsumerRegistration"/> for futher configuration.</returns>
+    public EventConsumerRegistration OnError(UnhandledConsumerErrorBehaviour? behaviour)
+    {
+        UnhandledErrorBehaviour = behaviour;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets <see cref="UnhandledErrorBehaviour"/> to <see cref="UnhandledConsumerErrorBehaviour.Deadletter"/>.
+    /// </summary>
+    /// <returns>The <see cref="EventConsumerRegistration"/> for futher configuration.</returns>
+    public EventConsumerRegistration OnErrorDeadletter() => OnError(UnhandledConsumerErrorBehaviour.Deadletter);
+
+    /// <summary>
+    /// Sets <see cref="UnhandledErrorBehaviour"/> to <see cref="UnhandledConsumerErrorBehaviour.Discard"/>.
+    /// </summary>
+    /// <returns>The <see cref="EventConsumerRegistration"/> for futher configuration.</returns>
+    public EventConsumerRegistration OnErrorDiscard() => OnError(UnhandledConsumerErrorBehaviour.Discard);
+
     #region Equality Overrides
 
     /// <inheritdoc/>

@@ -1,4 +1,5 @@
-﻿using System.Net.Mime;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net.Mime;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus;
@@ -72,6 +73,68 @@ public abstract class EventContext : WrappedEventPublisher
     /// Identifier given by the transport for the event.
     /// </summary>
     public string? TransportIdentifier { get; internal init; }
+
+    #region Header Value convertions
+
+    /// <summary>
+    /// Gets the header value associated with the specified header key
+    /// and converts it to <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The type to which to convert the value to.</typeparam>
+    /// <param name="key">The header key whose value to get.</param>
+    /// <param name="value">
+    /// When this method returns, the value associated with the specified key, if the
+    /// key is found; otherwise, the default value for <typeparamref name="T"/>.
+    /// This parameter is passed uninitialized.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if the <see cref="Headers"/> contains
+    /// an element with the specified key; otherwise, <see langword="false"/>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
+    /// <exception cref="InvalidCastException">This conversion is not supported.</exception>
+    /// <exception cref="FormatException">The value is not in a format recognized by <typeparamref name="T"/>.</exception>
+    /// <exception cref="OverflowException">represents a number that is out of the range of <typeparamref name="T"/>.</exception>
+    public bool TryGetHeaderValue<T>(string key, [NotNullWhen(true)] out T? value) where T : IConvertible
+    {
+        value = default;
+        if (Headers.TryGetValue(key, out var raw_value))
+        {
+            // Handle nullable differently
+            var t = typeof(T);
+            if (t.IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+            {
+                if (raw_value is null) return default;
+                t = Nullable.GetUnderlyingType(t);
+            }
+
+            value = (T)Convert.ChangeType(raw_value, t!);
+            return true;
+        }
+        return default;
+    }
+
+    /// <summary>
+    /// Gets the header value associated with the specified header key
+    /// and converts it to <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The type to which to convert the value to.</typeparam>
+    /// <param name="key">The header key whose value to get.</param>
+    /// <returns>
+    /// The value associated with the specified key, if the
+    /// key is found; otherwise, the default value for <typeparamref name="T"/>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
+    /// <exception cref="InvalidCastException">This conversion is not supported.</exception>
+    /// <exception cref="FormatException">The value is not in a format recognized by <typeparamref name="T"/>.</exception>
+    /// <exception cref="OverflowException">represents a number that is out of the range of <typeparamref name="T"/>.</exception>
+    public T? GetHeaderValue<T>(string key) where T : IConvertible
+    {
+        return TryGetHeaderValue<T>(key, out var value) ? value : default;
+    }
+
+    #endregion
+
 }
 
 /// <summary>

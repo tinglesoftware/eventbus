@@ -3,7 +3,7 @@
 /// <summary>
 /// Information about the host on which the event bus is running.
 /// </summary>
-public class HostInfo
+public record HostInfo
 {
     /// <summary>
     /// The machine name (or role instance name) of the machine.

@@ -9,11 +9,17 @@ namespace Tingle.EventBus;
 /// </summary>
 public abstract class EventContext : WrappedEventPublisher
 {
+    private readonly HostInfo? hostInfo;
+
     /// <summary>
     /// 
     /// </summary>
     /// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
-    protected EventContext(IEventPublisher publisher) : base(publisher) { }
+    /// <param name="hostInfo">The <see cref="HostInfo"/> of the event sender.</param>
+    protected EventContext(IEventPublisher publisher, HostInfo? hostInfo = null) : base(publisher)
+    {
+        this.hostInfo = hostInfo;
+    }
 
     /// <summary>
     /// The unique identifier of the event.
@@ -73,6 +79,13 @@ public abstract class EventContext : WrappedEventPublisher
     /// Identifier given by the transport for the event.
     /// </summary>
     public string? TransportIdentifier { get; internal init; }
+
+    /// <summary>
+    /// Gets the <see cref="HostInfo"/> of the event sender.
+    /// <see langword="null"/> is returned for outgoing events.
+    /// </summary>
+    /// <returns></returns>
+    public HostInfo? GetSenderHostInfo() => hostInfo;
 
     #region Header Value convertions
 
@@ -158,9 +171,20 @@ public class EventContext<T> : EventContext where T : class
     /// </summary>
     /// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
     /// <param name="event">Value for <see cref="Event"/>.</param>
+    /// <param name="hostInfo">The <see cref="HostInfo"/> of the event sender.</param>
+    protected EventContext(IEventPublisher publisher, T @event, HostInfo? hostInfo) : base(publisher, hostInfo)
+    {
+        Event = @event;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
+    /// <param name="event">Value for <see cref="Event"/>.</param>
     /// <param name="envelope">Envelope containing details for the event.</param>
     /// <param name="contentType">Value for <see cref="EventContext.ContentType"/></param>
-    public EventContext(IEventPublisher publisher, T @event, IEventEnvelope envelope, ContentType? contentType) : this(publisher, @event)
+    public EventContext(IEventPublisher publisher, T @event, IEventEnvelope envelope, ContentType? contentType) : this(publisher, @event, envelope.Host)
     {
         Id = envelope.Id;
         RequestId = envelope.RequestId;

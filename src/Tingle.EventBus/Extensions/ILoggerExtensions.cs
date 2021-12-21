@@ -45,8 +45,8 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(301, LogLevel.Information, "Sending event '{EventId}' using '{TransportName}' transport.")]
     private static partial void SendingEvent(this ILogger logger, string? eventId, string transportName);
 
-    [LoggerMessage(301, LogLevel.Information, "Sending event '{EventId}' using '{TransportName}' transport. Scheduled: {Scheduled:o}, Delay: {ReadableDelay} ({RetryDelay})")]
-    private static partial void SendingEventWithScheduled(this ILogger logger, string? eventId, string transportName, DateTimeOffset scheduled, string readableDelay, TimeSpan retryDelay);
+    [LoggerMessage(302, LogLevel.Information, "Sending event '{EventId}' using '{TransportName}' transport. Scheduled: {Scheduled:o}, Delay: {ReadableDelay} ({RetryDelay})")]
+    private static partial void SendingScheduledEvent(this ILogger logger, string? eventId, string transportName, DateTimeOffset scheduled, string readableDelay, TimeSpan retryDelay);
 
     public static void SendingEvent(this ILogger logger, string? eventId, string transportName, DateTimeOffset? scheduled)
     {
@@ -58,15 +58,15 @@ internal static partial class ILoggerExtensions
         else
         {
             var (readableDelay, delay) = GetDelay(scheduled.Value);
-            logger.SendingEventWithScheduled(eventId, transportName, scheduled.Value, readableDelay, delay);
+            logger.SendingScheduledEvent(eventId, transportName, scheduled.Value, readableDelay, delay);
         }
     }
 
-    [LoggerMessage(302, LogLevel.Information, "Sending {EventsCount} events using '{TransportName}' transport.\r\nEvents: {EventIds}")]
+    [LoggerMessage(303, LogLevel.Information, "Sending {EventsCount} events using '{TransportName}' transport.\r\nEvents: {EventIds}")]
     private static partial void SendingEvents(this ILogger logger, int eventsCount, string transportName, IList<string?> eventIds);
 
-    [LoggerMessage(302, LogLevel.Information, "Sending {EventsCount} events using '{TransportName}' transport. Scheduled: {Scheduled:o}, Delay: {ReadableDelay} ({RetryDelay}).\r\nEvents: {EventIds}")]
-    private static partial void SendingEventsWithScheduled(this ILogger logger, int eventsCount, string transportName, DateTimeOffset scheduled, string readableDelay, TimeSpan retryDelay, IList<string?> eventIds);
+    [LoggerMessage(304, LogLevel.Information, "Sending {EventsCount} events using '{TransportName}' transport. Scheduled: {Scheduled:o}, Delay: {ReadableDelay} ({RetryDelay}).\r\nEvents: {EventIds}")]
+    private static partial void SendingScheduledEvents(this ILogger logger, int eventsCount, string transportName, DateTimeOffset scheduled, string readableDelay, TimeSpan retryDelay, IList<string?> eventIds);
 
     public static void SendingEvents(this ILogger logger, IList<string?> eventIds, string transportName, DateTimeOffset? scheduled = null)
     {
@@ -78,29 +78,25 @@ internal static partial class ILoggerExtensions
         else
         {
             var (readableDelay, delay) = GetDelay(scheduled.Value);
-            logger.SendingEventsWithScheduled(eventIds.Count, transportName, scheduled.Value, readableDelay, delay, eventIds);
+            logger.SendingScheduledEvents(eventIds.Count, transportName, scheduled.Value, readableDelay, delay, eventIds);
         }
-    }
-
-    public static void SendingEvents(this ILogger logger, IList<EventContext> events, string transportName, DateTimeOffset? scheduled = null)
-    {
-        SendingEvents(logger, events.Select(e => e.Id).ToList(), transportName, scheduled);
     }
 
     public static void SendingEvents<T>(this ILogger logger, IList<EventContext<T>> events, string transportName, DateTimeOffset? scheduled = null)
         where T : class
     {
+        if (!logger.IsEnabled(LogLevel.Information)) return;
         SendingEvents(logger, events.Select(e => e.Id).ToList(), transportName, scheduled);
     }
 
-    [LoggerMessage(303, LogLevel.Information, "Canceling event '{EventId}' on '{TransportName}' transport")]
+    [LoggerMessage(305, LogLevel.Information, "Canceling event '{EventId}' on '{TransportName}' transport")]
     public static partial void CancelingEvent(this ILogger logger, string eventId, string transportName);
 
-    [LoggerMessage(303, LogLevel.Information, "Canceling {EventsCount} events on '{TransportName}' transport.\r\nEvents: {EventIds}")]
+    [LoggerMessage(306, LogLevel.Information, "Canceling {EventsCount} events on '{TransportName}' transport.\r\nEvents: {EventIds}")]
     public static partial void CancelingEvents(this ILogger logger, int eventsCount, IList<string> eventIds, string transportName);
     public static void CancelingEvents(this ILogger logger, IList<string> eventIds, string transportName) => logger.CancelingEvents(eventIds.Count, eventIds, transportName);
 
-    [LoggerMessage(304, LogLevel.Error, "Event processing failed. {Action} (EventId:{EventId})")]
+    [LoggerMessage(307, LogLevel.Error, "Event processing failed. {Action} (EventId: {EventId})")]
     public static partial void ConsumeFailed(this ILogger logger, string action, string? eventId, Exception ex);
 
     public static void ConsumeFailed(this ILogger logger, UnhandledConsumerErrorBehaviour? behaviour, string? eventId, Exception ex)
@@ -131,7 +127,7 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(402, LogLevel.Error, "Startup readiness check failed or timedout after '{ReadinessTimeout}'.")]
     public static partial void ReadinessCheckTimedout(this ILogger logger, TimeSpan readinessTimeout);
 
-    [LoggerMessage(401, LogLevel.Debug, "Readiness check is disabled. Assumes ready by default.")]
+    [LoggerMessage(403, LogLevel.Debug, "Readiness check is disabled. Assumes ready by default.")]
     public static partial void ReadinessCheckDisabled(this ILogger logger);
 
     #endregion

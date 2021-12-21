@@ -90,7 +90,7 @@ public class EventBus : IHostedService
         activity?.AddTag(ActivityTagNames.MessagingConversationId, @event.CorrelationId);
 
         // Publish on the transport
-        logger.SendingEvent(@event, transport.Name, scheduled);
+        logger.SendingEvent(eventId: @event.Id, transportName: transport.Name, scheduled: scheduled);
         return await transport.PublishAsync(@event: @event,
                                             registration: reg,
                                             scheduled: scheduled,

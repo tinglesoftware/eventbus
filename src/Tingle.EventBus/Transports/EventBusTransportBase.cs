@@ -256,7 +256,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         }
         catch (Exception ex)
         {
-            Logger.ConsumeFailed(@event.Id, ecr.UnhandledErrorBehaviour, ex);
+            Logger.ConsumeFailed(ecr.UnhandledErrorBehaviour, @event.Id, ex);
             return new EventConsumeResult(successful: false, exception: ex);
         }
     }

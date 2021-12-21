@@ -71,7 +71,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
         // log warning when trying to publish scheduled message
         if (scheduled != null)
         {
-            Logger.LogWarning("Amazon Kinesis does not support delay or scheduled publish");
+            Logger.SchedulingNotSupported();
         }
 
         using var scope = CreateScope();
@@ -81,7 +81,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
                                         cancellationToken: cancellationToken);
 
         // prepare the record
-        var streamName = registration.EventName;
+        var streamName = registration.EventName!;
         var request = new PutRecordRequest
         {
             Data = body.ToMemoryStream(),
@@ -90,7 +90,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
         };
 
         // send the event
-        Logger.LogInformation("Sending {Id} to '{StreamName}'. Scheduled: {Scheduled}", @event.Id, streamName, scheduled);
+        Logger.SendingToStream(eventId: @event.Id, streamName: streamName, scheduled: scheduled);
         var response = await kinesisClient.PutRecordAsync(request, cancellationToken);
         response.EnsureSuccess();
 
@@ -107,7 +107,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
         // log warning when trying to publish scheduled message
         if (scheduled != null)
         {
-            Logger.LogWarning("Amazon Kinesis does not support delay or scheduled publish");
+            Logger.SchedulingNotSupported();
         }
 
         using var scope = CreateScope();
@@ -130,7 +130,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
         }
 
         // prepare the request
-        var streamName = registration.EventName;
+        var streamName = registration.EventName!;
         var request = new PutRecordsRequest
         {
             StreamName = streamName,
@@ -138,11 +138,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
         };
 
         // send the events
-        Logger.LogInformation("Sending {EventsCount} messages to '{StreamName}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
-                              events.Count,
-                              streamName,
-                              scheduled,
-                              string.Join("\r\n- ", events.Select(e => e.Id)));
+        Logger.SendingEventsToStream(events, streamName, scheduled);
         var response = await kinesisClient.PutRecordsAsync(request, cancellationToken);
         response.EnsureSuccess();
 

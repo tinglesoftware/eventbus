@@ -115,7 +115,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
         // log warning when trying to publish scheduled message
         if (scheduled != null)
         {
-            Logger.LogWarning("Kafka does not support delay or scheduled publish");
+            Logger.SchedulingNotSupported();
         }
 
         using var scope = CreateScope();
@@ -150,12 +150,12 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
                                                                              CancellationToken cancellationToken = default)
     {
         // log warning when doing batch
-        Logger.LogWarning("Kafka does not support batching. The events will be looped through one by one");
+        Logger.BatchingNotSupported();
 
         // log warning when trying to publish scheduled message
         if (scheduled != null)
         {
-            Logger.LogWarning("Kafka does not support delay or scheduled publish");
+            Logger.SchedulingNotSupported();
         }
 
         using var scope = CreateScope();
@@ -220,14 +220,11 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
                 var result = consumer.Consume(cancellationToken);
                 if (result.IsPartitionEOF)
                 {
-                    Logger.LogTrace("Reached end of topic {Topic}, Partition:{Partition}, Offset:{Offset}.",
-                                    result.Topic,
-                                    result.Partition,
-                                    result.Offset);
+                    Logger.EndOfTopic(result.Topic, result.Partition, result.Offset);
                     continue;
                 }
 
-                Logger.LogDebug("Received message at {TopicPartitionOffset}", result.TopicPartitionOffset);
+                Logger.ConsumerReceivedData(result.TopicPartitionOffset);
 
                 // get the registration for topic
                 var topic = result.Topic;
@@ -285,7 +282,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
         activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
 
-        Logger.LogDebug("Processing '{MessageKey}", messageKey);
+        Logger.ProcessingMessage(messageKey);
         using var scope = CreateScope();
         var contentType = contentType_str == null ? null : new ContentType(contentType_str);
         var context = await DeserializeAsync<TEvent>(scope: scope,
@@ -294,9 +291,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
                                                      registration: reg,
                                                      identifier: result.Offset.ToString(),
                                                      cancellationToken: cancellationToken);
-        Logger.LogInformation("Received event: '{MessageKey}' containing Event '{Id}'",
-                              messageKey,
-                              context.Id);
+        Logger.ReceivedEvent(messageKey, context.Id);
         var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
                                                                     @event: context,
                                                                     scope: scope,

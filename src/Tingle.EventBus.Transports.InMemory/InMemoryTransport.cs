@@ -82,7 +82,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
                 };
 
                 // start processing
-                Logger.LogInformation("Starting processing on {EntityPath}", processor.EntityPath);
+                Logger.StartingProcessing(entityPath: processor.EntityPath);
                 await processor.StartProcessingAsync(cancellationToken: cancellationToken);
             }
         }
@@ -96,18 +96,18 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
         var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
         foreach (var (key, proc) in clients)
         {
-            Logger.LogDebug("Stopping client: {Processor}", key);
+            Logger.StoppingProcessor(processor: key);
 
             try
             {
                 await proc.StopProcessingAsync(cancellationToken);
                 processorsCache.Remove(key);
 
-                Logger.LogDebug("Stopped processor for {Processor}", key);
+                Logger.StoppedProcessor(processor: key);
             }
             catch (Exception exception)
             {
-                Logger.LogWarning(exception, "Stop processor faulted for {Processor}", key);
+                Logger.StopProcessorFaulted(processor: key, ex: exception);
             }
         }
     }
@@ -121,7 +121,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
         // log warning when trying to publish scheduled message
         if (scheduled != null)
         {
-            Logger.LogWarning("InMemory EventBus uses a short-lived timer that is not persisted for scheduled publish");
+            Logger.SchedulingShortLived();
         }
 
         using var scope = CreateScope();
@@ -153,10 +153,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
 
         // Get the queue and send the message accordingly
         var sender = await GetSenderAsync(registration, cancellationToken);
-        Logger.LogInformation("Sending {Id} to '{EntityPath}'. Scheduled: {Scheduled}",
-                              @event.Id,
-                              sender.EntityPath,
-                              scheduled);
+        Logger.SendingMessage(eventId: @event.Id, entityPath: sender.EntityPath, scheduled: scheduled);
         if (scheduled != null)
         {
             var seqNum = await sender.ScheduleMessageAsync(message: message, cancellationToken: cancellationToken);
@@ -178,7 +175,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
         // log warning when trying to publish scheduled message
         if (scheduled != null)
         {
-            Logger.LogWarning("InMemory EventBus uses a short-lived timer that is not persisted for scheduled publish");
+            Logger.SchedulingShortLived();
         }
 
         using var scope = CreateScope();
@@ -217,11 +214,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
 
         // Get the queue and send the message accordingly
         var sender = await GetSenderAsync(registration, cancellationToken);
-        Logger.LogInformation("Sending {EventsCount} messages to '{EntityPath}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
-                              events.Count,
-                              sender.EntityPath,
-                              scheduled,
-                              string.Join("\r\n- ", events.Select(e => e.Id)));
+        Logger.SendingMessages(events: events, entityPath: sender.EntityPath, scheduled: scheduled);
         if (scheduled != null)
         {
             var seqNums = await sender.ScheduleMessagesAsync(messages: messages, cancellationToken: cancellationToken);
@@ -251,7 +244,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
 
         // get the entity and cancel the message accordingly
         var sender = await GetSenderAsync(registration, cancellationToken);
-        Logger.LogInformation("Canceling scheduled message: {SequenceNumber} on {EntityPath}", seqNum, sender.EntityPath);
+        Logger.CancelingMessage(sequenceNumber: seqNum, entityPath: sender.EntityPath);
         await sender.CancelScheduledMessageAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken);
     }
 
@@ -273,10 +266,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
 
         // get the entity and cancel the message accordingly
         var sender = await GetSenderAsync(registration, cancellationToken);
-        Logger.LogInformation("Canceling {EventsCount} scheduled messages on {EntityPath}:\r\n- {SequenceNumbers}",
-                              ids.Count,
-                              sender.EntityPath,
-                              string.Join("\r\n- ", seqNums));
+        Logger.CancelingMessages(sequenceNumbers: seqNums, entityPath: sender.EntityPath);
         await sender.CancelScheduledMessagesAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken);
     }
 
@@ -321,15 +311,13 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
                 if (reg.EntityKind == EntityKind.Queue)
                 {
                     // Create the processor for the Queue
-                    Logger.LogDebug("Creating processor for queue '{QueueName}'", topicName);
+                    Logger.CreatingQueueProcessor(queueName: topicName);
                     processor = inMemoryClient.CreateProcessor(queueName: topicName, options: inpo);
                 }
                 else
                 {
                     // Create the processor for the Subscription
-                    Logger.LogDebug("Creating processor for topic '{TopicName}' and subscription '{Subscription}'",
-                                    topicName,
-                                    subscriptionName);
+                    Logger.CreatingSubscriptionProcessor(topicName: topicName, subscriptionName: subscriptionName);
                     processor = inMemoryClient.CreateProcessor(topicName: topicName,
                                                                subscriptionName: subscriptionName,
                                                                options: inpo);
@@ -377,7 +365,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
         activity?.AddTag(ActivityTagNames.MessagingDestination, destination); // name of the queue/subscription
         activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
 
-        Logger.LogDebug("Processing '{MessageId}' from '{EntityPath}'", messageId, entityPath);
+        Logger.ProcessingMessage(messageId: messageId, entityPath: entityPath);
         using var scope = CreateScope();
         var contentType = message.ContentType is not null ? new ContentType(message.ContentType) : null;
         var context = await DeserializeAsync<TEvent>(scope: scope,
@@ -387,10 +375,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
                                                      identifier: message.SequenceNumber.ToString(),
                                                      cancellationToken: cancellationToken);
 
-        Logger.LogInformation("Received message: '{SequenceNumber}' containing Event '{Id}' from '{EntityPath}'",
-                              message.SequenceNumber,
-                              context.Id,
-                              entityPath);
+        Logger.ReceivedMessage(sequenceNumber: message.SequenceNumber, eventId: context.Id, entityPath: entityPath);
 
         // set the extras
         context.SetInMemoryReceivedMessage(message);

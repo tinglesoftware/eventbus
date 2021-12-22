@@ -81,7 +81,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                 };
 
                 // start processing
-                Logger.LogInformation("Starting processing on {EntityPath}", processor.EntityPath);
+                Logger.StartingProcessing(entityPath: processor.EntityPath);
                 await processor.StartProcessingAsync(cancellationToken: cancellationToken);
             }
         }
@@ -95,18 +95,18 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
         var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
         foreach (var (key, proc) in clients)
         {
-            Logger.LogDebug("Stopping client: {Processor}", key);
+            Logger.StoppingProcessor(processor: key);
 
             try
             {
                 await proc.StopProcessingAsync(cancellationToken);
                 processorsCache.Remove(key);
 
-                Logger.LogDebug("Stopped processor for {Processor}", key);
+                Logger.StoppedProcessor(processor: key);
             }
             catch (Exception exception)
             {
-                Logger.LogWarning(exception, "Stop processor faulted for {Processor}", key);
+                Logger.StopProcessorFaulted(processor: key, ex: exception);
             }
         }
     }
@@ -155,10 +155,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         // Get the sender and send the message accordingly
         var sender = await GetSenderAsync(registration, cancellationToken);
-        Logger.LogInformation("Sending {Id} to '{EntityPath}'. Scheduled: {Scheduled}",
-                              @event.Id,
-                              sender.EntityPath,
-                              scheduled);
+        Logger.SendingMessage(eventId: @event.Id, entityPath: sender.EntityPath, scheduled: scheduled);
         if (scheduled != null)
         {
             var seqNum = await sender.ScheduleMessageAsync(message: message,
@@ -223,11 +220,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         // Get the sender and send the messages accordingly
         var sender = await GetSenderAsync(registration, cancellationToken);
-        Logger.LogInformation("Sending {EventsCount} messages to '{EntityPath}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
-                              events.Count,
-                              sender.EntityPath,
-                              scheduled,
-                              string.Join("\r\n- ", events.Select(e => e.Id)));
+        Logger.SendingMessages(events: events, entityPath: sender.EntityPath, scheduled: scheduled);
         if (scheduled != null)
         {
             var seqNums = await sender.ScheduleMessagesAsync(messages: messages,
@@ -259,7 +252,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         // get the sender and cancel the message accordingly
         var sender = await GetSenderAsync(registration, cancellationToken);
-        Logger.LogInformation("Canceling scheduled message: {SequenceNumber} on {EntityPath}", seqNum, sender.EntityPath);
+        Logger.CancelingMessage(sequenceNumber: seqNum, entityPath: sender.EntityPath);
         await sender.CancelScheduledMessageAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken);
     }
 
@@ -284,10 +277,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         // get the sender and cancel the messages accordingly
         var sender = await GetSenderAsync(registration, cancellationToken);
-        Logger.LogInformation("Canceling {EventsCount} scheduled messages on {EntityPath}:\r\n- {SequenceNumbers}",
-                              ids.Count,
-                              sender.EntityPath,
-                              string.Join("\r\n- ", seqNums));
+        Logger.CancelingMessages(sequenceNumbers: seqNums, entityPath: sender.EntityPath);
         await sender.CancelScheduledMessagesAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken);
     }
 
@@ -305,13 +295,13 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                 if (await ShouldUseQueueAsync(reg, cancellationToken))
                 {
                     // Ensure Queue is created
-                    Logger.LogDebug("Creating sender for queue '{QueueName}'", name);
+                    Logger.CreatingQueueSender(queueName: name);
                     await CreateQueueIfNotExistsAsync(reg: reg, name: name, cancellationToken: cancellationToken);
                 }
                 else
                 {
                     // Ensure topic is created
-                    Logger.LogDebug("Creating sender for topic '{TopicName}'", name);
+                    Logger.CreatingTopicSender(topicName: name);
                     await CreateTopicIfNotExistsAsync(reg: reg, name: name, cancellationToken: cancellationToken);
                 }
 
@@ -368,7 +358,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                     await CreateQueueIfNotExistsAsync(reg: reg, name: topicName, cancellationToken: cancellationToken);
 
                     // Create the processor for the Queue
-                    Logger.LogDebug("Creating processor for queue '{QueueName}'", topicName);
+                    Logger.CreatingQueueProcessor(queueName: topicName);
                     processor = serviceBusClient.CreateProcessor(queueName: topicName, options: sbpo);
                 }
                 else
@@ -383,9 +373,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                                                              cancellationToken: cancellationToken);
 
                     // Create the processor for the Subscription
-                    Logger.LogDebug("Creating processor for topic '{TopicName}' and subscription '{Subscription}'",
-                                    topicName,
-                                    subscriptionName);
+                    Logger.CreatingSubscriptionProcessor(topicName: topicName, subscriptionName: subscriptionName);
                     processor = serviceBusClient.CreateProcessor(topicName: topicName,
                                                                  subscriptionName: subscriptionName,
                                                                  options: sbpo);
@@ -407,15 +395,15 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
         // if entity creation is not enabled, just return
         if (!TransportOptions.EnableEntityCreation)
         {
-            Logger.LogTrace("Entity creation is disabled. Queue creation skipped");
+            Logger.QueueEntityCreationDisabled();
             return;
         }
 
         // If the queue does not exist, create it
-        Logger.LogDebug("Checking if queue '{QueueName}' exists", name);
+        Logger.CheckingQueueExistence(queueName: name);
         if (!await managementClient.QueueExistsAsync(name: name, cancellationToken: cancellationToken))
         {
-            Logger.LogTrace("Queue '{QueueName}' does not exist, preparing creation.", name);
+            Logger.CreatingQueuePreparation(queueName: name);
             var options = new CreateQueueOptions(name: name)
             {
                 // set the defaults for a queue here
@@ -438,7 +426,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
             // Allow for the defaults to be overridden
             TransportOptions.SetupQueueOptions?.Invoke(reg, options);
-            Logger.LogInformation("Creating queue '{QueueName}'", name);
+            Logger.CreatingQueue(queueName: name);
             _ = await managementClient.CreateQueueAsync(options: options, cancellationToken: cancellationToken);
         }
     }
@@ -448,15 +436,15 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
         // if entity creation is not enabled, just return
         if (!TransportOptions.EnableEntityCreation)
         {
-            Logger.LogTrace("Entity creation is disabled. Topic creation skipped");
+            Logger.TopicEntityCreationDisabled();
             return;
         }
 
         // If the topic does not exist, create it
-        Logger.LogDebug("Checking if topic '{TopicName}' exists", name);
+        Logger.CheckingTopicExistence(topicName: name);
         if (!await managementClient.TopicExistsAsync(name: name, cancellationToken: cancellationToken))
         {
-            Logger.LogTrace("Topic '{TopicName}' does not exist, preparing creation.", name);
+            Logger.CreatingTopicPreparation(topicName: name);
             var options = new CreateTopicOptions(name: name)
             {
                 Status = EntityStatus.Active,
@@ -470,7 +458,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
             // Allow for the defaults to be overridden
             TransportOptions.SetupTopicOptions?.Invoke(reg, options);
-            Logger.LogInformation("Creating topic '{TopicName}'", name);
+            Logger.CreatingTopic(topicName: name);
             _ = await managementClient.CreateTopicAsync(options: options, cancellationToken: cancellationToken);
         }
     }
@@ -480,19 +468,15 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
         // if entity creation is not enabled, just return
         if (!TransportOptions.EnableEntityCreation)
         {
-            Logger.LogTrace("Entity creation is disabled. Subscription creation skipped");
+            Logger.SubscriptionEntityCreationDisabled();
             return;
         }
 
         // If the subscription does not exist, create it
-        Logger.LogDebug("Checking if subscription '{SubscriptionName}' under topic '{TopicName}' exists",
-                        subscriptionName,
-                        topicName);
+        Logger.CheckingSubscriptionExistence(subscriptionName: subscriptionName, topicName: topicName);
         if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionName, cancellationToken))
         {
-            Logger.LogTrace("Subscription '{SubscriptionName}' under topic '{TopicName}' does not exist, preparing creation.",
-                            subscriptionName,
-                            topicName);
+            Logger.CreatingSubscriptionPreparation(subscriptionName: subscriptionName, topicName: topicName);
             var options = new CreateSubscriptionOptions(topicName: topicName, subscriptionName: subscriptionName)
             {
                 Status = EntityStatus.Active,
@@ -506,9 +490,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
             // Allow for the defaults to be overridden
             TransportOptions.SetupSubscriptionOptions?.Invoke(ecr, options);
-            Logger.LogInformation("Creating subscription '{SubscriptionName}' under topic '{TopicName}'",
-                                  subscriptionName,
-                                  topicName);
+            Logger.CreatingSubscription(subscriptionName: subscriptionName, topicName: topicName);
             await managementClient.CreateSubscriptionAsync(options: options, cancellationToken: cancellationToken);
         }
     }
@@ -545,7 +527,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
         activity?.AddTag(ActivityTagNames.MessagingDestination, destination); // name of the queue/subscription
         activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
 
-        Logger.LogDebug("Processing '{MessageId}' from '{EntityPath}'", messageId, entityPath);
+        Logger.ProcessingMessage(messageId: messageId, entityPath: entityPath);
         using var scope = CreateScope();
         var contentType = new ContentType(message.ContentType);
         var context = await DeserializeAsync<TEvent>(scope: scope,
@@ -555,10 +537,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                                                      identifier: message.SequenceNumber.ToString(),
                                                      cancellationToken: cancellationToken);
 
-        Logger.LogInformation("Received message: '{SequenceNumber}' containing Event '{Id}' from '{EntityPath}'",
-                              message.SequenceNumber,
-                              context.Id,
-                              entityPath);
+        Logger.ReceivedMessage(sequenceNumber: message.SequenceNumber, eventId: context.Id, entityPath: entityPath);
 
         // set the extras
         context.SetServiceBusReceivedMessage(message);
@@ -570,11 +549,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         // Decide the action to execute then execute
         var action = DecideAction(successful, ecr.UnhandledErrorBehaviour, processor.AutoCompleteMessages);
-        Logger.LogDebug("Post Consume action: {Action} for message: {MessageId} from '{EntityPath}' containing Event: {EventId}.",
-                        action,
-                        messageId,
-                        entityPath,
-                        context.Id);
+        Logger.PostConsumeAction(action: action, messageId: messageId, entityPath: entityPath, eventId: context.Id);
 
         if (action == PostConsumeAction.Complete)
         {
@@ -599,11 +574,10 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
     private Task OnMessageFaultedAsync(ProcessErrorEventArgs args)
     {
-        Logger.LogError(args.Exception,
-                        "Message receiving faulted. Namespace:{FullyQualifiedNamespace}, Entity Path: {EntityPath}, Source: {ErrorSource}",
-                        args.FullyQualifiedNamespace,
-                        args.EntityPath,
-                        args.ErrorSource);
+        Logger.MessageReceivingFaulted(fullyQualifiedNamespace: args.FullyQualifiedNamespace,
+                                       entityPath: args.EntityPath,
+                                       errorSource: args.ErrorSource,
+                                       ex: args.Exception);
         return Task.CompletedTask;
     }
 

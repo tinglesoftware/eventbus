@@ -86,7 +86,7 @@ internal static partial class ILoggerExtensions
         where T : class
     {
         if (!logger.IsEnabled(LogLevel.Information)) return;
-        SendingEvents(logger, events.Select(e => e.Id).ToList(), transportName, scheduled);
+        logger.SendingEvents(events.Select(e => e.Id).ToList(), transportName, scheduled);
     }
 
     [LoggerMessage(305, LogLevel.Information, "Canceling event '{EventId}' on '{TransportName}' transport")]

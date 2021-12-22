@@ -22,11 +22,11 @@ internal static partial class ILoggerExtensions
                                      eventIds: string.Join("\r\n- ", eventIds));
     }
 
-    public static void SendingEventsToStream<T>(this ILogger logger, IList<EventContext<T>> events, string transportName, DateTimeOffset? scheduled = null)
+    public static void SendingEventsToStream<T>(this ILogger logger, IList<EventContext<T>> events, string entityPath, DateTimeOffset? scheduled = null)
         where T : class
     {
         if (!logger.IsEnabled(LogLevel.Information)) return;
-        SendingEventsToStream(logger, events.Select(e => e.Id).ToList(), transportName, scheduled);
+        logger.SendingEventsToStream(events.Select(e => e.Id).ToList(), entityPath, scheduled);
     }
 
     [LoggerMessage(102, LogLevel.Warning, "Amazon Kinesis does not support delay or scheduled publish.")]

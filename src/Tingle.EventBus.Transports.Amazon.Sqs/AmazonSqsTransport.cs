@@ -100,10 +100,10 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                                                                       DateTimeOffset? scheduled = null,
                                                                       CancellationToken cancellationToken = default)
     {
-        // log warning when trying to publish scheduled message
-        if (scheduled != null)
+        // log warning when trying to publish scheduled message to a topic
+        if (registration.EntityKind == EntityKind.Broadcast && scheduled != null)
         {
-            Logger.SchedulingNotSupported();
+            Logger.SchedulingNotSupportedBySns();
         }
 
         using var scope = CreateScope();
@@ -137,10 +137,10 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         // log warning when doing batch
         Logger.BatchingNotSupported();
 
-        // log warning when trying to publish scheduled message
-        if (scheduled != null)
+        // log warning when trying to publish scheduled message to a topic
+        if (registration.EntityKind == EntityKind.Broadcast && scheduled != null)
         {
-            Logger.SchedulingNotSupported();
+            Logger.SchedulingNotSupportedBySns();
         }
 
         using var scope = CreateScope();

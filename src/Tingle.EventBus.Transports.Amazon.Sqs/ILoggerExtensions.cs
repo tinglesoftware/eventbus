@@ -11,8 +11,8 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(101, LogLevel.Information, "Received message: '{MessageId}' containing Event '{EventId}' from '{QueueUrl}'")]
     public static partial void ReceivedMessage(this ILogger logger, string messageId, string? eventId, string queueUrl);
 
-    [LoggerMessage(102, LogLevel.Warning, "Amazon SNS does not support delay or scheduled publish.")]
-    public static partial void SchedulingNotSupported(this ILogger logger);
+    [LoggerMessage(102, LogLevel.Warning, "Amazon SNS does not support delay or scheduled publish. Use SQS instead by setting the entity type to queue.")]
+    public static partial void SchedulingNotSupportedBySns(this ILogger logger);
 
     [LoggerMessage(103, LogLevel.Warning, "Amazon SNS does not support batching. The events will be looped through one by one.")]
     public static partial void BatchingNotSupported(this ILogger logger);

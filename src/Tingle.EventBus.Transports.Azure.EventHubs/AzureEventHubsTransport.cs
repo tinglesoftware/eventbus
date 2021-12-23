@@ -86,18 +86,18 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
         var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
         foreach (var (key, proc) in clients)
         {
-            Logger.LogDebug("Stopping client: {Processor}", key);
+            Logger.StoppingProcessor(processor: key);
 
             try
             {
                 await proc.StopProcessingAsync(cancellationToken);
                 processorsCache.Remove(key);
 
-                Logger.LogDebug("Stopped processor for {Processor}", key);
+                Logger.StoppedProcessor(processor: key);
             }
             catch (Exception exception)
             {
-                Logger.LogWarning(exception, "Stop processor faulted for {Processor}", key);
+                Logger.StopProcessorFaulted(processor: key, ex: exception);
             }
         }
     }
@@ -111,13 +111,13 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
         // log warning when trying to publish scheduled event
         if (scheduled != null)
         {
-            Logger.LogWarning("Azure EventHubs does not support delay or scheduled publish");
+            Logger.SchedulingNotSupported();
         }
 
         // log warning when trying to publish expiring event
         if (@event.Expires != null)
         {
-            Logger.LogWarning("Azure EventHubs does not support expiring events");
+            Logger.ExpiryNotSupported();
         }
 
         using var scope = CreateScope();
@@ -138,10 +138,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
         // get the producer and send the event accordingly
         var producer = await GetProducerAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
-        Logger.LogInformation("Sending {Id} to '{EventHubName}'. Scheduled: {Scheduled}",
-                              @event.Id,
-                              producer.EventHubName,
-                              scheduled);
+        Logger.SendingEvent(eventId: @event.Id, eventHubName: producer.EventHubName, scheduled: scheduled);
         await producer.SendAsync(new[] { data }, cancellationToken);
 
         // return the sequence number
@@ -157,13 +154,13 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
         // log warning when trying to publish scheduled events
         if (scheduled != null)
         {
-            Logger.LogWarning("Azure EventHubs does not support delay or scheduled publish");
+            Logger.SchedulingNotSupported();
         }
 
         // log warning when trying to publish expiring events
         if (events.Any(e => e.Expires != null))
         {
-            Logger.LogWarning("Azure EventHubs does not support expiring events");
+            Logger.ExpiryNotSupported();
         }
 
         using var scope = CreateScope();
@@ -189,11 +186,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
         // get the producer and send the events accordingly
         var producer = await GetProducerAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
-        Logger.LogInformation("Sending {EventsCount} events to '{EventHubName}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
-                              events.Count,
-                              producer.EventHubName,
-                              scheduled,
-                              string.Join("\r\n- ", events.Select(e => e.Id)));
+        Logger.SendingEvents(events: events, eventHubName: producer.EventHubName, scheduled: scheduled);
         await producer.SendAsync(datas, cancellationToken);
 
         // return the sequence numbers
@@ -350,14 +343,14 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
     {
         if (!args.HasEvent)
         {
+            // TODO: throw exception instead
             Logger.LogWarning($"'{nameof(OnEventReceivedAsync)}' was invoked but the arguments do not have an event.");
             return;
         }
 
-        Logger.LogDebug("Processor received event on EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId:{PartitionId}",
-                        processor.EventHubName,
-                        processor.ConsumerGroup,
-                        args.Partition.PartitionId);
+        Logger.ProcessorReceivedEvent(eventHubName: processor.EventHubName,
+                                      consumerGroup: processor.ConsumerGroup,
+                                      partitionId: args.Partition.PartitionId);
 
         var data = args.Data;
         var cancellationToken = args.CancellationToken;
@@ -388,12 +381,11 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
         activity?.AddTag(ActivityTagNames.MessagingDestination, processor.EventHubName);
 
-        Logger.LogDebug("Processing '{EventId}|{PartitionKey}|{SequenceNumber}' from '{EventHubName}/{ConsumerGroup}'",
-                        eventId,
-                        data.PartitionKey,
-                        data.SequenceNumber,
-                        processor.EventHubName,
-                        processor.ConsumerGroup);
+        Logger.ProcessingEvent(eventId: eventId,
+                               partitionKey: data.PartitionKey,
+                               sequenceNumber: data.SequenceNumber,
+                               eventHubName: processor.EventHubName,
+                               consumerGroup: processor.ConsumerGroup);
         using var scope = CreateScope();
         var contentType = contentType_str is string ctts ? new ContentType(ctts) : null;
         var context = await DeserializeAsync<TEvent>(scope: scope,
@@ -402,13 +394,11 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                                                      registration: reg,
                                                      identifier: data.SequenceNumber.ToString(),
                                                      cancellationToken: cancellationToken);
-        Logger.LogInformation("Received event: '{EventId}|{PartitionKey}|{SequenceNumber}' containing Event '{Id}' from '{EventHubName}/{ConsumerGroup}'",
-                              eventId,
-                              data.PartitionKey,
-                              data.SequenceNumber,
-                              context.Id,
-                              processor.EventHubName,
-                              processor.ConsumerGroup);
+        Logger.ReceivedEvent(eventId: context.Id,
+                             partitionKey: data.PartitionKey,
+                             sequenceNumber: data.SequenceNumber,
+                             eventHubName: processor.EventHubName,
+                             consumerGroup: processor.ConsumerGroup);
 
         // set the extras
         context.SetConsumerGroup(processor.ConsumerGroup)
@@ -433,44 +423,40 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
         */
         if (ShouldCheckpoint(successful, ecr.UnhandledErrorBehaviour))
         {
-            Logger.LogDebug("Checkpointing {Partition} of '{EventHubName}/{ConsumerGroup}', at {SequenceNumber}. Event: '{Id}'.",
-                            args.Partition,
-                            processor.EventHubName,
-                            processor.ConsumerGroup,
-                            data.SequenceNumber,
-                            eventId);
+            Logger.Checkpointing(partition: args.Partition,
+                                 eventHubName: processor.EventHubName,
+                                 consumerGroup: processor.ConsumerGroup,
+                                 sequenceNumber: data.SequenceNumber,
+                                 eventId: eventId);
             await args.UpdateCheckpointAsync(args.CancellationToken);
         }
     }
 
     private Task OnPartitionClosingAsync(EventProcessorClient processor, PartitionClosingEventArgs args)
     {
-        Logger.LogInformation("Closing processor for EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId:{PartitionId} (Reason:{Reason})",
-                              processor.EventHubName,
-                              processor.ConsumerGroup,
-                              args.PartitionId,
-                              args.Reason);
+        Logger.ClosingProcessor(eventHubName: processor.EventHubName,
+                                consumerGroup: processor.ConsumerGroup,
+                                partitionId: args.PartitionId,
+                                reason: args.Reason);
         return Task.CompletedTask;
     }
 
     private Task OnPartitionInitializingAsync(EventProcessorClient processor, PartitionInitializingEventArgs args)
     {
-        Logger.LogInformation("Opening processor for PartitionId:{PartitionId}, EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, DefaultStartingPosition:{DefaultStartingPosition}",
-                              args.PartitionId,
-                              processor.EventHubName,
-                              processor.ConsumerGroup,
-                              args.DefaultStartingPosition);
+        Logger.OpeningProcessor(eventHubName: args.PartitionId,
+                                consumerGroup: processor.EventHubName,
+                                partitionId: processor.ConsumerGroup,
+                                position: args.DefaultStartingPosition);
         return Task.CompletedTask;
     }
 
     private Task OnProcessErrorAsync(EventProcessorClient processor, ProcessErrorEventArgs args)
     {
-        Logger.LogError(args.Exception,
-                        "Event processing faulted. Operation:{Operation}, EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId: {PartitionId}",
-                        args.Operation,
-                        processor.EventHubName,
-                        processor.ConsumerGroup,
-                        args.PartitionId);
+        Logger.ProcessingError(operation: args.Operation,
+                               eventHubName: processor.EventHubName,
+                               consumerGroup: processor.ConsumerGroup,
+                               partitionId: args.PartitionId,
+                               ex: args.Exception);
         return Task.CompletedTask;
     }
 

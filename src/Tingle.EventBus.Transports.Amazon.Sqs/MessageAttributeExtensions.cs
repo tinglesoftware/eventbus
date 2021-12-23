@@ -1,5 +1,6 @@
 ﻿using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS.Model;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using SNSAttribute = Amazon.SimpleNotificationService.Model.MessageAttributeValue;
 using SQSAttribute = Amazon.SQS.Model.MessageAttributeValue;
@@ -13,7 +14,7 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs;
 /// </summary>
 internal static class MessageAttributeExtensions
 {
-    private static void SetAttribute<TAttribute>(this Dictionary<string, TAttribute> attributes, Func<string, TAttribute> creator, string key, string? value)
+    private static Dictionary<string, TAttribute> SetAttribute<TAttribute>(this Dictionary<string, TAttribute> attributes, Func<string, TAttribute> creator, string key, string? value)
     {
         if (attributes is null) throw new ArgumentNullException(nameof(attributes));
         if (creator is null) throw new ArgumentNullException(nameof(creator));
@@ -27,41 +28,49 @@ internal static class MessageAttributeExtensions
         {
             attributes[key] = creator(value);
         }
+
+        return attributes;
     }
 
-    public static PublishRequest SetAttribute(this PublishRequest request, string key, string? value)
+    public static Dictionary<string, TAttribute> SetAttributes<TAttribute>(this Dictionary<string, TAttribute> attributes, Func<string, TAttribute> creator, EventContext @event)
+    {
+        if (attributes is null) throw new ArgumentNullException(nameof(attributes));
+        if (@event is null) throw new ArgumentNullException(nameof(@event));
+        if (creator is null) throw new ArgumentNullException(nameof(creator));
+
+        attributes.SetAttribute(creator, MetadataNames.ContentType, @event.ContentType?.ToString())
+                  .SetAttribute(creator, MetadataNames.CorrelationId, @event.CorrelationId)
+                  .SetAttribute(creator, MetadataNames.RequestId, @event.RequestId)
+                  .SetAttribute(creator, MetadataNames.InitiatorId, @event.InitiatorId)
+                  .SetAttribute(creator, MetadataNames.ActivityId, Activity.Current?.Id);
+
+        return attributes;
+    }
+
+    public static PublishRequest SetAttributes(this PublishRequest request, EventContext @event)
     {
         if (request is null) throw new ArgumentNullException(nameof(request));
-
-        request.MessageAttributes.SetAttribute(
-            creator: v => new SNSAttribute { DataType = "String", StringValue = v },
-            key: key,
-            value: value);
-
+        static SNSAttribute creator(string v) => new() { DataType = "String", StringValue = v };
+                
+        request.MessageAttributes.SetAttributes(creator, @event);
         return request;
     }
 
-    public static SendMessageRequest SetAttribute(this SendMessageRequest request, string key, string? value)
+    public static SendMessageRequest SetAttributes(this SendMessageRequest request, EventContext @event)
     {
         if (request is null) throw new ArgumentNullException(nameof(request));
+        static SQSAttribute creator(string v) => new() { DataType = "String", StringValue = v };
 
-        request.MessageAttributes.SetAttribute(
-            creator: v => new SQSAttribute { DataType = "String", StringValue = v },
-            key: key,
-            value: value);
-
+        request.MessageAttributes.SetAttributes(creator, @event);
         return request;
     }
 
-    public static SendMessageBatchRequestEntry SetAttribute(this SendMessageBatchRequestEntry request, string key, string? value)
+    public static SendMessageBatchRequestEntry SetAttributes(this SendMessageBatchRequestEntry request, EventContext @event)
     {
         if (request is null) throw new ArgumentNullException(nameof(request));
+        static SQSAttribute creator(string v) => new() { DataType = "String", StringValue = v };
 
-        request.MessageAttributes.SetAttribute(
-            creator: v => new SQSAttribute { DataType = "String", StringValue = v },
-            key: key,
-            value: value);
-
+        request.MessageAttributes.SetAttributes(creator, @event);
         return request;
     }
 

@@ -117,12 +117,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
 
             // get the topic arn and send the message
             var topicArn = await GetTopicArnAsync(registration, cancellationToken);
-            var request = new PublishRequest(topicArn: topicArn, message: body.ToString());
-            request.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
-                   .SetAttribute(MetadataNames.CorrelationId, @event.CorrelationId)
-                   .SetAttribute(MetadataNames.RequestId, @event.RequestId)
-                   .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
-                   .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
+            var request = new PublishRequest(topicArn: topicArn, message: body.ToString()).SetAttributes(@event);
             Logger.SendingToTopic(eventId: @event.Id, topicArn: topicArn, scheduled: scheduled);
             var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
@@ -132,12 +127,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         {
             // get the queueUrl and prepare the message
             var queueUrl = await GetQueueUrlAsync(registration, cancellationToken: cancellationToken);
-            var request = new SendMessageRequest(queueUrl: queueUrl, body.ToString());
-            request.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
-                   .SetAttribute(MetadataNames.CorrelationId, @event.CorrelationId)
-                   .SetAttribute(MetadataNames.RequestId, @event.RequestId)
-                   .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
-                   .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
+            var request = new SendMessageRequest(queueUrl: queueUrl, body.ToString()).SetAttributes(@event);
 
             // if scheduled for later, set the delay in the message
             if (scheduled != null)
@@ -199,12 +189,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
 
                 // get the topic arn and send the message
                 var topicArn = await GetTopicArnAsync(registration, cancellationToken);
-                var request = new PublishRequest(topicArn: topicArn, message: body.ToString());
-                request.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
-                       .SetAttribute(MetadataNames.CorrelationId, @event.CorrelationId)
-                       .SetAttribute(MetadataNames.RequestId, @event.RequestId)
-                       .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
-                       .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
+                var request = new PublishRequest(topicArn: topicArn, message: body.ToString()).SetAttributes(@event);
                 Logger.SendingToTopic(eventId: @event.Id, topicArn: topicArn, scheduled: scheduled);
                 var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
                 response.EnsureSuccess();
@@ -224,13 +209,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                                                 registration: registration,
                                                 cancellationToken: cancellationToken);
 
-                // prepare the entry
-                var entry = new SendMessageBatchRequestEntry(id: @event.Id, messageBody: body.ToString());
-                entry.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
-                       .SetAttribute(MetadataNames.CorrelationId, @event.CorrelationId)
-                       .SetAttribute(MetadataNames.RequestId, @event.RequestId)
-                       .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
-                       .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
+                var entry = new SendMessageBatchRequestEntry(id: @event.Id, messageBody: body.ToString()).SetAttributes(@event);
 
                 // if scheduled for later, set the delay in the message
                 if (scheduled != null)

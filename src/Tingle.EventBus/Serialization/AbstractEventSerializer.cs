@@ -62,13 +62,15 @@ public abstract class AbstractEventSerializer : IEventSerializer
         var envelope = await DeserializeToEnvelopeAsync<T>(stream: stream, contentType: contentType, cancellationToken: cancellationToken);
         if (envelope is null)
         {
-            Logger.DeserializationResultedInNull(context);
+            Logger.DeserializationResultedInNull(identifier: context.Identifier, eventType: context.Registration.EventType.FullName);
             return null;
         }
 
         if (envelope.Event is null)
         {
-            Logger.DeserializedEventShouldNotBeNull(context, eventId: envelope.Id);
+            Logger.DeserializedEventShouldNotBeNull(identifier: context.Identifier,
+                                                    eventId: envelope.Id,
+                                                    eventType: context.Registration.EventType.FullName);
             return null;
         }
 

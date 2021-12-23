@@ -99,7 +99,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
 
         // get the queue client and send the message
         var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
-        Logger.LogInformation("Sending {Id} to '{QueueName}'. Scheduled: {Scheduled}", @event.Id, queueClient.Name, scheduled);
+        Logger.SendingMessage(eventId: @event.Id, queueName: queueClient.Name, scheduled: scheduled);
         var response = await queueClient.SendMessageAsync(messageText: body.ToString(),
                                                           visibilityTimeout: visibilityTimeout,
                                                           timeToLive: ttl,
@@ -118,7 +118,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
                                                                              CancellationToken cancellationToken = default)
     {
         // log warning when doing batch
-        Logger.LogWarning("Azure Queue Storage does not support batching. The events will be looped through one by one");
+        Logger.BatchingNotSupported();
 
         using var scope = CreateScope();
 
@@ -138,7 +138,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
             var ttl = @event.Expires - DateTimeOffset.UtcNow;
 
             // send the message
-            Logger.LogInformation("Sending {Id} to '{QueueName}'. Scheduled: {Scheduled}", @event.Id, queueClient.Name, scheduled);
+            Logger.SendingMessage(eventId: @event.Id, queueName: queueClient.Name, scheduled: scheduled);
             var response = await queueClient.SendMessageAsync(messageText: body.ToString(),
                                                               visibilityTimeout: visibilityTimeout,
                                                               timeToLive: ttl,
@@ -166,13 +166,14 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
         {
             var messageId = sid.MessageId;
             var popReceipt = sid.PopReceipt;
-            Logger.LogInformation("Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'", messageId, popReceipt, queueClient.Name);
+            Logger.CancelingMessage(messageId: messageId, popReceipt: popReceipt, queueName: queueClient.Name);
             await queueClient.DeleteMessageAsync(messageId: messageId,
                                                  popReceipt: popReceipt,
                                                  cancellationToken: cancellationToken);
         }
         else
         {
+            // TODO: throw exception instead
             Logger.LogWarning("The provided id '{Id}' does not match the expected format.", id);
         }
     }
@@ -188,7 +189,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
         }
 
         // log warning when doing batch
-        Logger.LogWarning("Azure Queue Storage does not support batching. The events will be canceled one by one");
+        Logger.BatchingNotSupported();
 
         var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
 
@@ -198,13 +199,14 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
             {
                 var messageId = sid.MessageId;
                 var popReceipt = sid.PopReceipt;
-                Logger.LogInformation("Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'", messageId, popReceipt, queueClient.Name);
+                Logger.CancelingMessage(messageId: messageId, popReceipt: popReceipt, queueName: queueClient.Name);
                 await queueClient.DeleteMessageAsync(messageId: messageId,
                                                      popReceipt: popReceipt,
                                                      cancellationToken: cancellationToken);
             }
             else
             {
+                // TODO: throw exception instead
                 Logger.LogWarning("The provided id '{Id}' does not match the expected format.", id);
             }
         }
@@ -218,7 +220,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
         {
             if (!queueClientsCache.TryGetValue((reg.EventType, deadletter), out var queueClient))
             {
-                var name = reg.EventName;
+                var name = reg.EventName!;
                 if (deadletter) name += TransportOptions.DeadLetterSuffix;
 
                 // create the queue client options
@@ -241,12 +243,12 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
                 if (TransportOptions.EnableEntityCreation)
                 {
                     // ensure queue is created if it does not exist
-                    Logger.LogInformation("Ensuring queue '{QueueName}' exists", name);
+                    Logger.EnsuringQueue(queueName: name);
                     await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
                 }
                 else
                 {
-                    Logger.LogTrace("Entity creation is diabled. Queue creation skipped");
+                    Logger.EntityCreationDisabled();
                 }
 
                 queueClientsCache[(reg.EventType, deadletter)] = queueClient;
@@ -279,12 +281,12 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
                 if (messages.Length == 0)
                 {
                     var delay = TransportOptions.EmptyResultsDelay;
-                    Logger.LogTrace("No messages on '{QueueName}', delaying check for {Delay}", queueClient.Name, delay);
+                    Logger.NoMessages(queueName: queueClient.Name, delay: delay);
                     await Task.Delay(delay, cancellationToken);
                 }
                 else
                 {
-                    Logger.LogDebug("Received {MessageCount} messages on '{QueueName}'", messages.Length, queueClient.Name);
+                    Logger.ReceivedMessages(messagesCount: messages.Length, queueName: queueClient.Name);
                     using var scope = CreateScope(); // shared
                     foreach (var message in messages)
                     {
@@ -330,7 +332,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
         activity?.AddTag(ActivityTagNames.MessagingDestination, queueClient.Name);
         activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
 
-        Logger.LogDebug("Processing '{MessageId}' from '{QueueName}'", messageId, queueClient.Name);
+        Logger.ProcessingMessage(messageId: messageId, queueName: queueClient.Name);
         var context = await DeserializeAsync<TEvent>(scope: scope,
                                                      body: message.Body,
                                                      contentType: null,
@@ -338,10 +340,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
                                                      identifier: (AzureQueueStorageSchedulingId)message,
                                                      cancellationToken: cancellationToken);
 
-        Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueName}'",
-                              messageId,
-                              context.Id,
-                              queueClient.Name);
+        Logger.ReceivedMessage(messageId: messageId, eventId: context.Id, queueName: queueClient.Name);
 
         // if the event contains the parent activity id, set it
         if (context.Headers.TryGetValue(HeaderNames.ActivityId, out var parentActivityId))
@@ -362,7 +361,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
         }
 
         // whether or not successful, always delete the message from the current queue
-        Logger.LogTrace("Deleting '{MessageId}' on '{QueueName}'", messageId, queueClient.Name);
+        Logger.DeletingMessage(messageId: messageId, queueName: queueClient.Name);
         await queueClient.DeleteMessageAsync(messageId: messageId,
                                              popReceipt: message.PopReceipt,
                                              cancellationToken: cancellationToken);

@@ -103,7 +103,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         // log warning when trying to publish scheduled message
         if (scheduled != null)
         {
-            Logger.LogWarning("Amazon SNS does not support delay or scheduled publish");
+            Logger.SchedulingNotSupported();
         }
 
         using var scope = CreateScope();
@@ -120,7 +120,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                .SetAttribute(MetadataNames.RequestId, @event.RequestId)
                .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
                .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
-        Logger.LogInformation("Sending {Id} to '{TopicArn}'. Scheduled: {Scheduled}", @event.Id, topicArn, scheduled);
+        Logger.SendingToTopic(eventId: @event.Id, topicArn: topicArn, scheduled: scheduled);
         var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
         response.EnsureSuccess();
 
@@ -135,12 +135,12 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                                                                              CancellationToken cancellationToken = default)
     {
         // log warning when doing batch
-        Logger.LogWarning("Amazon SNS does not support batching. The events will be looped through one by one");
+        Logger.BatchingNotSupported();
 
         // log warning when trying to publish scheduled message
         if (scheduled != null)
         {
-            Logger.LogWarning("Amazon SNS does not support delay or scheduled publish");
+            Logger.SchedulingNotSupported();
         }
 
         using var scope = CreateScope();
@@ -162,7 +162,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                    .SetAttribute(MetadataNames.RequestId, @event.RequestId)
                    .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
                    .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
-            Logger.LogInformation("Sending {Id} to '{TopicArn}'. Scheduled: {Scheduled}", @event.Id, topicArn, scheduled);
+            Logger.SendingToTopic(eventId: @event.Id, topicArn: topicArn, scheduled: scheduled);
             var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
 
@@ -310,12 +310,12 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                 if (messages.Count == 0)
                 {
                     var delay = TransportOptions.EmptyResultsDelay;
-                    Logger.LogTrace("No messages on '{QueueUrl}', delaying check for {Delay}", queueUrl, delay);
+                    Logger.NoMessages(queueUrl: queueUrl, delay: delay);
                     await Task.Delay(delay, cancellationToken);
                 }
                 else
                 {
-                    Logger.LogDebug("Received {MessageCount} messages on '{QueueUrl}'", messages.Count, queueUrl);
+                    Logger.ReceivedMessages(messagesCount: messages.Count, queueUrl: queueUrl);
                     using var scope = CreateScope(); // shared
                     foreach (var message in messages)
                     {
@@ -369,7 +369,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
         activity?.AddTag(ActivityTagNames.MessagingUrl, queueUrl);
 
-        Logger.LogDebug("Processing '{MessageId}' from '{QueueUrl}'", messageId, queueUrl);
+        Logger.ProcessingMessage(messageId: messageId, queueUrl: queueUrl);
         message.TryGetAttribute("Content-Type", out var contentType_str);
         var contentType = contentType_str == null ? null : new ContentType(contentType_str);
 
@@ -381,10 +381,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                                                      identifier: messageId,
                                                      cancellationToken: cancellationToken);
 
-        Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}' from '{QueueUrl}'",
-                              messageId,
-                              context.Id,
-                              queueUrl);
+        Logger.ReceivedMessage(messageId: messageId, eventId: context.Id, queueUrl: queueUrl);
 
         var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
                                                                     @event: context,
@@ -405,7 +402,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         }
 
         // whether or not successful, always delete the message from the current queue
-        Logger.LogTrace("Deleting '{MessageId}' on '{QueueUrl}'", messageId, queueUrl);
+        Logger.DeletingMessage(messageId: messageId, queueUrl: queueUrl);
         await sqsClient.DeleteMessageAsync(queueUrl: queueUrl,
                                            receiptHandle: message.ReceiptHandle,
                                            cancellationToken: cancellationToken);

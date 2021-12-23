@@ -130,6 +130,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         }
         else
         {
+            // get the queueUrl and prepare the message
             var queueUrl = await GetQueueUrlAsync(registration);
             var request = new SendMessageRequest(queueUrl: queueUrl, body.ToString());
             request.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
@@ -146,7 +147,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                 // cap the delay to 900 seconds (15min) which is the max supported by SQS
                 if (delay > 900)
                 {
-                    Logger.DelayCapped(eventId: @event.Id, queueUrl: queueUrl, scheduled: scheduled);
+                    Logger.DelayCapped(eventId: @event.Id, scheduled: scheduled);
                     delay = 900;
                 }
 
@@ -156,6 +157,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                 }
             }
 
+            // send the message
             Logger.SendingToQueue(eventId: @event.Id, queueUrl: queueUrl, scheduled: scheduled);
             var response = await sqsClient.SendMessageAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
@@ -172,40 +174,91 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                                                                              DateTimeOffset? scheduled = null,
                                                                              CancellationToken cancellationToken = default)
     {
-        // log warning when doing batch
-        Logger.BatchingNotSupported();
-
-        // log warning when trying to publish scheduled message to a topic
-        if (registration.EntityKind == EntityKind.Broadcast && scheduled != null)
-        {
-            Logger.SchedulingNotSupportedBySns();
-        }
-
         using var scope = CreateScope();
         var sequenceNumbers = new List<string>();
 
-        // work on each event
-        foreach (var @event in events)
+        // log warning when trying to publish scheduled message to a topic
+        if (registration.EntityKind == EntityKind.Broadcast)
         {
-            var body = await SerializeAsync(scope: scope,
-                                            @event: @event,
-                                            registration: registration,
-                                            cancellationToken: cancellationToken);
+        // log warning when doing batch
+        Logger.BatchingNotSupported();
 
-            // get the topic arn and send the message
-            var topicArn = await GetTopicArnAsync(registration, cancellationToken);
-            var request = new PublishRequest(topicArn: topicArn, message: body.ToString());
-            request.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
-                   .SetAttribute(MetadataNames.CorrelationId, @event.CorrelationId)
-                   .SetAttribute(MetadataNames.RequestId, @event.RequestId)
-                   .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
-                   .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
-            Logger.SendingToTopic(eventId: @event.Id, topicArn: topicArn, scheduled: scheduled);
-            var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
+            // log warning when trying to publish scheduled message to a topic
+            if (scheduled != null)
+            {
+                Logger.SchedulingNotSupportedBySns();
+            }
+
+            // work on each event
+            foreach (var @event in events)
+            {
+                var body = await SerializeAsync(scope: scope,
+                                                @event: @event,
+                                                registration: registration,
+                                                cancellationToken: cancellationToken);
+
+                // get the topic arn and send the message
+                var topicArn = await GetTopicArnAsync(registration, cancellationToken);
+                var request = new PublishRequest(topicArn: topicArn, message: body.ToString());
+                request.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
+                       .SetAttribute(MetadataNames.CorrelationId, @event.CorrelationId)
+                       .SetAttribute(MetadataNames.RequestId, @event.RequestId)
+                       .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
+                       .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
+                Logger.SendingToTopic(eventId: @event.Id, topicArn: topicArn, scheduled: scheduled);
+                var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
+                response.EnsureSuccess();
+
+                // collect the sequence number
+                sequenceNumbers.Add(response.SequenceNumber);
+            }
+        }
+        else
+        {
+            // prepare batch entries
+            var entries = new List<SendMessageBatchRequestEntry>(events.Count);
+            foreach (var @event in events)
+            {
+                var body = await SerializeAsync(scope: scope,
+                                                @event: @event,
+                                                registration: registration,
+                                                cancellationToken: cancellationToken);
+
+                // prepare the entry
+                var entry = new SendMessageBatchRequestEntry(id: @event.Id, messageBody: body.ToString());
+                entry.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
+                       .SetAttribute(MetadataNames.CorrelationId, @event.CorrelationId)
+                       .SetAttribute(MetadataNames.RequestId, @event.RequestId)
+                       .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
+                       .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
+
+                // if scheduled for later, set the delay in the message
+                if (scheduled != null)
+                {
+                    var delay = Math.Max(0, (scheduled.Value - DateTimeOffset.UtcNow).TotalSeconds);
+
+                    // cap the delay to 900 seconds (15min) which is the max supported by SQS
+                    if (delay > 900)
+                    {
+                        Logger.DelayCapped(eventId: @event.Id, scheduled: scheduled);
+                        delay = 900;
+                    }
+
+                    if (delay > 0)
+                    {
+                        entry.DelaySeconds = (int)delay;
+                    }
+                }
+
+                entries.Add(entry);
+            }
+
+            // get the queueUrl and send the messages
+            var queueUrl = await GetQueueUrlAsync(registration);
+            var request = new SendMessageBatchRequest(queueUrl: queueUrl, entries: entries);
+            var response = await sqsClient.SendMessageBatchAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
-
-            // collect the sequence number
-            sequenceNumbers.Add(response.SequenceNumber);
+            sequenceNumbers = response.Successful.Select(smbre => smbre.SequenceNumber).ToList();
         }
 
         // return the sequence numbers

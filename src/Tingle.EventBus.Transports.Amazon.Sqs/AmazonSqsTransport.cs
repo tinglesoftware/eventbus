@@ -100,12 +100,6 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                                                                       DateTimeOffset? scheduled = null,
                                                                       CancellationToken cancellationToken = default)
     {
-        // log warning when trying to publish scheduled message to a topic
-        if (registration.EntityKind == EntityKind.Broadcast && scheduled != null)
-        {
-            Logger.SchedulingNotSupportedBySns();
-        }
-
         using var scope = CreateScope();
         var body = await SerializeAsync(scope: scope,
                                         @event: @event,
@@ -115,6 +109,12 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         string sequenceNumber;
         if (registration.EntityKind != EntityKind.Broadcast)
         {
+            // log warning when trying to publish scheduled message
+            if (scheduled != null)
+            {
+                Logger.SchedulingNotSupportedBySns();
+            }
+
             // get the topic arn and send the message
             var topicArn = await GetTopicArnAsync(registration, cancellationToken);
             var request = new PublishRequest(topicArn: topicArn, message: body.ToString());
@@ -130,13 +130,32 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         }
         else
         {
-            string queueUrl = await GetQueueUrlAsync(registration);
+            var queueUrl = await GetQueueUrlAsync(registration);
             var request = new SendMessageRequest(queueUrl: queueUrl, body.ToString());
             request.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
                    .SetAttribute(MetadataNames.CorrelationId, @event.CorrelationId)
                    .SetAttribute(MetadataNames.RequestId, @event.RequestId)
                    .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
                    .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
+
+            // if scheduled for later, set the delay in the message
+            if (scheduled != null)
+            {
+                var delay = Math.Max(0, (scheduled.Value - DateTimeOffset.UtcNow).TotalSeconds);
+
+                // cap the delay to 900 seconds (15min) which is the max supported by SQS
+                if (delay > 900)
+                {
+                    Logger.DelayCapped(eventId: @event.Id, queueUrl: queueUrl, scheduled: scheduled);
+                    delay = 900;
+                }
+
+                if (delay > 0)
+                {
+                    request.DelaySeconds = (int)delay;
+                }
+            }
+
             Logger.SendingToQueue(eventId: @event.Id, queueUrl: queueUrl, scheduled: scheduled);
             var response = await sqsClient.SendMessageAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();

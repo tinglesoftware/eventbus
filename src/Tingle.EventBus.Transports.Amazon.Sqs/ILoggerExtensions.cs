@@ -18,6 +18,9 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(201, LogLevel.Information, "Sending {EventId} to '{QueueUrl}'. Scheduled: {Scheduled}.")]
     public static partial void SendingToQueue(this ILogger logger, string? eventId, string queueUrl, DateTimeOffset? scheduled);
 
+    [LoggerMessage(201, LogLevel.Warning, "Delay for {EventId} to '{QueueUrl}' capped at 15min. Scheduled: {Scheduled}.")]
+    public static partial void DelayCapped(this ILogger logger, string? eventId, string queueUrl, DateTimeOffset? scheduled);
+
 
     [LoggerMessage(300, LogLevel.Trace, "No messages on '{QueueUrl}', delaying check for {Delay}.")]
     public static partial void NoMessages(this ILogger logger, string queueUrl, TimeSpan delay);

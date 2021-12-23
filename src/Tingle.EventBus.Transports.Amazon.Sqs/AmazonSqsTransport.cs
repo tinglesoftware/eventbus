@@ -112,20 +112,39 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                                         registration: registration,
                                         cancellationToken: cancellationToken);
 
-        // get the topic arn and send the message
-        var topicArn = await GetTopicArnAsync(registration, cancellationToken);
-        var request = new PublishRequest(topicArn: topicArn, message: body.ToString());
-        request.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
-               .SetAttribute(MetadataNames.CorrelationId, @event.CorrelationId)
-               .SetAttribute(MetadataNames.RequestId, @event.RequestId)
-               .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
-               .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
-        Logger.SendingToTopic(eventId: @event.Id, topicArn: topicArn, scheduled: scheduled);
-        var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
-        response.EnsureSuccess();
+        string sequenceNumber;
+        if (registration.EntityKind != EntityKind.Broadcast)
+        {
+            // get the topic arn and send the message
+            var topicArn = await GetTopicArnAsync(registration, cancellationToken);
+            var request = new PublishRequest(topicArn: topicArn, message: body.ToString());
+            request.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
+                   .SetAttribute(MetadataNames.CorrelationId, @event.CorrelationId)
+                   .SetAttribute(MetadataNames.RequestId, @event.RequestId)
+                   .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
+                   .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
+            Logger.SendingToTopic(eventId: @event.Id, topicArn: topicArn, scheduled: scheduled);
+            var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
+            response.EnsureSuccess();
+            sequenceNumber = response.SequenceNumber;
+        }
+        else
+        {
+            string queueUrl = await GetQueueUrlAsync(registration);
+            var request = new SendMessageRequest(queueUrl: queueUrl, body.ToString());
+            request.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
+                   .SetAttribute(MetadataNames.CorrelationId, @event.CorrelationId)
+                   .SetAttribute(MetadataNames.RequestId, @event.RequestId)
+                   .SetAttribute(MetadataNames.InitiatorId, @event.InitiatorId)
+                   .SetAttribute(MetadataNames.ActivityId, Activity.Current?.Id);
+            Logger.SendingToQueue(eventId: @event.Id, queueUrl: queueUrl, scheduled: scheduled);
+            var response = await sqsClient.SendMessageAsync(request: request, cancellationToken: cancellationToken);
+            response.EnsureSuccess();
+            sequenceNumber = response.SequenceNumber;
+        }
 
         // return the sequence number
-        return scheduled != null ? new ScheduledResult(id: response.SequenceNumber, scheduled: scheduled.Value) : null;
+        return scheduled != null ? new ScheduledResult(id: sequenceNumber, scheduled: scheduled.Value) : null;
     }
 
     /// <inheritdoc/>

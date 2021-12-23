@@ -22,7 +22,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
 {
     private readonly Dictionary<Type, string> topicArnsCache = new();
     private readonly SemaphoreSlim topicArnsCacheLock = new(1, 1); // only one at a time.
-    private readonly Dictionary<(string, bool), string> queueUrlsCache = new();
+    private readonly Dictionary<QueueCacheKey, string> queueUrlsCache = new();
     private readonly SemaphoreSlim queueUrlsCacheLock = new(1, 1); // only one at a time.
     private readonly CancellationTokenSource stoppingCts = new();
     private readonly List<Task> receiverTasks = new();
@@ -131,7 +131,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         else
         {
             // get the queueUrl and prepare the message
-            var queueUrl = await GetQueueUrlAsync(registration);
+            var queueUrl = await GetQueueUrlAsync(registration, cancellationToken: cancellationToken);
             var request = new SendMessageRequest(queueUrl: queueUrl, body.ToString());
             request.SetAttribute(MetadataNames.ContentType, @event.ContentType?.ToString())
                    .SetAttribute(MetadataNames.CorrelationId, @event.CorrelationId)
@@ -180,8 +180,8 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         // log warning when trying to publish scheduled message to a topic
         if (registration.EntityKind == EntityKind.Broadcast)
         {
-        // log warning when doing batch
-        Logger.BatchingNotSupported();
+            // log warning when doing batch
+            Logger.BatchingNotSupported();
 
             // log warning when trying to publish scheduled message to a topic
             if (scheduled != null)
@@ -254,7 +254,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
             }
 
             // get the queueUrl and send the messages
-            var queueUrl = await GetQueueUrlAsync(registration);
+            var queueUrl = await GetQueueUrlAsync(registration, cancellationToken: cancellationToken);
             var request = new SendMessageBatchRequest(queueUrl: queueUrl, entries: entries);
             var response = await sqsClient.SendMessageBatchAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
@@ -292,7 +292,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
             {
                 // ensure topic is created, then add it's arn to the cache
                 var name = reg.EventName!;
-                topicArn = await CreateTopicIfNotExistsAsync(reg: reg, topicName: name, cancellationToken: cancellationToken);
+                topicArn = await CreateTopicIfNotExistsAsync(topicName: name, reg: reg, cancellationToken: cancellationToken);
                 topicArnsCache[reg.EventType] = topicArn;
             }
 
@@ -304,33 +304,30 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         }
     }
 
-    private async Task<string> GetQueueUrlAsync(EventRegistration reg, EventConsumerRegistration ecr, bool deadletter, CancellationToken cancellationToken)
+    private async Task<string> GetQueueUrlAsync(EventRegistration reg, EventConsumerRegistration? ecr = null, bool deadletter = false, CancellationToken cancellationToken = default)
     {
         await queueUrlsCacheLock.WaitAsync(cancellationToken);
 
         try
         {
-            var topicName = reg.EventName!;
-            var queueName = ecr.ConsumerName!;
-            if (deadletter) queueName += TransportOptions.DeadLetterSuffix;
-
-            var key = $"{topicName}/{queueName}";
-            if (!queueUrlsCache.TryGetValue((key, deadletter), out var queueUrl))
+            var key = CreateQueueCacheKey(reg, ecr, deadletter);
+            if (!queueUrlsCache.TryGetValue(key, out var queueUrl))
             {
                 // ensure queue is created before creating subscription
-                queueUrl = await CreateQueueIfNotExistsAsync(ecr: ecr, queueName: queueName, cancellationToken: cancellationToken);
+                queueUrl = await CreateQueueIfNotExistsAsync(queueName: key.Name, reg: reg, ecr: ecr, cancellationToken: cancellationToken);
 
-                // for non deadletter, we need to ensure the topic exists and the queue is subscribed to it
-                if (!deadletter)
+                // for non deadletter broadcast types, we need to ensure the topic exists and the queue is subscribed to it
+                if (!deadletter && reg.EntityKind == EntityKind.Broadcast)
                 {
                     // ensure topic is created before creating the subscription
-                    var topicArn = await CreateTopicIfNotExistsAsync(reg: reg, topicName: topicName, cancellationToken: cancellationToken);
+                    var topicName = reg.EventName!;
+                    var topicArn = await CreateTopicIfNotExistsAsync(topicName: topicName, reg: reg, cancellationToken: cancellationToken);
 
                     // create subscription from the topic to the queue
                     await snsClient.SubscribeQueueAsync(topicArn: topicArn, sqsClient, queueUrl);
                 }
 
-                queueUrlsCache[(key, deadletter)] = queueUrl;
+                queueUrlsCache[key] = queueUrl;
             }
 
             return queueUrl;
@@ -341,7 +338,31 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         }
     }
 
-    private async Task<string> CreateTopicIfNotExistsAsync(EventRegistration reg, string topicName, CancellationToken cancellationToken)
+    record QueueCacheKey
+    {
+        public QueueCacheKey(string name, bool deadletter)
+        {
+            if (string.IsNullOrWhiteSpace(Name = name))
+            {
+                throw new ArgumentException($"'{nameof(name)}' cannot be null or empty.", nameof(name));
+            }
+            Deadletter = deadletter;
+        }
+
+        public string Name { get; }
+        public bool Deadletter { get; }
+    }
+
+    private QueueCacheKey CreateQueueCacheKey(EventRegistration reg, EventConsumerRegistration? ecr, bool deadLetter)
+    {
+        var name = (reg.EntityKind == EntityKind.Broadcast && ecr is not null)
+                 ? $"{reg.EventName}-{ecr.ConsumerName}"
+                 : reg.EventName!;
+        if (deadLetter) name += TransportOptions.DeadLetterSuffix;
+        return new QueueCacheKey(name, deadLetter);
+    }
+
+    private async Task<string> CreateTopicIfNotExistsAsync(string topicName, EventRegistration reg, CancellationToken cancellationToken)
     {
         // check if the topic exists
         var topic = await snsClient.FindTopicAsync(topicName: topicName);
@@ -362,7 +383,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         return response.TopicArn;
     }
 
-    private async Task<string> CreateQueueIfNotExistsAsync(EventConsumerRegistration ecr, string queueName, CancellationToken cancellationToken)
+    private async Task<string> CreateQueueIfNotExistsAsync(string queueName, EventRegistration reg, EventConsumerRegistration? ecr, CancellationToken cancellationToken)
     {
         // check if the queue exists
         var urlResponse = await sqsClient.GetQueueUrlAsync(queueName: queueName, cancellationToken);
@@ -376,7 +397,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
 
         // create the queue
         var request = new CreateQueueRequest(queueName: queueName);
-        TransportOptions.SetupCreateQueueRequest?.Invoke(ecr, request);
+        TransportOptions.SetupCreateQueueRequest?.Invoke(reg, ecr, request);
         var response = await sqsClient.CreateQueueAsync(request: request, cancellationToken: cancellationToken);
         response.EnsureSuccess();
 

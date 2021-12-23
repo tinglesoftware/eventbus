@@ -34,5 +34,5 @@ public class AmazonSqsTransportOptions : AmazonTransportOptions
     /// A setup function for setting up settings for a queue.
     /// This is only called before creation.
     /// </summary>
-    public Action<EventConsumerRegistration, CreateQueueRequest>? SetupCreateQueueRequest { get; set; }
+    public Action<EventRegistration, EventConsumerRegistration?, CreateQueueRequest>? SetupCreateQueueRequest { get; set; }
 }

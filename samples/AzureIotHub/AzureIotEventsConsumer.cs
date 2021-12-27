@@ -1,7 +1,11 @@
-﻿namespace AzureIotHub;
+﻿using System.Text.Json;
+
+namespace AzureIotHub;
 
 internal class AzureIotEventsConsumer : IEventConsumer<MyIotHubEvent>
 {
+    private static readonly JsonSerializerOptions serializerOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true, };
+
     private readonly ILogger logger;
 
     public AzureIotEventsConsumer(ILogger<AzureIotEventsConsumer> logger)
@@ -11,15 +15,18 @@ internal class AzureIotEventsConsumer : IEventConsumer<MyIotHubEvent>
 
     public Task ConsumeAsync(EventContext<MyIotHubEvent> context, CancellationToken cancellationToken)
     {
+        var evt = context.Event;
+
         var deviceId = context.GetIotHubDeviceId();
         var source = context.GetIotHubMessageSource();
         var enqueued = context.GetIotHubEnqueuedTime();
 
-        logger.LogInformation("Received {Source} from {DeviceId}\r\nEnqueued: {EnqueuedTime}\r\nTimestamped: {Timestamp}.",
+        logger.LogInformation("Received {Source} from {DeviceId}\r\nEnqueued: {EnqueuedTime}\r\nTimestamped: {Timestamp}\r\nPayload:{Payload}",
                               source,
                               deviceId,
                               enqueued,
-                              context.Event.Timestamp);
+                              evt.Timestamp,
+                              JsonSerializer.Serialize(evt, serializerOptions));
 
         return Task.CompletedTask;
     }

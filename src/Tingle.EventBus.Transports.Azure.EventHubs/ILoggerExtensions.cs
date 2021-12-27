@@ -9,13 +9,13 @@ namespace Microsoft.Extensions.Logging;
 /// </summary>
 internal static partial class ILoggerExtensions
 {
-    [LoggerMessage(100, LogLevel.Information, "Opening processor for EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId:{PartitionId}, DefaultStartingPosition:{Position}")]
+    [LoggerMessage(100, LogLevel.Information, "Opening processor for EventHub: {EventHubName}, ConsumerGroup: {ConsumerGroup}, PartitionId: {PartitionId}, DefaultStartingPosition: {Position}")]
     public static partial void OpeningProcessor(this ILogger logger, string eventHubName, string consumerGroup, string partitionId, EventPosition position);
 
-    [LoggerMessage(101, LogLevel.Information, "Closing processor for EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId:{PartitionId} (Reason:{Reason})")]
+    [LoggerMessage(101, LogLevel.Information, "Closing processor for EventHub: {EventHubName}, ConsumerGroup: {ConsumerGroup}, PartitionId: {PartitionId} (Reason: {Reason})")]
     public static partial void ClosingProcessor(this ILogger logger, string eventHubName, string consumerGroup, string partitionId, ProcessingStoppedReason reason);
 
-    [LoggerMessage(102, LogLevel.Error, "Event processing faulted. Operation:{Operation}, EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId: {PartitionId}")]
+    [LoggerMessage(102, LogLevel.Error, "Event processing faulted. Operation: {Operation}, EventHub: {EventHubName}, ConsumerGroup: {ConsumerGroup}, PartitionId: {PartitionId}")]
     public static partial void ProcessingError(this ILogger logger, string operation, string eventHubName, string consumerGroup, string partitionId, Exception ex);
 
     [LoggerMessage(103, LogLevel.Debug, "Stopping processor: {Processor}.")]
@@ -60,7 +60,7 @@ internal static partial class ILoggerExtensions
     public static partial void Checkpointing(this ILogger logger, PartitionContext partition, string eventHubName, string consumerGroup, long sequenceNumber, object? eventId);
 
 
-    [LoggerMessage(300, LogLevel.Debug, "Processor received event on EventHub:{EventHubName}, ConsumerGroup:{ConsumerGroup}, PartitionId:{PartitionId}")]
+    [LoggerMessage(300, LogLevel.Debug, "Processor received event on EventHub: {EventHubName}, ConsumerGroup: {ConsumerGroup}, PartitionId: {PartitionId}")]
     public static partial void ProcessorReceivedEvent(this ILogger logger, string eventHubName, string consumerGroup, string partitionId);
 
     [LoggerMessage(301, LogLevel.Debug, "Processing '{EventId} in {PartitionKey}|{SequenceNumber}' from '{EventHubName}/{ConsumerGroup}'")]

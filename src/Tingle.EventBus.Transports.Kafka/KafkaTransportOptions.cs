@@ -42,7 +42,7 @@ public class KafkaTransportOptions : EventBusTransportOptionsBase
     /// slow compared to the rate at which the consumer is capable of
     /// consuming messages. A high performance application will typically
     /// set the interval high so that commits are done relatively infrequently
-    /// and be designed handle duplicate messages in the event of failure.
+    /// and be designed to handle duplicate messages in the event of failure.
     /// </remarks>
     /// <value>Defaults to 1</value>
     public int CheckpointInterval { get; set; } = 1;

@@ -361,13 +361,6 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
         where TEvent : class
         where TConsumer : IEventConsumer<TEvent>
     {
-        if (!args.HasEvent)
-        {
-            // TODO: throw exception instead
-            Logger.LogWarning($"'{nameof(OnEventReceivedAsync)}' was invoked but the arguments do not have an event.");
-            return;
-        }
-
         Logger.ProcessorReceivedEvent(eventHubName: processor.EventHubName,
                                       consumerGroup: processor.ConsumerGroup,
                                       partitionId: args.Partition.PartitionId);

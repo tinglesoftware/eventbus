@@ -265,8 +265,12 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
         try
         {
-            var eventHubName = reg.GetIotHubEventHubName() ?? reg.EventName;
-            var consumerGroup = TransportOptions.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
+            // For events configured as sourced from IoT Hub,
+            // 1. The event hub name is in the metadata
+            // 2. The ConsumerGroup is set to $Default (this may be changed to support more)
+            var isIotHub = reg.IsConfiguredAsIotHub();
+            var eventHubName = isIotHub ? reg.GetIotHubEventHubName() : reg.EventName;
+            var consumerGroup = isIotHub || TransportOptions.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
 
             var key = $"{eventHubName}/{consumerGroup}";
             if (!processorsCache.TryGetValue(key, out var processor))

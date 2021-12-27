@@ -29,17 +29,17 @@ public static class EventRegistrationExtensions
         return registration;
     }
 
-    internal static string? GetIotHubEventHubName(this EventRegistration registration)
+    internal static string GetIotHubEventHubName(this EventRegistration registration)
     {
         if (registration is null) throw new ArgumentNullException(nameof(registration));
 
-        return registration.Metadata.TryGetValue(MetadataKeyIotHubEventHubName, out var value) && value is string s ? s : default;
+        return (string)registration.Metadata[MetadataKeyIotHubEventHubName];
     }
 
-    internal static bool IsConfiguredForIotHub(this EventRegistration registration)
+    internal static bool IsConfiguredAsIotHub(this EventRegistration registration)
     {
         if (registration is null) throw new ArgumentNullException(nameof(registration));
 
-        return !string.IsNullOrEmpty(registration.GetIotHubEventHubName());
+        return registration.Metadata.ContainsKey(MetadataKeyIotHubEventHubName);
     }
 }

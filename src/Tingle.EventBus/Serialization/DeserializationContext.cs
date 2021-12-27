@@ -44,7 +44,7 @@ public sealed class DeserializationContext
     /// <summary>
     /// Type of content contained in the <see cref="Body"/>.
     /// </summary>
-    public ContentType? ContentType { get; set; }
+    public ContentType? ContentType { get; init; }
 
     /// <summary>
     /// The raw data provided by the transport without any manipuaation.

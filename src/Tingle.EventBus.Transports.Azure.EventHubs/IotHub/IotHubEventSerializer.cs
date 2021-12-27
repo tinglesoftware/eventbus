@@ -36,7 +36,7 @@ internal class IotHubEventSerializer : AbstractEventSerializer
 
         var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;
         var data = (EventData)context.RawTransportData!;
-        object? telemetry = null, twinChange = null, lifeCycle = null;
+        object? telemetry = null, twinChange = null, lifecycle = null;
 
         var source = Enum.Parse<IotHubEventMessageSource>(data.GetIotHubMessageSource()!, ignoreCase: true);
         if (source == IotHubEventMessageSource.Telemetry)
@@ -66,17 +66,17 @@ internal class IotHubEventSerializer : AbstractEventSerializer
             }
             else if (source == IotHubEventMessageSource.DeviceLifecycleEvents)
             {
-                var lifeCycleEvent = await JsonSerializer.DeserializeAsync(utf8Json: stream,
-                                                                           returnType: mapped.LifeCycleEventType,
+                var lifecycleEvent = await JsonSerializer.DeserializeAsync(utf8Json: stream,
+                                                                           returnType: mapped.LifecycleEventType,
                                                                            options: serializerOptions,
                                                                            cancellationToken: cancellationToken);
 
-                var lifeCycleOpEventType = typeof(IotHubOperationalEvent<>).MakeGenericType(mapped.LifeCycleEventType);
-                lifeCycle = Activator.CreateInstance(lifeCycleOpEventType, new[] { hubName, deviceId, moduleId, type, lifeCycleEvent, });
+                var lifecycleOpEventType = typeof(IotHubOperationalEvent<>).MakeGenericType(mapped.LifecycleEventType);
+                lifecycle = Activator.CreateInstance(lifecycleOpEventType, new[] { hubName, deviceId, moduleId, type, lifecycleEvent, });
             }
         }
 
-        var args = new object?[] { source, telemetry, twinChange, lifeCycle, };
+        var args = new object?[] { source, telemetry, twinChange, lifecycle, };
         var @event = (T?)Activator.CreateInstance(targetType, args);
         return new EventEnvelope<T> { Event = @event, };
     }
@@ -100,7 +100,7 @@ internal class IotHubEventSerializer : AbstractEventSerializer
             {
                 return new(telemetryType: baseType.GenericTypeArguments[0],
                            twinChangeEventType: baseType.GenericTypeArguments[1],
-                           lifeCycleEventType: baseType.GenericTypeArguments[2]);
+                           lifecycleEventType: baseType.GenericTypeArguments[2]);
             }
 
             baseType = baseType.BaseType;
@@ -111,15 +111,15 @@ internal class IotHubEventSerializer : AbstractEventSerializer
 
     private record MappedTypes
     {
-        public MappedTypes(Type telemetryType, Type twinChangeEventType, Type lifeCycleEventType)
+        public MappedTypes(Type telemetryType, Type twinChangeEventType, Type lifecycleEventType)
         {
             TelemetryType = telemetryType ?? throw new ArgumentNullException(nameof(telemetryType));
             TwinChangeEventType = twinChangeEventType ?? throw new ArgumentNullException(nameof(twinChangeEventType));
-            LifeCycleEventType = lifeCycleEventType ?? throw new ArgumentNullException(nameof(lifeCycleEventType));
+            LifecycleEventType = lifecycleEventType ?? throw new ArgumentNullException(nameof(lifecycleEventType));
         }
 
         public Type TelemetryType { get; }
         public Type TwinChangeEventType { get; }
-        public Type LifeCycleEventType { get; }
+        public Type LifecycleEventType { get; }
     }
 }

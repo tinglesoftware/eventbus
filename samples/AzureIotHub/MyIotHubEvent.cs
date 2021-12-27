@@ -9,7 +9,7 @@ internal record MyIotHubEvent : IotHubEvent<MyIotHubTelemetry>
     public MyIotHubEvent(IotHubEventMessageSource source,
                          MyIotHubTelemetry? telemetry,
                          IotHubOperationalEvent<DeviceTwinChangeEvent>? twinEvent,
-                         IotHubOperationalEvent<DeviceLifeCycleEvent>? lifeCycleEvent)
+                         IotHubOperationalEvent<DeviceLifecycleEvent>? lifeCycleEvent)
         : base(source, telemetry, twinEvent, lifeCycleEvent) { }
 }
 

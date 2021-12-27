@@ -31,7 +31,7 @@ public static class EventRegistrationExtensions
     }
 
     /// <summary>
-    /// Use the serializer that supports <see cref="IotHubEvent{TDeviceTelemetry, TDeviceTwinChange, TDeviceLifeCycle}"/>.
+    /// Use the serializer that supports <see cref="IotHubEvent{TDeviceTelemetry, TDeviceTwinChange, TDeviceLifecycle}"/>.
     /// </summary>
     /// <param name="registration">The <see cref="EventRegistration"/> to confugure.</param>
     /// <returns></returns>

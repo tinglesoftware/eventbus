@@ -20,7 +20,7 @@ public static partial class EventDataExtensions
 
     private const string IotHubMessageSourceTelemetry = "Telemetry";
     private const string IotHubMessageSourceTwinChangeEvents = "twinChangeEvents";
-    private const string IotHubMessageSourceDeviceLifeCycleEvents = "deviceLifecycleEvents";
+    private const string IotHubMessageSourceDeviceLifecycleEvents = "deviceLifecycleEvents";
 
     internal static bool TryGetPropertyValue(this EventData data, string key, [NotNullWhen(true)] out object? value)
     {
@@ -92,7 +92,7 @@ public static partial class EventDataExtensions
 
     /// <summary>Gets whether the message is sourced from lifecycle events.</summary>
     /// <param name="data">The <see cref="EventData"/> to use.</param>
-    public static bool IsIotHubDeviceLifeCycleEvent(this EventData data) => data.IsIotHubMessageIsFromSource(IotHubMessageSourceDeviceLifeCycleEvents);
+    public static bool IsIotHubDeviceLifecycleEvent(this EventData data) => data.IsIotHubMessageIsFromSource(IotHubMessageSourceDeviceLifecycleEvents);
 
     /// <summary>Gets the data schema for the IoT Hub message.</summary>
     /// <param name="data">The <see cref="EventData"/> to use.</param>

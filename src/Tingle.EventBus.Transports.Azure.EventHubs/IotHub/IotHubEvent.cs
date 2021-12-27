@@ -1,7 +1,7 @@
 ﻿namespace Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
 /// <summary>Represents an event from Azure IoT Hub.</summary>
-public record IotHubEvent<TDeviceTelemetry> : IotHubEvent<TDeviceTelemetry, DeviceTwinChangeEvent, DeviceLifeCycleEvent>
+public record IotHubEvent<TDeviceTelemetry> : IotHubEvent<TDeviceTelemetry, DeviceTwinChangeEvent, DeviceLifecycleEvent>
     where TDeviceTelemetry : class, new()
 {
     /// <summary>
@@ -10,38 +10,38 @@ public record IotHubEvent<TDeviceTelemetry> : IotHubEvent<TDeviceTelemetry, Devi
     /// <param name="source"></param>
     /// <param name="telemetry">The telemetry data.</param>
     /// <param name="twinEvent">The twin change event.</param>
-    /// <param name="lifeCycleEvent">The life cycle event.</param>
+    /// <param name="lifecycleEvent">The lifecycle event.</param>
     public IotHubEvent(IotHubEventMessageSource source,
                        TDeviceTelemetry? telemetry,
                        IotHubOperationalEvent<DeviceTwinChangeEvent>? twinEvent,
-                       IotHubOperationalEvent<DeviceLifeCycleEvent>? lifeCycleEvent)
-        : base(source, telemetry, twinEvent, lifeCycleEvent)    {    }
+                       IotHubOperationalEvent<DeviceLifecycleEvent>? lifecycleEvent)
+        : base(source, telemetry, twinEvent, lifecycleEvent)    {    }
 }
 
 /// <summary>
 /// Represents the event from Azure IoT Hub
 /// </summary>
-public record IotHubEvent<TDeviceTelemetry, TDeviceTwinChange, TDeviceLifeCycle>
+public record IotHubEvent<TDeviceTelemetry, TDeviceTwinChange, TDeviceLifecycle>
     where TDeviceTelemetry : class, new()
     where TDeviceTwinChange : DeviceTwinChangeEvent, new()
-    where TDeviceLifeCycle : DeviceLifeCycleEvent, new()
+    where TDeviceLifecycle : DeviceLifecycleEvent, new()
 {
     /// <summary>
-    /// Creates an instance of <see cref="IotHubEvent{TDeviceTelemetry, TDeviceTwinChange, TDeviceLifeCycle}"/>.
+    /// Creates an instance of <see cref="IotHubEvent{TDeviceTelemetry, TDeviceTwinChange, TDeviceLifecycle}"/>.
     /// </summary>
     /// <param name="source"></param>
     /// <param name="telemetry">The telemetry data.</param>
     /// <param name="twinEvent">The twin change event.</param>
-    /// <param name="lifeCycleEvent">The life cycle event.</param>
+    /// <param name="lifeCycleEvent">The lifecycle event.</param>
     public IotHubEvent(IotHubEventMessageSource source,
                        TDeviceTelemetry? telemetry,
                        IotHubOperationalEvent<TDeviceTwinChange>? twinEvent,
-                       IotHubOperationalEvent<TDeviceLifeCycle>? lifeCycleEvent)
+                       IotHubOperationalEvent<TDeviceLifecycle>? lifeCycleEvent)
     {
         Source = source;
         Telemetry = telemetry;
         TwinEvent = twinEvent;
-        LifeCycleEvent = lifeCycleEvent;
+        LifecycleEvent = lifeCycleEvent;
     }
 
     /// <summary>The source of the event.</summary>
@@ -62,9 +62,9 @@ public record IotHubEvent<TDeviceTelemetry, TDeviceTwinChange, TDeviceLifeCycle>
     public IotHubOperationalEvent<TDeviceTwinChange>? TwinEvent { get; }
 
     /// <summary>
-    /// The life cycle event.
+    /// The lifecycle event.
     /// Only populate when <see cref="Source"/> is set to
     /// <see cref="IotHubEventMessageSource.DeviceLifecycleEvents"/>.
     /// </summary>
-    public IotHubOperationalEvent<TDeviceLifeCycle>? LifeCycleEvent { get; }
+    public IotHubOperationalEvent<TDeviceLifecycle>? LifecycleEvent { get; }
 }

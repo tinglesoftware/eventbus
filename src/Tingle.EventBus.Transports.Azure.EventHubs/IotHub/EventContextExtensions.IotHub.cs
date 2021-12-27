@@ -54,7 +54,7 @@ public static partial class EventContextExtensions
 
     /// <summary>Gets whether the message is sourced from lifecycle events.</summary>
     /// <param name="context">The <see cref="EventContext"/> to use.</param>
-    public static bool IsIotHubDeviceLifeCycleEvent(this EventContext context) => context.GetEventData().IsIotHubDeviceLifeCycleEvent();
+    public static bool IsIotHubDeviceLifecycleEvent(this EventContext context) => context.GetEventData().IsIotHubDeviceLifecycleEvent();
 
     /// <summary>Gets the data schema for the IoT Hub message.</summary>
     /// <param name="context">The <see cref="EventContext"/> to use.</param>

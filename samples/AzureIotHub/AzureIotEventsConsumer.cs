@@ -43,8 +43,8 @@ internal class AzureIotEventsConsumer : IEventConsumer<MyIotHubEvent>
         }
         else if (source == IotHubEventMessageSource.DeviceLifecycleEvents)
         {
-            var lce = evt.LifeCycleEvent!;
-            logger.LogInformation("Device LifeCycle event received of type '{Type}' from '{DeviceId}{ModuleId}' in '{HubName}'.\r\nEvent:{Event}",
+            var lce = evt.LifecycleEvent!;
+            logger.LogInformation("Device Lifecycle event received of type '{Type}' from '{DeviceId}{ModuleId}' in '{HubName}'.\r\nEvent:{Event}",
                                   lce.Type,
                                   lce.DeviceId,
                                   lce.ModuleId,

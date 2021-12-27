@@ -44,7 +44,7 @@ public sealed record IotHubOperationalEvent<T>
 /// <summary>
 /// Basics of a device lifecycle event.
 /// </summary>
-public record DeviceLifeCycleEvent
+public record DeviceLifecycleEvent
 {
     // TODO: consider adding more items here
 

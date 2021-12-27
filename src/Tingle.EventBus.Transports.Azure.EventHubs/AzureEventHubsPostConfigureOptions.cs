@@ -27,6 +27,9 @@ internal class AzureEventHubsPostConfigureOptions : AzureTransportPostConfigureO
             throw new InvalidOperationException($"'{nameof(AzureEventHubsTransportCredentials.FullyQualifiedNamespace)}' must be provided when using '{nameof(AzureEventHubsTransportCredentials)}'.");
         }
 
+        // ensure the checkpoint interval is not less than 1
+        options.CheckpointInterval = Math.Max(options.CheckpointInterval, 1);
+
         // If there are consumers for this transport, we must check azure blob storage
         var registrations = busOptions.GetRegistrations(TransportNames.AzureEventHubs);
         if (registrations.Any(r => r.Consumers.Count > 0))

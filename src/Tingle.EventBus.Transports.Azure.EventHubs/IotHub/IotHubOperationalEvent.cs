@@ -49,7 +49,7 @@ public sealed record IotHubOperationalEvent<T>
 /// <summary>
 /// Basics of a device lifecycle event.
 /// </summary>
-public record DeviceLifecycleEvent: AbstracIotHubEvent
+public record IotHubDeviceLifecycleEvent: AbstractIotHubEvent
 {
     ///
     [JsonExtensionData]
@@ -59,15 +59,25 @@ public record DeviceLifecycleEvent: AbstracIotHubEvent
 /// <summary>
 /// Basics of a device twin change event.
 /// </summary>
-public record DeviceTwinChangeEvent : AbstracIotHubEvent
+public record IotHubDeviceTwinChangeEvent : AbstractIotHubEvent
 {
     ///
     [JsonExtensionData]
     public JsonObject? Extras { get; set; }
 }
 
+/// <summary>
+/// Basics of a device twin change event.
+/// </summary>
+public record IotHubDeviceConnectionStateEvent
+{
+    ///
+    [JsonPropertyName("sequenceNumber")]
+    public string? SequenceNumber { get; set; }
+}
+
 /// <summary>Asbtractions for an Azure IoT Hub Event.</summary>
-public abstract record AbstracIotHubEvent
+public abstract record AbstractIotHubEvent
 {
     /// <summary>Unique identifier of the device.</summary>
     [JsonPropertyName("deviceId")]

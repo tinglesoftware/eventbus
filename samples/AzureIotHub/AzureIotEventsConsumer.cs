@@ -51,6 +51,16 @@ internal class AzureIotEventsConsumer : IEventConsumer<MyIotHubEvent>
                                   lce.HubName,
                                   JsonSerializer.Serialize(lce.Event, serializerOptions));
         }
+        else if (source == IotHubEventMessageSource.DeviceConnectionStateEvents)
+        {
+            var cse = evt.ConnectionStateEvent!;
+            logger.LogInformation("Device connection state event received of type '{Type}' from '{DeviceId}{ModuleId}' in '{HubName}'.\r\nEvent:{Event}",
+                                  cse.Type,
+                                  cse.DeviceId,
+                                  cse.ModuleId,
+                                  cse.HubName,
+                                  JsonSerializer.Serialize(cse.Event, serializerOptions));
+        }
 
         return Task.CompletedTask;
     }

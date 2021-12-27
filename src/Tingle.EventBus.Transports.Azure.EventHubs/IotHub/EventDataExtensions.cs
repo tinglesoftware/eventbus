@@ -22,6 +22,7 @@ public static partial class EventDataExtensions
     private const string IotHubMessageSourceTelemetry = "Telemetry";
     private const string IotHubMessageSourceTwinChangeEvents = "twinChangeEvents";
     private const string IotHubMessageSourceDeviceLifecycleEvents = "deviceLifecycleEvents";
+    private const string IotHubMessageSourceDeviceConnectionStateEvents = "deviceConnectionStateEvents";
 
     internal static bool TryGetPropertyValue(this EventData data, string key, [NotNullWhen(true)] out object? value)
     {
@@ -95,9 +96,13 @@ public static partial class EventDataExtensions
     /// <param name="data">The <see cref="EventData"/> to use.</param>
     public static bool IsIotHubTwinChangeEvent(this EventData data) => data.IsIotHubMessageIsFromSource(IotHubMessageSourceTwinChangeEvents);
 
-    /// <summary>Gets whether the message is sourced from lifecycle events.</summary>
+    /// <summary>Gets whether the message is sourced from device lifecycle events.</summary>
     /// <param name="data">The <see cref="EventData"/> to use.</param>
     public static bool IsIotHubDeviceLifecycleEvent(this EventData data) => data.IsIotHubMessageIsFromSource(IotHubMessageSourceDeviceLifecycleEvents);
+
+    /// <summary>Gets whether the message is sourced from device connection state events.</summary>
+    /// <param name="data">The <see cref="EventData"/> to use.</param>
+    public static bool IsIotHubDeviceConnectionStateEvents(this EventData data) => data.IsIotHubMessageIsFromSource(IotHubMessageSourceDeviceConnectionStateEvents);
 
     /// <summary>Gets the data schema for the IoT Hub message.</summary>
     /// <param name="data">The <see cref="EventData"/> to use.</param>

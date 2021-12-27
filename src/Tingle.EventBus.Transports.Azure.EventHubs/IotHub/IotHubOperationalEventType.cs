@@ -14,4 +14,10 @@ public enum IotHubOperationalEventType
 
     ///
     DeleteDeviceIdentity,
+
+    ///
+    DeviceDisconnected,
+
+    ///
+    DeviceConnected,
 }

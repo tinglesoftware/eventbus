@@ -8,9 +8,10 @@ internal record MyIotHubEvent : IotHubEvent<MyIotHubTelemetry>
 {
     public MyIotHubEvent(IotHubEventMessageSource source,
                          MyIotHubTelemetry? telemetry,
-                         IotHubOperationalEvent<DeviceTwinChangeEvent>? twinEvent,
-                         IotHubOperationalEvent<DeviceLifecycleEvent>? lifeCycleEvent)
-        : base(source, telemetry, twinEvent, lifeCycleEvent) { }
+                         IotHubOperationalEvent<IotHubDeviceTwinChangeEvent>? twinEvent,
+                         IotHubOperationalEvent<IotHubDeviceLifecycleEvent>? lifecycleEvent,
+                         IotHubOperationalEvent<IotHubDeviceConnectionStateEvent>? connectionStateEvent)
+        : base(source, telemetry, twinEvent, lifecycleEvent, connectionStateEvent) { }
 }
 
 internal class MyIotHubTelemetry

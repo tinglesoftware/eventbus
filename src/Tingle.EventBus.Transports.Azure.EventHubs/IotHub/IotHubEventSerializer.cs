@@ -36,7 +36,7 @@ internal class IotHubEventSerializer : AbstractEventSerializer
 
         var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;
         var data = (EventData)context.RawTransportData!;
-        object? telemetry = null, twinChange = null, lifecycle = null;
+        object? telemetry = null, twinChange = null, lifecycle = null, connectionState = null;
 
         var source = Enum.Parse<IotHubEventMessageSource>(data.GetIotHubMessageSource()!, ignoreCase: true);
         if (source == IotHubEventMessageSource.Telemetry)
@@ -46,7 +46,9 @@ internal class IotHubEventSerializer : AbstractEventSerializer
                                                               options: serializerOptions,
                                                               cancellationToken: cancellationToken);
         }
-        else if (source is IotHubEventMessageSource.TwinChangeEvents or IotHubEventMessageSource.DeviceLifecycleEvents)
+        else if (source is IotHubEventMessageSource.TwinChangeEvents
+                        or IotHubEventMessageSource.DeviceLifecycleEvents
+                        or IotHubEventMessageSource.DeviceConnectionStateEvents)
         {
             var hubName = data.GetPropertyValue<string>("hubName");
             var deviceId = data.GetPropertyValue<string>("deviceId");
@@ -75,9 +77,24 @@ internal class IotHubEventSerializer : AbstractEventSerializer
                 var lifecycleOpEventType = typeof(IotHubOperationalEvent<>).MakeGenericType(mapped.LifecycleEventType);
                 lifecycle = Activator.CreateInstance(lifecycleOpEventType, new[] { hubName, deviceId, moduleId, type, operationTimestamp, lifecycleEvent, });
             }
+            else if (source == IotHubEventMessageSource.DeviceConnectionStateEvents)
+            {
+                var connectionStateEvent = await JsonSerializer.DeserializeAsync<IotHubDeviceConnectionStateEvent>(
+                    utf8Json: stream,
+                    options: serializerOptions,
+                    cancellationToken: cancellationToken);
+
+                connectionState = new IotHubOperationalEvent<IotHubDeviceConnectionStateEvent>(
+                    hubName: hubName,
+                    deviceId: deviceId,
+                    moduleId: moduleId,
+                    type: type,
+                    operationTimestamp: operationTimestamp,
+                    @event: connectionStateEvent!);
+            }
         }
 
-        var args = new object?[] { source, telemetry, twinChange, lifecycle, };
+        var args = new object?[] { source, telemetry, twinChange, lifecycle, connectionState, };
         var @event = (T?)Activator.CreateInstance(targetType, args);
         return new EventEnvelope<T> { Event = @event, };
     }

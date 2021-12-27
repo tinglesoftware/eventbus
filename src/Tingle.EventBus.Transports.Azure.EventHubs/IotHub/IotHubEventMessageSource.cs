@@ -11,4 +11,7 @@ public enum IotHubEventMessageSource
 
     ///
     DeviceLifecycleEvents,
+
+    ///
+    DeviceConnectionStateEvents,
 }

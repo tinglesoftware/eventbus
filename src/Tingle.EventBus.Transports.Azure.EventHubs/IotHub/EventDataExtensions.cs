@@ -9,6 +9,7 @@ namespace Azure.Messaging.EventHubs;
 public static partial class EventDataExtensions
 {
     private const string IotHubPropertyNameMessageId = "message-id";
+    private const string IotHubPropertyNameMessageSchema = "iothub-message-schema";
     private const string IotHubPropertyNameEnqueuedTime = "iothub-enqueuedtime";
     private const string IotHubPropertyNameDeviceId = "iothub-connection-device-id";
     private const string IotHubPropertyNameModuleId = "iothub-connection-module-id";
@@ -20,9 +21,10 @@ public static partial class EventDataExtensions
 
     private const string IotHubMessageSourceTelemetry = "Telemetry";
     private const string IotHubMessageSourceTwinChangeEvents = "twinChangeEvents";
-    private const string IotHubMessageSourceDeviceLifeCycleEvents = "deviceLifecycleEvents";
+    private const string IotHubMessageSourceDeviceLifecycleEvents = "deviceLifecycleEvents";
+    private const string IotHubMessageSourceDeviceConnectionStateEvents = "deviceConnectionStateEvents";
 
-    private static bool TryGetPropertyValue(this EventData data, string key, [NotNullWhen(true)] out object? value)
+    internal static bool TryGetPropertyValue(this EventData data, string key, [NotNullWhen(true)] out object? value)
     {
         if (data is null) throw new ArgumentNullException(nameof(data));
         if (string.IsNullOrWhiteSpace(key))
@@ -34,7 +36,7 @@ public static partial class EventDataExtensions
             || data.Properties.TryGetValue(key, out value);
     }
 
-    private static T? GetPropertyValue<T>(this EventData data, string key)
+    internal static T? GetPropertyValue<T>(this EventData data, string key)
     {
         return data.TryGetPropertyValue(key, out var value) && value is not null ? (T?)value : default;
     }
@@ -42,6 +44,10 @@ public static partial class EventDataExtensions
     /// <summary>Gets the message identifier for the IoT Hub message.</summary>
     /// <param name="data">The <see cref="EventData"/> to use.</param>
     public static string? GetIotHubMessageId(this EventData data) => data.GetPropertyValue<string>(IotHubPropertyNameMessageId);
+
+    /// <summary>Gets the message schema for the IoT Hub message.</summary>
+    /// <param name="data">The <see cref="EventData"/> to use.</param>
+    public static string? GetIotHubMessageSchema(this EventData data) => data.GetPropertyValue<string>(IotHubPropertyNameMessageSchema);
 
     /// <summary>Gets the enqueued time for the IoT Hub message.</summary>
     /// <param name="data">The <see cref="EventData"/> to use.</param>
@@ -90,9 +96,13 @@ public static partial class EventDataExtensions
     /// <param name="data">The <see cref="EventData"/> to use.</param>
     public static bool IsIotHubTwinChangeEvent(this EventData data) => data.IsIotHubMessageIsFromSource(IotHubMessageSourceTwinChangeEvents);
 
-    /// <summary>Gets whether the message is sourced from lifecycle events.</summary>
+    /// <summary>Gets whether the message is sourced from device lifecycle events.</summary>
     /// <param name="data">The <see cref="EventData"/> to use.</param>
-    public static bool IsIotHubDeviceLifeCycleEvent(this EventData data) => data.IsIotHubMessageIsFromSource(IotHubMessageSourceDeviceLifeCycleEvents);
+    public static bool IsIotHubDeviceLifecycleEvent(this EventData data) => data.IsIotHubMessageIsFromSource(IotHubMessageSourceDeviceLifecycleEvents);
+
+    /// <summary>Gets whether the message is sourced from device connection state events.</summary>
+    /// <param name="data">The <see cref="EventData"/> to use.</param>
+    public static bool IsIotHubDeviceConnectionStateEvents(this EventData data) => data.IsIotHubMessageIsFromSource(IotHubMessageSourceDeviceConnectionStateEvents);
 
     /// <summary>Gets the data schema for the IoT Hub message.</summary>
     /// <param name="data">The <see cref="EventData"/> to use.</param>

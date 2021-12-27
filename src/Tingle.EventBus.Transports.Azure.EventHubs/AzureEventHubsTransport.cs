@@ -443,9 +443,9 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
     private Task OnPartitionInitializingAsync(EventProcessorClient processor, PartitionInitializingEventArgs args)
     {
-        Logger.OpeningProcessor(eventHubName: args.PartitionId,
-                                consumerGroup: processor.EventHubName,
-                                partitionId: processor.ConsumerGroup,
+        Logger.OpeningProcessor(eventHubName: processor.EventHubName,
+                                consumerGroup: processor.ConsumerGroup,
+                                partitionId: args.PartitionId,
                                 position: args.DefaultStartingPosition);
         return Task.CompletedTask;
     }

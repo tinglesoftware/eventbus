@@ -1,40 +1,7 @@
-﻿using Tingle.EventBus.Configuration;
-
-namespace Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
+﻿namespace Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
 /// <summary>Represents an event from Azure IoT Hub.</summary>
-public interface IIotHubEvent<TDeviceTelemetry, TDeviceTwinChange, TDeviceLifeCycle>
-    where TDeviceTelemetry : class, new()
-    where TDeviceTwinChange : DeviceTwinChangeEvent, new()
-    where TDeviceLifeCycle : DeviceLifeCycleEvent, new()
-{
-    /// <summary>The source of the event.</summary>
-    IotHubEventMessageSource Source { get; }
-
-    /// <summary>
-    /// The telemetry data.
-    /// Only populate when <see cref="Source"/> is set to
-    /// <see cref="IotHubEventMessageSource.Telemetry"/>.
-    /// </summary>
-    TDeviceTelemetry? Telemetry { get; }
-
-    /// <summary>
-    /// The twin change event.
-    /// Only populate when <see cref="Source"/> is set to
-    /// <see cref="IotHubEventMessageSource.TwinChangeEvents"/>.
-    /// </summary>
-    IotHubOperationalEvent<TDeviceTwinChange>? TwinEvent { get; }
-
-    /// <summary>
-    /// The life cycle event.
-    /// Only populate when <see cref="Source"/> is set to
-    /// <see cref="IotHubEventMessageSource.DeviceLifecycleEvents"/>.
-    /// </summary>
-    IotHubOperationalEvent<TDeviceLifeCycle>? LifeCycleEvent { get; }
-}
-
-/// <summary>Represents an event from Azure IoT Hub.</summary>
-public sealed record IotHubEvent<TDeviceTelemetry> : IIotHubEvent<TDeviceTelemetry, DeviceTwinChangeEvent, DeviceLifeCycleEvent>
+public record IotHubEvent<TDeviceTelemetry> : IotHubEvent<TDeviceTelemetry, DeviceTwinChangeEvent, DeviceLifeCycleEvent>
     where TDeviceTelemetry : class, new()
 {
     /// <summary>
@@ -48,31 +15,13 @@ public sealed record IotHubEvent<TDeviceTelemetry> : IIotHubEvent<TDeviceTelemet
                        TDeviceTelemetry? telemetry,
                        IotHubOperationalEvent<DeviceTwinChangeEvent>? twinEvent,
                        IotHubOperationalEvent<DeviceLifeCycleEvent>? lifeCycleEvent)
-    {
-        Source = source;
-        Telemetry = telemetry;
-        TwinEvent = twinEvent;
-        LifeCycleEvent = lifeCycleEvent;
-    }
-
-    /// <inheritdoc/>
-    public IotHubEventMessageSource Source { get; }
-
-    /// <inheritdoc/>
-    public TDeviceTelemetry? Telemetry { get; }
-
-    /// <inheritdoc/>
-    public IotHubOperationalEvent<DeviceTwinChangeEvent>? TwinEvent { get; }
-
-    /// <inheritdoc/>
-    public IotHubOperationalEvent<DeviceLifeCycleEvent>? LifeCycleEvent { get; }
+        : base(source, telemetry, twinEvent, lifeCycleEvent)    {    }
 }
 
 /// <summary>
 /// Represents the event from Azure IoT Hub
 /// </summary>
-[EventSerializer(typeof(IotHubEventSerializer))]
-public sealed record IotHubEvent<TDeviceTelemetry, TDeviceTwinChange, TDeviceLifeCycle> : IIotHubEvent<TDeviceTelemetry, TDeviceTwinChange, TDeviceLifeCycle>
+public record IotHubEvent<TDeviceTelemetry, TDeviceTwinChange, TDeviceLifeCycle>
     where TDeviceTelemetry : class, new()
     where TDeviceTwinChange : DeviceTwinChangeEvent, new()
     where TDeviceLifeCycle : DeviceLifeCycleEvent, new()
@@ -95,15 +44,27 @@ public sealed record IotHubEvent<TDeviceTelemetry, TDeviceTwinChange, TDeviceLif
         LifeCycleEvent = lifeCycleEvent;
     }
 
-    /// <inheritdoc/>
+    /// <summary>The source of the event.</summary>
     public IotHubEventMessageSource Source { get; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// The telemetry data.
+    /// Only populate when <see cref="Source"/> is set to
+    /// <see cref="IotHubEventMessageSource.Telemetry"/>.
+    /// </summary>
     public TDeviceTelemetry? Telemetry { get; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// The twin change event.
+    /// Only populate when <see cref="Source"/> is set to
+    /// <see cref="IotHubEventMessageSource.TwinChangeEvents"/>.
+    /// </summary>
     public IotHubOperationalEvent<TDeviceTwinChange>? TwinEvent { get; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// The life cycle event.
+    /// Only populate when <see cref="Source"/> is set to
+    /// <see cref="IotHubEventMessageSource.DeviceLifecycleEvents"/>.
+    /// </summary>
     public IotHubOperationalEvent<TDeviceLifeCycle>? LifeCycleEvent { get; }
 }

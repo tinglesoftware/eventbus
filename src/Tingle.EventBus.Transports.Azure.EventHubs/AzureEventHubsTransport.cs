@@ -290,7 +290,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                     ? new BlobContainerClient(blobContainerUri: new Uri($"{abstc.BlobServiceUrl}/{TransportOptions.BlobContainerName}"),
                                               credential: abstc.TokenCredential)
                     : new BlobContainerClient(connectionString: (string)cred_bs,
-                                                                  blobContainerName: TransportOptions.BlobContainerName);
+                                              blobContainerName: TransportOptions.BlobContainerName);
 
                 // Create the processor client options
                 var epco = new EventProcessorClientOptions
@@ -312,16 +312,16 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                 var cred = TransportOptions.Credentials!.Value!;
                 processor = cred is AzureEventHubsTransportCredentials aehtc
                     ? new EventProcessorClient(checkpointStore: blobContainerClient,
-                                                     consumerGroup: consumerGroup,
-                                                     fullyQualifiedNamespace: aehtc.FullyQualifiedNamespace,
-                                                     eventHubName: eventHubName,
-                                                     credential: aehtc.TokenCredential,
-                                                     clientOptions: epco)
+                                               consumerGroup: consumerGroup,
+                                               fullyQualifiedNamespace: aehtc.FullyQualifiedNamespace,
+                                               eventHubName: eventHubName,
+                                               credential: aehtc.TokenCredential,
+                                               clientOptions: epco)
                     : new EventProcessorClient(checkpointStore: blobContainerClient,
-                                                         consumerGroup: consumerGroup,
-                                                         connectionString: (string)cred,
-                                                         eventHubName: eventHubName,
-                                                         clientOptions: epco);
+                                               consumerGroup: consumerGroup,
+                                               connectionString: (string)cred,
+                                               eventHubName: eventHubName,
+                                               clientOptions: epco);
 
                 processorsCache[key] = processor;
             }

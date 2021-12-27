@@ -56,16 +56,16 @@ internal static partial class ILoggerExtensions
         logger.SendingEvents(events.Select(e => e.Id).ToList(), eventHubName, scheduled);
     }
 
-    [LoggerMessage(204, LogLevel.Debug, "Checkpointing {Partition} of '{EventHubName}/{ConsumerGroup}', at {SequenceNumber}. Event: '{EventId}'.")]
-    public static partial void Checkpointing(this ILogger logger, PartitionContext partition, string eventHubName, string consumerGroup, long sequenceNumber, object? eventId);
+    [LoggerMessage(204, LogLevel.Debug, "Checkpointing {Partition} of '{EventHubName}/{ConsumerGroup}' at {SequenceNumber}.")]
+    public static partial void Checkpointing(this ILogger logger, PartitionContext partition, string eventHubName, string consumerGroup, long sequenceNumber);
 
 
     [LoggerMessage(300, LogLevel.Debug, "Processor received event on EventHub: {EventHubName}\r\nConsumerGroup: {ConsumerGroup}\r\nPartitionId: {PartitionId}")]
     public static partial void ProcessorReceivedEvent(this ILogger logger, string eventHubName, string consumerGroup, string partitionId);
 
-    [LoggerMessage(301, LogLevel.Debug, "Processing '{EventId}' from '{EventHubName}/{ConsumerGroup}'.\r\nPartitionKey: {PartitionKey}\r\nSequenceNumber: {SequenceNumber}'")]
-    public static partial void ProcessingEvent(this ILogger logger, object? eventId, string eventHubName, string consumerGroup, string partitionKey, long sequenceNumber);
+    [LoggerMessage(301, LogLevel.Debug, "Processing '{MessageId}' from '{EventHubName}/{ConsumerGroup}'.\r\nPartitionKey: {PartitionKey}\r\nSequenceNumber: {SequenceNumber}'")]
+    public static partial void ProcessingEvent(this ILogger logger, string messageId, string eventHubName, string consumerGroup, string partitionKey, long sequenceNumber);
 
     [LoggerMessage(302, LogLevel.Information, "Received event: '{EventId}' from '{EventHubName}/{ConsumerGroup}'.\r\nPartitionKey: {PartitionKey}\r\nSequenceNumber: {SequenceNumber}'")]
-    public static partial void ReceivedEvent(this ILogger logger, object? eventId, string eventHubName, string consumerGroup, string partitionKey, long sequenceNumber);
+    public static partial void ReceivedEvent(this ILogger logger, string? eventId, string eventHubName, string consumerGroup, string partitionKey, long sequenceNumber);
 }

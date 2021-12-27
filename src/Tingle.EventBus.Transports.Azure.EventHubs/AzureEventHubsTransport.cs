@@ -128,6 +128,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
         var data = new EventData(body)
         {
+            MessageId = @event.Id,
             ContentType = @event.ContentType?.ToString(),
         };
 
@@ -137,8 +138,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
             data.CorrelationId = @event.CorrelationId;
         }
 
-        data.Properties.AddIfNotDefault(MetadataNames.Id, @event.Id)
-                       .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+        data.Properties.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                        .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                        .AddIfNotDefault(MetadataNames.EventName, registration.EventName)
                        .AddIfNotDefault(MetadataNames.EventType, registration.EventType.FullName)
@@ -182,6 +182,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
             var data = new EventData(body)
             {
+                MessageId = @event.Id,
                 ContentType = @event.ContentType?.ToString(),
             };
 
@@ -191,8 +192,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                 data.CorrelationId = @event.CorrelationId;
             }
 
-            data.Properties.AddIfNotDefault(MetadataNames.Id, @event.Id)
-                           .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+            data.Properties.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                            .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                            .AddIfNotDefault(MetadataNames.EventName, registration.EventName)
                            .AddIfNotDefault(MetadataNames.EventType, registration.EventType.FullName)
@@ -374,13 +374,13 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
         var data = args.Data;
         var cancellationToken = args.CancellationToken;
+        var messageId = data.MessageId;
 
-        data.Properties.TryGetValue(MetadataNames.Id, out var eventId);
         data.Properties.TryGetValue(MetadataNames.EventName, out var eventName);
         data.Properties.TryGetValue(MetadataNames.EventType, out var eventType);
         data.Properties.TryGetValue(MetadataNames.ActivityId, out var parentActivityId);
 
-        using var log_scope = BeginLoggingScopeForConsume(id: eventId?.ToString(),
+        using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                           correlationId: data.CorrelationId,
                                                           sequenceNumber: data.SequenceNumber.ToString(),
                                                           extras: new Dictionary<string, string?>
@@ -399,7 +399,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
         activity?.AddTag(ActivityTagNames.MessagingDestination, processor.EventHubName);
 
-        Logger.ProcessingEvent(eventId: eventId,
+        Logger.ProcessingEvent(messageId: messageId,
                                eventHubName: processor.EventHubName,
                                consumerGroup: processor.ConsumerGroup,
                                partitionKey: data.PartitionKey,
@@ -444,8 +444,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
             Logger.Checkpointing(partition: args.Partition,
                                  eventHubName: processor.EventHubName,
                                  consumerGroup: processor.ConsumerGroup,
-                                 sequenceNumber: data.SequenceNumber,
-                                 eventId: eventId);
+                                 sequenceNumber: data.SequenceNumber);
             await args.UpdateCheckpointAsync(args.CancellationToken);
         }
     }

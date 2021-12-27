@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
 namespace Tingle.EventBus.Configuration;
 
@@ -25,6 +26,21 @@ public static class EventRegistrationExtensions
         }
 
         registration.Metadata[MetadataKeyIotHubEventHubName] = name;
+
+        return registration;
+    }
+
+    /// <summary>
+    /// Use the serializer that supports <see cref="IotHubEvent{TDeviceTelemetry, TDeviceTwinChange, TDeviceLifeCycle}"/>.
+    /// </summary>
+    /// <param name="registration">The <see cref="EventRegistration"/> to confugure.</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static EventRegistration UseIotHubEventSerializer(this EventRegistration registration)
+    {
+        if (registration is null) throw new ArgumentNullException(nameof(registration));
+
+        registration.EventSerializerType = typeof(IotHubEventSerializer);
 
         return registration;
     }

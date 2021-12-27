@@ -13,9 +13,6 @@ var host = Host.CreateDefaultBuilder(args)
                        });
                        builder.AddConsumer<AzureDevOpsEventsConsumer>();
 
-                       // setup extra serializers
-                       builder.Services.AddSingleton<AzureDevOpsEventSerializer>();
-
                        // Transport specific configuration
                        builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");
                    });

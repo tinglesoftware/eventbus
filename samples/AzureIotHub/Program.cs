@@ -12,9 +12,6 @@ var host = Host.CreateDefaultBuilder(args)
 
                        builder.AddConsumer<AzureIotEventsConsumer>();
 
-                       // setup extra serializers
-                       builder.Services.AddSingleton<MyIotHubEventSerializer>();
-
                        // Transport specific configuration
                        builder.AddAzureEventHubsTransport(options =>
                        {

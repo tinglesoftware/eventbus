@@ -470,6 +470,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                                                      contentType: contentType,
                                                      registration: reg,
                                                      identifier: messageId,
+                                                     raw: message,
                                                      cancellationToken: cancellationToken);
 
         Logger.ReceivedMessage(messageId: messageId, eventId: context.Id, queueUrl: queueUrl);

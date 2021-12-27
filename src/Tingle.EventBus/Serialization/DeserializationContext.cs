@@ -47,7 +47,7 @@ public sealed class DeserializationContext
     public ContentType? ContentType { get; init; }
 
     /// <summary>
-    /// The raw data provided by the transport without any manipuaation.
+    /// The raw data provided by the transport without any manipulation.
     /// It can be null depending on the transport implementation.
     /// It is meant to be used by serializers who need context as to what the transport provided.
     /// <br/>

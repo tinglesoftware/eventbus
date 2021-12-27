@@ -290,6 +290,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
                                                      contentType: contentType,
                                                      registration: reg,
                                                      identifier: result.Offset.ToString(),
+                                                     raw: message,
                                                      cancellationToken: cancellationToken);
         Logger.ReceivedEvent(messageKey, context.Id);
         var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,

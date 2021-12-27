@@ -317,6 +317,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
                                                      contentType: contentType,
                                                      registration: reg,
                                                      identifier: messageId,
+                                                     raw: args,
                                                      cancellationToken: cancellationToken);
         Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
                               messageId,

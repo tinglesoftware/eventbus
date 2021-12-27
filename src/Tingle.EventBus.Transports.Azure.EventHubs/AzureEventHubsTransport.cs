@@ -411,6 +411,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                                                      contentType: contentType,
                                                      registration: reg,
                                                      identifier: data.SequenceNumber.ToString(),
+                                                     raw: data,
                                                      cancellationToken: cancellationToken);
         Logger.ReceivedEvent(eventId: context.Id,
                              eventHubName: processor.EventHubName,

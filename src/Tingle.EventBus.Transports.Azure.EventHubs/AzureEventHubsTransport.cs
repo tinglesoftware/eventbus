@@ -265,7 +265,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
         try
         {
-            var eventHubName = reg.EventName;
+            var eventHubName = reg.GetIotHubEventHubName() ?? reg.EventName;
             var consumerGroup = TransportOptions.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
 
             var key = $"{eventHubName}/{consumerGroup}";

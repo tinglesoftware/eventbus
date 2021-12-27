@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Net.Mime;
 using System.Xml.Serialization;
 
 namespace Tingle.EventBus.Serialization.Xml;
@@ -25,7 +24,7 @@ public class XmlEventSerializer : AbstractEventSerializer
 
     /// <inheritdoc/>
     protected override Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                              ContentType? contentType,
+                                                                              DeserializationContext context,
                                                                               CancellationToken cancellationToken = default)
     {
         var serializer = new XmlSerializer(typeof(XmlEventEnvelope<T>));

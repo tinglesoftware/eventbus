@@ -59,7 +59,7 @@ public abstract class AbstractEventSerializer : IEventSerializer
 
         // Deserialize
         using var stream = context.Body.ToStream();
-        var envelope = await DeserializeToEnvelopeAsync<T>(stream: stream, contentType: contentType, cancellationToken: cancellationToken);
+        var envelope = await DeserializeToEnvelopeAsync<T>(stream: stream, context: context, cancellationToken: cancellationToken);
         if (envelope is null)
         {
             Logger.DeserializationResultedInNull(identifier: context.Identifier, eventType: context.Registration.EventType.FullName);
@@ -127,11 +127,11 @@ public abstract class AbstractEventSerializer : IEventSerializer
     /// The <see cref="Stream"/> containing the raw data.
     /// (It must be readable, i.e. <see cref="Stream.CanRead"/> must be true).
     /// </param>
-    /// <param name="contentType">The type of content contained in the <paramref name="stream"/>.</param>
+    /// <param name="context">The <see cref="DeserializationContext"/> in use.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     protected abstract Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                              ContentType? contentType,
+                                                                              DeserializationContext context,
                                                                               CancellationToken cancellationToken = default)
         where T : class;
 

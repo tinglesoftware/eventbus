@@ -16,17 +16,18 @@ internal class AzureIotEventsConsumer : IEventConsumer<MyIotHubEvent>
     public Task ConsumeAsync(EventContext<MyIotHubEvent> context, CancellationToken cancellationToken)
     {
         var evt = context.Event;
+        var telemetry = evt.Telemetry;
 
         var deviceId = context.GetIotHubDeviceId();
         var source = context.GetIotHubMessageSource();
         var enqueued = context.GetIotHubEnqueuedTime();
 
-        logger.LogInformation("Received {Source} from {DeviceId}\r\nEnqueued: {EnqueuedTime}\r\nTimestamped: {Timestamp}\r\nPayload:{Payload}",
+        logger.LogInformation("Received {Source} from {DeviceId}\r\nEnqueued: {EnqueuedTime}\r\nTimestamped: {Timestamp}\r\nTelemetry:{Telemetry}",
                               source,
                               deviceId,
                               enqueued,
-                              evt.Timestamp,
-                              JsonSerializer.Serialize(evt, serializerOptions));
+                              telemetry?.Timestamp,
+                              JsonSerializer.Serialize(telemetry, serializerOptions));
 
         return Task.CompletedTask;
     }

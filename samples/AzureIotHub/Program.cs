@@ -8,7 +8,11 @@ var host = Host.CreateDefaultBuilder(args)
 
                    services.AddEventBus(builder =>
                    {
-                       builder.Configure(o => o.ConfigureEvent<MyIotHubEvent>(reg => reg.ConfigureAsIotHubEvent(configuration["IotHubEventHubName"])));
+                       builder.Configure(o => o.ConfigureEvent<MyIotHubEvent>(reg =>
+                       {
+                           reg.ConfigureAsIotHubEvent(configuration["IotHubEventHubName"])
+                              .UseIotHubEventSerializer();
+                       }));
 
                        builder.AddConsumer<AzureIotEventsConsumer>();
 

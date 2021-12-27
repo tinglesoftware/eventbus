@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MultipleConsumers": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

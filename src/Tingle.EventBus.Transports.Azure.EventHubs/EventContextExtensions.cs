@@ -7,7 +7,7 @@ namespace Tingle.EventBus;
 /// <summary>
 /// Extension methods on <see cref="EventContext"/> and <see cref="EventContext{T}"/>.
 /// </summary>
-public static class EventContextExtensions
+public static partial class EventContextExtensions
 {
     internal const string ItemsKeyConsumerGroup = "azure.eventhubs.consumer-group";
     internal const string ItemsKeyPartitionContext = "azure.eventhubs.partition-context";

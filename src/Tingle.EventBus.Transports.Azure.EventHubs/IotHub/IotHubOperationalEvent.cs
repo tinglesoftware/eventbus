@@ -49,10 +49,8 @@ public sealed record IotHubOperationalEvent<T>
 /// <summary>
 /// Basics of a device lifecycle event.
 /// </summary>
-public record DeviceLifecycleEvent
+public record DeviceLifecycleEvent: AbstracIotHubEvent
 {
-    // TODO: consider adding more items here
-
     ///
     [JsonExtensionData]
     public JsonObject? Extras { get; set; }
@@ -61,15 +59,55 @@ public record DeviceLifecycleEvent
 /// <summary>
 /// Basics of a device twin change event.
 /// </summary>
-public record DeviceTwinChangeEvent
+public record DeviceTwinChangeEvent : AbstracIotHubEvent
 {
-    /// <summary>
-    /// The version of the twin.
-    /// This value is auto incremented by the service.
-    /// </summary>
+    ///
+    [JsonExtensionData]
+    public JsonObject? Extras { get; set; }
+}
+
+/// <summary>Asbtractions for an Azure IoT Hub Event.</summary>
+public abstract record AbstracIotHubEvent
+{
+    /// <summary>Unique identifier of the device.</summary>
+    [JsonPropertyName("deviceId")]
+    public string? DeviceId { get; set; }
+
+    /// <summary>Unique identifier of the module within the device.</summary>
+    [JsonPropertyName("moduleId")]
+    public string? ModuleId { get; set; }
+
+    ///
+    [JsonPropertyName("etag")]
+    public string? Etag { get; set; }
+
+    /// <summary>The version.</summary>
+    [JsonPropertyName("version")]
     public long Version { get; set; }
 
-    // TODO: consider adding more items here e.g. expose reported and desired as peroperties?
+    /// <summary>The twin properties.</summary>
+    [JsonPropertyName("properties")]
+    public IotHubTwinPropertiesCollection? Properties { get; set; }
+}
+
+/// <summary>Properties of the device twin.</summary>
+public record IotHubTwinPropertiesCollection
+{
+    /// 
+    [JsonPropertyName("desired")]
+    public IotHubTwinProperties? Desired { get; set; }
+
+    /// 
+    [JsonPropertyName("reported")]
+    public IotHubTwinProperties? Reported { get; set; }
+}
+
+/// <summary>Properties of the device twin.</summary>
+public record IotHubTwinProperties
+{
+    /// <summary>The version of the twin.</summary>
+    [JsonPropertyName("$version")]
+    public long Version { get; set; }
 
     ///
     [JsonExtensionData]

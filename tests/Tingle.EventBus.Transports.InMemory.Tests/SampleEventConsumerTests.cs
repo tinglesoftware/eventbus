@@ -50,7 +50,7 @@ public class SampleEventConsumerTests
 
             // Now you can ensure data saved to database correctly
 
-            // For this example, we test if teh counter was incremented from 0 to 1
+            // For this example, we test if the counter was incremented from 0 to 1
             Assert.Equal(1, counter.Count);
         }
         finally

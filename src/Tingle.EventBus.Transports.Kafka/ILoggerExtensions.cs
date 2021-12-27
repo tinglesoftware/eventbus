@@ -16,7 +16,7 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(102, LogLevel.Information, "Consumer recevied data at {Offset}")]
     public static partial void ConsumerReceivedData(this ILogger logger, TopicPartitionOffset offset);
 
-    [LoggerMessage(103, LogLevel.Trace, "Reached end of topic {Topic}, Partition:{Partition}, Offset:{Offset}.")]
+    [LoggerMessage(103, LogLevel.Trace, "Reached end of topic {Topic}, Partition: {Partition}, Offset: {Offset}.")]
     public static partial void EndOfTopic(this ILogger logger, string topic, Partition partition, Offset offset);
 
     [LoggerMessage(104, LogLevel.Debug, "Processing '{MessageKey}")]

@@ -45,4 +45,14 @@ public sealed class DeserializationContext
     /// Type of content contained in the <see cref="Body"/>.
     /// </summary>
     public ContentType? ContentType { get; set; }
+
+    /// <summary>
+    /// The raw data provided by the transport without any manipuaation.
+    /// It can be null depending on the transport implementation.
+    /// It is meant to be used by serializers who need context as to what the transport provided.
+    /// <br/>
+    /// For example for Event Hubs this is of type Azure.Messaging.EventHubs.EventData,
+    /// whereas for Service Bus this is of type Azure.Messaging.ServiceBus.ServiceBusMessage.
+    /// </summary>
+    public object? RawTransportData { get; init; }
 }

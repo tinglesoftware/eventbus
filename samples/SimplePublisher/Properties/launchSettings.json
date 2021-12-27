@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SimplePublisher": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

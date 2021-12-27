@@ -9,6 +9,7 @@ namespace Azure.Messaging.EventHubs;
 public static partial class EventDataExtensions
 {
     private const string IotHubPropertyNameMessageId = "message-id";
+    private const string IotHubPropertyNameMessageSchema = "iothub-message-schema";
     private const string IotHubPropertyNameEnqueuedTime = "iothub-enqueuedtime";
     private const string IotHubPropertyNameDeviceId = "iothub-connection-device-id";
     private const string IotHubPropertyNameModuleId = "iothub-connection-module-id";
@@ -42,6 +43,10 @@ public static partial class EventDataExtensions
     /// <summary>Gets the message identifier for the IoT Hub message.</summary>
     /// <param name="data">The <see cref="EventData"/> to use.</param>
     public static string? GetIotHubMessageId(this EventData data) => data.GetPropertyValue<string>(IotHubPropertyNameMessageId);
+
+    /// <summary>Gets the message schema for the IoT Hub message.</summary>
+    /// <param name="data">The <see cref="EventData"/> to use.</param>
+    public static string? GetIotHubMessageSchema(this EventData data) => data.GetPropertyValue<string>(IotHubPropertyNameMessageSchema);
 
     /// <summary>Gets the enqueued time for the IoT Hub message.</summary>
     /// <param name="data">The <see cref="EventData"/> to use.</param>

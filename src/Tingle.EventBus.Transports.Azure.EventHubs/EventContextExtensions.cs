@@ -98,6 +98,22 @@ public static partial class EventContextExtensions
     }
 
     /// <summary>
+    /// Gets the <see cref="EventData"/> associated with the specified <see cref="EventContext"/>
+    /// if the event uses Azure Event Hubs transport.
+    /// </summary>
+    /// <param name="context">The <see cref="EventContext"/> to use.</param>
+    /// <returns>
+    /// true if the data is found; otherwise, false.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">The context is null</exception>
+    public static EventData GetEventData(this EventContext context)
+    {
+        if (context.TryGetEventData(out var data)) return data;
+
+        throw new InvalidOperationException("The EventData has not been set in this context.");
+    }
+
+    /// <summary>
     /// Set the ConsumerGroup for an event.
     /// </summary>
     /// <typeparam name="T">The context type.</typeparam>

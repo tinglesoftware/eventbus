@@ -42,7 +42,7 @@ A number fo the documents below are still a work in progress and would be added 
 
 #### How to ...
 
-* [Work with IoTHub](docs/Work-with-IoTHub.md)
+* [Work with Azure IoT Hub](docs/Work-with-Azure-IoT-Hub.md)
 * [Advanced Service Bus options](docs/Advanced-Service-Bus-options.md)
 * [Work with Feature Management](docs/Work-with-Feature-Management.md)
 * [Extend event configuration](docs/Extend-Event-Configuration.md)

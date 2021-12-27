@@ -433,7 +433,8 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
          * Update the checkpoint store if needed so that the app receives
          * only newer events the next time it's run.
         */
-        if (ShouldCheckpoint(successful, ecr.UnhandledErrorBehaviour))
+        if ((data.SequenceNumber % TransportOptions.CheckpointInterval) == 0
+            && ShouldCheckpoint(successful, ecr.UnhandledErrorBehaviour))
         {
             Logger.Checkpointing(partition: args.Partition,
                                  eventHubName: processor.EventHubName,

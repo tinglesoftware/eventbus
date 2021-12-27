@@ -131,8 +131,13 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
             ContentType = @event.ContentType?.ToString(),
         };
 
+        // If CorrelationId is present, set it
+        if (@event.CorrelationId != null)
+        {
+            data.CorrelationId = @event.CorrelationId;
+        }
+
         data.Properties.AddIfNotDefault(MetadataNames.Id, @event.Id)
-                       .AddIfNotDefault(MetadataNames.CorrelationId, @event.CorrelationId)
                        .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                        .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                        .AddIfNotDefault(MetadataNames.EventName, registration.EventName)
@@ -180,8 +185,13 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                 ContentType = @event.ContentType?.ToString(),
             };
 
+            // If CorrelationId is present, set it
+            if (@event.CorrelationId != null)
+            {
+                data.CorrelationId = @event.CorrelationId;
+            }
+
             data.Properties.AddIfNotDefault(MetadataNames.Id, @event.Id)
-                           .AddIfNotDefault(MetadataNames.CorrelationId, @event.CorrelationId)
                            .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                            .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                            .AddIfNotDefault(MetadataNames.EventName, registration.EventName)
@@ -366,13 +376,12 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
         var cancellationToken = args.CancellationToken;
 
         data.Properties.TryGetValue(MetadataNames.Id, out var eventId);
-        data.Properties.TryGetValue(MetadataNames.CorrelationId, out var correlationId);
         data.Properties.TryGetValue(MetadataNames.EventName, out var eventName);
         data.Properties.TryGetValue(MetadataNames.EventType, out var eventType);
         data.Properties.TryGetValue(MetadataNames.ActivityId, out var parentActivityId);
 
         using var log_scope = BeginLoggingScopeForConsume(id: eventId?.ToString(),
-                                                          correlationId: correlationId?.ToString(),
+                                                          correlationId: data.CorrelationId,
                                                           sequenceNumber: data.SequenceNumber.ToString(),
                                                           extras: new Dictionary<string, string?>
                                                           {

@@ -133,9 +133,9 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
                                                                         CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        // Get the serializer
+        // Resolve the serializer
         var registration = ctx.Registration;
-        var serializer = (IEventSerializer)ctx.ServiceProvider.GetRequiredService(registration.EventSerializerType!);
+        var serializer = (IEventSerializer)ActivatorUtilities.GetServiceOrCreateInstance(ctx.ServiceProvider, registration.EventSerializerType!);
 
         // Deserialize the content into a context
         var context = await serializer.DeserializeAsync<TEvent>(ctx, cancellationToken);
@@ -186,9 +186,9 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
                                                 CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        // Get the serializer
+        // Resolve the serializer
         var registration = ctx.Registration;
-        var serializer = (IEventSerializer)ctx.ServiceProvider.GetRequiredService(registration.EventSerializerType!);
+        var serializer = (IEventSerializer)ActivatorUtilities.GetServiceOrCreateInstance(ctx.ServiceProvider, registration.EventSerializerType!);
 
         // Serialize
         await serializer.SerializeAsync(ctx, cancellationToken);

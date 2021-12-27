@@ -1,6 +1,7 @@
 ﻿using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Producer;
+using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -45,6 +46,24 @@ public class AzureEventHubsTransportOptions : AzureTransportOptions<AzureEventHu
     /// Defaults to <see langword="true"/>.
     /// </summary>
     public bool UseBasicTier { get; set; } = true;
+
+    /// <summary>
+    /// The number of events consumed after which to checkpoint.
+    /// For values other than <c>1</c>, the implementations of
+    /// <see cref="IEventConsumer{T}"/> for Event Hub events must
+    /// handle duplicate detection.
+    /// </summary>
+    /// <remarks>
+    /// The checkpoint is done by writing to Azure Blob Storage.
+    /// This can occasionally be slow compared to the rate at which the consumer
+    /// is capable of consuming messages. A low checkpoint interval may increase
+    /// the costs incured by your Azure Blob Storage account.
+    /// A high performance application will typically set the interval high so
+    /// that checkpoints are done relatively infrequently and be designed to handle
+    /// duplicate messages in the event of failure.
+    /// </remarks>
+    /// <value>Defaults to 1</value>
+    public int CheckpointInterval { get; set; } = 1;
 
     /// <summary>
     /// A function to create the producer options instead of using the default options.

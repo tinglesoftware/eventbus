@@ -22,7 +22,7 @@ public static partial class EventDataExtensions
     private const string IotHubMessageSourceTwinChangeEvents = "twinChangeEvents";
     private const string IotHubMessageSourceDeviceLifeCycleEvents = "deviceLifecycleEvents";
 
-    private static bool TryGetPropertyValue(this EventData data, string key, [NotNullWhen(true)] out object? value)
+    internal static bool TryGetPropertyValue(this EventData data, string key, [NotNullWhen(true)] out object? value)
     {
         if (data is null) throw new ArgumentNullException(nameof(data));
         if (string.IsNullOrWhiteSpace(key))
@@ -34,7 +34,7 @@ public static partial class EventDataExtensions
             || data.Properties.TryGetValue(key, out value);
     }
 
-    private static T? GetPropertyValue<T>(this EventData data, string key)
+    internal static T? GetPropertyValue<T>(this EventData data, string key)
     {
         return data.TryGetPropertyValue(key, out var value) && value is not null ? (T?)value : default;
     }

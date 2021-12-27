@@ -158,6 +158,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
     /// <param name="contentType">The type of content contained in the <paramref name="body"/>.</param>
     /// <param name="registration">The bus registration for this event.</param>
     /// <param name="identifier">Identifier given by the transport for the event to be deserialized.</param>
+    /// <param name="raw">The raw data provided by the transport without any manipulation.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(IServiceScope scope,
@@ -165,12 +166,14 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
                                                                         ContentType? contentType,
                                                                         EventRegistration registration,
                                                                         string? identifier,
+                                                                        object? raw,
                                                                         CancellationToken cancellationToken = default)
         where TEvent : class
     {
         var ctx = new DeserializationContext(scope.ServiceProvider, body, registration, identifier)
         {
             ContentType = contentType,
+            RawTransportData = raw,
         };
         return await DeserializeAsync<TEvent>(ctx, cancellationToken);
     }

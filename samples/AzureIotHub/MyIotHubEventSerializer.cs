@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using System.Net.Mime;
 using System.Text.Json;
 using Tingle.EventBus.Serialization;
 
@@ -16,7 +15,7 @@ internal class MyIotHubEventSerializer : AbstractEventSerializer
 
     /// <inheritdoc/>
     protected override async Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                                    ContentType? contentType,
+                                                                                    DeserializationContext context,
                                                                                     CancellationToken cancellationToken = default)
     {
         var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;

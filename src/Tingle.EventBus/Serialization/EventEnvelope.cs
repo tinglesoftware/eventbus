@@ -6,28 +6,28 @@
 public class EventEnvelope : IEventEnvelope
 {
     /// <inheritdoc/>
-    public string? Id { get; set; }
+    public string? Id { get; init; }
 
     /// <inheritdoc/>
-    public string? RequestId { get; set; }
+    public string? RequestId { get; init; }
 
     /// <inheritdoc/>
-    public string? CorrelationId { get; set; }
+    public string? CorrelationId { get; init; }
 
     /// <inheritdoc/>
-    public string? InitiatorId { get; set; }
+    public string? InitiatorId { get; init; }
 
     /// <inheritdoc/>
-    public DateTimeOffset? Expires { get; set; }
+    public DateTimeOffset? Expires { get; init; }
 
     /// <inheritdoc/>
-    public DateTimeOffset? Sent { get; set; }
+    public DateTimeOffset? Sent { get; init; }
 
     /// <inheritdoc/>
-    public IDictionary<string, string> Headers { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    public IDictionary<string, string> Headers { get; init; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
     /// <inheritdoc/>
-    public HostInfo? Host { get; set; }
+    public HostInfo? Host { get; init; }
 }
 
 /// <summary>
@@ -36,5 +36,5 @@ public class EventEnvelope : IEventEnvelope
 public class EventEnvelope<T> : EventEnvelope, IEventEnvelope<T> where T : class
 {
     /// <inheritdoc/>
-    public T? Event { get; set; }
+    public T? Event { get; init; }
 }

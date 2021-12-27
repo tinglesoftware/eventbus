@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Net.Mime;
 using Tingle.EventBus.Serialization;
 
 namespace CustomEventSerializer;
@@ -19,7 +18,7 @@ public class AzureDevOpsEventSerializer : AbstractEventSerializer
 
     /// <inheritdoc/>
     protected override Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                              ContentType? contentType,
+                                                                              DeserializationContext context,
                                                                               CancellationToken cancellationToken = default)
     {
         using var sr = new StreamReader(stream);

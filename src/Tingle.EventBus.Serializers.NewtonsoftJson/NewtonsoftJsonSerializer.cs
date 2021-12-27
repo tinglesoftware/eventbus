@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System.Net.Mime;
 using System.Text;
 using Tingle.EventBus.Serialization;
 
@@ -35,11 +34,11 @@ public class NewtonsoftJsonSerializer : AbstractEventSerializer
 
     /// <inheritdoc/>
     protected override Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                              ContentType? contentType,
+                                                                              DeserializationContext context,
                                                                               CancellationToken cancellationToken = default)
     {
         // get the encoding and always default to UTF-8
-        var encoding = Encoding.GetEncoding(contentType?.CharSet ?? Encoding.UTF8.BodyName);
+        var encoding = Encoding.GetEncoding(context.ContentType?.CharSet ?? Encoding.UTF8.BodyName);
 
         // Deserialize
         using var sr = new StreamReader(stream: stream,

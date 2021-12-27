@@ -126,11 +126,19 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                                         registration: registration,
                                         cancellationToken: cancellationToken);
 
-        var data = new EventData(body);
-        data.Properties.AddIfNotDefault(MetadataNames.Id, @event.Id)
-                       .AddIfNotDefault(MetadataNames.CorrelationId, @event.CorrelationId)
-                       .AddIfNotDefault(MetadataNames.ContentType, @event.ContentType?.ToString())
-                       .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+        var data = new EventData(body)
+        {
+            MessageId = @event.Id,
+            ContentType = @event.ContentType?.ToString(),
+        };
+
+        // If CorrelationId is present, set it
+        if (@event.CorrelationId != null)
+        {
+            data.CorrelationId = @event.CorrelationId;
+        }
+
+        data.Properties.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                        .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                        .AddIfNotDefault(MetadataNames.EventName, registration.EventName)
                        .AddIfNotDefault(MetadataNames.EventType, registration.EventType.FullName)
@@ -172,11 +180,19 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                                             registration: registration,
                                             cancellationToken: cancellationToken);
 
-            var data = new EventData(body);
-            data.Properties.AddIfNotDefault(MetadataNames.Id, @event.Id)
-                           .AddIfNotDefault(MetadataNames.CorrelationId, @event.CorrelationId)
-                           .AddIfNotDefault(MetadataNames.ContentType, @event.ContentType?.ToString())
-                           .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+            var data = new EventData(body)
+            {
+                MessageId = @event.Id,
+                ContentType = @event.ContentType?.ToString(),
+            };
+
+            // If CorrelationId is present, set it
+            if (@event.CorrelationId != null)
+            {
+                data.CorrelationId = @event.CorrelationId;
+            }
+
+            data.Properties.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                            .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                            .AddIfNotDefault(MetadataNames.EventName, registration.EventName)
                            .AddIfNotDefault(MetadataNames.EventType, registration.EventType.FullName)
@@ -265,8 +281,12 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
         try
         {
-            var eventHubName = reg.EventName;
-            var consumerGroup = TransportOptions.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
+            // For events configured as sourced from IoT Hub,
+            // 1. The event hub name is in the metadata
+            // 2. The ConsumerGroup is set to $Default (this may be changed to support more)
+            var isIotHub = reg.IsConfiguredAsIotHub();
+            var eventHubName = isIotHub ? reg.GetIotHubEventHubName() : reg.EventName;
+            var consumerGroup = isIotHub || TransportOptions.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
 
             var key = $"{eventHubName}/{consumerGroup}";
             if (!processorsCache.TryGetValue(key, out var processor))
@@ -290,7 +310,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                     ? new BlobContainerClient(blobContainerUri: new Uri($"{abstc.BlobServiceUrl}/{TransportOptions.BlobContainerName}"),
                                               credential: abstc.TokenCredential)
                     : new BlobContainerClient(connectionString: (string)cred_bs,
-                                                                  blobContainerName: TransportOptions.BlobContainerName);
+                                              blobContainerName: TransportOptions.BlobContainerName);
 
                 // Create the processor client options
                 var epco = new EventProcessorClientOptions
@@ -312,16 +332,16 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                 var cred = TransportOptions.Credentials!.Value!;
                 processor = cred is AzureEventHubsTransportCredentials aehtc
                     ? new EventProcessorClient(checkpointStore: blobContainerClient,
-                                                     consumerGroup: consumerGroup,
-                                                     fullyQualifiedNamespace: aehtc.FullyQualifiedNamespace,
-                                                     eventHubName: eventHubName,
-                                                     credential: aehtc.TokenCredential,
-                                                     clientOptions: epco)
+                                               consumerGroup: consumerGroup,
+                                               fullyQualifiedNamespace: aehtc.FullyQualifiedNamespace,
+                                               eventHubName: eventHubName,
+                                               credential: aehtc.TokenCredential,
+                                               clientOptions: epco)
                     : new EventProcessorClient(checkpointStore: blobContainerClient,
-                                                         consumerGroup: consumerGroup,
-                                                         connectionString: (string)cred,
-                                                         eventHubName: eventHubName,
-                                                         clientOptions: epco);
+                                               consumerGroup: consumerGroup,
+                                               connectionString: (string)cred,
+                                               eventHubName: eventHubName,
+                                               clientOptions: epco);
 
                 processorsCache[key] = processor;
             }
@@ -354,16 +374,14 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
         var data = args.Data;
         var cancellationToken = args.CancellationToken;
+        var messageId = data.MessageId;
 
-        data.Properties.TryGetValue(MetadataNames.Id, out var eventId);
-        data.Properties.TryGetValue(MetadataNames.CorrelationId, out var correlationId);
-        data.Properties.TryGetValue(MetadataNames.ContentType, out var contentType_str);
         data.Properties.TryGetValue(MetadataNames.EventName, out var eventName);
         data.Properties.TryGetValue(MetadataNames.EventType, out var eventType);
         data.Properties.TryGetValue(MetadataNames.ActivityId, out var parentActivityId);
 
-        using var log_scope = BeginLoggingScopeForConsume(id: eventId?.ToString(),
-                                                          correlationId: correlationId?.ToString(),
+        using var log_scope = BeginLoggingScopeForConsume(id: messageId,
+                                                          correlationId: data.CorrelationId,
                                                           sequenceNumber: data.SequenceNumber.ToString(),
                                                           extras: new Dictionary<string, string?>
                                                           {
@@ -381,13 +399,13 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
         activity?.AddTag(ActivityTagNames.MessagingDestination, processor.EventHubName);
 
-        Logger.ProcessingEvent(eventId: eventId,
-                               partitionKey: data.PartitionKey,
-                               sequenceNumber: data.SequenceNumber,
+        Logger.ProcessingEvent(messageId: messageId,
                                eventHubName: processor.EventHubName,
-                               consumerGroup: processor.ConsumerGroup);
+                               consumerGroup: processor.ConsumerGroup,
+                               partitionKey: data.PartitionKey,
+                               sequenceNumber: data.SequenceNumber);
         using var scope = CreateScope();
-        var contentType = contentType_str is string ctts ? new ContentType(ctts) : null;
+        var contentType = new ContentType(data.ContentType);
         var context = await DeserializeAsync<TEvent>(scope: scope,
                                                      body: data.EventBody,
                                                      contentType: contentType,
@@ -395,10 +413,10 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                                                      identifier: data.SequenceNumber.ToString(),
                                                      cancellationToken: cancellationToken);
         Logger.ReceivedEvent(eventId: context.Id,
-                             partitionKey: data.PartitionKey,
-                             sequenceNumber: data.SequenceNumber,
                              eventHubName: processor.EventHubName,
-                             consumerGroup: processor.ConsumerGroup);
+                             consumerGroup: processor.ConsumerGroup,
+                             partitionKey: data.PartitionKey,
+                             sequenceNumber: data.SequenceNumber);
 
         // set the extras
         context.SetConsumerGroup(processor.ConsumerGroup)
@@ -426,8 +444,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
             Logger.Checkpointing(partition: args.Partition,
                                  eventHubName: processor.EventHubName,
                                  consumerGroup: processor.ConsumerGroup,
-                                 sequenceNumber: data.SequenceNumber,
-                                 eventId: eventId);
+                                 sequenceNumber: data.SequenceNumber);
             await args.UpdateCheckpointAsync(args.CancellationToken);
         }
     }
@@ -443,15 +460,16 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
     private Task OnPartitionInitializingAsync(EventProcessorClient processor, PartitionInitializingEventArgs args)
     {
-        Logger.OpeningProcessor(eventHubName: args.PartitionId,
-                                consumerGroup: processor.EventHubName,
-                                partitionId: processor.ConsumerGroup,
+        Logger.OpeningProcessor(eventHubName: processor.EventHubName,
+                                consumerGroup: processor.ConsumerGroup,
+                                partitionId: args.PartitionId,
                                 position: args.DefaultStartingPosition);
         return Task.CompletedTask;
     }
 
     private Task OnProcessErrorAsync(EventProcessorClient processor, ProcessErrorEventArgs args)
     {
+        // TODO: decide on whether to restart (Stop() then Start()) or terminate (recreate processor) processing
         Logger.ProcessingError(operation: args.Operation,
                                eventHubName: processor.EventHubName,
                                consumerGroup: processor.ConsumerGroup,

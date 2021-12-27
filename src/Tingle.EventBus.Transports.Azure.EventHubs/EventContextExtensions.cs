@@ -7,7 +7,7 @@ namespace Tingle.EventBus;
 /// <summary>
 /// Extension methods on <see cref="EventContext"/> and <see cref="EventContext{T}"/>.
 /// </summary>
-public static class EventContextExtensions
+public static partial class EventContextExtensions
 {
     internal const string ItemsKeyConsumerGroup = "azure.eventhubs.consumer-group";
     internal const string ItemsKeyPartitionContext = "azure.eventhubs.partition-context";
@@ -95,6 +95,22 @@ public static class EventContextExtensions
 
         data = default;
         return false;
+    }
+
+    /// <summary>
+    /// Gets the <see cref="EventData"/> associated with the specified <see cref="EventContext"/>
+    /// if the event uses Azure Event Hubs transport.
+    /// </summary>
+    /// <param name="context">The <see cref="EventContext"/> to use.</param>
+    /// <returns>
+    /// true if the data is found; otherwise, false.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">The context is null</exception>
+    public static EventData GetEventData(this EventContext context)
+    {
+        if (context.TryGetEventData(out var data)) return data;
+
+        throw new InvalidOperationException("The EventData has not been set in this context.");
     }
 
     /// <summary>

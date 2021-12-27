@@ -126,10 +126,13 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                                         registration: registration,
                                         cancellationToken: cancellationToken);
 
-        var data = new EventData(body);
+        var data = new EventData(body)
+        {
+            ContentType = @event.ContentType?.ToString(),
+        };
+
         data.Properties.AddIfNotDefault(MetadataNames.Id, @event.Id)
                        .AddIfNotDefault(MetadataNames.CorrelationId, @event.CorrelationId)
-                       .AddIfNotDefault(MetadataNames.ContentType, @event.ContentType?.ToString())
                        .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                        .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                        .AddIfNotDefault(MetadataNames.EventName, registration.EventName)
@@ -172,10 +175,13 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                                             registration: registration,
                                             cancellationToken: cancellationToken);
 
-            var data = new EventData(body);
+            var data = new EventData(body)
+            {
+                ContentType = @event.ContentType?.ToString(),
+            };
+
             data.Properties.AddIfNotDefault(MetadataNames.Id, @event.Id)
                            .AddIfNotDefault(MetadataNames.CorrelationId, @event.CorrelationId)
-                           .AddIfNotDefault(MetadataNames.ContentType, @event.ContentType?.ToString())
                            .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                            .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                            .AddIfNotDefault(MetadataNames.EventName, registration.EventName)
@@ -361,7 +367,6 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
         data.Properties.TryGetValue(MetadataNames.Id, out var eventId);
         data.Properties.TryGetValue(MetadataNames.CorrelationId, out var correlationId);
-        data.Properties.TryGetValue(MetadataNames.ContentType, out var contentType_str);
         data.Properties.TryGetValue(MetadataNames.EventName, out var eventName);
         data.Properties.TryGetValue(MetadataNames.EventType, out var eventType);
         data.Properties.TryGetValue(MetadataNames.ActivityId, out var parentActivityId);
@@ -391,7 +396,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                                partitionKey: data.PartitionKey,
                                sequenceNumber: data.SequenceNumber);
         using var scope = CreateScope();
-        var contentType = contentType_str is string ctts ? new ContentType(ctts) : null;
+        var contentType = new ContentType(data.ContentType);
         var context = await DeserializeAsync<TEvent>(scope: scope,
                                                      body: data.EventBody,
                                                      contentType: contentType,

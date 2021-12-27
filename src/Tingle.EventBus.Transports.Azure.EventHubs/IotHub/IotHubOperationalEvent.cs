@@ -15,13 +15,15 @@ public sealed record IotHubOperationalEvent<T>
     /// <param name="deviceId">Unique identifier of the device.</param>
     /// <param name="moduleId">Unique identifier of the module within the device.</param>
     /// <param name="type">Type of operational event.</param>
+    /// <param name="operationTimestamp">Time when the operation was done.</param>
     /// <param name="event">The actual event.</param>
-    public IotHubOperationalEvent(string? hubName, string? deviceId, string? moduleId, IotHubOperationalEventType type, T @event)
+    public IotHubOperationalEvent(string? hubName, string? deviceId, string? moduleId, IotHubOperationalEventType type, string? operationTimestamp, T @event)
     {
+        HubName = hubName;
         DeviceId = deviceId;
         ModuleId = moduleId;
         Type = type;
-        HubName = hubName;
+        OperationTimestamp = operationTimestamp;
         Event = @event;
     }
 
@@ -36,6 +38,9 @@ public sealed record IotHubOperationalEvent<T>
 
     /// <summary>Type of operational event.</summary>
     public IotHubOperationalEventType Type { get; }
+
+    /// <summary>Time when the operation was done.</summary>
+    public string? OperationTimestamp { get; }
 
     /// <summary>The actual event.</summary>
     public T Event { get; }

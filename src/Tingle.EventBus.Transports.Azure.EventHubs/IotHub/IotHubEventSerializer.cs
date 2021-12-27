@@ -53,6 +53,7 @@ internal class IotHubEventSerializer : AbstractEventSerializer
             var moduleId = data.GetPropertyValue<string>("moduleId");
             var operationType = data.GetPropertyValue<string>("opType")!;
             var type = Enum.Parse<IotHubOperationalEventType>(operationType, ignoreCase: true);
+            var operationTimestamp = data.GetPropertyValue<string>("operationTimestamp");
 
             if (source == IotHubEventMessageSource.TwinChangeEvents)
             {
@@ -62,7 +63,7 @@ internal class IotHubEventSerializer : AbstractEventSerializer
                                                                             cancellationToken: cancellationToken);
 
                 var twinChangeOpEventType = typeof(IotHubOperationalEvent<>).MakeGenericType(mapped.TwinChangeEventType);
-                twinChange = Activator.CreateInstance(twinChangeOpEventType, new[] { hubName, deviceId, moduleId, type, twinChangeEvent, });
+                twinChange = Activator.CreateInstance(twinChangeOpEventType, new[] { hubName, deviceId, moduleId, type, operationTimestamp, twinChangeEvent, });
             }
             else if (source == IotHubEventMessageSource.DeviceLifecycleEvents)
             {
@@ -72,7 +73,7 @@ internal class IotHubEventSerializer : AbstractEventSerializer
                                                                            cancellationToken: cancellationToken);
 
                 var lifecycleOpEventType = typeof(IotHubOperationalEvent<>).MakeGenericType(mapped.LifecycleEventType);
-                lifecycle = Activator.CreateInstance(lifecycleOpEventType, new[] { hubName, deviceId, moduleId, type, lifecycleEvent, });
+                lifecycle = Activator.CreateInstance(lifecycleOpEventType, new[] { hubName, deviceId, moduleId, type, operationTimestamp, lifecycleEvent, });
             }
         }
 

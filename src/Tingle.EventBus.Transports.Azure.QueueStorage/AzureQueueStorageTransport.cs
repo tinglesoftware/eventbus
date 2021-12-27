@@ -161,21 +161,17 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
             throw new ArgumentException($"'{nameof(id)}' cannot be null or whitespace", nameof(id));
         }
 
+        if (!AzureQueueStorageSchedulingId.TryParse(id, out var sid))
+        {
+            throw new ArgumentException($"'{nameof(id)}' is malformed or invalid", nameof(id));
+        }
+
+        // get the queue client and cancel the message accordingly
         var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
-        if (AzureQueueStorageSchedulingId.TryParse(id, out var sid))
-        {
-            var messageId = sid.MessageId;
-            var popReceipt = sid.PopReceipt;
-            Logger.CancelingMessage(messageId: messageId, popReceipt: popReceipt, queueName: queueClient.Name);
-            await queueClient.DeleteMessageAsync(messageId: messageId,
-                                                 popReceipt: popReceipt,
-                                                 cancellationToken: cancellationToken);
-        }
-        else
-        {
-            // TODO: throw exception instead
-            Logger.LogWarning("The provided id '{Id}' does not match the expected format.", id);
-        }
+        Logger.CancelingMessage(messageId: sid.MessageId, popReceipt: sid.PopReceipt, queueName: queueClient.Name);
+        await queueClient.DeleteMessageAsync(messageId: sid.MessageId,
+                                             popReceipt: sid.PopReceipt,
+                                             cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -191,24 +187,23 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
         // log warning when doing batch
         Logger.BatchingNotSupported();
 
-        var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
-
-        foreach (var id in ids)
+        var sids = ids.Select(i =>
         {
-            if (AzureQueueStorageSchedulingId.TryParse(id, out var sid))
+            if (!AzureQueueStorageSchedulingId.TryParse(i, out var sid))
             {
-                var messageId = sid.MessageId;
-                var popReceipt = sid.PopReceipt;
-                Logger.CancelingMessage(messageId: messageId, popReceipt: popReceipt, queueName: queueClient.Name);
-                await queueClient.DeleteMessageAsync(messageId: messageId,
-                                                     popReceipt: popReceipt,
-                                                     cancellationToken: cancellationToken);
+                throw new ArgumentException($"'{nameof(i)}' is malformed or invalid", nameof(i));
             }
-            else
-            {
-                // TODO: throw exception instead
-                Logger.LogWarning("The provided id '{Id}' does not match the expected format.", id);
-            }
+            return sid;
+        }).ToList();
+
+        // get the queue client and cancel the messages accordingly
+        var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
+        foreach (var id in sids)
+        {
+            Logger.CancelingMessage(messageId: id.MessageId, popReceipt: id.PopReceipt, queueName: queueClient.Name);
+            await queueClient.DeleteMessageAsync(messageId: id.MessageId,
+                                                 popReceipt: id.PopReceipt,
+                                                 cancellationToken: cancellationToken);
         }
     }
 

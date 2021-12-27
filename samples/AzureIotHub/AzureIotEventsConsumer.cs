@@ -20,8 +20,7 @@ internal class AzureIotEventsConsumer : IEventConsumer<MyIotHubEvent>
         var source = evt.Source;
         if (source == IotHubEventMessageSource.Telemetry)
         {
-            var telemetry = evt.Telemetry;
-
+            var telemetry = evt.Telemetry!;
             var deviceId = context.GetIotHubDeviceId();
             var enqueued = context.GetIotHubEnqueuedTime();
 
@@ -29,12 +28,28 @@ internal class AzureIotEventsConsumer : IEventConsumer<MyIotHubEvent>
                                   source,
                                   deviceId,
                                   enqueued,
-                                  telemetry?.Timestamp,
+                                  telemetry.Timestamp,
                                   JsonSerializer.Serialize(telemetry, serializerOptions));
         }
         else if (source == IotHubEventMessageSource.TwinChangeEvents)
         {
-            // process twin changes here, sample to be updated in the future
+            var @tce = evt.TwinEvent!;
+            logger.LogInformation("TwinChange event received of type '{Type}' from '{DeviceId}{ModuleId}' in '{HubName}'.\r\nEvent:{Event}",
+                                  tce.Type,
+                                  tce.DeviceId,
+                                  tce.ModuleId,
+                                  tce.HubName,
+                                  JsonSerializer.Serialize(tce.Event, serializerOptions));
+        }
+        else if (source == IotHubEventMessageSource.DeviceLifecycleEvents)
+        {
+            var lce = evt.LifeCycleEvent!;
+            logger.LogInformation("Device LifeCycle event received of type '{Type}' from '{DeviceId}{ModuleId}' in '{HubName}'.\r\nEvent:{Event}",
+                                  lce.Type,
+                                  lce.DeviceId,
+                                  lce.ModuleId,
+                                  lce.HubName,
+                                  JsonSerializer.Serialize(lce.Event, serializerOptions));
         }
 
         return Task.CompletedTask;

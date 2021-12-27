@@ -382,10 +382,10 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
         activity?.AddTag(ActivityTagNames.MessagingDestination, processor.EventHubName);
 
         Logger.ProcessingEvent(eventId: eventId,
-                               partitionKey: data.PartitionKey,
-                               sequenceNumber: data.SequenceNumber,
                                eventHubName: processor.EventHubName,
-                               consumerGroup: processor.ConsumerGroup);
+                               consumerGroup: processor.ConsumerGroup,
+                               partitionKey: data.PartitionKey,
+                               sequenceNumber: data.SequenceNumber);
         using var scope = CreateScope();
         var contentType = contentType_str is string ctts ? new ContentType(ctts) : null;
         var context = await DeserializeAsync<TEvent>(scope: scope,
@@ -395,10 +395,10 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                                                      identifier: data.SequenceNumber.ToString(),
                                                      cancellationToken: cancellationToken);
         Logger.ReceivedEvent(eventId: context.Id,
-                             partitionKey: data.PartitionKey,
-                             sequenceNumber: data.SequenceNumber,
                              eventHubName: processor.EventHubName,
-                             consumerGroup: processor.ConsumerGroup);
+                             consumerGroup: processor.ConsumerGroup,
+                             partitionKey: data.PartitionKey,
+                             sequenceNumber: data.SequenceNumber);
 
         // set the extras
         context.SetConsumerGroup(processor.ConsumerGroup)
@@ -452,6 +452,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
     private Task OnProcessErrorAsync(EventProcessorClient processor, ProcessErrorEventArgs args)
     {
+        // TODO: decide on whether to restart (Stop() then Start()) or terminate (recreate processor) processing
         Logger.ProcessingError(operation: args.Operation,
                                eventHubName: processor.EventHubName,
                                consumerGroup: processor.ConsumerGroup,

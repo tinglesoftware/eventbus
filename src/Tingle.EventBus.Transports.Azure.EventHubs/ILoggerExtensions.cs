@@ -63,9 +63,9 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(300, LogLevel.Debug, "Processor received event on EventHub: {EventHubName}\r\nConsumerGroup: {ConsumerGroup}\r\nPartitionId: {PartitionId}")]
     public static partial void ProcessorReceivedEvent(this ILogger logger, string eventHubName, string consumerGroup, string partitionId);
 
-    [LoggerMessage(301, LogLevel.Debug, "Processing '{EventId} in {PartitionKey}|{SequenceNumber}' from '{EventHubName}/{ConsumerGroup}'")]
-    public static partial void ProcessingEvent(this ILogger logger, object? eventId, string partitionKey, long sequenceNumber, string eventHubName, string consumerGroup);
+    [LoggerMessage(301, LogLevel.Debug, "Processing '{EventId}' from '{EventHubName}/{ConsumerGroup}'.\r\nPartitionKey: {PartitionKey}\r\nSequenceNumber: {SequenceNumber}'")]
+    public static partial void ProcessingEvent(this ILogger logger, object? eventId, string eventHubName, string consumerGroup, string partitionKey, long sequenceNumber);
 
-    [LoggerMessage(302, LogLevel.Information, "Received event: '{EventId} in {PartitionKey}|{SequenceNumber}' from '{EventHubName}/{ConsumerGroup}'")]
-    public static partial void ReceivedEvent(this ILogger logger, object? eventId, string partitionKey, long sequenceNumber, string eventHubName, string consumerGroup);
+    [LoggerMessage(302, LogLevel.Information, "Received event: '{EventId}' from '{EventHubName}/{ConsumerGroup}'.\r\nPartitionKey: {PartitionKey}\r\nSequenceNumber: {SequenceNumber}'")]
+    public static partial void ReceivedEvent(this ILogger logger, object? eventId, string eventHubName, string consumerGroup, string partitionKey, long sequenceNumber);
 }

@@ -73,6 +73,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
                 var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken);
 
                 // register handlers for error and processing
+                processor.ProcessErrorAsync += OnMessageFaultedAsync;
                 processor.ProcessMessageAsync += delegate (ProcessMessageEventArgs args)
                 {
                     var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
@@ -396,6 +397,14 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
             // Add to failed list
             failed.Add(context);
         }
+    }
+
+    private Task OnMessageFaultedAsync(ProcessErrorEventArgs args)
+    {
+        Logger.MessageReceivingFaulted(entityPath: args.EntityPath,
+                                       errorSource: args.ErrorSource,
+                                       ex: args.Exception);
+        return Task.CompletedTask;
     }
 
     internal static void AddBatch<T>(ConcurrentBag<T> bag, IEnumerable<T> items)

@@ -1,4 +1,5 @@
 ﻿using Tingle.EventBus;
+using Tingle.EventBus.Transports.InMemory.Client;
 
 namespace Microsoft.Extensions.Logging;
 
@@ -70,4 +71,7 @@ internal static partial class ILoggerExtensions
 
     [LoggerMessage(301, LogLevel.Debug, "Processing '{MessageId}' from '{EntityPath}'")]
     public static partial void ProcessingMessage(this ILogger logger, string? messageId, string entityPath);
+
+    [LoggerMessage(303, LogLevel.Debug, "Message receiving faulted. Entity Path: {EntityPath}, Source: {ErrorSource}")]
+    public static partial void MessageReceivingFaulted(this ILogger logger, string entityPath, InMemoryErrorSource errorSource, Exception ex);
 }

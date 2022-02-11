@@ -22,13 +22,28 @@ internal class InMemoryProcessor : IDisposable
         var messages = reader.ReadAllAsync(cancellationToken);
         await foreach (var message in messages)
         {
-            var rm = new InMemoryReceivedMessage(message);
-            var args = new ProcessMessageEventArgs(rm, cancellationToken);
-            _ = ProcessMessageAsync!.Invoke(args);
+            try
+            {
+                var rm = new InMemoryReceivedMessage(message);
+                var args = new ProcessMessageEventArgs(rm, cancellationToken);
+                _ = ProcessMessageAsync!.Invoke(args);
+            }
+            catch (Exception ex)
+            {
+                var args = new ProcessErrorEventArgs(ex, InMemoryErrorSource.Receive, EntityPath, cancellationToken);
+                _ = ProcessErrorAsync!.Invoke(args);
+            }
         }
     }
 
     public string EntityPath { get; }
+
+    /// <summary>
+    /// The handler responsible for processing unhandled exceptions thrown while this
+    /// processor is running.
+    /// Implementation is mandatory.
+    /// </summary>
+    public event Func<ProcessErrorEventArgs, Task>? ProcessErrorAsync;
 
     /// <summary>
     /// The handler responsible for processing messages received from the Queue or Subscription.

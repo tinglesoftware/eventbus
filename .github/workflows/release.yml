@@ -36,12 +36,12 @@ jobs:
         useConfigFile: true
 
     - name: Setup .NET 5 SDK
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v2
       with:
         dotnet-version: '5.x'
 
     - name: Setup .NET 6 SDK
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v2
       with:
         dotnet-version: '6.x'
         source-url: https://api.nuget.org/v3/index.json

@@ -329,7 +329,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
 
         // Decide the action to execute then execute
         var action = DecideAction(successful, ecr.UnhandledErrorBehaviour);
-        Logger.LogDebug("Post Consume action: {Action} for message: {MessageId} containing Event: {EventBusId}.",
+        Logger.LogDebug("Post Consume action: {Action} for message: {MessageId} containing Event: '{EventBusId}'.",
                         action,
                         messageId,
                         context.Id);

@@ -99,7 +99,7 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(307, LogLevel.Error, "Event processing failed. {Action} (EventId: {EventBusId})")]
     public static partial void ConsumeFailed(this ILogger logger, string action, string? eventBusId, Exception ex);
 
-    public static void ConsumeFailed(this ILogger logger, UnhandledConsumerErrorBehaviour? behaviour, string? eventId, Exception ex)
+    public static void ConsumeFailed(this ILogger logger, UnhandledConsumerErrorBehaviour? behaviour, string? eventBusId, Exception ex)
     {
         var action = behaviour switch
         {
@@ -108,7 +108,7 @@ internal static partial class ILoggerExtensions
             _ => "Transport specific handling in play.",
         };
 
-        logger.ConsumeFailed(action, eventId, ex);
+        logger.ConsumeFailed(action, eventBusId, ex);
     }
 
     private static (string readableDelay, TimeSpan delay) GetDelay(DateTimeOffset scheduled)

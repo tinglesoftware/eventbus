@@ -7,8 +7,8 @@ namespace Microsoft.Extensions.Logging;
 /// </summary>
 internal static partial class ILoggerExtensions
 {
-    [LoggerMessage(100, LogLevel.Information, "Sending {EventId} to '{StreamName}'. Scheduled: {Scheduled}.")]
-    public static partial void SendingToStream(this ILogger logger, string? eventId, string streamName, DateTimeOffset? scheduled);
+    [LoggerMessage(100, LogLevel.Information, "Sending {EventBusId} to '{StreamName}'. Scheduled: {Scheduled}.")]
+    public static partial void SendingToStream(this ILogger logger, string? eventBusId, string streamName, DateTimeOffset? scheduled);
 
     [LoggerMessage(101, LogLevel.Information, "Sending {EventsCount} messages to '{StreamName}'. Scheduled: {Scheduled}. Events:\r\n- {EventIds}")]
     private static partial void SendingEventsToStream(this ILogger logger, int eventsCount, string streamName, DateTimeOffset? scheduled, string eventIds);

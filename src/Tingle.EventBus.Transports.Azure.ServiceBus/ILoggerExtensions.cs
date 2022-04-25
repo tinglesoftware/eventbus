@@ -71,8 +71,8 @@ internal static partial class ILoggerExtensions
 
 
 
-    [LoggerMessage(201, LogLevel.Information, "Sending {EventId} to '{EntityPath}'. Scheduled: {Scheduled}")]
-    public static partial void SendingMessage(this ILogger logger, string? eventId, string entityPath, DateTimeOffset? scheduled);
+    [LoggerMessage(201, LogLevel.Information, "Sending {EventBusId} to '{EntityPath}'. Scheduled: {Scheduled}")]
+    public static partial void SendingMessage(this ILogger logger, string? eventBusId, string entityPath, DateTimeOffset? scheduled);
 
     [LoggerMessage(202, LogLevel.Information, "Sending {EventsCount} messages to '{EntityPath}'. Scheduled: {Scheduled}. Events:\r\n- {EventIds}")]
     private static partial void SendingMessages(this ILogger logger, int eventsCount, string entityPath, DateTimeOffset? scheduled, string eventIds);
@@ -108,14 +108,14 @@ internal static partial class ILoggerExtensions
     }
 
 
-    [LoggerMessage(300, LogLevel.Information, "Received message: '{SequenceNumber}' containing Event '{EventId}' from '{EntityPath}'")]
-    public static partial void ReceivedMessage(this ILogger logger, long sequenceNumber, string? eventId, string entityPath);
+    [LoggerMessage(300, LogLevel.Information, "Received message: '{SequenceNumber}' containing Event '{EventBusId}' from '{EntityPath}'")]
+    public static partial void ReceivedMessage(this ILogger logger, long sequenceNumber, string? eventBusId, string entityPath);
 
     [LoggerMessage(301, LogLevel.Debug, "Processing '{MessageId}' from '{EntityPath}'")]
     public static partial void ProcessingMessage(this ILogger logger, string? messageId, string entityPath);
 
-    [LoggerMessage(302, LogLevel.Debug, "Post Consume action: {Action} for message: {MessageId} from '{EntityPath}' containing Event: {EventId}.")]
-    public static partial void PostConsumeAction(this ILogger logger, PostConsumeAction? action, string? messageId, string entityPath, string? eventId);
+    [LoggerMessage(302, LogLevel.Debug, "Post Consume action: {Action} for message: {MessageId} from '{EntityPath}' containing Event: {EventBusId}.")]
+    public static partial void PostConsumeAction(this ILogger logger, PostConsumeAction? action, string? messageId, string entityPath, string? eventBusId);
 
     [LoggerMessage(303, LogLevel.Debug, "Message receiving faulted. Namespace: {FullyQualifiedNamespace}, Entity Path: {EntityPath}, Source: {ErrorSource}")]
     public static partial void MessageReceivingFaulted(this ILogger logger, string fullyQualifiedNamespace, string entityPath, ServiceBusErrorSource errorSource, Exception ex);

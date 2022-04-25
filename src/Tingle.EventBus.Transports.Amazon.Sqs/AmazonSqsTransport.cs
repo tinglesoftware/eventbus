@@ -118,7 +118,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
             // get the topic arn and send the message
             var topicArn = await GetTopicArnAsync(registration, cancellationToken);
             var request = new PublishRequest(topicArn: topicArn, message: body.ToString()).SetAttributes(@event);
-            Logger.SendingToTopic(eventId: @event.Id, topicArn: topicArn, scheduled: scheduled);
+            Logger.SendingToTopic(eventBusId: @event.Id, topicArn: topicArn, scheduled: scheduled);
             var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
             sequenceNumber = response.SequenceNumber;
@@ -137,7 +137,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                 // cap the delay to 900 seconds (15min) which is the max supported by SQS
                 if (delay > 900)
                 {
-                    Logger.DelayCapped(eventId: @event.Id, scheduled: scheduled);
+                    Logger.DelayCapped(eventBusId: @event.Id, scheduled: scheduled);
                     delay = 900;
                 }
 
@@ -148,7 +148,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
             }
 
             // send the message
-            Logger.SendingToQueue(eventId: @event.Id, queueUrl: queueUrl, scheduled: scheduled);
+            Logger.SendingToQueue(eventBusId: @event.Id, queueUrl: queueUrl, scheduled: scheduled);
             var response = await sqsClient.SendMessageAsync(request: request, cancellationToken: cancellationToken);
             response.EnsureSuccess();
             sequenceNumber = response.SequenceNumber;
@@ -190,7 +190,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                 // get the topic arn and send the message
                 var topicArn = await GetTopicArnAsync(registration, cancellationToken);
                 var request = new PublishRequest(topicArn: topicArn, message: body.ToString()).SetAttributes(@event);
-                Logger.SendingToTopic(eventId: @event.Id, topicArn: topicArn, scheduled: scheduled);
+                Logger.SendingToTopic(eventBusId: @event.Id, topicArn: topicArn, scheduled: scheduled);
                 var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
                 response.EnsureSuccess();
 
@@ -219,7 +219,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                     // cap the delay to 900 seconds (15min) which is the max supported by SQS
                     if (delay > 900)
                     {
-                        Logger.DelayCapped(eventId: @event.Id, scheduled: scheduled);
+                        Logger.DelayCapped(eventBusId: @event.Id, scheduled: scheduled);
                         delay = 900;
                     }
 
@@ -473,7 +473,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                                                      raw: message,
                                                      cancellationToken: cancellationToken);
 
-        Logger.ReceivedMessage(messageId: messageId, eventId: context.Id, queueUrl: queueUrl);
+        Logger.ReceivedMessage(messageId: messageId, eventBusId: context.Id, queueUrl: queueUrl);
 
         var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
                                                                     @event: context,

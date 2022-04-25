@@ -34,8 +34,8 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(201, LogLevel.Warning, "Azure EventHubs does not support expiring events.")]
     public static partial void ExpiryNotSupported(this ILogger logger);
 
-    [LoggerMessage(202, LogLevel.Information, "Sending {EventId} to '{EventHubName}'. Scheduled: {Scheduled}")]
-    public static partial void SendingEvent(this ILogger logger, string? eventId, string eventHubName, DateTimeOffset? scheduled);
+    [LoggerMessage(202, LogLevel.Information, "Sending {EventBusId} to '{EventHubName}'. Scheduled: {Scheduled}")]
+    public static partial void SendingEvent(this ILogger logger, string? eventBusId, string eventHubName, DateTimeOffset? scheduled);
 
     [LoggerMessage(203, LogLevel.Information, "Sending {EventsCount} events to '{EventHubName}'. Scheduled: {Scheduled}. Events:\r\n- {EventIds}")]
     private static partial void SendingEvents(this ILogger logger, int eventsCount, string eventHubName, DateTimeOffset? scheduled, string eventIds);
@@ -66,6 +66,6 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(301, LogLevel.Debug, "Processing '{MessageId}' from '{EventHubName}/{ConsumerGroup}'.\r\nPartitionKey: {PartitionKey}\r\nSequenceNumber: {SequenceNumber}'")]
     public static partial void ProcessingEvent(this ILogger logger, string messageId, string eventHubName, string consumerGroup, string partitionKey, long sequenceNumber);
 
-    [LoggerMessage(302, LogLevel.Information, "Received event: '{EventId}' from '{EventHubName}/{ConsumerGroup}'.\r\nPartitionKey: {PartitionKey}\r\nSequenceNumber: {SequenceNumber}'")]
-    public static partial void ReceivedEvent(this ILogger logger, string? eventId, string eventHubName, string consumerGroup, string partitionKey, long sequenceNumber);
+    [LoggerMessage(302, LogLevel.Information, "Received event: '{EventBusId}' from '{EventHubName}/{ConsumerGroup}'.\r\nPartitionKey: {PartitionKey}\r\nSequenceNumber: {SequenceNumber}'")]
+    public static partial void ReceivedEvent(this ILogger logger, string? eventBusId, string eventHubName, string consumerGroup, string partitionKey, long sequenceNumber);
 }

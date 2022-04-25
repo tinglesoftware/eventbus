@@ -99,7 +99,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
 
         // get the queue client and send the message
         var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
-        Logger.SendingMessage(eventId: @event.Id, queueName: queueClient.Name, scheduled: scheduled);
+        Logger.SendingMessage(eventBusId: @event.Id, queueName: queueClient.Name, scheduled: scheduled);
         var response = await queueClient.SendMessageAsync(messageText: body.ToString(),
                                                           visibilityTimeout: visibilityTimeout,
                                                           timeToLive: ttl,
@@ -138,7 +138,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
             var ttl = @event.Expires - DateTimeOffset.UtcNow;
 
             // send the message
-            Logger.SendingMessage(eventId: @event.Id, queueName: queueClient.Name, scheduled: scheduled);
+            Logger.SendingMessage(eventBusId: @event.Id, queueName: queueClient.Name, scheduled: scheduled);
             var response = await queueClient.SendMessageAsync(messageText: body.ToString(),
                                                               visibilityTimeout: visibilityTimeout,
                                                               timeToLive: ttl,
@@ -336,7 +336,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
                                                      raw: message,
                                                      cancellationToken: cancellationToken);
 
-        Logger.ReceivedMessage(messageId: messageId, eventId: context.Id, queueName: queueClient.Name);
+        Logger.ReceivedMessage(messageId: messageId, eventBusId: context.Id, queueName: queueClient.Name);
 
         // if the event contains the parent activity id, set it
         if (context.Headers.TryGetValue(HeaderNames.ActivityId, out var parentActivityId))

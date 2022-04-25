@@ -154,7 +154,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
 
         // Get the queue and send the message accordingly
         var sender = await GetSenderAsync(registration, cancellationToken);
-        Logger.SendingMessage(eventId: @event.Id, entityPath: sender.EntityPath, scheduled: scheduled);
+        Logger.SendingMessage(eventBusId: @event.Id, entityPath: sender.EntityPath, scheduled: scheduled);
         if (scheduled != null)
         {
             var seqNum = await sender.ScheduleMessageAsync(message: message, cancellationToken: cancellationToken);
@@ -377,7 +377,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
                                                      raw: message,
                                                      cancellationToken: cancellationToken);
 
-        Logger.ReceivedMessage(sequenceNumber: message.SequenceNumber, eventId: context.Id, entityPath: entityPath);
+        Logger.ReceivedMessage(sequenceNumber: message.SequenceNumber, eventBusId: context.Id, entityPath: entityPath);
 
         // set the extras
         context.SetInMemoryReceivedMessage(message);

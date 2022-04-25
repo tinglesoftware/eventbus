@@ -22,6 +22,6 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(104, LogLevel.Debug, "Processing '{MessageKey}")]
     public static partial void ProcessingMessage(this ILogger logger, string messageKey);
 
-    [LoggerMessage(105, LogLevel.Information, "Received event: '{MessageKey}' containing Event '{EventId}'")]
-    public static partial void ReceivedEvent(this ILogger logger, string messageKey, string? eventId);
+    [LoggerMessage(105, LogLevel.Information, "Received event: '{MessageKey}' containing Event '{EventBusId}'")]
+    public static partial void ReceivedEvent(this ILogger logger, string messageKey, string? eventBusId);
 }

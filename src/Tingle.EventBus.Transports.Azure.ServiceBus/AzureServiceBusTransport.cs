@@ -155,7 +155,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         // Get the sender and send the message accordingly
         var sender = await GetSenderAsync(registration, cancellationToken);
-        Logger.SendingMessage(eventId: @event.Id, entityPath: sender.EntityPath, scheduled: scheduled);
+        Logger.SendingMessage(eventBusId: @event.Id, entityPath: sender.EntityPath, scheduled: scheduled);
         if (scheduled != null)
         {
             var seqNum = await sender.ScheduleMessageAsync(message: message,
@@ -538,7 +538,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                                                      raw: message,
                                                      cancellationToken: cancellationToken);
 
-        Logger.ReceivedMessage(sequenceNumber: message.SequenceNumber, eventId: context.Id, entityPath: entityPath);
+        Logger.ReceivedMessage(sequenceNumber: message.SequenceNumber, eventBusId: context.Id, entityPath: entityPath);
 
         // set the extras
         context.SetServiceBusReceivedMessage(message);
@@ -550,7 +550,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         // Decide the action to execute then execute
         var action = DecideAction(successful, ecr.UnhandledErrorBehaviour, processor.AutoCompleteMessages);
-        Logger.PostConsumeAction(action: action, messageId: messageId, entityPath: entityPath, eventId: context.Id);
+        Logger.PostConsumeAction(action: action, messageId: messageId, entityPath: entityPath, eventBusId: context.Id);
 
         if (action == PostConsumeAction.Complete)
         {

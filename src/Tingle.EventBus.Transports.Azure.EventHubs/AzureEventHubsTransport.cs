@@ -146,7 +146,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
         // get the producer and send the event accordingly
         var producer = await GetProducerAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
-        Logger.SendingEvent(eventId: @event.Id, eventHubName: producer.EventHubName, scheduled: scheduled);
+        Logger.SendingEvent(eventBusId: @event.Id, eventHubName: producer.EventHubName, scheduled: scheduled);
         await producer.SendAsync(new[] { data }, cancellationToken);
 
         // return the sequence number
@@ -406,7 +406,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                                                      identifier: data.SequenceNumber.ToString(),
                                                      raw: data,
                                                      cancellationToken: cancellationToken);
-        Logger.ReceivedEvent(eventId: context.Id,
+        Logger.ReceivedEvent(eventBusId: context.Id,
                              eventHubName: processor.EventHubName,
                              consumerGroup: processor.ConsumerGroup,
                              partitionKey: data.PartitionKey,

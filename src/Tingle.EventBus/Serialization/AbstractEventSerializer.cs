@@ -69,7 +69,7 @@ public abstract class AbstractEventSerializer : IEventSerializer
         if (envelope.Event is null)
         {
             Logger.DeserializedEventShouldNotBeNull(identifier: context.Identifier,
-                                                    eventId: envelope.Id,
+                                                    eventBusId: envelope.Id,
                                                     eventType: context.Registration.EventType.FullName);
             return null;
         }

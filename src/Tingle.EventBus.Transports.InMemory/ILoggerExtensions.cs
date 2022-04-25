@@ -29,19 +29,19 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(200, LogLevel.Warning, "InMemory EventBus uses a short-lived timer that is not persisted for scheduled publish.")]
     public static partial void SchedulingShortLived(this ILogger logger);
 
-    [LoggerMessage(201, LogLevel.Information, "Sending {EventId} to '{EntityPath}'. Scheduled: {Scheduled}")]
-    public static partial void SendingMessage(this ILogger logger, string? eventId, string entityPath, DateTimeOffset? scheduled);
+    [LoggerMessage(201, LogLevel.Information, "Sending {EventBusId} to '{EntityPath}'. Scheduled: {Scheduled}")]
+    public static partial void SendingMessage(this ILogger logger, string? eventBusId, string entityPath, DateTimeOffset? scheduled);
 
-    [LoggerMessage(202, LogLevel.Information, "Sending {EventsCount} messages to '{EntityPath}'. Scheduled: {Scheduled}. Events:\r\n- {EventIds}")]
-    private static partial void SendingMessages(this ILogger logger, int eventsCount, string entityPath, DateTimeOffset? scheduled, string eventIds);
+    [LoggerMessage(202, LogLevel.Information, "Sending {EventsCount} messages to '{EntityPath}'. Scheduled: {Scheduled}. Events:\r\n- {EventBusIds}")]
+    private static partial void SendingMessages(this ILogger logger, int eventsCount, string entityPath, DateTimeOffset? scheduled, string eventBusIds);
 
-    public static void SendingMessages(this ILogger logger, IList<string?> eventIds, string entityPath, DateTimeOffset? scheduled)
+    public static void SendingMessages(this ILogger logger, IList<string?> eventBusIds, string entityPath, DateTimeOffset? scheduled)
     {
         if (!logger.IsEnabled(LogLevel.Information)) return;
-        logger.SendingMessages(eventsCount: eventIds.Count,
+        logger.SendingMessages(eventsCount: eventBusIds.Count,
                                entityPath: entityPath,
                                scheduled: scheduled,
-                               eventIds: string.Join("\r\n- ", eventIds));
+                               eventBusIds: string.Join("\r\n- ", eventBusIds));
     }
 
     public static void SendingMessages<T>(this ILogger logger, IList<EventContext<T>> events, string entityPath, DateTimeOffset? scheduled = null)
@@ -66,8 +66,8 @@ internal static partial class ILoggerExtensions
     }
 
 
-    [LoggerMessage(300, LogLevel.Information, "Received message: '{SequenceNumber}' containing Event '{EventId}' from '{EntityPath}'")]
-    public static partial void ReceivedMessage(this ILogger logger, long sequenceNumber, string? eventId, string entityPath);
+    [LoggerMessage(300, LogLevel.Information, "Received message: '{SequenceNumber}' containing Event '{EventBusId}' from '{EntityPath}'")]
+    public static partial void ReceivedMessage(this ILogger logger, long sequenceNumber, string? eventBusId, string entityPath);
 
     [LoggerMessage(301, LogLevel.Debug, "Processing '{MessageId}' from '{EntityPath}'")]
     public static partial void ProcessingMessage(this ILogger logger, string? messageId, string entityPath);

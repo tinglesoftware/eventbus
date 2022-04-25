@@ -15,8 +15,8 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(200, LogLevel.Warning, "Azure Queue Storage does not support batching. The events will be looped through one by one.")]
     public static partial void BatchingNotSupported(this ILogger logger);
 
-    [LoggerMessage(201, LogLevel.Information, "Sending {EventId} to '{QueueName}'. Scheduled: {Scheduled}.")]
-    public static partial void SendingMessage(this ILogger logger, string? eventId, string queueName, DateTimeOffset? scheduled);
+    [LoggerMessage(201, LogLevel.Information, "Sending {EventBusId} to '{QueueName}'. Scheduled: {Scheduled}.")]
+    public static partial void SendingMessage(this ILogger logger, string? eventBusId, string queueName, DateTimeOffset? scheduled);
 
     [LoggerMessage(202, LogLevel.Information, "Cancelling '{MessageId}|{PopReceipt}' on '{QueueName}'.")]
     public static partial void CancelingMessage(this ILogger logger, string messageId, string popReceipt, string queueName);
@@ -31,8 +31,8 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(302, LogLevel.Debug, "Processing '{MessageId}' from '{QueueName}'")]
     public static partial void ProcessingMessage(this ILogger logger, string messageId, string queueName);
 
-    [LoggerMessage(303, LogLevel.Information, "Received message: '{MessageId}' containing Event '{EventId}' from '{QueueName}'")]
-    public static partial void ReceivedMessage(this ILogger logger, string messageId, string? eventId, string queueName);
+    [LoggerMessage(303, LogLevel.Information, "Received message: '{MessageId}' containing Event '{EventBusId}' from '{QueueName}'")]
+    public static partial void ReceivedMessage(this ILogger logger, string messageId, string? eventBusId, string queueName);
 
     [LoggerMessage(304, LogLevel.Trace, "Deleting '{MessageId}' on '{QueueName}'")]
     public static partial void DeletingMessage(this ILogger logger, string messageId, string queueName);

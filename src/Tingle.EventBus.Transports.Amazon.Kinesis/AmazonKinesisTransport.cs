@@ -90,7 +90,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
         };
 
         // send the event
-        Logger.SendingToStream(eventId: @event.Id, streamName: streamName, scheduled: scheduled);
+        Logger.SendingToStream(eventBusId: @event.Id, streamName: streamName, scheduled: scheduled);
         var response = await kinesisClient.PutRecordAsync(request, cancellationToken);
         response.EnsureSuccess();
 

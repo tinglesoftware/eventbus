@@ -34,19 +34,19 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(201, LogLevel.Warning, "Azure EventHubs does not support expiring events.")]
     public static partial void ExpiryNotSupported(this ILogger logger);
 
-    [LoggerMessage(202, LogLevel.Information, "Sending {EventId} to '{EventHubName}'. Scheduled: {Scheduled}")]
-    public static partial void SendingEvent(this ILogger logger, string? eventId, string eventHubName, DateTimeOffset? scheduled);
+    [LoggerMessage(202, LogLevel.Information, "Sending {EventBusId} to '{EventHubName}'. Scheduled: {Scheduled}")]
+    public static partial void SendingEvent(this ILogger logger, string? eventBusId, string eventHubName, DateTimeOffset? scheduled);
 
-    [LoggerMessage(203, LogLevel.Information, "Sending {EventsCount} events to '{EventHubName}'. Scheduled: {Scheduled}. Events:\r\n- {EventIds}")]
-    private static partial void SendingEvents(this ILogger logger, int eventsCount, string eventHubName, DateTimeOffset? scheduled, string eventIds);
+    [LoggerMessage(203, LogLevel.Information, "Sending {EventsCount} events to '{EventHubName}'. Scheduled: {Scheduled}. Events:\r\n- {EventBusIds}")]
+    private static partial void SendingEvents(this ILogger logger, int eventsCount, string eventHubName, DateTimeOffset? scheduled, string eventBusIds);
 
-    public static void SendingEvents(this ILogger logger, IList<string?> eventIds, string eventHubName, DateTimeOffset? scheduled)
+    public static void SendingEvents(this ILogger logger, IList<string?> eventBusIds, string eventHubName, DateTimeOffset? scheduled)
     {
         if (!logger.IsEnabled(LogLevel.Information)) return;
-        logger.SendingEvents(eventsCount: eventIds.Count,
+        logger.SendingEvents(eventsCount: eventBusIds.Count,
                              eventHubName: eventHubName,
                              scheduled: scheduled,
-                             eventIds: string.Join("\r\n- ", eventIds));
+                             eventBusIds: string.Join("\r\n- ", eventBusIds));
     }
 
     public static void SendingEvents<T>(this ILogger logger, IList<EventContext<T>> events, string eventHubName, DateTimeOffset? scheduled = null)
@@ -66,6 +66,6 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(301, LogLevel.Debug, "Processing '{MessageId}' from '{EventHubName}/{ConsumerGroup}'.\r\nPartitionKey: {PartitionKey}\r\nSequenceNumber: {SequenceNumber}'")]
     public static partial void ProcessingEvent(this ILogger logger, string messageId, string eventHubName, string consumerGroup, string partitionKey, long sequenceNumber);
 
-    [LoggerMessage(302, LogLevel.Information, "Received event: '{EventId}' from '{EventHubName}/{ConsumerGroup}'.\r\nPartitionKey: {PartitionKey}\r\nSequenceNumber: {SequenceNumber}'")]
-    public static partial void ReceivedEvent(this ILogger logger, string? eventId, string eventHubName, string consumerGroup, string partitionKey, long sequenceNumber);
+    [LoggerMessage(302, LogLevel.Information, "Received event: '{EventBusId}' from '{EventHubName}/{ConsumerGroup}'.\r\nPartitionKey: {PartitionKey}\r\nSequenceNumber: {SequenceNumber}'")]
+    public static partial void ReceivedEvent(this ILogger logger, string? eventBusId, string eventHubName, string consumerGroup, string partitionKey, long sequenceNumber);
 }

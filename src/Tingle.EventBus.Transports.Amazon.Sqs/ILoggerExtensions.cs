@@ -12,14 +12,14 @@ internal static partial class ILoggerExtensions
     public static partial void BatchingNotSupported(this ILogger logger);
 
 
-    [LoggerMessage(200, LogLevel.Information, "Sending {EventId} to '{TopicArn}'. Scheduled: {Scheduled}.")]
-    public static partial void SendingToTopic(this ILogger logger, string? eventId, string topicArn, DateTimeOffset? scheduled);
+    [LoggerMessage(200, LogLevel.Information, "Sending {EventBusId} to '{TopicArn}'. Scheduled: {Scheduled}.")]
+    public static partial void SendingToTopic(this ILogger logger, string? eventBusId, string topicArn, DateTimeOffset? scheduled);
 
-    [LoggerMessage(201, LogLevel.Information, "Sending {EventId} to '{QueueUrl}'. Scheduled: {Scheduled}.")]
-    public static partial void SendingToQueue(this ILogger logger, string? eventId, string queueUrl, DateTimeOffset? scheduled);
+    [LoggerMessage(201, LogLevel.Information, "Sending {EventBusId} to '{QueueUrl}'. Scheduled: {Scheduled}.")]
+    public static partial void SendingToQueue(this ILogger logger, string? eventBusId, string queueUrl, DateTimeOffset? scheduled);
 
-    [LoggerMessage(202, LogLevel.Warning, "Delay for {EventId} capped at 15min. Scheduled: {Scheduled}.")]
-    public static partial void DelayCapped(this ILogger logger, string? eventId, DateTimeOffset? scheduled);
+    [LoggerMessage(202, LogLevel.Warning, "Delay for {EventBusId} capped at 15min. Scheduled: {Scheduled}.")]
+    public static partial void DelayCapped(this ILogger logger, string? eventBusId, DateTimeOffset? scheduled);
 
 
     [LoggerMessage(300, LogLevel.Trace, "No messages on '{QueueUrl}', delaying check for {Delay}.")]
@@ -28,8 +28,8 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(301, LogLevel.Debug, "Received {MessagesCount} messages on '{QueueUrl}'")]
     public static partial void ReceivedMessages(this ILogger logger, int messagesCount, string queueUrl);
 
-    [LoggerMessage(302, LogLevel.Information, "Received message: '{MessageId}' containing Event '{EventId}' from '{QueueUrl}'")]
-    public static partial void ReceivedMessage(this ILogger logger, string messageId, string? eventId, string queueUrl);
+    [LoggerMessage(302, LogLevel.Information, "Received message: '{MessageId}' containing Event '{EventBusId}' from '{QueueUrl}'")]
+    public static partial void ReceivedMessage(this ILogger logger, string messageId, string? eventBusId, string queueUrl);
 
     [LoggerMessage(303, LogLevel.Debug, "Processing '{MessageId}' from '{QueueUrl}'")]
     public static partial void ProcessingMessage(this ILogger logger, string messageId, string queueUrl);

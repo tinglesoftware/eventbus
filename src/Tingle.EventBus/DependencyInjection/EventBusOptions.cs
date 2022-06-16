@@ -15,10 +15,10 @@ public class EventBusOptions
 {
     /// <summary>
     /// The duration of time to delay the starting of the bus.
-    /// The default value is 5 seconds. Max value is 10 minutes and minimum is 5 seconds.
+    /// Max value is 10 minutes and minimum is 5 seconds.
     /// When <see langword="null"/>, the bus is started immediately.
     /// </summary>
-    public TimeSpan? StartupDelay { get; set; } = TimeSpan.FromSeconds(5);
+    public TimeSpan? StartupDelay { get; set; }
 
     /// <summary>
     /// Gets the <see cref="EventBusReadinessOptions"/> for the Event Bus.

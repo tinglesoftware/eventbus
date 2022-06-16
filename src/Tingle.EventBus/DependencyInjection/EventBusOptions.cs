@@ -15,7 +15,6 @@ public class EventBusOptions
 {
     /// <summary>
     /// The duration of time to delay the starting of the bus.
-    /// Max value is 10 minutes and minimum is 5 seconds.
     /// When <see langword="null"/>, the bus is started immediately.
     /// </summary>
     public TimeSpan? StartupDelay { get; set; }

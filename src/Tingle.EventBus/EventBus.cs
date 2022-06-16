@@ -205,13 +205,14 @@ public class EventBus : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         // If a startup delay has been specified, apply it
-        if (options.StartupDelay != null)
+        var delay = options.StartupDelay;
+        if (delay != null && delay > TimeSpan.Zero)
         {
             // We cannot await the call because it will cause other components not to start.
             // Instead, create a cancellation token linked to the one provided so that we can
             // stop startup if told to do so.
             var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            _ = DelayThenStartTransportsAsync(options.StartupDelay.Value, cts.Token);
+            _ = DelayThenStartTransportsAsync(delay.Value, cts.Token);
         }
         else
         {

@@ -240,16 +240,19 @@ public class EventBus : IHostedService
 
     private async Task StartTransportsAsync(CancellationToken cancellationToken)
     {
-        try
+        if (options.Readiness.Enabled)
         {
-            // Perform readiness check before starting bus.
-            logger.StartupReadinessCheck();
-            await readinessProvider.WaitReadyAsync(cancellationToken: cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            logger.StartupReadinessCheckFailed(ex);
-            throw; // re-throw to prevent from getting healthy
+            try
+            {
+                // Perform readiness check before starting bus.
+                logger.StartupReadinessCheck();
+                await readinessProvider.WaitReadyAsync(cancellationToken: cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                logger.StartupReadinessCheckFailed(ex);
+                throw; // re-throw to prevent from getting healthy
+            }
         }
 
         // Start the bus and its transports

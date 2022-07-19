@@ -1,13 +1,8 @@
 ﻿namespace System;
 
-/// <summary>
-/// Extension methods for <see cref="TimeSpan"/>.
-/// </summary>
-public static class TimeSpanExtensions
+internal static class TimeSpanExtensions
 {
-    /// <summary>
-    /// Generates a readable string.
-    /// </summary>
+    /// <summary>Generates a readable string.</summary>
     /// <param name="span"></param>
     /// <returns></returns>
     public static string ToReadableString(this TimeSpan span)

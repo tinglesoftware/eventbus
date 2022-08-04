@@ -14,7 +14,7 @@ namespace Tingle.EventBus;
 /// <summary>
 /// The abstractions for an event bus
 /// </summary>
-public class EventBus : IHostedService
+public class EventBus : BackgroundService
 {
     private readonly IHostApplicationLifetime lifetime;
     private readonly IReadinessProvider readinessProvider;
@@ -206,15 +206,9 @@ public class EventBus : IHostedService
     }
 
     /// <inheritdoc/>
-    public Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _ = StartInternalAsync(cancellationToken);
-        return Task.CompletedTask;
-    }
-
-    private async Task StartInternalAsync(CancellationToken cancellationToken)
-    {
-        if (!await WaitForAppStartupAsync(lifetime, cancellationToken).ConfigureAwait(false))
+        if (!await WaitForAppStartupAsync(lifetime, stoppingToken).ConfigureAwait(false))
         {
             logger.ApplicationDidNotStartup();
             return;
@@ -224,16 +218,24 @@ public class EventBus : IHostedService
         var delay = options.StartupDelay;
         if (delay != null && delay > TimeSpan.Zero)
         {
-            // We cannot await the call because it will cause other components not to start.
-            // Instead, create a cancellation token linked to the one provided so that we can
-            // stop startup if told to do so.
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            _ = DelayThenStartTransportsAsync(delay.Value, cts.Token);
+            // With delayed startup, the error may dissappear since the call to this method is not awaited.
+            // The appropriate logging needs to be done.
+            try
+            {
+                logger.DelayedBusStartup(delay.Value);
+                await Task.Delay(delay.Value, stoppingToken);
+                await StartTransportsAsync(stoppingToken);
+            }
+            catch (Exception ex)
+                when (!(ex is OperationCanceledException || ex is TaskCanceledException)) // skip operation cancel
+            {
+                logger.DelayedBusStartupError(ex);
+            }
         }
         else
         {
             // Without a delay, just start the transports directly
-            await StartTransportsAsync(cancellationToken);
+            await StartTransportsAsync(stoppingToken);
         }
     }
 
@@ -250,23 +252,6 @@ public class EventBus : IHostedService
 
         // if the completed task was the "app started" one, return true
         return completedTask == startedTcs.Task;
-    }
-
-    private async Task DelayThenStartTransportsAsync(TimeSpan delay, CancellationToken cancellationToken)
-    {
-        // With delayed startup, the error may dissappear since the call to this method is not awaited.
-        // The appropriate logging needs to be done.
-        try
-        {
-            logger.DelayedBusStartup(delay);
-            await Task.Delay(delay, cancellationToken);
-            await StartTransportsAsync(cancellationToken);
-        }
-        catch (Exception ex)
-            when (!(ex is OperationCanceledException || ex is TaskCanceledException)) // skip operation cancel
-        {
-            logger.DelayedBusStartupError(ex);
-        }
     }
 
     private async Task StartTransportsAsync(CancellationToken cancellationToken)
@@ -295,8 +280,10 @@ public class EventBus : IHostedService
     }
 
     /// <inheritdoc/>
-    public async Task StopAsync(CancellationToken cancellationToken)
+    public override async Task StopAsync(CancellationToken cancellationToken)
     {
+        await base.StopAsync(cancellationToken);
+
         // Stop the bus and its transports in parallel
         logger.StoppingBus();
         var tasks = transports.Select(t => t.StopAsync(cancellationToken));

@@ -502,7 +502,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
         where TEvent : class
         where TConsumer : IEventConsumer<TEvent>
     {
-        var entityPath = processor.EntityPath;
+        var entityPath = args.EntityPath;
         var message = args.Message;
         var messageId = message.MessageId;
         var cancellationToken = args.CancellationToken;

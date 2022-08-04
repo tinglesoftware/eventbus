@@ -13,13 +13,19 @@ public class SimplePublisherTests
     [InlineData(6)]
     public async Task EventIsPublishedOnBusAsync(int orderNumber)
     {
-        var services = new ServiceCollection()
-            .AddLogging()
-            .AddSingleton<IHostEnvironment, FakeHostEnvironment>()
-            .AddEventBus(builder => builder.AddInMemoryTransport().AddInMemoryTestHarness())
-            .AddSingleton<RandomOrderProcessor>();
+        var host = Host.CreateDefaultBuilder()
+                       .ConfigureServices((context, services) =>
+                       {
+                           services.AddSingleton<RandomOrderProcessor>();
+                           services.AddEventBus(builder =>
+                           {
+                               builder.AddInMemoryTransport();
+                               builder.AddInMemoryTestHarness();
+                           });
+                       })
+                       .Build();
 
-        var provider = services.BuildServiceProvider();
+        var provider = host.Services;
         var harness = provider.GetRequiredService<InMemoryTestHarness>();
         await harness.StartAsync();
         try

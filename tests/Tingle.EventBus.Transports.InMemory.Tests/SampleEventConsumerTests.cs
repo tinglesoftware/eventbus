@@ -11,18 +11,20 @@ public class SampleEventConsumerTests
     public async Task ConsumerWorksAsync()
     {
         var counter = new EventCounter();
-        var services = new ServiceCollection()
-            .AddLogging()
-            .AddSingleton(counter)
-            .AddSingleton<IHostEnvironment, FakeHostEnvironment>()
-            .AddEventBus(builder =>
-            {
-                builder.AddConsumer<SampleEventConsumer>();
-                builder.AddInMemoryTransport();
-                builder.AddInMemoryTestHarness();
-            });
+        var host = Host.CreateDefaultBuilder()
+                       .ConfigureServices((context, services) =>
+                       {
+                           services.AddSingleton(counter);
+                           services.AddEventBus(builder =>
+                           {
+                               builder.AddConsumer<SampleEventConsumer>();
+                               builder.AddInMemoryTransport();
+                               builder.AddInMemoryTestHarness();
+                           });
+                       })
+                       .Build();
 
-        var provider = services.BuildServiceProvider();
+        var provider = host.Services;
 
         var harness = provider.GetRequiredService<InMemoryTestHarness>();
         await harness.StartAsync();

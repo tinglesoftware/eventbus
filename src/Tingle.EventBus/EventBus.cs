@@ -16,6 +16,7 @@ namespace Tingle.EventBus;
 /// </summary>
 public class EventBus : IHostedService
 {
+    private readonly IHostApplicationLifetime lifetime;
     private readonly IReadinessProvider readinessProvider;
     private readonly IEventIdGenerator idGenerator;
     private readonly IList<IEventBusTransport> transports;
@@ -26,19 +27,22 @@ public class EventBus : IHostedService
     /// <summary>
     /// 
     /// </summary>
+    /// <param name="lifetime"></param>
     /// <param name="readinessProvider"></param>
     /// <param name="idGenerator"></param>
     /// <param name="optionsAccessor"></param>
     /// <param name="transports"></param>
     /// <param name="configurators"></param>
     /// <param name="loggerFactory"></param>
-    public EventBus(IReadinessProvider readinessProvider,
+    public EventBus(IHostApplicationLifetime lifetime,
+                    IReadinessProvider readinessProvider,
                     IEventIdGenerator idGenerator,
                     IEnumerable<IEventBusTransport> transports,
                     IEnumerable<IEventConfigurator> configurators,
                     IOptions<EventBusOptions> optionsAccessor,
                     ILoggerFactory loggerFactory)
     {
+        this.lifetime = lifetime ?? throw new ArgumentNullException(nameof(lifetime));
         this.readinessProvider = readinessProvider ?? throw new ArgumentNullException(nameof(readinessProvider));
         this.idGenerator = idGenerator ?? throw new ArgumentNullException(nameof(idGenerator));
         this.configurators = configurators?.ToList() ?? throw new ArgumentNullException(nameof(configurators));
@@ -210,6 +214,12 @@ public class EventBus : IHostedService
 
     private async Task StartInternalAsync(CancellationToken cancellationToken)
     {
+        if (!await WaitForAppStartupAsync(lifetime, cancellationToken).ConfigureAwait(false))
+        {
+            logger.ApplicationDidNotStartup();
+            return;
+        }
+
         // If a startup delay has been specified, apply it
         var delay = options.StartupDelay;
         if (delay != null && delay > TimeSpan.Zero)
@@ -225,6 +235,21 @@ public class EventBus : IHostedService
             // Without a delay, just start the transports directly
             await StartTransportsAsync(cancellationToken);
         }
+    }
+
+    private static async Task<bool> WaitForAppStartupAsync(IHostApplicationLifetime lifetime, CancellationToken stoppingToken)
+    {
+        var startedTcs = new TaskCompletionSource<object>();
+        var cancelledTcs = new TaskCompletionSource<object>();
+
+        // register result setting using the cancellation tokens
+        lifetime.ApplicationStarted.Register(() => startedTcs.SetResult(new { }));
+        stoppingToken.Register(() => cancelledTcs.SetResult(new { }));
+
+        var completedTask = await Task.WhenAny(startedTcs.Task, cancelledTcs.Task).ConfigureAwait(false);
+
+        // if the completed task was the "app started" one, return true
+        return completedTask == startedTcs.Task;
     }
 
     private async Task DelayThenStartTransportsAsync(TimeSpan delay, CancellationToken cancellationToken)

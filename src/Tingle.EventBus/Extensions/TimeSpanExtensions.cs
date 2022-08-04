@@ -7,13 +7,16 @@ internal static class TimeSpanExtensions
     /// <returns></returns>
     public static string ToReadableString(this TimeSpan span)
     {
-        string formatted = string.Format("{0}{1}{2}{3}",
-                                         (span.Days / 7) > 0 ? $"{(span.Days / 7):0} weeks, " : string.Empty,
-                                         span.Days % 7 > 0 ? $"{(span.Days % 7):0} days, " : string.Empty,
-                                         span.Hours > 0 ? $"{span.Hours:0} hours, " : string.Empty,
-                                         span.Minutes > 0 ? $"{span.Minutes:0} min, " : string.Empty);
+        var parts = new List<string?>
+        {
+            (span.Days / 7) > 0 ? $"{(span.Days / 7):0} weeks" : null,
+            span.Days % 7 > 0 ? $"{(span.Days % 7):0} days" : null,
+            span.Hours > 0 ? $"{span.Hours:0} hours" : null,
+            span.Minutes > 0 ? $"{span.Minutes:0} min" : null,
+            span.Seconds > 0 ? $"{span.Seconds:0} sec" : null,
+            span.Milliseconds > 0 ? $"{span.Milliseconds:0} ms" : null
+        }.Where(s => !string.IsNullOrWhiteSpace(s));
 
-        if (formatted.EndsWith(", ")) formatted = formatted[0..^2];
-        return formatted;
+        return string.Join(", ", parts);
     }
 }

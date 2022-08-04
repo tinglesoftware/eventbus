@@ -10,22 +10,25 @@ internal static partial class ILoggerExtensions
 {
     #region Bus (100 series)
 
-    [LoggerMessage(101, LogLevel.Information, "Delaying bus startup for '{StartupDelay}'.")]
+    [LoggerMessage(101, LogLevel.Debug, "Application did not startup. Event Bus cannot continue.")]
+    public static partial void ApplicationDidNotStartup(this ILogger logger);
+
+    [LoggerMessage(102, LogLevel.Information, "Delaying bus startup for '{StartupDelay}'.")]
     public static partial void DelayedBusStartup(this ILogger logger, TimeSpan startupDelay);
 
-    [LoggerMessage(102, LogLevel.Error, "Starting bus delayed error.")]
+    [LoggerMessage(103, LogLevel.Error, "Starting bus delayed error.")]
     public static partial void DelayedBusStartupError(this ILogger logger, Exception ex);
 
-    [LoggerMessage(103, LogLevel.Information, "Performing readiness check before starting bus.")]
+    [LoggerMessage(104, LogLevel.Information, "Performing readiness check before starting bus.")]
     public static partial void StartupReadinessCheck(this ILogger logger);
 
-    [LoggerMessage(104, LogLevel.Error, "Startup readiness check failed or timedout.")]
+    [LoggerMessage(105, LogLevel.Error, "Startup readiness check failed or timedout.")]
     public static partial void StartupReadinessCheckFailed(this ILogger logger, Exception ex);
 
-    [LoggerMessage(105, LogLevel.Debug, "Starting bus with {TransportsCount} transports.")]
+    [LoggerMessage(106, LogLevel.Debug, "Starting bus with {TransportsCount} transports.")]
     public static partial void StartingBus(this ILogger logger, int transportsCount);
 
-    [LoggerMessage(106, LogLevel.Debug, "Stopping bus.")]
+    [LoggerMessage(107, LogLevel.Debug, "Stopping bus.")]
     public static partial void StoppingBus(this ILogger logger);
 
     #endregion

@@ -202,7 +202,13 @@ public class EventBus : IHostedService
     }
 
     /// <inheritdoc/>
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        _ = StartInternalAsync(cancellationToken);
+        return Task.CompletedTask;
+    }
+
+    private async Task StartInternalAsync(CancellationToken cancellationToken)
     {
         // If a startup delay has been specified, apply it
         var delay = options.StartupDelay;

@@ -6,7 +6,7 @@ internal class AzureDevOpsEventsConsumer : IEventConsumer<AzureDevOpsCodePushed>
 
     public AzureDevOpsEventsConsumer(ILogger<AzureDevOpsEventsConsumer> logger)
     {
-        this.logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public Task ConsumeAsync(EventContext<AzureDevOpsCodePushed> context, CancellationToken cancellationToken = default)

@@ -2,7 +2,7 @@
 
 /// <summary>
 /// The behaviour to follow when an unhandled error in a consumer's
-/// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, System.Threading.CancellationToken)"/>
+/// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, CancellationToken)"/>
 /// invocation results in an exception that is not handled.
 /// </summary>
 public enum UnhandledConsumerErrorBehaviour

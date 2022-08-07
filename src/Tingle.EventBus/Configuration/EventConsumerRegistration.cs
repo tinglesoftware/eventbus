@@ -43,7 +43,7 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     /// <summary>
     /// The retry policy to apply when consuming events.
     /// This is an outter wrapper around the
-    /// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, System.Threading.CancellationToken)"/>
+    /// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, CancellationToken)"/>
     /// method.
     /// When set to <see langword="null"/>, the method is only invoked once.
     /// Defaults to <see langword="null"/>.
@@ -59,7 +59,7 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
 
     /// <summary>
     /// The behaviour for unhandled errors when consuming events via the
-    /// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, System.Threading.CancellationToken)"/>
+    /// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, CancellationToken)"/>
     /// method.
     /// When set to <see langword="null"/>, the transport's default behaviour is used.
     /// Depending on the transport, the event may be delayed for reconsumption

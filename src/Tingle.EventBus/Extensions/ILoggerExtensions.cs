@@ -31,6 +31,9 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(107, LogLevel.Debug, "Stopping bus.")]
     public static partial void StoppingBus(this ILogger logger);
 
+    [LoggerMessage(108, LogLevel.Debug, "Stopping transports.")]
+    public static partial void StoppingTransports(this ILogger logger);
+
     #endregion
 
     #region Transports (200 series)

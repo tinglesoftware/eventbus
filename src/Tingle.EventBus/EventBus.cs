@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
@@ -12,11 +11,10 @@ using Tingle.EventBus.Transports;
 namespace Tingle.EventBus;
 
 /// <summary>
-/// The abstractions for an event bus
+/// The event bus
 /// </summary>
-public class EventBus : BackgroundService
+public class EventBus
 {
-    private readonly IHostApplicationLifetime lifetime;
     private readonly IReadinessProvider readinessProvider;
     private readonly IEventIdGenerator idGenerator;
     private readonly IList<IEventBusTransport> transports;
@@ -27,22 +25,19 @@ public class EventBus : BackgroundService
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="lifetime"></param>
     /// <param name="readinessProvider"></param>
     /// <param name="idGenerator"></param>
     /// <param name="optionsAccessor"></param>
     /// <param name="transports"></param>
     /// <param name="configurators"></param>
     /// <param name="loggerFactory"></param>
-    public EventBus(IHostApplicationLifetime lifetime,
-                    IReadinessProvider readinessProvider,
+    public EventBus(IReadinessProvider readinessProvider,
                     IEventIdGenerator idGenerator,
                     IEnumerable<IEventBusTransport> transports,
                     IEnumerable<IEventConfigurator> configurators,
                     IOptions<EventBusOptions> optionsAccessor,
                     ILoggerFactory loggerFactory)
     {
-        this.lifetime = lifetime ?? throw new ArgumentNullException(nameof(lifetime));
         this.readinessProvider = readinessProvider ?? throw new ArgumentNullException(nameof(readinessProvider));
         this.idGenerator = idGenerator ?? throw new ArgumentNullException(nameof(idGenerator));
         this.configurators = configurators?.ToList() ?? throw new ArgumentNullException(nameof(configurators));
@@ -205,15 +200,9 @@ public class EventBus : BackgroundService
         await transport.CancelAsync<TEvent>(ids: ids, registration: reg, cancellationToken: cancellationToken);
     }
 
-    /// <inheritdoc/>
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    ///
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (!await WaitForAppStartupAsync(lifetime, stoppingToken).ConfigureAwait(false))
-        {
-            logger.ApplicationDidNotStartup();
-            return;
-        }
-
         // If a startup delay has been specified, apply it
         var delay = options.StartupDelay;
         if (delay != null && delay > TimeSpan.Zero)
@@ -223,8 +212,8 @@ public class EventBus : BackgroundService
             try
             {
                 logger.DelayedBusStartup(delay.Value);
-                await Task.Delay(delay.Value, stoppingToken);
-                await StartTransportsAsync(stoppingToken);
+                await Task.Delay(delay.Value, cancellationToken);
+                await StartTransportsAsync(cancellationToken);
             }
             catch (Exception ex)
                 when (!(ex is OperationCanceledException || ex is TaskCanceledException)) // skip operation cancel
@@ -235,23 +224,8 @@ public class EventBus : BackgroundService
         else
         {
             // Without a delay, just start the transports directly
-            await StartTransportsAsync(stoppingToken);
+            await StartTransportsAsync(cancellationToken);
         }
-    }
-
-    private static async Task<bool> WaitForAppStartupAsync(IHostApplicationLifetime lifetime, CancellationToken stoppingToken)
-    {
-        var startedTcs = new TaskCompletionSource<object>();
-        var cancelledTcs = new TaskCompletionSource<object>();
-
-        // register result setting using the cancellation tokens
-        lifetime.ApplicationStarted.Register(() => startedTcs.SetResult(new { }));
-        stoppingToken.Register(() => cancelledTcs.SetResult(new { }));
-
-        var completedTask = await Task.WhenAny(startedTcs.Task, cancelledTcs.Task).ConfigureAwait(false);
-
-        // if the completed task was the "app started" one, return true
-        return completedTask == startedTcs.Task;
     }
 
     private async Task StartTransportsAsync(CancellationToken cancellationToken)
@@ -279,13 +253,11 @@ public class EventBus : BackgroundService
         }
     }
 
-    /// <inheritdoc/>
-    public override async Task StopAsync(CancellationToken cancellationToken)
+    ///
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        await base.StopAsync(cancellationToken);
-
-        // Stop the bus and its transports in parallel
-        logger.StoppingBus();
+        // Stop the transports in parallel
+        logger.StoppingTransports();
         var tasks = transports.Select(t => t.StopAsync(cancellationToken));
         await Task.WhenAll(tasks);
     }

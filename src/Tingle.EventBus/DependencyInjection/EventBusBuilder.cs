@@ -27,10 +27,12 @@ public class EventBusBuilder
         Services.AddSingleton<IEventConfigurator, DefaultEventConfigurator>();
         Services.AddSingleton<IEventIdGenerator, DefaultEventIdGenerator>();
 
+        // Register the bus and its host
+        Services.AddSingleton<EventBus>();
+        Services.AddHostedService<EventBusHost>();
+
         // Register necessary services
         Services.AddTransient<IEventPublisher, EventPublisher>();
-        Services.AddSingleton<EventBus>();
-        Services.AddHostedService(p => p.GetRequiredService<EventBus>());
         UseDefaultSerializer<DefaultJsonEventSerializer>();
 
         // Register health/readiness services needed

@@ -34,7 +34,7 @@ public class EventRegistration : IEquatable<EventRegistration?>
     public EntityKind? EntityKind { get; set; }
 
     /// <summary>
-    /// THe preferred format to use when generating identifiers for the event.
+    /// The preferred format to use when generating identifiers for the event.
     /// </summary>
     public EventIdFormat? IdFormat { get; set; }
 

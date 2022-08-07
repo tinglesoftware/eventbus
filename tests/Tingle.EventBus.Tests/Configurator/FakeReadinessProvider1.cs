@@ -7,18 +7,18 @@ public class FakeReadinessProvider1 : IReadinessProvider
 {
     public Task<bool> IsReadyAsync(CancellationToken cancellationToken = default)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
     public Task<bool> IsReadyAsync(EventRegistration ereg,
                                    EventConsumerRegistration creg,
                                    CancellationToken cancellationToken = default)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
     public Task WaitReadyAsync(CancellationToken cancellationToken = default)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }

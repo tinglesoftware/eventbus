@@ -23,8 +23,7 @@ public class EventBusBuilder
         Services = services ?? throw new ArgumentNullException(nameof(services));
 
         // Configure the options
-        Services.AddSingleton<IConfigureOptions<EventBusOptions>, EventBusConfigureOptions>();
-        Services.AddSingleton<IPostConfigureOptions<EventBusOptions>, EventBusPostConfigureOptions>();
+        Services.ConfigureOptions<EventBusConfigureOptions>();
         Services.AddSingleton<IEventConfigurator, DefaultEventConfigurator>();
         Services.AddSingleton<IEventIdGenerator, DefaultEventIdGenerator>();
 

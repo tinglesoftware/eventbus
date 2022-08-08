@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus.Transports.Amazon.Kinesis;
+﻿using Tingle.EventBus.Transports.Amazon.Kinesis;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +22,7 @@ public static class EventBusBuilderExtensions
 
         // Configure the options for Amazon Kinesis
         services.Configure(configure);
-        services.AddSingleton<IPostConfigureOptions<AmazonKinesisTransportOptions>, AmazonKinesisPostConfigureOptions>();
+        services.ConfigureOptions<AmazonKinesisConfigureOptions>();
 
         // Register the transport
         builder.AddTransport<AmazonKinesisTransport, AmazonKinesisTransportOptions>();

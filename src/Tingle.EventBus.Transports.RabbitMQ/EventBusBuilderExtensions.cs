@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus.Transports.RabbitMQ;
+﻿using Tingle.EventBus.Transports.RabbitMQ;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +22,7 @@ public static class EventBusBuilderExtensions
 
         // configure the options for RabbitMQ
         services.Configure(configure);
-        services.AddSingleton<IPostConfigureOptions<RabbitMqTransportOptions>, RabbitMqPostConfigureOptions>();
+        services.ConfigureOptions<RabbitMqConfigureOptions>();
 
         // register the transport
         builder.AddTransport<RabbitMqTransport, RabbitMqTransportOptions>();

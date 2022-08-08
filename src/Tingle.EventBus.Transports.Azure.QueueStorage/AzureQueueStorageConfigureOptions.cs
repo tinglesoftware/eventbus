@@ -7,11 +7,11 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AzureQueueStorageTransportOptions"/>.
 /// </summary>
-internal class AzureQueueStoragePostConfigureOptions : AzureTransportPostConfigureOptions<AzureQueueStorageTransportCredentials, AzureQueueStorageTransportOptions>
+internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOptions<AzureQueueStorageTransportCredentials, AzureQueueStorageTransportOptions>
 {
     private readonly EventBusOptions busOptions;
 
-    public AzureQueueStoragePostConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    public AzureQueueStorageConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
     {
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }

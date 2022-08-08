@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus.Transports.Azure.EventHubs;
+﻿using Tingle.EventBus.Transports.Azure.EventHubs;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +22,7 @@ public static class EventBusBuilderExtensions
 
         // configure the options for Azure Event Hubs
         services.Configure(configure);
-        services.AddSingleton<IPostConfigureOptions<AzureEventHubsTransportOptions>, AzureEventHubsPostConfigureOptions>();
+        services.ConfigureOptions<AzureEventHubsConfigureOptions>();
 
         // register the transport
         builder.AddTransport<AzureEventHubsTransport, AzureEventHubsTransportOptions>();

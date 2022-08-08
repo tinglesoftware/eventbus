@@ -10,10 +10,11 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// A class to finish configure non-trivial defaults of instances of <see cref="EventBusOptions"/>.
 /// </summary>
 internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
+                                          IConfigureOptions<EventBusSerializationOptions>,
                                           IPostConfigureOptions<EventBusOptions>,
                                           IPostConfigureOptions<EventBusReadinessOptions>,
-                                          IConfigureOptions<EventBusSerializationOptions>,
-                                          IPostConfigureOptions<EventBusSerializationOptions>
+                                          IValidateOptions<EventBusOptions>,
+                                          IValidateOptions<EventBusSerializationOptions>
 {
     private readonly IHostEnvironment environment;
     private readonly IEnumerable<IEventConfigurator> configurators;
@@ -29,6 +30,25 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
     {
         // Set the default ConsumerNamePrefix
         options.Naming.ConsumerNamePrefix ??= environment.ApplicationName;
+    }
+
+    /// <inheritdoc/>
+    public void Configure(EventBusSerializationOptions options)
+    {
+        // Setup HostInfo
+        if (options.HostInfo == null)
+        {
+            var entry = System.Reflection.Assembly.GetEntryAssembly() ?? System.Reflection.Assembly.GetCallingAssembly();
+            options.HostInfo = new HostInfo
+            {
+                ApplicationName = environment.ApplicationName,
+                ApplicationVersion = entry.GetName().Version?.ToString(),
+                EnvironmentName = environment.EnvironmentName,
+                LibraryVersion = typeof(EventBus).Assembly.GetName().Version?.ToString(),
+                MachineName = Environment.MachineName,
+                OperatingSystem = Environment.OSVersion.ToString(),
+            };
+        }
     }
 
     /// <inheritdoc/>
@@ -78,27 +98,6 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
                 cfg.Configure(evr, options);
             }
         }
-
-        // Ensure there are no events with the same name
-        var conflicted = registrations.GroupBy(r => r.EventName).FirstOrDefault(kvp => kvp.Count() > 1);
-        if (conflicted != null)
-        {
-            var names = conflicted.Select(r => r.EventType.FullName);
-            throw new InvalidOperationException($"The event name '{conflicted.Key}' cannot be used more than once."
-                                              + $" Types:\r\n- {string.Join("\r\n- ", names)}");
-        }
-
-        // Ensure there are no consumers with the same name per event
-        foreach (var evr in registrations)
-        {
-            var conflict = evr.Consumers.GroupBy(ecr => ecr.ConsumerName).FirstOrDefault(kvp => kvp.Count() > 1);
-            if (conflict != null)
-            {
-                var names = conflict.Select(r => r.ConsumerType.FullName);
-                throw new InvalidOperationException($"The consumer name '{conflict.Key}' cannot be used more than once on '{evr.EventType.Name}'."
-                                                  + $" Types:\r\n- {string.Join("\r\n- ", names)}");
-            }
-        }
     }
 
     /// <inheritdoc/>
@@ -115,31 +114,48 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
     }
 
     /// <inheritdoc/>
-    public void Configure(EventBusSerializationOptions options)
+    public ValidateOptionsResult Validate(string name, EventBusOptions options)
     {
-        // Setup HostInfo
-        if (options.HostInfo == null)
+        // Ensure there are no events with the same name
+        var registrations = options.Registrations.Values.ToList();
+        var conflicted = registrations.GroupBy(r => r.EventName).FirstOrDefault(kvp => kvp.Count() > 1);
+        if (conflicted != null)
         {
-            var entry = System.Reflection.Assembly.GetEntryAssembly() ?? System.Reflection.Assembly.GetCallingAssembly();
-            options.HostInfo = new HostInfo
-            {
-                ApplicationName = environment.ApplicationName,
-                ApplicationVersion = entry.GetName().Version?.ToString(),
-                EnvironmentName = environment.EnvironmentName,
-                LibraryVersion = typeof(EventBus).Assembly.GetName().Version?.ToString(),
-                MachineName = Environment.MachineName,
-                OperatingSystem = Environment.OSVersion.ToString(),
-            };
+            var names = conflicted.Select(r => r.EventType.FullName);
+            return ValidateOptionsResult.Fail($"The event name '{conflicted.Key}' cannot be used more than once."
+                                            + $" Types:\r\n- {string.Join("\r\n- ", names)}");
         }
+
+        // Ensure there are no consumers with the same name per event
+        foreach (var evr in registrations)
+        {
+            var conflict = evr.Consumers.GroupBy(ecr => ecr.ConsumerName).FirstOrDefault(kvp => kvp.Count() > 1);
+            if (conflict != null)
+            {
+                var names = conflict.Select(r => r.ConsumerType.FullName);
+                return ValidateOptionsResult.Fail($"The consumer name '{conflict.Key}' cannot be used more than once on '{evr.EventType.Name}'."
+                                                + $" Types:\r\n- {string.Join("\r\n- ", names)}");
+            }
+        }
+
+        return ValidateOptionsResult.Success;
     }
 
     /// <inheritdoc/>
-    public void PostConfigure(string name, EventBusSerializationOptions options)
+    public ValidateOptionsResult Validate(string name, EventBusSerializationOptions options)
     {
+        // Ensure we have SerializerOptions set
+        if (options.SerializerOptions == null)
+        {
+            return ValidateOptionsResult.Fail($"'{nameof(options.SerializerOptions)}' must be set.");
+        }
+
         // Ensure we have HostInfo set
         if (options.HostInfo == null)
         {
-            throw new InvalidOperationException($"'{nameof(options.HostInfo)}' must be set.");
+            return ValidateOptionsResult.Fail($"'{nameof(options.HostInfo)}' must be set.");
         }
+
+        return ValidateOptionsResult.Success;
     }
 }

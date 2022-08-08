@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus.Transports.Azure.ServiceBus;
+﻿using Tingle.EventBus.Transports.Azure.ServiceBus;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +22,7 @@ public static class EventBusBuilderExtensions
 
         // configure the options for Azure Service Bus
         services.Configure(configure);
-        services.AddSingleton<IPostConfigureOptions<AzureServiceBusTransportOptions>, AzureServiceBusPostConfigureOptions>();
+        services.ConfigureOptions<AzureServiceBusConfigureOptions>();
 
         // register the transport
         builder.AddTransport<AzureServiceBusTransport, AzureServiceBusTransportOptions>();

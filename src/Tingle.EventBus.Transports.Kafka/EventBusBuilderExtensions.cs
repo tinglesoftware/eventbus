@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus.Transports.Kafka;
+﻿using Tingle.EventBus.Transports.Kafka;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +22,7 @@ public static class EventBusBuilderExtensions
 
         // configure the options for Kafka
         services.Configure(configure);
-        services.AddSingleton<IPostConfigureOptions<KafkaTransportOptions>, KafkaPostConfigureOptions>();
+        services.ConfigureOptions<KafkaConfigureOptions>();
 
         // register the transport
         builder.AddTransport<KafkaTransport, KafkaTransportOptions>();

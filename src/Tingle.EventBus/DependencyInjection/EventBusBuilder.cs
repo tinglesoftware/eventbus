@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Options;
 using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Ids;
@@ -90,7 +89,7 @@ public class EventBusBuilder
         where TOptions : EventBusTransportOptionsBase
     {
         // Post configure the common transport options
-        Services.AddSingleton<IPostConfigureOptions<TOptions>, TransportOptionsPostConfigureOptions<TOptions>>();
+        Services.ConfigureOptions<TransportOptionsConfigureOptions<TOptions>>();
 
         // Register for resolution
         Services.AddSingleton<IEventBusTransport, TTransport>();

@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus.Transports.Amazon.Sqs;
+﻿using Tingle.EventBus.Transports.Amazon.Sqs;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +22,7 @@ public static class EventBusBuilderExtensions
 
         // configure the options for Amazon SQS and SNS option
         services.Configure(configure);
-        services.AddSingleton<IPostConfigureOptions<AmazonSqsTransportOptions>, AmazonSqsPostConfigureOptions>();
+        services.ConfigureOptions<AmazonSqsConfigureOptions>();
 
         // register the transport
         builder.AddTransport<AmazonSqsTransport, AmazonSqsTransportOptions>();

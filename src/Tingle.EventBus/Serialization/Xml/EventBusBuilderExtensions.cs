@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus.Serialization.Xml;
+﻿using Tingle.EventBus.Serialization.Xml;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -22,7 +21,7 @@ public static class EventBusBuilderExtensions
         // Configure the options for the serializer
         var services = builder.Services;
         if (configure != null) services.Configure(configure);
-        services.AddSingleton<IPostConfigureOptions<XmlEventSerializerOptions>, XmlEventSerializerPostConfigureOptions>();
+        services.ConfigureOptions<XmlEventSerializerConfigureOptions>();
 
         // Add the serializer
         return builder.UseDefaultSerializer<XmlEventSerializer>();

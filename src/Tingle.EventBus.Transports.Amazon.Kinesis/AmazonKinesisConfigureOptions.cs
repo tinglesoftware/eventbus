@@ -8,11 +8,11 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AmazonKinesisTransportOptions"/>.
 /// </summary>
-internal class AmazonKinesisPostConfigureOptions : AmazonTransportPostConfigureOptions<AmazonKinesisTransportOptions>
+internal class AmazonKinesisConfigureOptions : AmazonTransportConfigureOptions<AmazonKinesisTransportOptions>
 {
     private readonly EventBusOptions busOptions;
 
-    public AmazonKinesisPostConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    public AmazonKinesisConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
     {
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }

@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus.Transports.Azure.QueueStorage;
+﻿using Tingle.EventBus.Transports.Azure.QueueStorage;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +22,7 @@ public static class EventBusBuilderExtensions
 
         // configure the options for Azure Queue Storage
         services.Configure(configure);
-        services.AddSingleton<IPostConfigureOptions<AzureQueueStorageTransportOptions>, AzureQueueStoragePostConfigureOptions>();
+        services.ConfigureOptions<AzureQueueStorageConfigureOptions>();
 
         // register the transport
         builder.AddTransport<AzureQueueStorageTransport, AzureQueueStorageTransportOptions>();

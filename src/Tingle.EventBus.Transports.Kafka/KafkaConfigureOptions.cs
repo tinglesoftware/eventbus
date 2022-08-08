@@ -8,11 +8,11 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="KafkaTransportOptions"/>.
 /// </summary>
-internal class KafkaPostConfigureOptions : IPostConfigureOptions<KafkaTransportOptions>
+internal class KafkaConfigureOptions : IPostConfigureOptions<KafkaTransportOptions>
 {
     private readonly EventBusOptions busOptions;
 
-    public KafkaPostConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    public KafkaConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
     {
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }

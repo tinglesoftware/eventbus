@@ -8,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// for shared settings in <see cref="EventBusTransportOptionsBase"/>.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-internal class TransportOptionsPostConfigureOptions<T> : IPostConfigureOptions<T> where T : EventBusTransportOptionsBase
+internal class TransportOptionsConfigureOptions<T> : IPostConfigureOptions<T> where T : EventBusTransportOptionsBase
 {
     public void PostConfigure(string name, T options)
     {

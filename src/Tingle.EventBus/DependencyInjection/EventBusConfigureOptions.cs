@@ -13,7 +13,7 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
                                           IPostConfigureOptions<EventBusOptions>,
                                           IPostConfigureOptions<EventBusReadinessOptions>,
                                           IConfigureOptions<EventBusSerializationOptions>,
-                                          IPostConfigureOptions<EventBusSerializationOptions>
+                                          IValidateOptions<EventBusSerializationOptions>
 {
     private readonly IHostEnvironment environment;
     private readonly IEnumerable<IEventConfigurator> configurators;
@@ -134,12 +134,14 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
     }
 
     /// <inheritdoc/>
-    public void PostConfigure(string name, EventBusSerializationOptions options)
+    public ValidateOptionsResult Validate(string name, EventBusSerializationOptions options)
     {
         // Ensure we have HostInfo set
         if (options.HostInfo == null)
         {
-            throw new InvalidOperationException($"'{nameof(options.HostInfo)}' must be set.");
+            return ValidateOptionsResult.Fail($"'{nameof(options.HostInfo)}' must be set.");
         }
+
+        return ValidateOptionsResult.Success;
     }
 }

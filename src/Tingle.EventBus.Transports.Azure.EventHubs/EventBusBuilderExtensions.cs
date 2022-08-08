@@ -23,7 +23,7 @@ public static class EventBusBuilderExtensions
 
         // configure the options for Azure Event Hubs
         services.Configure(configure);
-        services.AddSingleton<IPostConfigureOptions<AzureEventHubsTransportOptions>, AzureEventHubsPostConfigureOptions>();
+        services.ConfigureOptions<AzureEventHubsPostConfigureOptions>();
 
         // register the transport
         builder.AddTransport<AzureEventHubsTransport, AzureEventHubsTransportOptions>();

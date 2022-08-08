@@ -23,7 +23,7 @@ public static class EventBusBuilderExtensions
 
         // Configure the options for Amazon Kinesis
         services.Configure(configure);
-        services.AddSingleton<IPostConfigureOptions<AmazonKinesisTransportOptions>, AmazonKinesisPostConfigureOptions>();
+        services.ConfigureOptions<AmazonKinesisPostConfigureOptions>();
 
         // Register the transport
         builder.AddTransport<AmazonKinesisTransport, AmazonKinesisTransportOptions>();

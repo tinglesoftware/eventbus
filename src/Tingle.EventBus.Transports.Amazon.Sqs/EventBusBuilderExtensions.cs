@@ -23,7 +23,7 @@ public static class EventBusBuilderExtensions
 
         // configure the options for Amazon SQS and SNS option
         services.Configure(configure);
-        services.AddSingleton<IPostConfigureOptions<AmazonSqsTransportOptions>, AmazonSqsPostConfigureOptions>();
+        services.ConfigureOptions<AmazonSqsPostConfigureOptions>();
 
         // register the transport
         builder.AddTransport<AmazonSqsTransport, AmazonSqsTransportOptions>();

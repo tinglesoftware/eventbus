@@ -23,7 +23,7 @@ public static class EventBusBuilderExtensions
 
         // configure the options for Azure Service Bus
         services.Configure(configure);
-        services.AddSingleton<IPostConfigureOptions<AzureServiceBusTransportOptions>, AzureServiceBusPostConfigureOptions>();
+        services.ConfigureOptions<AzureServiceBusPostConfigureOptions>();
 
         // register the transport
         builder.AddTransport<AzureServiceBusTransport, AzureServiceBusTransportOptions>();

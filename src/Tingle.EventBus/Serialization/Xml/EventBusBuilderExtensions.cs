@@ -22,7 +22,7 @@ public static class EventBusBuilderExtensions
         // Configure the options for the serializer
         var services = builder.Services;
         if (configure != null) services.Configure(configure);
-        services.AddSingleton<IPostConfigureOptions<XmlEventSerializerOptions>, XmlEventSerializerPostConfigureOptions>();
+        services.ConfigureOptions<XmlEventSerializerPostConfigureOptions>();
 
         // Add the serializer
         return builder.UseDefaultSerializer<XmlEventSerializer>();

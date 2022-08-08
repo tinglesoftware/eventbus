@@ -28,7 +28,7 @@ public static class EventBusBuilderExtensions
             services.Configure(configure);
         }
 
-        services.AddSingleton<IPostConfigureOptions<InMemoryTransportOptions>, InMemoryTransportPostConfigureOptions>();
+        services.ConfigureOptions<InMemoryTransportPostConfigureOptions>();
         services.AddSingleton<SequenceNumberGenerator>();
 
         // register the transport
@@ -64,7 +64,7 @@ public static class EventBusBuilderExtensions
         services.AddSingleton<InMemoryTestHarness>();
 
         // Set the delivery delay to zero for instance delivery
-        services.AddSingleton<IPostConfigureOptions<InMemoryTestHarnessOptions>, InMemoryTestHarnessPostConfigureOptions>();
+        services.ConfigureOptions<InMemoryTestHarnessPostConfigureOptions>();
 
         return builder;
     }

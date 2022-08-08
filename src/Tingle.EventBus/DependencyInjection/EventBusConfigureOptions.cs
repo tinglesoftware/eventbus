@@ -144,6 +144,12 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
     /// <inheritdoc/>
     public ValidateOptionsResult Validate(string name, EventBusSerializationOptions options)
     {
+        // Ensure we have SerializerOptions set
+        if (options.SerializerOptions == null)
+        {
+            return ValidateOptionsResult.Fail($"'{nameof(options.SerializerOptions)}' must be set.");
+        }
+
         // Ensure we have HostInfo set
         if (options.HostInfo == null)
         {

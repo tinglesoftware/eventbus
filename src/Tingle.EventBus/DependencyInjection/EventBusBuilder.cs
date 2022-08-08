@@ -46,12 +46,32 @@ public class EventBusBuilder
     /// </summary>
     public IServiceCollection Services { get; }
 
-    /// <summary>
-    /// Configure options for EventBus
-    /// </summary>
+    /// <summary>Configure options for the EventBus.</summary>
     /// <param name="configure"></param>
     /// <returns></returns>
     public EventBusBuilder Configure(Action<EventBusOptions> configure)
+    {
+        if (configure is null) throw new ArgumentNullException(nameof(configure));
+
+        Services.Configure(configure);
+        return this;
+    }
+
+    /// <summary>Configure readiness options for the EventBus.</summary>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    public EventBusBuilder ConfigureReadiness(Action<EventBusReadinessOptions> configure)
+    {
+        if (configure is null) throw new ArgumentNullException(nameof(configure));
+
+        Services.Configure(configure);
+        return this;
+    }
+
+    /// <summary>Configure serialization options for the EventBus.</summary>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    public EventBusBuilder ConfigureSerialization(Action<EventBusSerializationOptions> configure)
     {
         if (configure is null) throw new ArgumentNullException(nameof(configure));
 

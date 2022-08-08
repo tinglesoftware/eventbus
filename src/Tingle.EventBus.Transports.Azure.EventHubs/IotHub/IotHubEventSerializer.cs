@@ -14,7 +14,7 @@ internal class IotHubEventSerializer : AbstractEventSerializer
     private static readonly Type BaseType = typeof(IotHubEvent<,,>);
     private static readonly ConcurrentDictionary<Type, MappedTypes> typeMaps = new();
 
-    public IotHubEventSerializer(IOptionsMonitor<EventBusOptions> optionsAccessor,
+    public IotHubEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
                                  ILoggerFactory loggerFactory)
         : base(optionsAccessor, loggerFactory) { }
 

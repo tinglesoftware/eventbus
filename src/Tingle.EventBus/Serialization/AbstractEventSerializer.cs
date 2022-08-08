@@ -22,7 +22,7 @@ public abstract class AbstractEventSerializer : IEventSerializer
     /// </summary>
     /// <param name="optionsAccessor"></param>
     /// <param name="loggerFactory"></param>
-    protected AbstractEventSerializer(IOptionsMonitor<EventBusOptions> optionsAccessor, ILoggerFactory loggerFactory)
+    protected AbstractEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor, ILoggerFactory loggerFactory)
     {
         OptionsAccessor = optionsAccessor ?? throw new ArgumentNullException(nameof(optionsAccessor));
 
@@ -39,7 +39,7 @@ public abstract class AbstractEventSerializer : IEventSerializer
     protected abstract IList<string> SupportedMediaTypes { get; }
 
     ///
-    protected IOptionsMonitor<EventBusOptions> OptionsAccessor { get; }
+    protected IOptionsMonitor<EventBusSerializationOptions> OptionsAccessor { get; }
 
     ///
     protected ILogger Logger { get; }

@@ -13,10 +13,10 @@ internal class DefaultReadinessProvider : IReadinessProvider, IHealthCheckPublis
 
     private HealthReport? healthReport;
 
-    public DefaultReadinessProvider(IOptions<EventBusOptions> optionsAccessor,
+    public DefaultReadinessProvider(IOptions<EventBusReadinessOptions> optionsAccessor,
                                     ILogger<DefaultReadinessProvider> logger)
     {
-        options = optionsAccessor?.Value?.Readiness ?? throw new ArgumentNullException(nameof(optionsAccessor));
+        options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 

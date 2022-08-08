@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus.Transports.Amazon.Kinesis;
+﻿using Tingle.EventBus.Transports.Amazon.Kinesis;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

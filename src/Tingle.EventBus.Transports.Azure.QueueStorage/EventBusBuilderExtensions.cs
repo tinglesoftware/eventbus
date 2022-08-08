@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus.Transports.Azure.QueueStorage;
+﻿using Tingle.EventBus.Transports.Azure.QueueStorage;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

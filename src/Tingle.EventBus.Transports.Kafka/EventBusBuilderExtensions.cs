@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus.Transports.Kafka;
+﻿using Tingle.EventBus.Transports.Kafka;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

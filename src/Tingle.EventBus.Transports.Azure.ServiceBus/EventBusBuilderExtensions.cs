@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus.Transports.Azure.ServiceBus;
+﻿using Tingle.EventBus.Transports.Azure.ServiceBus;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

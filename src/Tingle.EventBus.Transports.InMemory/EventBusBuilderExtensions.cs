@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus.Transports.InMemory;
+﻿using Tingle.EventBus.Transports.InMemory;
 using Tingle.EventBus.Transports.InMemory.Client;
 
 namespace Microsoft.Extensions.DependencyInjection;

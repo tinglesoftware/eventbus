@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Options;
 using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Ids;

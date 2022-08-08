@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus.Transports.RabbitMQ;
+﻿using Tingle.EventBus.Transports.RabbitMQ;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

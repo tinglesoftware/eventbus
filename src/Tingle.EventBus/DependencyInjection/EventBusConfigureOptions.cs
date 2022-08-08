@@ -13,6 +13,7 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
                                           IPostConfigureOptions<EventBusOptions>,
                                           IPostConfigureOptions<EventBusReadinessOptions>,
                                           IConfigureOptions<EventBusSerializationOptions>,
+                                          IValidateOptions<EventBusOptions>,
                                           IValidateOptions<EventBusSerializationOptions>
 {
     private readonly IHostEnvironment environment;
@@ -78,14 +79,19 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
                 cfg.Configure(evr, options);
             }
         }
+    }
 
+    /// <inheritdoc/>
+    public ValidateOptionsResult Validate(string name, EventBusOptions options)
+    {
         // Ensure there are no events with the same name
+        var registrations = options.Registrations.Values.ToList();
         var conflicted = registrations.GroupBy(r => r.EventName).FirstOrDefault(kvp => kvp.Count() > 1);
         if (conflicted != null)
         {
             var names = conflicted.Select(r => r.EventType.FullName);
-            throw new InvalidOperationException($"The event name '{conflicted.Key}' cannot be used more than once."
-                                              + $" Types:\r\n- {string.Join("\r\n- ", names)}");
+            return ValidateOptionsResult.Fail($"The event name '{conflicted.Key}' cannot be used more than once."
+                                            + $" Types:\r\n- {string.Join("\r\n- ", names)}");
         }
 
         // Ensure there are no consumers with the same name per event
@@ -95,10 +101,12 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
             if (conflict != null)
             {
                 var names = conflict.Select(r => r.ConsumerType.FullName);
-                throw new InvalidOperationException($"The consumer name '{conflict.Key}' cannot be used more than once on '{evr.EventType.Name}'."
-                                                  + $" Types:\r\n- {string.Join("\r\n- ", names)}");
+                return ValidateOptionsResult.Fail($"The consumer name '{conflict.Key}' cannot be used more than once on '{evr.EventType.Name}'."
+                                                + $" Types:\r\n- {string.Join("\r\n- ", names)}");
             }
         }
+
+        return ValidateOptionsResult.Success;
     }
 
     /// <inheritdoc/>

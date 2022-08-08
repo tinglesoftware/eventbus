@@ -8,11 +8,11 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="RabbitMqTransportOptions"/>.
 /// </summary>
-internal class RabbitMqPostConfigureOptions : IPostConfigureOptions<RabbitMqTransportOptions>
+internal class RabbitMqConfigureOptions : IPostConfigureOptions<RabbitMqTransportOptions>
 {
     private readonly EventBusOptions busOptions;
 
-    public RabbitMqPostConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    public RabbitMqConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
     {
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }

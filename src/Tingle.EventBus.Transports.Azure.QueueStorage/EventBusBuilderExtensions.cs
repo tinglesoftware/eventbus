@@ -23,7 +23,7 @@ public static class EventBusBuilderExtensions
 
         // configure the options for Azure Queue Storage
         services.Configure(configure);
-        services.ConfigureOptions<AzureQueueStoragePostConfigureOptions>();
+        services.ConfigureOptions<AzureQueueStorageConfigureOptions>();
 
         // register the transport
         builder.AddTransport<AzureQueueStorageTransport, AzureQueueStorageTransportOptions>();

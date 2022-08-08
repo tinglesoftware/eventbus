@@ -23,7 +23,7 @@ public static class EventBusBuilderExtensions
 
         // configure the options for Kafka
         services.Configure(configure);
-        services.ConfigureOptions<KafkaPostConfigureOptions>();
+        services.ConfigureOptions<KafkaConfigureOptions>();
 
         // register the transport
         builder.AddTransport<KafkaTransport, KafkaTransportOptions>();

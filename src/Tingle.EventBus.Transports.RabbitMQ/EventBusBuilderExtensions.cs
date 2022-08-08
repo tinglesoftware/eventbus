@@ -23,7 +23,7 @@ public static class EventBusBuilderExtensions
 
         // configure the options for RabbitMQ
         services.Configure(configure);
-        services.ConfigureOptions<RabbitMqPostConfigureOptions>();
+        services.ConfigureOptions<RabbitMqConfigureOptions>();
 
         // register the transport
         builder.AddTransport<RabbitMqTransport, RabbitMqTransportOptions>();

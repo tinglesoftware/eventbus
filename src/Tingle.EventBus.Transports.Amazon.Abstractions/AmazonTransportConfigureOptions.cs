@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AmazonTransportOptions"/> derivatives.
 /// </summary>
-public abstract class AmazonTransportPostConfigureOptions<TOptions> : IPostConfigureOptions<TOptions> where TOptions : AmazonTransportOptions
+public abstract class AmazonTransportConfigureOptions<TOptions> : IPostConfigureOptions<TOptions> where TOptions : AmazonTransportOptions
 {
     /// <inheritdoc/>
     public virtual void PostConfigure(string name, TOptions options)

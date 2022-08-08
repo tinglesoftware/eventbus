@@ -22,7 +22,7 @@ public static class EventBusBuilderExtensions
         // Configure the options for the serializer
         var services = builder.Services;
         if (configure != null) services.Configure(configure);
-        services.ConfigureOptions<NewtonsoftJsonSerializerPostConfigureOptions>();
+        services.ConfigureOptions<NewtonsoftJsonSerializerConfigureOptions>();
 
         // Add the serializer
         return builder.UseDefaultSerializer<NewtonsoftJsonSerializer>();

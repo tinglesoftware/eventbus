@@ -90,7 +90,7 @@ public class EventBusBuilder
         where TOptions : EventBusTransportOptionsBase
     {
         // Post configure the common transport options
-        Services.ConfigureOptions<TransportOptionsPostConfigureOptions<TOptions>>();
+        Services.ConfigureOptions<TransportOptionsConfigureOptions<TOptions>>();
 
         // Register for resolution
         Services.AddSingleton<IEventBusTransport, TTransport>();

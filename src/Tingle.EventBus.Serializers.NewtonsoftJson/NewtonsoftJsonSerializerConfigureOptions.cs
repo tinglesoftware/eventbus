@@ -6,7 +6,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="NewtonsoftJsonSerializerOptions"/>.
 /// </summary>
-internal class NewtonsoftJsonSerializerPostConfigureOptions : IPostConfigureOptions<NewtonsoftJsonSerializerOptions>
+internal class NewtonsoftJsonSerializerConfigureOptions : IPostConfigureOptions<NewtonsoftJsonSerializerOptions>
 {
     public void PostConfigure(string name, NewtonsoftJsonSerializerOptions options)
     {

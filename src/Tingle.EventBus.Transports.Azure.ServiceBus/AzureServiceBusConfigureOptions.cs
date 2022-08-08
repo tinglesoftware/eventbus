@@ -7,11 +7,11 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AzureServiceBusTransportOptions"/>.
 /// </summary>
-internal class AzureServiceBusPostConfigureOptions : AzureTransportPostConfigureOptions<AzureServiceBusTransportCredentials, AzureServiceBusTransportOptions>
+internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<AzureServiceBusTransportCredentials, AzureServiceBusTransportOptions>
 {
     private readonly EventBusOptions busOptions;
 
-    public AzureServiceBusPostConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    public AzureServiceBusConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
     {
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }

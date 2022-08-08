@@ -21,7 +21,7 @@ public class NewtonsoftJsonSerializer : AbstractEventSerializer
     /// <param name="optionsAccessor"></param>
     /// <param name="loggerFactory"></param>
     public NewtonsoftJsonSerializer(IOptions<NewtonsoftJsonSerializerOptions> serializerOptionsAccessor,
-                                    IOptionsMonitor<EventBusOptions> optionsAccessor,
+                                    IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
                                     ILoggerFactory loggerFactory)
         : base(optionsAccessor, loggerFactory)
     {

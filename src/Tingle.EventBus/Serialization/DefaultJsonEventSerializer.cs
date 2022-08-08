@@ -15,7 +15,7 @@ public class DefaultJsonEventSerializer : AbstractEventSerializer
     /// </summary>
     /// <param name="optionsAccessor">The options for configuring the serializer.</param>
     /// <param name="loggerFactory"></param>
-    public DefaultJsonEventSerializer(IOptionsMonitor<EventBusOptions> optionsAccessor,
+    public DefaultJsonEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
                                       ILoggerFactory loggerFactory)
         : base(optionsAccessor, loggerFactory) { }
 

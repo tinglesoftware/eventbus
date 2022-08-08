@@ -9,7 +9,7 @@ public class AzureDevOpsEventSerializer : AbstractEventSerializer
 {
     private readonly JsonSerializer serializer = JsonSerializer.CreateDefault();
 
-    public AzureDevOpsEventSerializer(IOptionsMonitor<EventBusOptions> optionsAccessor,
+    public AzureDevOpsEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
                                       ILoggerFactory loggerFactory)
         : base(optionsAccessor, loggerFactory) { }
 

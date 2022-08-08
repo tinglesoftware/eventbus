@@ -1,9 +1,7 @@
 ﻿using Polly.Retry;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
 using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
-using Tingle.EventBus.Serialization;
 using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -23,28 +21,6 @@ public class EventBusOptions
     /// Gets the <see cref="EventBusNamingOptions"/> for the Event Bus.
     /// </summary>
     public EventBusNamingOptions Naming { get; } = new EventBusNamingOptions();
-
-    /// <summary>
-    /// The options to use for serialization.
-    /// </summary>
-    public JsonSerializerOptions SerializerOptions { get; set; } = new JsonSerializerOptions
-    {
-        NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
-                       | System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString,
-        WriteIndented = false, // less data used
-        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault
-                               | System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true,
-        AllowTrailingCommas = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-    };
-
-    /// <summary>
-    /// The information about the host where the EventBus is running.
-    /// </summary>
-    public HostInfo? HostInfo { get; set; }
 
     /// <summary>
     /// Indicates if the messages/events produced require guard against duplicate messages.

@@ -15,7 +15,7 @@ public class XmlEventSerializer : AbstractEventSerializer
     /// </summary>
     /// <param name="optionsAccessor">The options for configuring the serializer.</param>
     /// <param name="loggerFactory"></param>
-    public XmlEventSerializer(IOptionsMonitor<EventBusOptions> optionsAccessor,
+    public XmlEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
                               ILoggerFactory loggerFactory)
         : base(optionsAccessor, loggerFactory) { }
 

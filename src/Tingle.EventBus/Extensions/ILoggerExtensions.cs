@@ -51,8 +51,8 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(301, LogLevel.Information, "Sending event '{EventBusId}' using '{TransportName}' transport.")]
     private static partial void SendingEvent(this ILogger logger, string? eventBusId, string transportName);
 
-    [LoggerMessage(302, LogLevel.Information, "Sending event '{EventBusId}' using '{TransportName}' transport. Scheduled: {Scheduled:o}, Delay: {ReadableDelay} ({RetryDelay})")]
-    private static partial void SendingScheduledEvent(this ILogger logger, string? eventBusId, string transportName, DateTimeOffset scheduled, string readableDelay, TimeSpan retryDelay);
+    [LoggerMessage(302, LogLevel.Information, "Sending event '{EventBusId}' using '{TransportName}' transport. Scheduled: {Scheduled:o}")]
+    private static partial void SendingScheduledEvent(this ILogger logger, string? eventBusId, string transportName, DateTimeOffset scheduled);
 
     public static void SendingEvent(this ILogger logger, string? eventBusId, string transportName, DateTimeOffset? scheduled)
     {
@@ -63,16 +63,15 @@ internal static partial class ILoggerExtensions
         }
         else
         {
-            var (readableDelay, delay) = GetDelay(scheduled.Value);
-            logger.SendingScheduledEvent(eventBusId, transportName, scheduled.Value, readableDelay, delay);
+            logger.SendingScheduledEvent(eventBusId, transportName, scheduled.Value);
         }
     }
 
     [LoggerMessage(303, LogLevel.Information, "Sending {EventsCount} events using '{TransportName}' transport.\r\nEvents: {EventBusIds}")]
     private static partial void SendingEvents(this ILogger logger, int eventsCount, string transportName, IList<string?> eventBusIds);
 
-    [LoggerMessage(304, LogLevel.Information, "Sending {EventsCount} events using '{TransportName}' transport. Scheduled: {Scheduled:o}, Delay: {ReadableDelay} ({RetryDelay}).\r\nEvents: {EventBusIds}")]
-    private static partial void SendingScheduledEvents(this ILogger logger, int eventsCount, string transportName, DateTimeOffset scheduled, string readableDelay, TimeSpan retryDelay, IList<string?> eventBusIds);
+    [LoggerMessage(304, LogLevel.Information, "Sending {EventsCount} events using '{TransportName}' transport. Scheduled: {Scheduled:o}.\r\nEvents: {EventBusIds}")]
+    private static partial void SendingScheduledEvents(this ILogger logger, int eventsCount, string transportName, DateTimeOffset scheduled, IList<string?> eventBusIds);
 
     public static void SendingEvents(this ILogger logger, IList<string?> eventBusIds, string transportName, DateTimeOffset? scheduled = null)
     {
@@ -83,8 +82,7 @@ internal static partial class ILoggerExtensions
         }
         else
         {
-            var (readableDelay, delay) = GetDelay(scheduled.Value);
-            logger.SendingScheduledEvents(eventBusIds.Count, transportName, scheduled.Value, readableDelay, delay, eventBusIds);
+            logger.SendingScheduledEvents(eventBusIds.Count, transportName, scheduled.Value, eventBusIds);
         }
     }
 
@@ -115,12 +113,6 @@ internal static partial class ILoggerExtensions
         };
 
         logger.ConsumeFailed(action, eventBusId, ex);
-    }
-
-    private static (string readableDelay, TimeSpan delay) GetDelay(DateTimeOffset scheduled)
-    {
-        var delay = scheduled - DateTimeOffset.UtcNow;
-        return (delay.ToReadableString(), delay);
     }
 
     #endregion

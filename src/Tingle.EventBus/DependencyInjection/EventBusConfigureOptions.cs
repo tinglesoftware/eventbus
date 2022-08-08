@@ -10,9 +10,9 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// A class to finish configure non-trivial defaults of instances of <see cref="EventBusOptions"/>.
 /// </summary>
 internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
+                                          IConfigureOptions<EventBusSerializationOptions>,
                                           IPostConfigureOptions<EventBusOptions>,
                                           IPostConfigureOptions<EventBusReadinessOptions>,
-                                          IConfigureOptions<EventBusSerializationOptions>,
                                           IValidateOptions<EventBusOptions>,
                                           IValidateOptions<EventBusSerializationOptions>
 {
@@ -30,6 +30,25 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
     {
         // Set the default ConsumerNamePrefix
         options.Naming.ConsumerNamePrefix ??= environment.ApplicationName;
+    }
+
+    /// <inheritdoc/>
+    public void Configure(EventBusSerializationOptions options)
+    {
+        // Setup HostInfo
+        if (options.HostInfo == null)
+        {
+            var entry = System.Reflection.Assembly.GetEntryAssembly() ?? System.Reflection.Assembly.GetCallingAssembly();
+            options.HostInfo = new HostInfo
+            {
+                ApplicationName = environment.ApplicationName,
+                ApplicationVersion = entry.GetName().Version?.ToString(),
+                EnvironmentName = environment.EnvironmentName,
+                LibraryVersion = typeof(EventBus).Assembly.GetName().Version?.ToString(),
+                MachineName = Environment.MachineName,
+                OperatingSystem = Environment.OSVersion.ToString(),
+            };
+        }
     }
 
     /// <inheritdoc/>
@@ -82,6 +101,19 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
     }
 
     /// <inheritdoc/>
+    public void PostConfigure(string name, EventBusReadinessOptions options)
+    {
+        // Check bounds for readiness timeout
+        var ticks = options.Timeout.Ticks;
+        if (options.Enabled)
+        {
+            ticks = Math.Max(ticks, TimeSpan.FromSeconds(5).Ticks); // must be more than 5 seconds
+            ticks = Math.Min(ticks, TimeSpan.FromMinutes(15).Ticks); // must be less than 15 minutes
+            options.Timeout = TimeSpan.FromTicks(ticks);
+        }
+    }
+
+    /// <inheritdoc/>
     public ValidateOptionsResult Validate(string name, EventBusOptions options)
     {
         // Ensure there are no events with the same name
@@ -107,38 +139,6 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
         }
 
         return ValidateOptionsResult.Success;
-    }
-
-    /// <inheritdoc/>
-    public void PostConfigure(string name, EventBusReadinessOptions options)
-    {
-        // Check bounds for readiness timeout
-        var ticks = options.Timeout.Ticks;
-        if (options.Enabled)
-        {
-            ticks = Math.Max(ticks, TimeSpan.FromSeconds(5).Ticks); // must be more than 5 seconds
-            ticks = Math.Min(ticks, TimeSpan.FromMinutes(15).Ticks); // must be less than 15 minutes
-            options.Timeout = TimeSpan.FromTicks(ticks);
-        }
-    }
-
-    /// <inheritdoc/>
-    public void Configure(EventBusSerializationOptions options)
-    {
-        // Setup HostInfo
-        if (options.HostInfo == null)
-        {
-            var entry = System.Reflection.Assembly.GetEntryAssembly() ?? System.Reflection.Assembly.GetCallingAssembly();
-            options.HostInfo = new HostInfo
-            {
-                ApplicationName = environment.ApplicationName,
-                ApplicationVersion = entry.GetName().Version?.ToString(),
-                EnvironmentName = environment.EnvironmentName,
-                LibraryVersion = typeof(EventBus).Assembly.GetName().Version?.ToString(),
-                MachineName = Environment.MachineName,
-                OperatingSystem = Environment.OSVersion.ToString(),
-            };
-        }
     }
 
     /// <inheritdoc/>

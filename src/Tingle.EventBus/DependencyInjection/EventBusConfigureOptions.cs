@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish configure non-trivial defaults of instances of <see cref="EventBusOptions"/>.
 /// </summary>
-internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>, IPostConfigureOptions<EventBusOptions>
+internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>, IPostConfigureOptions<EventBusOptions>, IPostConfigureOptions<EventBusReadinessOptions>
 {
     private readonly IHostEnvironment environment;
     private readonly IEnumerable<IEventConfigurator> configurators;
@@ -45,19 +45,10 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>, IP
     /// <inheritdoc/>
     public void PostConfigure(string name, EventBusOptions options)
     {
-        // Check bounds for readiness timeout
-        var ticks = options.Readiness.Timeout.Ticks;
-        if (options.Readiness.Enabled)
-        {
-            ticks = Math.Max(ticks, TimeSpan.FromSeconds(5).Ticks); // must be more than 5 seconds
-            ticks = Math.Min(ticks, TimeSpan.FromMinutes(15).Ticks); // must be less than 15 minutes
-            options.Readiness.Timeout = TimeSpan.FromTicks(ticks);
-        }
-
         // Check bounds for duplicate detection duration, if duplicate detection is enabled
         if (options.EnableDeduplication)
         {
-            ticks = options.DuplicateDetectionDuration.Ticks;
+            var ticks = options.DuplicateDetectionDuration.Ticks;
             ticks = Math.Max(ticks, TimeSpan.FromSeconds(20).Ticks); // must be more than 20 seconds
             ticks = Math.Min(ticks, TimeSpan.FromDays(7).Ticks); // must be less than 7 days
             options.DuplicateDetectionDuration = TimeSpan.FromTicks(ticks);
@@ -124,6 +115,19 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>, IP
                 throw new InvalidOperationException($"The consumer name '{conflict.Key}' cannot be used more than once on '{evr.EventType.Name}'."
                                                   + $" Types:\r\n- {string.Join("\r\n- ", names)}");
             }
+        }
+    }
+
+    /// <inheritdoc/>
+    public void PostConfigure(string name, EventBusReadinessOptions options)
+    {
+        // Check bounds for readiness timeout
+        var ticks = options.Timeout.Ticks;
+        if (options.Enabled)
+        {
+            ticks = Math.Max(ticks, TimeSpan.FromSeconds(5).Ticks); // must be more than 5 seconds
+            ticks = Math.Min(ticks, TimeSpan.FromMinutes(15).Ticks); // must be less than 15 minutes
+            options.Timeout = TimeSpan.FromTicks(ticks);
         }
     }
 }

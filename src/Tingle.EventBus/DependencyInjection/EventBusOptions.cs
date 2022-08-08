@@ -20,11 +20,6 @@ public class EventBusOptions
     public TimeSpan? StartupDelay { get; set; }
 
     /// <summary>
-    /// Gets the <see cref="EventBusReadinessOptions"/> for the Event Bus.
-    /// </summary>
-    public EventBusReadinessOptions Readiness { get; } = new EventBusReadinessOptions();
-
-    /// <summary>
     /// Gets the <see cref="EventBusNamingOptions"/> for the Event Bus.
     /// </summary>
     public EventBusNamingOptions Naming { get; } = new EventBusNamingOptions();

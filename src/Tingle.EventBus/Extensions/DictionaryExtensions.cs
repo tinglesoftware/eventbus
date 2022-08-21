@@ -1,4 +1,4 @@
-﻿namespace Tingle.EventBus;
+﻿namespace System.Collections.Generic;
 
 /// <summary>
 /// Extension methods on <see cref="IDictionary{TKey, TValue}"/>

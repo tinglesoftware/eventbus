@@ -96,7 +96,14 @@ public static class IRetryableEventExtensions
         return @event.WithDelays(delays);
     }
 
-    private static T WithDelays<T>(this T @event, IEnumerable<TimeSpan> delays) where T : IRetryableEvent
+    /// <summary>
+    /// Sets pre-computed delay durations.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="event"></param>
+    /// <param name="delays">The delays to set.</param>
+    /// <returns></returns>
+    public static T WithDelays<T>(this T @event, IEnumerable<TimeSpan> delays) where T : IRetryableEvent
     {
         @event.Delays = delays.ToList();
         return @event;

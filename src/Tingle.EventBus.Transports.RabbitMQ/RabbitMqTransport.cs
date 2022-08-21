@@ -140,8 +140,8 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
 
             // Add custom properties
             properties.Headers.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
-                          .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
-                          .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
+                              .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
+                              .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
             // do actual publish
             Logger.LogInformation("Sending {Id} to '{ExchangeName}'. Scheduled: {Scheduled}",
@@ -216,8 +216,8 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
 
                 // Add custom properties
                 properties.Headers.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
-                              .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
-                              .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
+                                  .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
+                                  .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
                 // add to batch
                 batch.Add(exchange: name, routingKey: "", mandatory: false, properties: properties, body: body);

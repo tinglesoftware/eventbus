@@ -6,7 +6,6 @@
     <TargetFrameworks>netstandard2.1;net6.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Deterministic>true</Deterministic>
-    <!--<IsPackable>true</IsPackable>-->
   </PropertyGroup>
 
   <PropertyGroup>

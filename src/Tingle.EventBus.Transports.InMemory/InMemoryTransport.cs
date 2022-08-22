@@ -24,6 +24,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
     private readonly InMemoryClient inMemoryClient;
 
     private readonly ConcurrentBag<EventContext> published = new();
+    private readonly ConcurrentBag<long> cancelled = new();
     private readonly ConcurrentBag<EventContext> consumed = new();
     private readonly ConcurrentBag<EventContext> failed = new();
 
@@ -49,6 +50,11 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
     /// The published events.
     /// </summary>
     internal ConcurrentBag<EventContext> Published => published;
+
+    /// <summary>
+    /// The cancelled events.
+    /// </summary>
+    internal ConcurrentBag<long> Cancelled => cancelled;
 
     /// <summary>
     /// The consumed events.
@@ -247,6 +253,9 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
         var sender = await GetSenderAsync(registration, cancellationToken);
         Logger.CancelingMessage(sequenceNumber: seqNum, entityPath: sender.EntityPath);
         await sender.CancelScheduledMessageAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken);
+
+        // Add to cancelled list
+        cancelled.Add(seqNum);
     }
 
     /// <inheritdoc/>
@@ -269,6 +278,9 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
         var sender = await GetSenderAsync(registration, cancellationToken);
         Logger.CancelingMessages(sequenceNumbers: seqNums, entityPath: sender.EntityPath);
         await sender.CancelScheduledMessagesAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken);
+
+        // Add to cancelled list
+        AddBatch(cancelled, seqNums);
     }
 
     private async Task<InMemorySender> GetSenderAsync(EventRegistration reg, CancellationToken cancellationToken)

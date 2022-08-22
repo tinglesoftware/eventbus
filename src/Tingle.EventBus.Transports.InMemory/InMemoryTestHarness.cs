@@ -76,6 +76,26 @@ public class InMemoryTestHarness
     }
 
     /// <summary>
+    /// Gets all the cancelled events.
+    /// </summary>
+    public IEnumerable<long> Cancelled() => transport.Cancelled;
+
+    /// <summary>
+    /// Gets all the cancelled events.
+    /// </summary>
+    /// <param name="delay">
+    /// The duration of time to delay.
+    /// When <see langword="null"/>, the default value (<see cref="InMemoryTestHarnessOptions.DefaultDelay"/>) is used
+    /// </param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<IEnumerable<long>> CancelledAsync(TimeSpan? delay = null, CancellationToken cancellationToken = default)
+    {
+        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken);
+        return Cancelled();
+    }
+
+    /// <summary>
     /// Gets all the consumed events.
     /// </summary>
     public IEnumerable<EventContext> Consumed() => transport.Consumed;

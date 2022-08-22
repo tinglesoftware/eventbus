@@ -33,12 +33,12 @@ public class SimplePublisherTests
             var orderProcessor = provider.GetRequiredService<RandomOrderProcessor>();
             await orderProcessor.ProcessAsync(orderNumber);
 
+            // Ensure no failures
+            Assert.False(harness.Failed().Any());
+
             // expect publish for event order numbers
             if ((orderNumber % 2) == 0)
             {
-                // Ensure no failures
-                Assert.False(harness.Failed().Any());
-
                 // Ensure only one was published
                 var context = Assert.Single(harness.Published<OrderProcessedEvent>());
                 var evt = context.Event;
@@ -46,9 +46,6 @@ public class SimplePublisherTests
             }
             else
             {
-                // Ensure no failures
-                Assert.False(harness.Failed().Any());
-
                 // Ensure nothing was published
                 Assert.False(harness.Published().Any());
             }

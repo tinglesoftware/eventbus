@@ -19,13 +19,13 @@ public abstract class AzureTransportConfigureOptions<TCredential, TOptions> : IP
     public virtual ValidateOptionsResult Validate(string name, TOptions options)
     {
         // We should either have a token credential or a connection string
-        if (options.Credentials is null || options.Credentials.Value is null)
+        if (options.Credentials == default || options.Credentials.CurrentValue is null)
         {
             return ValidateOptionsResult.Fail($"'{nameof(options.Credentials)}' must be provided in form a connection string or an instance of '{typeof(TCredential).Name}'.");
         }
 
         // We must have TokenCredential if using TCredential
-        if (options.Credentials.Value is TCredential tc && tc.TokenCredential is null)
+        if (options.Credentials.CurrentValue is TCredential tc && tc.TokenCredential is null)
         {
             return ValidateOptionsResult.Fail($"'{nameof(tc.TokenCredential)}' must be provided when using '{typeof(TCredential).Name}'.");
         }

@@ -1,4 +1,5 @@
-﻿using Tingle.EventBus.Transports;
+﻿using AnyOfTypes;
+using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -11,5 +12,5 @@ public abstract class AzureTransportOptions<TCredential> : EventBusTransportOpti
     /// Authentication credentials.
     /// This can either be a connection string or <typeparamref name="TCredential"/>.
     /// </summary>
-    public AnyOf<TCredential, string>? Credentials { get; set; }
+    public AnyOf<TCredential, string> Credentials { get; set; }
 }

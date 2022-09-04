@@ -35,7 +35,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
                                       ILoggerFactory loggerFactory)
         : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
     {
-        var cred = TransportOptions.Credentials!.Value!;
+        var cred = TransportOptions.Credentials.CurrentValue;
         serviceClient = cred is AzureQueueStorageTransportCredentials aqstc
                 ? new QueueServiceClient(serviceUri: aqstc.ServiceUrl, credential: aqstc.TokenCredential)
                 : new QueueServiceClient(connectionString: (string)cred);
@@ -229,7 +229,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
 
                 // create the queue client
                 // queueUri has the format "https://{account_name}.queue.core.windows.net/{queue_name}" which can be made using "{serviceClient.Uri}/{queue_name}"
-                var cred = TransportOptions.Credentials!.Value!;
+                var cred = TransportOptions.Credentials.CurrentValue;
                 queueClient = cred is AzureQueueStorageTransportCredentials aqstc
                     ? new QueueClient(queueUri: new Uri($"{serviceClient.Uri}/{name}"), credential: aqstc.TokenCredential, options: qco)
                     : new QueueClient(connectionString: (string)cred, queueName: name, options: qco);

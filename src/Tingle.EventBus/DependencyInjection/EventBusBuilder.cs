@@ -14,7 +14,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 public class EventBusBuilder
 {
     /// <summary>
-    /// Creates an instance os <see cref="EventBusBuilder"/>
+    /// Creates an instance of <see cref="EventBusBuilder"/>
     /// </summary>
     /// <param name="services"></param>
     public EventBusBuilder(IServiceCollection services)

@@ -38,7 +38,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                                     ILoggerFactory loggerFactory)
         : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
     {
-        var cred = TransportOptions.Credentials!.Value!;
+        var cred = TransportOptions.Credentials.CurrentValue;
         var sbcOptions = new ServiceBusClientOptions { TransportType = TransportOptions.TransportType, };
         if (cred is AzureServiceBusTransportCredentials asbtc)
         {

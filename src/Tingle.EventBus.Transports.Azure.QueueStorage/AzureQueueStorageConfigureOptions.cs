@@ -22,7 +22,7 @@ internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOption
         base.PostConfigure(name, options);
 
         // ensure we have a ServiceUrl when using AzureQueueStorageTransportCredentials
-        if (options.Credentials!.Value is AzureQueueStorageTransportCredentials asbtc && asbtc.ServiceUrl is null)
+        if (options.Credentials.CurrentValue is AzureQueueStorageTransportCredentials asbtc && asbtc.ServiceUrl is null)
         {
             throw new InvalidOperationException($"'{nameof(AzureQueueStorageTransportCredentials.ServiceUrl)}' must be provided when using '{nameof(AzureQueueStorageTransportCredentials)}'.");
         }

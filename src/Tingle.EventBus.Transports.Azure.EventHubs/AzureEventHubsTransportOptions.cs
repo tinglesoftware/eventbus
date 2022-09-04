@@ -1,4 +1,5 @@
-﻿using Azure.Messaging.EventHubs;
+﻿using AnyOfTypes;
+using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Producer;
 using Tingle.EventBus;
@@ -21,7 +22,7 @@ public class AzureEventHubsTransportOptions : AzureTransportOptions<AzureEventHu
     /// which allows the events to be processed from a certain point.
     /// It is also used to create a lease per partition hence preventing duplicate events.
     /// </summary>
-    public AnyOf<AzureBlobStorageCredentials, string>? BlobStorageCredentials { get; set; }
+    public AnyOf<AzureBlobStorageCredentials, string> BlobStorageCredentials { get; set; }
 
     /// <summary>
     /// The name of the blob container used by the EventHubs processor.

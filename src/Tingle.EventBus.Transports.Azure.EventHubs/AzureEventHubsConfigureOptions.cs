@@ -22,7 +22,7 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
         base.PostConfigure(name, options);
 
         // ensure we have a FullyQualifiedNamespace when using AzureEventHubsTransportCredentials
-        if (options.Credentials!.Value is AzureEventHubsTransportCredentials aehtc && aehtc.FullyQualifiedNamespace is null)
+        if (options.Credentials.CurrentValue is AzureEventHubsTransportCredentials aehtc && aehtc.FullyQualifiedNamespace is null)
         {
             throw new InvalidOperationException($"'{nameof(AzureEventHubsTransportCredentials.FullyQualifiedNamespace)}' must be provided when using '{nameof(AzureEventHubsTransportCredentials)}'.");
         }
@@ -35,13 +35,13 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
         if (registrations.Any(r => r.Consumers.Count > 0))
         {
             // ensure the connection string for blob storage or token credential is provided
-            if (options.BlobStorageCredentials is null || options.BlobStorageCredentials.Value is null)
+            if (options.BlobStorageCredentials == default || options.BlobStorageCredentials.CurrentValue is null)
             {
                 throw new InvalidOperationException($"'{nameof(options.BlobStorageCredentials)}' must be provided in form a connection string or an instance of '{nameof(AzureBlobStorageCredentials)}'.");
             }
 
             // ensure we have a BlobServiceUrl when using AzureBlobStorageCredential
-            if (options.BlobStorageCredentials.Value is AzureBlobStorageCredentials absc && absc.BlobServiceUrl is null)
+            if (options.BlobStorageCredentials.CurrentValue is AzureBlobStorageCredentials absc && absc.BlobServiceUrl is null)
             {
                 throw new InvalidOperationException($"'{nameof(AzureBlobStorageCredentials.BlobServiceUrl)}' must be provided when using '{nameof(AzureBlobStorageCredentials)}'.");
             }

@@ -18,7 +18,7 @@ internal class TransportOptionsConfigureOptions<T> : IPostConfigureOptions<T> wh
         ticks = Math.Min(ticks, TimeSpan.FromMinutes(10).Ticks); // must be less than 10 minutes
         options.EmptyResultsDelay = TimeSpan.FromTicks(ticks);
 
-        // ensure the deadletter suffix name has been set
+        // ensure the dead-letter suffix name has been set
         if (string.IsNullOrWhiteSpace(options.DeadLetterSuffix))
         {
             throw new InvalidOperationException($"The '{nameof(options.DeadLetterSuffix)}' must be provided");

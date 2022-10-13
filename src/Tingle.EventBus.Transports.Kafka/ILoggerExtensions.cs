@@ -13,7 +13,7 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(101, LogLevel.Warning, "Kafka does not support batching. The events will be looped through one by one.")]
     public static partial void BatchingNotSupported(this ILogger logger);
 
-    [LoggerMessage(102, LogLevel.Information, "Consumer recevied data at {Offset}")]
+    [LoggerMessage(102, LogLevel.Information, "Consumer received data at {Offset}")]
     public static partial void ConsumerReceivedData(this ILogger logger, TopicPartitionOffset offset);
 
     [LoggerMessage(103, LogLevel.Trace, "Reached end of topic {Topic}, Partition: {Partition}, Offset: {Offset}.")]

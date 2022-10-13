@@ -141,7 +141,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
             message.ScheduledEnqueueTime = scheduled.Value.UtcDateTime;
         }
 
-        // If expiry is set in the future, set the ttl in the message
+        // If expiry is set in the future, set the TTL in the message
         if (@event.Expires != null && @event.Expires > DateTimeOffset.UtcNow)
         {
             var ttl = @event.Expires.Value - DateTimeOffset.UtcNow;
@@ -203,7 +203,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                 message.ScheduledEnqueueTime = scheduled.Value.UtcDateTime;
             }
 
-            // If expiry is set in the future, set the ttl in the message
+            // If expiry is set in the future, set the TTL in the message
             if (@event.Expires != null && @event.Expires > DateTimeOffset.UtcNow)
             {
                 var ttl = @event.Expires.Value - DateTimeOffset.UtcNow;
@@ -603,10 +603,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         try
         {
-            if (properties is null)
-            {
-                properties = await managementClient.GetNamespacePropertiesAsync(cancellationToken);
-            }
+            properties ??= await managementClient.GetNamespacePropertiesAsync(cancellationToken);
         }
         finally
         {
@@ -645,10 +642,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
         if (successful) return autoComplete ? null : (PostConsumeAction?)PostConsumeAction.Complete;
 
         // At this point it is not successful
-        if (autoComplete)
-            return behaviour == UnhandledConsumerErrorBehaviour.Discard
-                    ? null
-                    : (PostConsumeAction?)PostConsumeAction.Throw;
+        if (autoComplete) return behaviour is UnhandledConsumerErrorBehaviour.Discard ? null : PostConsumeAction.Throw;
 
         return behaviour switch
         {

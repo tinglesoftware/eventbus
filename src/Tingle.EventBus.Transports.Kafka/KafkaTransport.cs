@@ -300,7 +300,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
 
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {
-            // produce message on deadletter topic
+            // produce message on dead-letter topic
             var dlt = reg.EventName += TransportOptions.DeadLetterSuffix;
             await producer.ProduceAsync(topic: dlt, message: message, cancellationToken: cancellationToken);
         }

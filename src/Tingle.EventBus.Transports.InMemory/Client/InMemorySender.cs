@@ -33,7 +33,7 @@ internal sealed class InMemorySender : IDisposable
             // wait to be notified of an item added
             await available.WaitAsync(waitTimeout, cancellationToken);
 
-            var cached = items.ToList(); // just incase it is changed
+            var cached = items.ToList(); // just in case it is changed
             foreach (var msg in cached)
             {
                 if (msg.Scheduled <= DateTimeOffset.UtcNow)

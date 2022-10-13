@@ -16,7 +16,7 @@ internal class AzureDevOpsEventsConsumer : IEventConsumer<AzureDevOpsCodePushed>
         var repository = resource?.Repository;
         var defaultBranch = repository?.DefaultBranch;
 
-        // get the updated branchs (refs)
+        // get the updated branches (refs)
         var updatedReferences = resource?.RefUpdates?.Select(ru => ru.Name).ToList() ?? new List<string?>();
         logger.LogInformation("Default branch: ({DefaultBranch})", defaultBranch);
         logger.LogInformation("Updated branches (references):\r\n- {ChangedReferences}",

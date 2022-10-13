@@ -22,7 +22,7 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(104, LogLevel.Information, "Performing readiness check before starting bus.")]
     public static partial void StartupReadinessCheck(this ILogger logger);
 
-    [LoggerMessage(105, LogLevel.Error, "Startup readiness check failed or timedout.")]
+    [LoggerMessage(105, LogLevel.Error, "Startup readiness check failed or timed-out.")]
     public static partial void StartupReadinessCheckFailed(this ILogger logger, Exception ex);
 
     [LoggerMessage(106, LogLevel.Debug, "Starting bus with {TransportsCount} transports.")]
@@ -107,7 +107,7 @@ internal static partial class ILoggerExtensions
     {
         var action = behaviour switch
         {
-            UnhandledConsumerErrorBehaviour.Deadletter => "Moving to deadletter.",
+            UnhandledConsumerErrorBehaviour.Deadletter => "Moving to dead-letter.",
             UnhandledConsumerErrorBehaviour.Discard => "Discarding event.",
             _ => "Transport specific handling in play.",
         };
@@ -122,7 +122,7 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(401, LogLevel.Information, "Performing readiness check. Timeout: '{ReadinessTimeout}'.")]
     public static partial void ReadinessCheck(this ILogger logger, TimeSpan readinessTimeout);
 
-    [LoggerMessage(402, LogLevel.Error, "Startup readiness check failed or timedout after '{ReadinessTimeout}'.")]
+    [LoggerMessage(402, LogLevel.Error, "Startup readiness check failed or timed-out after '{ReadinessTimeout}'.")]
     public static partial void ReadinessCheckTimedout(this ILogger logger, TimeSpan readinessTimeout);
 
     [LoggerMessage(403, LogLevel.Debug, "Readiness check is disabled. Assumes ready by default.")]

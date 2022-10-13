@@ -33,7 +33,7 @@ internal class DummyProducerService : BackgroundService
 
         for (var i = 0; i < times; i++)
         {
-            // Select vehicle, door kind and door state randonly
+            // Select vehicle, door kind and door state randomly
             var vehicle = vehicles[rnd.Next(0, combinations) * 1 % vehicles.Count];
             var kind = kinds[rnd.Next(0, combinations) * i % kinds.Count];
             var state = states[rnd.Next(0, combinations) * i % states.Count];

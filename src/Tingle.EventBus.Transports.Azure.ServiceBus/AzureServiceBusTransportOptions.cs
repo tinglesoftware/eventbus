@@ -86,7 +86,7 @@ public class AzureServiceBusTransportOptions : AzureTransportOptions<AzureServic
 
     /// <summary>
     /// A function to create the processor options instead of using the default options.
-    /// Some options set may still be overriding for proper operation of the the transport and the bus.
+    /// Some options set may still be overriding for proper operation of the transport and the bus.
     /// </summary>
     public Action<EventRegistration, EventConsumerRegistration, ServiceBusProcessorOptions>? SetupProcessorOptions { get; set; }
 }

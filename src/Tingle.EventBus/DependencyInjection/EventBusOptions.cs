@@ -29,7 +29,7 @@ public class EventBusOptions
     /// Defaults to <see langword="false"/>.
     /// </summary>
     /// <remarks>
-    /// Duplicate detection can only be done on the transport layer because it requires peristent storage.
+    /// Duplicate detection can only be done on the transport layer because it requires persistent storage.
     /// This feature only works if the transport a message is sent on supports duplicate detection.
     /// </remarks>
     public bool EnableDeduplication { get; set; } = false;

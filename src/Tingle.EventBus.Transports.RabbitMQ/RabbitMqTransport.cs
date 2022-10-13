@@ -131,7 +131,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
                 }
             }
 
-            // if expiry is set in the future, set the ttl in the message
+            // if expiry is set in the future, set the TTL in the message
             if (@event.Expires != null && @event.Expires > DateTimeOffset.UtcNow)
             {
                 var ttl = @event.Expires.Value - DateTimeOffset.UtcNow;
@@ -207,7 +207,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
                     }
                 }
 
-                // if expiry is set in the future, set the ttl in the message
+                // if expiry is set in the future, set the TTL in the message
                 if (@event.Expires != null && @event.Expires > DateTimeOffset.UtcNow)
                 {
                     var ttl = @event.Expires.Value - DateTimeOffset.UtcNow;
@@ -343,7 +343,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
         else if (action == PostConsumeAction.Deadletter || action == PostConsumeAction.Reject)
         {
             /*
-             * requeue=false is the action that results in moving to a deadletter queue
+             * requeue=false is the action that results in moving to a dead-letter queue
              * requeue=true will allow consumption later or by another consumer instance
              */
             var requeue = action == PostConsumeAction.Reject;

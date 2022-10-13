@@ -94,7 +94,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
         // if scheduled for later, calculate the visibility timeout
         var visibilityTimeout = scheduled - DateTimeOffset.UtcNow;
 
-        // if expiry is set, calculate the ttl
+        // if expiry is set, calculate the TTL
         var ttl = @event.Expires - DateTimeOffset.UtcNow;
 
         // get the queue client and send the message
@@ -134,7 +134,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
             // if scheduled for later, calculate the visibility timeout
             var visibilityTimeout = scheduled - DateTimeOffset.UtcNow;
 
-            // if expiry is set, calculate the ttl
+            // if expiry is set, calculate the TTL
             var ttl = @event.Expires - DateTimeOffset.UtcNow;
 
             // send the message
@@ -351,7 +351,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
 
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {
-            // get the client for the dead letter queue and send the mesage there
+            // get the client for the dead letter queue and send the message there
             var dlqClient = await GetQueueClientAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
             await dlqClient.SendMessageAsync(message.MessageText, cancellationToken);
         }

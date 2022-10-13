@@ -140,7 +140,7 @@ public abstract class AbstractEventSerializer : IEventSerializer
     /// </summary>
     /// <param name="stream">
     /// The stream to serialize to.
-    /// (It must be writeable, i.e. <see cref="Stream.CanWrite"/> must be true).
+    /// (It must be writable, i.e. <see cref="Stream.CanWrite"/> must be true).
     /// </param>
     /// <param name="envelope">The <see cref="EventEnvelope{T}"/> to be serialized.</param>
     /// <param name="cancellationToken"></param>

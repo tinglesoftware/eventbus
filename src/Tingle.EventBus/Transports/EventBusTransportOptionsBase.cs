@@ -10,7 +10,7 @@ namespace Tingle.EventBus.Transports;
 public abstract class EventBusTransportOptionsBase
 {
     /// <summary>
-    /// The delay to introduce everytime zero messages are received.
+    /// The delay to introduce every time zero messages are received.
     /// This eases on the CPU consumption and reduces the query costs.
     /// The default value is 1 minute. Max value is 10 minutes and minimum is 30 seconds.
     /// </summary>
@@ -28,7 +28,7 @@ public abstract class EventBusTransportOptionsBase
     public bool EnableEntityCreation { get; set; } = true;
 
     /// <summary>
-    /// The suffix to append to deadletter entities.
+    /// The suffix to append to dead-letter entities.
     /// Dead letter entities are created on transports where they are not created by default,
     /// and therefore look like normal entities.
     /// Defaults to <c>-deadletter</c>.
@@ -87,7 +87,7 @@ public abstract class EventBusTransportOptionsBase
     }
 
     /// <summary>
-    /// Set value for <see cref="EventRegistration.IdFormat"/> with prioritization of the transport default over the bus default.
+    /// Set value for <see cref="EventRegistration.IdFormat"/> while prioritizing the transport default over the bus default.
     /// </summary>
     /// <param name="reg"></param>
     /// <param name="busOptions"></param>

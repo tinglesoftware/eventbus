@@ -9,7 +9,7 @@ public enum UnhandledConsumerErrorBehaviour
 {
     /// <summary>
     /// Move the event to dead-letter entity.
-    /// Handling of deadletter is transport specific.
+    /// Handling of dead-letter is transport specific.
     /// </summary>
     Deadletter,
 

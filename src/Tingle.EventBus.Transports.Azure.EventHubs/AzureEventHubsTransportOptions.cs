@@ -58,7 +58,7 @@ public class AzureEventHubsTransportOptions : AzureTransportOptions<AzureEventHu
     /// The checkpoint is done by writing to Azure Blob Storage.
     /// This can occasionally be slow compared to the rate at which the consumer
     /// is capable of consuming messages. A low checkpoint interval may increase
-    /// the costs incured by your Azure Blob Storage account.
+    /// the costs incurred by your Azure Blob Storage account.
     /// A high performance application will typically set the interval high so
     /// that checkpoints are done relatively infrequently and be designed to handle
     /// duplicate messages in the event of failure.
@@ -68,13 +68,13 @@ public class AzureEventHubsTransportOptions : AzureTransportOptions<AzureEventHu
 
     /// <summary>
     /// A function to create the producer options instead of using the default options.
-    /// Some options set may still be overriding for proper operation of the the transport and the bus.
+    /// Some options set may still be overriding for proper operation of the transport and the bus.
     /// </summary>
     public Action<EventRegistration, EventHubProducerClientOptions>? SetupProducerClientOptions { get; set; }
 
     /// <summary>
     /// A function to create the processor options instead of using the default options.
-    /// Some options set may still be overriding for proper operation of the the transport and the bus.
+    /// Some options set may still be overriding for proper operation of the transport and the bus.
     /// </summary>
     public Action<EventRegistration, EventConsumerRegistration, EventProcessorClientOptions>? SetupProcessorClientOptions { get; set; }
 }

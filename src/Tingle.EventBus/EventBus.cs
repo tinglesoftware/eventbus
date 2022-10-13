@@ -207,7 +207,7 @@ public class EventBus
         var delay = options.StartupDelay;
         if (delay != null && delay > TimeSpan.Zero)
         {
-            // With delayed startup, the error may dissappear since the call to this method is not awaited.
+            // With delayed startup, the error may disappear since the call to this method is not awaited.
             // The appropriate logging needs to be done.
             try
             {

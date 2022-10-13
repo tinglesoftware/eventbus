@@ -37,7 +37,7 @@ public class RabbitMqTransportOptions : EventBusTransportOptionsBase
 
     /// <summary>
     /// The factory for creating <see cref="IConnection"/> instances when needed.
-    /// When not provided, aa factory is created from the settings available in this class.
+    /// When not provided, a factory is created from the settings available in this class.
     /// </summary>
     public ConnectionFactory? ConnectionFactory { get; set; }
 }

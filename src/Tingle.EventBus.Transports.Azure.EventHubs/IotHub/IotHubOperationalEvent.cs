@@ -76,7 +76,7 @@ public record IotHubDeviceConnectionStateEvent
     public string? SequenceNumber { get; set; }
 }
 
-/// <summary>Asbtractions for an Azure IoT Hub Event.</summary>
+/// <summary>Abstractions for an Azure IoT Hub Event.</summary>
 public abstract record AbstractIotHubEvent
 {
     /// <summary>Unique identifier of the device.</summary>

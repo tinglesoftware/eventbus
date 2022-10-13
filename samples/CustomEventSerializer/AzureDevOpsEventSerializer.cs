@@ -35,7 +35,7 @@ public class AzureDevOpsEventSerializer : AbstractEventSerializer
             Sent = jToken.Value<DateTime>("createdDate"),
         };
 
-        // you can consider moving this to extenion methods on EventContext for both get and set
+        // you can consider moving this to extension methods on EventContext for both get and set
         envelope.Headers["eventType"] = jToken.Value<string>("eventType")!;
         envelope.Headers["resourceVersion"] = jToken.Value<string>("resourceVersion")!;
         envelope.Headers["publisherId"] = jToken.Value<string>("publisherId")!;

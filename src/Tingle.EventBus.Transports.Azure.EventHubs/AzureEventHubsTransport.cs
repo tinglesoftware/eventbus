@@ -476,7 +476,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
     internal static bool ShouldCheckpoint(bool successful, UnhandledConsumerErrorBehaviour? behaviour)
     {
         /*
-         * We should only checkpoint if successful or we are discarding or deadlettering.
+         * We should only checkpoint if successful or we are discarding or dead-lettering.
          * Otherwise the consumer should be allowed to handle the event again.
          * */
         return successful

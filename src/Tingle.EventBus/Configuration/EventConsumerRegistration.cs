@@ -42,7 +42,7 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
 
     /// <summary>
     /// The retry policy to apply when consuming events.
-    /// This is an outter wrapper around the
+    /// This is an outer wrapper around the
     /// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, CancellationToken)"/>
     /// method.
     /// When set to <see langword="null"/>, the method is only invoked once.
@@ -51,7 +51,7 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     /// </summary>
     /// <remarks>
     /// When a value is provided, the transport may extend the lock for the
-    /// message until the execution with with retry policy completes successfully or not.
+    /// message until the execution with retry policy completes successfully or not.
     /// In such a case, ensure the execution timeout (sometimes called the visibility timeout
     /// or lock duration) is set to accommodate the longest possible duration of the retry policy.
     /// </remarks>
@@ -62,8 +62,8 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     /// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, CancellationToken)"/>
     /// method.
     /// When set to <see langword="null"/>, the transport's default behaviour is used.
-    /// Depending on the transport, the event may be delayed for reconsumption
-    /// or added back to the entity or availed to another processor/consumer instnance.
+    /// Depending on the transport, the event may be delayed for re-consumption
+    /// or added back to the entity or availed to another processor/consumer instance.
     /// Defaults to <see langword="null"/>.
     /// When this value is set, it overrides the default value set on the transport or the bus.
     /// <br/>
@@ -81,7 +81,7 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     /// Sets <see cref="UnhandledErrorBehaviour"/> to <paramref name="behaviour"/>.
     /// </summary>
     /// <param name="behaviour">The value to set.</param>
-    /// <returns>The <see cref="EventConsumerRegistration"/> for futher configuration.</returns>
+    /// <returns>The <see cref="EventConsumerRegistration"/> for further configuration.</returns>
     public EventConsumerRegistration OnError(UnhandledConsumerErrorBehaviour? behaviour)
     {
         UnhandledErrorBehaviour = behaviour;
@@ -91,13 +91,13 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     /// <summary>
     /// Sets <see cref="UnhandledErrorBehaviour"/> to <see cref="UnhandledConsumerErrorBehaviour.Deadletter"/>.
     /// </summary>
-    /// <returns>The <see cref="EventConsumerRegistration"/> for futher configuration.</returns>
+    /// <returns>The <see cref="EventConsumerRegistration"/> for further configuration.</returns>
     public EventConsumerRegistration OnErrorDeadletter() => OnError(UnhandledConsumerErrorBehaviour.Deadletter);
 
     /// <summary>
     /// Sets <see cref="UnhandledErrorBehaviour"/> to <see cref="UnhandledConsumerErrorBehaviour.Discard"/>.
     /// </summary>
-    /// <returns>The <see cref="EventConsumerRegistration"/> for futher configuration.</returns>
+    /// <returns>The <see cref="EventConsumerRegistration"/> for further configuration.</returns>
     public EventConsumerRegistration OnErrorDiscard() => OnError(UnhandledConsumerErrorBehaviour.Discard);
 
     #region Equality Overrides

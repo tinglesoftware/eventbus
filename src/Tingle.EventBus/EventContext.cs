@@ -87,7 +87,7 @@ public abstract class EventContext : WrappedEventPublisher
     /// <returns></returns>
     public HostInfo? GetSenderHostInfo() => hostInfo;
 
-    #region Header Value convertions
+    #region Header Value conversions
 
     /// <summary>
     /// Gets the header value associated with the specified header key

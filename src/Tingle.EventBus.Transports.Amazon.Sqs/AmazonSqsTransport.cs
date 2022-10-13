@@ -295,7 +295,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                 // ensure queue is created before creating subscription
                 queueUrl = await CreateQueueIfNotExistsAsync(queueName: key.Name, reg: reg, ecr: ecr, cancellationToken: cancellationToken);
 
-                // for non deadletter broadcast types, we need to ensure the topic exists and the queue is subscribed to it
+                // for non dead-letter broadcast types, we need to ensure the topic exists and the queue is subscribed to it
                 if (!deadletter && reg.EntityKind == EntityKind.Broadcast)
                 {
                     // ensure topic is created before creating the subscription
@@ -482,7 +482,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
 
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {
-            // get the queueUrl for the dead letter queue and send the mesage there
+            // get the queueUrl for the dead letter queue and send the message there
             var dlqQueueUrl = await GetQueueUrlAsync(reg: reg, ecr: ecr, deadletter: true, cancellationToken: cancellationToken);
             var dlqRequest = new SendMessageRequest
             {

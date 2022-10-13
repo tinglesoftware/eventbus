@@ -97,7 +97,7 @@ public static class IRetryableEventExtensions
     }
 
     /// <summary>
-    /// Sets pre-computed delay durations.
+    /// Sets precomputed delay durations.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="event"></param>
@@ -149,7 +149,7 @@ public static class IRetryableEventExtensions
         return (@event.Delays.Count - @event.Attempts.Count) == 1;
     }
 
-    /// <summary>Trys to get the delay for the next retry if any.</summary>
+    /// <summary>Try to get the delay for the next retry if any.</summary>
     /// <param name="event"></param>
     /// <param name="delay"></param>
     /// <returns></returns>

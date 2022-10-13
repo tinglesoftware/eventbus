@@ -9,7 +9,7 @@ public class AzureServiceBusTransportCredentials : AzureTransportCredentials
 {
     /// <summary>
     /// The fully qualified Service Bus namespace to connect to.
-    /// This is likely to be similar to {yournamespace}.servicebus.windows.net.
+    /// This is likely to be similar to {your_namespace}.servicebus.windows.net.
     /// </summary>
     public string? FullyQualifiedNamespace { get; set; }
 }

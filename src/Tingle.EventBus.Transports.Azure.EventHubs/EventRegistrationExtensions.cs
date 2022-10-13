@@ -13,7 +13,7 @@ public static class EventRegistrationExtensions
     /// <summary>
     /// Configure the event hub name to be used when connected to the inbuilt Event Hubs endpoint for an Azure IoT Hub instance.
     /// </summary>
-    /// <param name="registration">The <see cref="EventRegistration"/> to confugure.</param>
+    /// <param name="registration">The <see cref="EventRegistration"/> to configure.</param>
     /// <param name="name">The Event Hub-compatible name e.g. <c>iothub-ehub-test-dev-1973449-3febe524cb</c></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
@@ -33,7 +33,7 @@ public static class EventRegistrationExtensions
     /// <summary>
     /// Use the serializer that supports <see cref="IotHubEvent{TDeviceTelemetry, TDeviceTwinChange, TDeviceLifecycle}"/>.
     /// </summary>
-    /// <param name="registration">The <see cref="EventRegistration"/> to confugure.</param>
+    /// <param name="registration">The <see cref="EventRegistration"/> to configure.</param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
     public static EventRegistration UseIotHubEventSerializer(this EventRegistration registration)

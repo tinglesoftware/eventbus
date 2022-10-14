@@ -10,9 +10,9 @@ using Tingle.EventBus.Diagnostics;
 namespace Tingle.EventBus.Transports.Azure.QueueStorage;
 
 /// <summary>
-/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Azure Queue Storage.
+/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransport{TTransportOptions}"/> using Azure Queue Storage.
 /// </summary>
-public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorageTransportOptions>, IDisposable
+public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTransportOptions>, IDisposable
 {
     private readonly Dictionary<(Type, bool), QueueClient> queueClientsCache = new();
     private readonly SemaphoreSlim queueClientsCacheLock = new(1, 1); // only one at a time.

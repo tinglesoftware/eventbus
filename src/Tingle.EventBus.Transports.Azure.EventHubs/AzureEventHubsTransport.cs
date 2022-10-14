@@ -14,9 +14,9 @@ using Tingle.EventBus.Diagnostics;
 namespace Tingle.EventBus.Transports.Azure.EventHubs;
 
 /// <summary>
-/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Azure Event Hubs.
+/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransport{TTransportOptions}"/> using Azure Event Hubs.
 /// </summary>
-public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTransportOptions>
+public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransportOptions>
 {
     private readonly Dictionary<(Type, bool), EventHubProducerClient> producersCache = new();
     private readonly SemaphoreSlim producersCacheLock = new(1, 1); // only one at a time.

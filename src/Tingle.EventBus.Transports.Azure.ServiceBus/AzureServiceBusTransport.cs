@@ -11,9 +11,9 @@ using Tingle.EventBus.Diagnostics;
 namespace Tingle.EventBus.Transports.Azure.ServiceBus;
 
 /// <summary>
-/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Azure Service Bus.
+/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransport{TTransportOptions}"/> using Azure Service Bus.
 /// </summary>
-public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTransportOptions>
+public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTransportOptions>
 {
     private readonly Dictionary<Type, ServiceBusSender> sendersCache = new();
     private readonly SemaphoreSlim sendersCacheLock = new(1, 1); // only one at a time.

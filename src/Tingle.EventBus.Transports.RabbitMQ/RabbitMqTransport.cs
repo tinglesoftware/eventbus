@@ -15,9 +15,9 @@ using Tingle.EventBus.Diagnostics;
 namespace Tingle.EventBus.Transports.RabbitMQ;
 
 /// <summary>
-/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using RabbitMQ.
+/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransport{TTransportOptions}"/> using RabbitMQ.
 /// </summary>
-public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>, IDisposable
+public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, IDisposable
 {
     private readonly SemaphoreSlim connectionLock = new(1, 1);
     private readonly Dictionary<string, IModel> subscriptionChannelsCache = new();

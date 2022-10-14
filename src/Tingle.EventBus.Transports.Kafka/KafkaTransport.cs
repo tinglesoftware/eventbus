@@ -11,9 +11,9 @@ using Tingle.EventBus.Diagnostics;
 namespace Tingle.EventBus.Transports.Kafka;
 
 /// <summary>
-/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Kafka.
+/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransport{TTransportOptions}"/> using Kafka.
 /// </summary>
-public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDisposable
+public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposable
 {
     // the timeout used for non-async operations
     private static readonly TimeSpan StandardTimeout = TimeSpan.FromSeconds(30);

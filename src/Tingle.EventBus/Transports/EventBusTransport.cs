@@ -13,7 +13,7 @@ namespace Tingle.EventBus.Transports;
 /// Abstract implementation for an event bus transport.
 /// </summary>
 /// <typeparam name="TTransportOptions">The type used for configuring options of the transport</typeparam>
-public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransportWithOptions, IEventBusTransport where TTransportOptions : EventBusTransportOptions, new()
+public abstract class EventBusTransport<TTransportOptions> : IEventBusTransportWithOptions, IEventBusTransport where TTransportOptions : EventBusTransportOptions, new()
 {
     private static readonly Regex CategoryNamePattern = new(@"Transport$", RegexOptions.Compiled);
     private readonly IServiceScopeFactory scopeFactory;
@@ -26,10 +26,10 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
     /// <param name="busOptionsAccessor"></param>
     /// <param name="optionsMonitor"></param>
     /// <param name="loggerFactory"></param>
-    public EventBusTransportBase(IServiceScopeFactory scopeFactory,
-                                 IOptions<EventBusOptions> busOptionsAccessor,
-                                 IOptionsMonitor<TTransportOptions> optionsMonitor,
-                                 ILoggerFactory loggerFactory)
+    public EventBusTransport(IServiceScopeFactory scopeFactory,
+                             IOptions<EventBusOptions> busOptionsAccessor,
+                             IOptionsMonitor<TTransportOptions> optionsMonitor,
+                             ILoggerFactory loggerFactory)
     {
         this.scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
         this.optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));

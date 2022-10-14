@@ -9,10 +9,10 @@ using Tingle.EventBus.Configuration;
 namespace Tingle.EventBus.Transports.Amazon.Kinesis;
 
 /// <summary>
-/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using
+/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransport{TTransportOptions}"/> using
 /// Amazon Kinesis as the transport.
 /// </summary>
-public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTransportOptions>
+public class AmazonKinesisTransport : EventBusTransport<AmazonKinesisTransportOptions>
 {
     private readonly Lazy<AmazonKinesisClient> kinesisClient;
 

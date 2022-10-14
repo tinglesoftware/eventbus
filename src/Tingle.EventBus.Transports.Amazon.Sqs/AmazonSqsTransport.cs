@@ -14,10 +14,10 @@ using Tingle.EventBus.Diagnostics;
 namespace Tingle.EventBus.Transports.Amazon.Sqs;
 
 /// <summary>
-/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using
+/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransport{TTransportOptions}"/> using
 /// Amazon SQS and Amazon SNS as the transport.
 /// </summary>
-public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOptions>, IDisposable
+public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, IDisposable
 {
     private readonly Dictionary<Type, string> topicArnsCache = new();
     private readonly SemaphoreSlim topicArnsCacheLock = new(1, 1); // only one at a time.

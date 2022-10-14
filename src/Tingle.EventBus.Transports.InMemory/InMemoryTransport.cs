@@ -11,10 +11,10 @@ using Tingle.EventBus.Transports.InMemory.Client;
 namespace Tingle.EventBus.Transports.InMemory;
 
 /// <summary>
-/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using an in-memory transport.
+/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransport{TTransportOptions}"/> using an in-memory transport.
 /// This implementation should only be used for unit testing or similar scenarios as it does not offer persistence.
 /// </summary>
-public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
+public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
 {
     private readonly Dictionary<Type, InMemorySender> sendersCache = new();
     private readonly SemaphoreSlim sendersCacheLock = new(1, 1); // only one at a time.

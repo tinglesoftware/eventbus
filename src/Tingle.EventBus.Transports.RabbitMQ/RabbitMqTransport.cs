@@ -322,10 +322,11 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
         Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
                               messageId,
                               context.Id);
-        var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
-                                              @event: context,
-                                              scope: scope,
-                                              cancellationToken: cancellationToken);
+        var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
+                                                                     ecr: ecr,
+                                                                     @event: context,
+                                                                     scope: scope,
+                                                                     cancellationToken: cancellationToken);
 
         // Decide the action to execute then execute
         var action = DecideAction(successful, ecr.UnhandledErrorBehaviour);

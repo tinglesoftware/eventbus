@@ -543,7 +543,8 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
         // set the extras
         context.SetServiceBusReceivedMessage(message);
 
-        var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
+        var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
+                                                                     ecr: ecr,
                                                                      @event: context,
                                                                      scope: scope,
                                                                      cancellationToken: cancellationToken);

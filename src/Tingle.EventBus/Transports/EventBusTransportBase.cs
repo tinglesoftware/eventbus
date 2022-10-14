@@ -182,8 +182,6 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
 
             foreach (var ecr in reg.Consumers)
             {
-                ecr.RetryPolicy = reg.RetryPolicy;
-
                 // Set unhandled error behaviour
                 ecr.UnhandledErrorBehaviour ??= TransportOptions.DefaultUnhandledConsumerErrorBehaviour;
                 ecr.UnhandledErrorBehaviour ??= BusOptions.DefaultUnhandledConsumerErrorBehaviour;
@@ -307,12 +305,14 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
     /// </summary>
     /// <typeparam name="TEvent">The event type.</typeparam>
     /// <typeparam name="TConsumer">The type of consumer.</typeparam>
+    /// <param name="registration">The <see cref="EventRegistration"/> for the current event.</param>
     /// <param name="ecr">The <see cref="EventConsumerRegistration"/> for the current event.</param>
     /// <param name="event">The context containing the event.</param>
     /// <param name="scope">The scope in which to resolve required services.</param>
-    /// <param name="cancellationToken"></param>
     /// <returns>An <see cref="EventConsumeResult"/> representing the state of the action.</returns>
-    protected async Task<EventConsumeResult> ConsumeAsync<TEvent, TConsumer>(EventConsumerRegistration ecr,
+    /// <param name="cancellationToken"></param>
+    protected async Task<EventConsumeResult> ConsumeAsync<TEvent, TConsumer>(EventRegistration registration,
+                                                                             EventConsumerRegistration ecr,
                                                                              EventContext<TEvent> @event,
                                                                              IServiceScope scope,
                                                                              CancellationToken cancellationToken)
@@ -325,7 +325,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
             var consumer = ActivatorUtilities.GetServiceOrCreateInstance<TConsumer>(scope.ServiceProvider);
 
             // Invoke handler method, with retry if specified
-            var retryPolicy = ecr.RetryPolicy;
+            var retryPolicy = registration.RetryPolicy;
             if (retryPolicy != null)
             {
                 await retryPolicy.ExecuteAsync(ct => consumer.ConsumeAsync(@event, ct), cancellationToken);

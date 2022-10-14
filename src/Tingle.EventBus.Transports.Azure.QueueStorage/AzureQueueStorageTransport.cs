@@ -344,7 +344,8 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
             activity?.SetParentId(parentId: parentActivityId);
         }
 
-        var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
+        var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
+                                                                    ecr: ecr,
                                                                     @event: context,
                                                                     scope: scope,
                                                                     cancellationToken: cancellationToken);

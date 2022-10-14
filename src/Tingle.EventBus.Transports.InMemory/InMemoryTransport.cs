@@ -394,7 +394,8 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
         // set the extras
         context.SetInMemoryReceivedMessage(message);
 
-        var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
+        var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
+                                                                    ecr: ecr,
                                                                     @event: context,
                                                                     scope: scope,
                                                                     cancellationToken: cancellationToken);

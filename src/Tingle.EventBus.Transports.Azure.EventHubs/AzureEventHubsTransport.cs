@@ -417,7 +417,8 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                .SetPartitionContext(args.Partition)
                .SetEventData(data);
 
-        var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(ecr: ecr,
+        var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
+                                                                    ecr: ecr,
                                                                     @event: context,
                                                                     scope: scope,
                                                                     cancellationToken: cancellationToken);

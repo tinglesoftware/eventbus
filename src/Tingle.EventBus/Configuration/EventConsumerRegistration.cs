@@ -69,8 +69,6 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     /// <returns>The <see cref="EventConsumerRegistration"/> for further configuration.</returns>
     public EventConsumerRegistration OnErrorDiscard() => OnError(UnhandledConsumerErrorBehaviour.Discard);
 
-    internal AsyncRetryPolicy? RetryPolicy { get; set; }
-
     #region Equality Overrides
 
     /// <inheritdoc/>

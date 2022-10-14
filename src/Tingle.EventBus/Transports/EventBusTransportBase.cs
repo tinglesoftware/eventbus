@@ -38,9 +38,6 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         var categoryName = $"{LogCategoryNames.Transports}.{GetType().Name}";
         categoryName = CategoryNamePattern.Replace(categoryName, string.Empty); // remove trailing "Transport"
         Logger = loggerFactory?.CreateLogger(categoryName) ?? throw new ArgumentNullException(nameof(loggerFactory));
-
-        // Get the name of the transport
-        Name = EventBusBuilder.GetTransportName(GetType());
     }
 
     /// <summary>
@@ -54,7 +51,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
     protected TTransportOptions TransportOptions { get; }
 
     /// <inheritdoc/>
-    public string Name { get; }
+    public string Name => TransportOptions.Name!;
 
     ///
     protected ILogger Logger { get; }

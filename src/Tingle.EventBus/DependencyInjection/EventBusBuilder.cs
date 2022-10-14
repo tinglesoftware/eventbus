@@ -66,19 +66,6 @@ public class EventBusBuilder
     /// <typeparam name="TTransport"></typeparam>
     /// <typeparam name="TOptions"></typeparam>
     /// <returns></returns>
-    public EventBusBuilder AddTransport<TTransport, TOptions>()
-        where TTransport : class, IEventBusTransport
-        where TOptions : EventBusTransportOptionsBase
-    {
-        return AddTransport<TTransport, TOptions>(GetTransportName<TTransport>());
-    }
-
-    /// <summary>
-    /// Register a transport to be used by the bus.
-    /// </summary>
-    /// <typeparam name="TTransport"></typeparam>
-    /// <typeparam name="TOptions"></typeparam>
-    /// <returns></returns>
     public EventBusBuilder AddTransport<TTransport, TOptions>(string name)
         where TTransport : class, IEventBusTransport
         where TOptions : EventBusTransportOptionsBase
@@ -92,14 +79,6 @@ public class EventBusBuilder
         // Add name to registered transports
         return Configure(options => options.RegisteredTransportNames.Add(name, typeof(TTransport)));
     }
-
-    /// <summary>
-    /// Unregister a transport already registered on the bus.
-    /// </summary>
-    /// <typeparam name="TTransport"></typeparam>
-    /// <returns></returns>
-    public EventBusBuilder RemoveTransport<TTransport>() where TTransport : class, IEventBusTransport
-        => RemoveTransport<TTransport>(GetTransportName<TTransport>());
 
     /// <summary>
     /// Unregister a transport already registered on the bus.
@@ -220,28 +199,5 @@ public class EventBusBuilder
                 }
             }
         });
-    }
-
-    private static string GetTransportName<TTransport>() where TTransport : IEventBusTransport => GetTransportName(typeof(TTransport));
-
-    internal static string GetTransportName(Type type)
-    {
-        if (type is null) throw new ArgumentNullException(nameof(type));
-
-        // Ensure the type implements IEventBusTransport
-        if (!(typeof(IEventBusTransport).IsAssignableFrom(type)))
-        {
-            throw new InvalidOperationException($"'{type.FullName}' must implement '{typeof(IEventBusTransport).FullName}'.");
-        }
-
-        // Ensure the TransportNameAttribute attribute is declared on it
-        var attrs = type.GetCustomAttributes(false).OfType<TransportNameAttribute>().ToList();
-        if (attrs.Count == 0)
-        {
-            throw new InvalidOperationException($"'{type.FullName}' must have '{typeof(TransportNameAttribute).FullName}' declared on it.");
-        }
-
-        // Ensure there is only one attribute and get the name
-        return attrs.Single().Name;
     }
 }

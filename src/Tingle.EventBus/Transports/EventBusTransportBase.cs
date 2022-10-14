@@ -98,9 +98,13 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
+            // Set publish retry policy
+            reg.PublishRetryPolicy ??= TransportOptions.DefaultPublishRetryPolicy;
+            reg.PublishRetryPolicy ??= BusOptions.DefaultPublishRetryPolicy;
+
             foreach (var ecr in reg.Consumers)
             {
-                // Set retry policy
+                // Set consumer retry policy
                 ecr.RetryPolicy ??= TransportOptions.DefaultConsumerRetryPolicy;
                 ecr.RetryPolicy ??= BusOptions.DefaultConsumerRetryPolicy;
 

@@ -29,7 +29,7 @@ internal class AmazonSqsConfigureOptions : AmazonTransportConfigureOptions<Amazo
         options.SnsConfig.RegionEndpoint ??= options.Region;
 
         // Ensure the entity names are not longer than the limits
-        var registrations = busOptions.GetRegistrations(TransportNames.AmazonSqs);
+        var registrations = busOptions.GetRegistrations(options.Name);
         foreach (var reg in registrations)
         {
             // Set the IdFormat

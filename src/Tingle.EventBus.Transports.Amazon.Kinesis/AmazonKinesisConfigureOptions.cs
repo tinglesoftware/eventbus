@@ -32,7 +32,7 @@ internal class AmazonKinesisConfigureOptions : AmazonTransportConfigureOptions<A
         }
 
         // Ensure the entity names are not longer than the limits
-        var registrations = busOptions.GetRegistrations(TransportNames.AmazonKinesis);
+        var registrations = busOptions.GetRegistrations(options.Name);
         foreach (var reg in registrations)
         {
             // Set the IdFormat

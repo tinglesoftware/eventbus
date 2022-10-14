@@ -20,7 +20,7 @@ internal class RabbitMqConfigureOptions : IPostConfigureOptions<RabbitMqTranspor
     public void PostConfigure(string name, RabbitMqTransportOptions options)
     {
         // If there are consumers for this transport, confirm the right Bus options
-        var registrations = busOptions.GetRegistrations(TransportNames.RabbitMq);
+        var registrations = busOptions.GetRegistrations(options.Name);
         if (registrations.Any(r => r.Consumers.Count > 0))
         {
             // we need full type names

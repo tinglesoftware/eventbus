@@ -10,7 +10,7 @@ namespace Tingle.EventBus.Transports;
 public abstract class EventBusTransportOptionsBase
 {
     /// <summary>The name of the transport.</summary>
-    public string? Name { get; internal set; }
+    public string Name { get; internal set; } = default!;
 
     /// <summary>The type of transport.</summary>
     internal Type? Type { get; set; }

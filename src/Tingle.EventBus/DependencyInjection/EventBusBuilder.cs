@@ -70,7 +70,7 @@ public class EventBusBuilder
         where TTransport : class, IEventBusTransport
         where TOptions : EventBusTransportOptionsBase
     {
-        Services.Configure<TOptions>(options =>
+        Services.Configure<TOptions>(name, options =>
         {
             options.Name = name;
             options.Type = typeof(TTransport);

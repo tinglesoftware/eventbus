@@ -29,7 +29,7 @@ internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<
 
         // Ensure the entity names are not longer than the limits
         // See https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas#messaging-quotas
-        var registrations = busOptions.GetRegistrations(TransportNames.AzureServiceBus);
+        var registrations = busOptions.GetRegistrations(options.Name);
         foreach (var reg in registrations)
         {
             // Set the IdFormat

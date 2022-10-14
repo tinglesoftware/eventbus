@@ -28,7 +28,7 @@ internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOption
         }
 
         // Ensure there's only one consumer per event
-        var registrations = busOptions.GetRegistrations(TransportNames.AzureQueueStorage);
+        var registrations = busOptions.GetRegistrations(options.Name);
         var multiple = registrations.FirstOrDefault(r => r.Consumers.Count > 1);
         if (multiple is not null)
         {

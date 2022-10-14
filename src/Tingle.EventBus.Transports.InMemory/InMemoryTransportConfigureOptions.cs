@@ -18,7 +18,7 @@ internal class InMemoryTransportConfigureOptions : IPostConfigureOptions<InMemor
 
     public void PostConfigure(string name, InMemoryTransportOptions options)
     {
-        var registrations = busOptions.GetRegistrations(TransportNames.InMemory);
+        var registrations = busOptions.GetRegistrations(options.Name);
         foreach (var reg in registrations)
         {
             // Set the IdFormat

@@ -31,7 +31,7 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
         options.CheckpointInterval = Math.Max(options.CheckpointInterval, 1);
 
         // If there are consumers for this transport, we must check azure blob storage
-        var registrations = busOptions.GetRegistrations(TransportNames.AzureEventHubs);
+        var registrations = busOptions.GetRegistrations(options.Name);
         if (registrations.Any(r => r.Consumers.Count > 0))
         {
             // ensure the connection string for blob storage or token credential is provided

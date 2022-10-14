@@ -19,18 +19,17 @@ public class EventBus
     private readonly EventBusOptions options;
     private readonly ILogger logger;
 
-    private readonly Dictionary<string, EventBusTransportRegistration> registrationsMap = new();
-    private readonly Dictionary<string, IEventBusTransport> transports = new();
+    private readonly IReadOnlyDictionary<string, IEventBusTransport> transports;
 
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="serviceProvider"></param>
+    /// <param name="transportProvider"></param>
     /// <param name="idGenerator"></param>
     /// <param name="optionsAccessor"></param>
     /// <param name="configurators"></param>
     /// <param name="loggerFactory"></param>
-    public EventBus(IServiceProvider serviceProvider,
+    public EventBus(EventBusTransportProvider transportProvider,
                     IEventIdGenerator idGenerator,
                     IEnumerable<IEventConfigurator> configurators,
                     IOptions<EventBusOptions> optionsAccessor,
@@ -41,19 +40,7 @@ public class EventBus
         options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
         logger = loggerFactory?.CreateLogger(LogCategoryNames.EventBus) ?? throw new ArgumentNullException(nameof(loggerFactory));
 
-        foreach (var builder in options.Transports)
-        {
-            // build the registration
-            var tr = builder.Build();
-            registrationsMap.Add(tr.Name, tr);
-
-            // resolve the transport
-            var transport = (IEventBusTransport)serviceProvider.GetRequiredService(tr.TransportType);
-            transports.Add(tr.Name, transport);
-
-            // initialize the transport
-            transport.Initialize(tr);
-        }
+        transports = transportProvider.GetTransports();
     }
 
     /// <summary>
@@ -261,7 +248,7 @@ public class EventBus
     {
         // get the transport
         var reg = GetOrCreateRegistration<TEvent>();
-        var transport = transports.Values.Single(t => t.Name == reg.TransportName);
+        var transport = GetTransportForEvent(reg.TransportName!);
 
         // For events that were not configured (e.g. publish only events),
         // the IdFormat will still be null, we have to set it
@@ -269,6 +256,8 @@ public class EventBus
 
         return (reg, transport);
     }
+
+    internal IEventBusTransport GetTransportForEvent(string name) => transports[name];
 
     internal EventRegistration GetOrCreateRegistration<TEvent>()
     {

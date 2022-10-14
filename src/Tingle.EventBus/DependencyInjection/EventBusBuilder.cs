@@ -21,14 +21,15 @@ public class EventBusBuilder
 
         // Configure the options
         Services.ConfigureOptions<EventBusConfigureOptions>();
-        Services.AddSingleton<IEventConfigurator, DefaultEventConfigurator>();
-        Services.AddSingleton<IEventIdGenerator, DefaultEventIdGenerator>();
 
         // Register the bus and its host
         Services.AddSingleton<EventBus>();
         Services.AddHostedService<EventBusHost>();
 
         // Register necessary services
+        Services.AddSingleton<EventBusTransportProvider>();
+        Services.AddSingleton<IEventConfigurator, DefaultEventConfigurator>();
+        Services.AddSingleton<IEventIdGenerator, DefaultEventIdGenerator>();
         Services.AddTransient<IEventPublisher, EventPublisher>();
         UseDefaultSerializer<DefaultJsonEventSerializer>();
     }

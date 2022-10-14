@@ -21,13 +21,8 @@ public class InMemoryTestHarness
     }
 
     ///
-    public Task StartAsync(CancellationToken cancellationToken = default)
-        => StartAsync(new(TransportNames.InMemory, typeof(InMemoryTransport)), cancellationToken);
-
-    ///
-    public async Task StartAsync(EventBusTransportRegistration registration, CancellationToken cancellationToken = default)
+    public async Task StartAsync(CancellationToken cancellationToken = default)
     {
-        // TODO: should we initialize? or pull EventBus which initializes all transports?
         await transport.StartAsync(cancellationToken).ConfigureAwait(false);
     }
 

@@ -65,7 +65,7 @@ public class EventBusBuilder
     /// <typeparam name="THandler">The <see cref="EventBusTransport{TOptions}"/> used to handle this transport.</typeparam>
     /// <param name="name">The name of this transport.</param>
     /// <param name="configureOptions">Used to configure the transport options.</param>
-    public virtual EventBusBuilder AddTransport<TOptions, THandler>(string name, Action<TOptions>? configureOptions)
+    public EventBusBuilder AddTransport<TOptions, THandler>(string name, Action<TOptions>? configureOptions)
         where TOptions : EventBusTransportOptions, new()
         where THandler : EventBusTransport<TOptions>
         => AddTransport<TOptions, THandler>(name, displayName: null, configureOptions: configureOptions);
@@ -76,7 +76,7 @@ public class EventBusBuilder
     /// <param name="name">The name of this transport.</param>
     /// <param name="displayName">The display name of this transport.</param>
     /// <param name="configureOptions">Used to configure the transport options.</param>
-    public virtual EventBusBuilder AddTransport<TOptions, THandler>(string name, string? displayName, Action<TOptions>? configureOptions)
+    public EventBusBuilder AddTransport<TOptions, THandler>(string name, string? displayName, Action<TOptions>? configureOptions)
         where TOptions : EventBusTransportOptions, new()
         where THandler : EventBusTransport<TOptions>
         => AddTransportHelper<TOptions, THandler>(name, displayName, configureOptions);

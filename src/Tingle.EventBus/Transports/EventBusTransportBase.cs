@@ -17,22 +17,23 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
 {
     private static readonly Regex CategoryNamePattern = new(@"Transport$", RegexOptions.Compiled);
     private readonly IServiceScopeFactory scopeFactory;
+    private readonly IOptionsMonitor<TTransportOptions> optionsMonitor;
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name="scopeFactory"></param>
     /// <param name="busOptionsAccessor"></param>
-    /// <param name="transportOptionsAccessor"></param>
+    /// <param name="optionsMonitor"></param>
     /// <param name="loggerFactory"></param>
     public EventBusTransportBase(IServiceScopeFactory scopeFactory,
                                  IOptions<EventBusOptions> busOptionsAccessor,
-                                 IOptions<TTransportOptions> transportOptionsAccessor,
+                                 IOptionsMonitor<TTransportOptions> optionsMonitor,
                                  ILoggerFactory loggerFactory)
     {
         this.scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
+        this.optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
         BusOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
-        TransportOptions = transportOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(transportOptionsAccessor));
 
         // Create a well-scoped logger
         var categoryName = $"{LogCategoryNames.Transports}.{GetType().Name}";
@@ -45,19 +46,61 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
     /// </summary>
     protected EventBusOptions BusOptions { get; }
 
+    /// <inheritdoc/>
+    protected TransportRegistration Registration { get; private set; } = default!;
+
     /// <summary>
     /// Options for configuring the transport.
     /// </summary>
-    protected TTransportOptions TransportOptions { get; }
-
-    /// <inheritdoc/>
-    public string Name => TransportOptions.Name!;
+    protected TTransportOptions Options { get; private set; } = default!;
 
     ///
     protected ILogger Logger { get; }
 
     /// <inheritdoc/>
-    EventBusTransportOptionsBase IEventBusTransportWithOptions.GetOptions() => TransportOptions;
+    public string Name => Options.Name;
+
+    /// <inheritdoc/>
+    EventBusTransportOptionsBase IEventBusTransportWithOptions.GetOptions() => Options;
+
+    /// <inheritdoc/>
+    public virtual void Initialize(TransportRegistration registration)
+    {
+        Registration = registration ?? throw new ArgumentNullException(nameof(registration));
+        Options = optionsMonitor.Get(registration.Name);
+    }
+
+    /// <inheritdoc/>
+    public virtual Task StartAsync(CancellationToken cancellationToken)
+    {
+        /*
+         * Set the retry policy and unhandled error behaviour if not set.
+         * Give priority to the transport default then the bus default.
+        */
+        var registrations = GetRegistrations();
+        foreach (var reg in registrations)
+        {
+            // Set publish retry policy
+            reg.RetryPolicy ??= Options.DefaultRetryPolicy;
+            reg.RetryPolicy ??= BusOptions.DefaultRetryPolicy;
+
+            foreach (var ecr in reg.Consumers)
+            {
+                // Set unhandled error behaviour
+                ecr.UnhandledErrorBehaviour ??= Options.DefaultUnhandledConsumerErrorBehaviour;
+                ecr.UnhandledErrorBehaviour ??= BusOptions.DefaultUnhandledConsumerErrorBehaviour;
+            }
+        }
+        Logger.StartingTransport(registrations.Count, Options.EmptyResultsDelay);
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public virtual Task StopAsync(CancellationToken cancellationToken)
+    {
+        Logger.StoppingTransport();
+        return Task.CompletedTask;
+    }
 
     #region Publishing
 
@@ -162,38 +205,6 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         where TEvent : class;
 
     #endregion
-
-    /// <inheritdoc/>
-    public virtual Task StartAsync(CancellationToken cancellationToken)
-    {
-        /*
-         * Set the retry policy and unhandled error behaviour if not set.
-         * Give priority to the transport default then the bus default.
-        */
-        var registrations = GetRegistrations();
-        foreach (var reg in registrations)
-        {
-            // Set publish retry policy
-            reg.RetryPolicy ??= TransportOptions.DefaultRetryPolicy;
-            reg.RetryPolicy ??= BusOptions.DefaultRetryPolicy;
-
-            foreach (var ecr in reg.Consumers)
-            {
-                // Set unhandled error behaviour
-                ecr.UnhandledErrorBehaviour ??= TransportOptions.DefaultUnhandledConsumerErrorBehaviour;
-                ecr.UnhandledErrorBehaviour ??= BusOptions.DefaultUnhandledConsumerErrorBehaviour;
-            }
-        }
-        Logger.StartingTransport(registrations.Count, TransportOptions.EmptyResultsDelay);
-        return Task.CompletedTask;
-    }
-
-    /// <inheritdoc/>
-    public virtual Task StopAsync(CancellationToken cancellationToken)
-    {
-        Logger.StoppingTransport();
-        return Task.CompletedTask;
-    }
 
     #region Serialization
 

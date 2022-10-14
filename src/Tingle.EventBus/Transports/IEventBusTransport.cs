@@ -10,6 +10,23 @@ public interface IEventBusTransport
     /// <summary>The name of the transport.</summary>
     string Name { get; }
 
+    /// 
+    void Initialize(TransportRegistration registration);
+
+    /// <summary>
+    /// Triggered when the bus host is ready to start.
+    /// </summary>
+    /// <param name="cancellationToken">Indicates that the start process has been aborted.</param>
+    /// <returns></returns>
+    Task StartAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Triggered when the bus host is performing a graceful shutdown.
+    /// </summary>
+    /// <param name="cancellationToken">Indicates that the shutdown process should no longer be graceful.</param>
+    /// <returns></returns>
+    Task StopAsync(CancellationToken cancellationToken);
+
     /// <summary>
     /// Publish an event on the transport.
     /// </summary>
@@ -71,18 +88,4 @@ public interface IEventBusTransport
                              EventRegistration registration,
                              CancellationToken cancellationToken = default)
         where TEvent : class;
-
-    /// <summary>
-    /// Triggered when the bus host is ready to start.
-    /// </summary>
-    /// <param name="cancellationToken">Indicates that the start process has been aborted.</param>
-    /// <returns></returns>
-    Task StartAsync(CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Triggered when the bus host is performing a graceful shutdown.
-    /// </summary>
-    /// <param name="cancellationToken">Indicates that the shutdown process should no longer be graceful.</param>
-    /// <returns></returns>
-    Task StopAsync(CancellationToken cancellationToken);
 }

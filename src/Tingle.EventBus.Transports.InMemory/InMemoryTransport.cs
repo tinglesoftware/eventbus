@@ -32,15 +32,15 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
     /// </summary>
     /// <param name="serviceScopeFactory"></param>
     /// <param name="busOptionsAccessor"></param>
-    /// <param name="transportOptionsAccessor"></param>
+    /// <param name="optionsMonitor"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="sng"></param>
     public InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
                              IOptions<EventBusOptions> busOptionsAccessor,
-                             IOptions<InMemoryTransportOptions> transportOptionsAccessor,
+                             IOptionsMonitor<InMemoryTransportOptions> optionsMonitor,
                              ILoggerFactory loggerFactory,
                              SequenceNumberGenerator sng)
-        : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
+        : base(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory)
     {
         inMemoryClient = new InMemoryClient(sng);
     }

@@ -18,7 +18,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
     private readonly SemaphoreSlim queueClientsCacheLock = new(1, 1); // only one at a time.
     private readonly CancellationTokenSource stoppingCts = new();
     private readonly List<Task> receiverTasks = new();
-    private readonly QueueServiceClient serviceClient;
+    private readonly Lazy<QueueServiceClient> serviceClient;
     private bool disposedValue;
 
     /// <summary>
@@ -26,18 +26,21 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
     /// </summary>
     /// <param name="serviceScopeFactory"></param>
     /// <param name="busOptionsAccessor"></param>
-    /// <param name="transportOptionsAccessor"></param>
+    /// <param name="optionsMonitor"></param>
     /// <param name="loggerFactory"></param>
     public AzureQueueStorageTransport(IServiceScopeFactory serviceScopeFactory,
                                       IOptions<EventBusOptions> busOptionsAccessor,
-                                      IOptions<AzureQueueStorageTransportOptions> transportOptionsAccessor,
+                                      IOptionsMonitor<AzureQueueStorageTransportOptions> optionsMonitor,
                                       ILoggerFactory loggerFactory)
-        : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
+        : base(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory)
     {
-        var cred = TransportOptions.Credentials.CurrentValue;
-        serviceClient = cred is AzureQueueStorageTransportCredentials aqstc
-                ? new QueueServiceClient(serviceUri: aqstc.ServiceUrl, credential: aqstc.TokenCredential)
-                : new QueueServiceClient(connectionString: (string)cred);
+        serviceClient = new Lazy<QueueServiceClient>(() =>
+        {
+            var cred = Options.Credentials.CurrentValue;
+            return cred is AzureQueueStorageTransportCredentials aqstc
+                        ? new QueueServiceClient(serviceUri: aqstc.ServiceUrl, credential: aqstc.TokenCredential)
+                        : new QueueServiceClient(connectionString: (string)cred);
+        });
     }
 
     /// <inheritdoc/>
@@ -215,7 +218,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
             if (!queueClientsCache.TryGetValue((reg.EventType, deadletter), out var queueClient))
             {
                 var name = reg.EventName!;
-                if (deadletter) name += TransportOptions.DeadLetterSuffix;
+                if (deadletter) name += Options.DeadLetterSuffix;
 
                 // create the queue client options
                 var qco = new QueueClientOptions
@@ -228,13 +231,13 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
 
                 // create the queue client
                 // queueUri has the format "https://{account_name}.queue.core.windows.net/{queue_name}" which can be made using "{serviceClient.Uri}/{queue_name}"
-                var cred = TransportOptions.Credentials.CurrentValue;
+                var cred = Options.Credentials.CurrentValue;
                 queueClient = cred is AzureQueueStorageTransportCredentials aqstc
-                    ? new QueueClient(queueUri: new Uri($"{serviceClient.Uri}/{name}"), credential: aqstc.TokenCredential, options: qco)
+                    ? new QueueClient(queueUri: new Uri($"{serviceClient.Value.Uri}/{name}"), credential: aqstc.TokenCredential, options: qco)
                     : new QueueClient(connectionString: (string)cred, queueName: name, options: qco);
 
                 // if entity creation is enabled, ensure queue is created
-                if (TransportOptions.EnableEntityCreation)
+                if (Options.EnableEntityCreation)
                 {
                     // ensure queue is created if it does not exist
                     Logger.EnsuringQueue(queueName: name);
@@ -274,7 +277,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
                 // if the response is empty, introduce a delay
                 if (messages.Length == 0)
                 {
-                    var delay = TransportOptions.EmptyResultsDelay;
+                    var delay = Options.EmptyResultsDelay;
                     Logger.NoMessages(queueName: queueClient.Name, delay: delay);
                     await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                 }

@@ -14,23 +14,23 @@ namespace Tingle.EventBus.Transports.Amazon.Kinesis;
 /// </summary>
 public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTransportOptions>
 {
-    private readonly AmazonKinesisClient kinesisClient;
+    private readonly Lazy<AmazonKinesisClient> kinesisClient;
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name="serviceScopeFactory"></param>
     /// <param name="busOptionsAccessor"></param>
-    /// <param name="transportOptionsAccessor"></param>
+    /// <param name="optionsMonitor"></param>
     /// <param name="loggerFactory"></param>
     public AmazonKinesisTransport(IServiceScopeFactory serviceScopeFactory,
                                   IOptions<EventBusOptions> busOptionsAccessor,
-                                  IOptions<AmazonKinesisTransportOptions> transportOptionsAccessor,
+                                  IOptionsMonitor<AmazonKinesisTransportOptions> optionsMonitor,
                                   ILoggerFactory loggerFactory)
-        : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
+        : base(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory)
     {
-        kinesisClient = new AmazonKinesisClient(credentials: TransportOptions.Credentials,
-                                                clientConfig: TransportOptions.KinesisConfig);
+        kinesisClient = new Lazy<AmazonKinesisClient>(
+            () => new AmazonKinesisClient(credentials: Options.Credentials, clientConfig: Options.KinesisConfig));
     }
 
     /// <inheritdoc/>
@@ -84,13 +84,13 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
         var request = new PutRecordRequest
         {
             Data = body.ToMemoryStream(),
-            PartitionKey = TransportOptions.PartitionKeyResolver(@event),
+            PartitionKey = Options.PartitionKeyResolver(@event),
             StreamName = streamName,
         };
 
         // send the event
         Logger.SendingToStream(eventBusId: @event.Id, streamName: streamName, scheduled: scheduled);
-        var response = await kinesisClient.PutRecordAsync(request, cancellationToken).ConfigureAwait(false);
+        var response = await kinesisClient.Value.PutRecordAsync(request, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccess();
 
         // return the sequence number
@@ -123,7 +123,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
             var record = new PutRecordsRequestEntry
             {
                 Data = body.ToMemoryStream(),
-                PartitionKey = TransportOptions.PartitionKeyResolver(@event),
+                PartitionKey = Options.PartitionKeyResolver(@event),
             };
             records.Add(record);
         }
@@ -138,7 +138,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
 
         // send the events
         Logger.SendingEventsToStream(events, streamName, scheduled);
-        var response = await kinesisClient.PutRecordsAsync(request, cancellationToken).ConfigureAwait(false);
+        var response = await kinesisClient.Value.PutRecordsAsync(request, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccess();
 
         // Should we check for failed records and throw exception?

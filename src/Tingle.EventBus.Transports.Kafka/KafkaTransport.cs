@@ -18,11 +18,11 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
     // the timeout used for non-async operations
     private static readonly TimeSpan StandardTimeout = TimeSpan.FromSeconds(30);
 
-    private readonly IProducer<string, byte[]> producer; // producer instance is thread safe thus can be shared, and across topics
-    private readonly IConsumer<string, byte[]> consumer; // consumer instance is thread safe thus can be shared, and across topics
+    private readonly Lazy<IProducer<string, byte[]>> producer; // producer instance is thread safe thus can be shared, and across topics
+    private readonly Lazy<IConsumer<string, byte[]>> consumer; // consumer instance is thread safe thus can be shared, and across topics
     private readonly CancellationTokenSource stoppingCts = new();
     private readonly List<Task> receiverTasks = new();
-    private readonly IAdminClient adminClient;
+    private readonly Lazy<IAdminClient> adminClient;
     private bool disposedValue;
 
     /// <summary>
@@ -31,37 +31,43 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
     /// <param name="environment"></param>
     /// <param name="serviceScopeFactory"></param>
     /// <param name="busOptionsAccessor"></param>
-    /// <param name="transportOptionsAccessor"></param>
+    /// <param name="optionsMonitor"></param>
     /// <param name="loggerFactory"></param>
     public KafkaTransport(IHostEnvironment environment,
                           IServiceScopeFactory serviceScopeFactory,
                           IOptions<EventBusOptions> busOptionsAccessor,
-                          IOptions<KafkaTransportOptions> transportOptionsAccessor,
+                          IOptionsMonitor<KafkaTransportOptions> optionsMonitor,
                           ILoggerFactory loggerFactory)
-        : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
+        : base(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory)
     {
         // Should be setup the logger?
-        adminClient = new AdminClientBuilder(TransportOptions.AdminConfig).Build();
+        adminClient = new Lazy<IAdminClient>(() => new AdminClientBuilder(Options.AdminConfig).Build());
 
         // create the shared producer instance
-        var pconfig = new ProducerConfig(TransportOptions.AdminConfig);
-        producer = new ProducerBuilder<string, byte[]>(pconfig)
-                        //.SetValueSerializer((ISerializer<byte[]>)null)
-                        .Build();
+        producer = new Lazy<IProducer<string, byte[]>>(() =>
+        {
+            var pconfig = new ProducerConfig(Options.AdminConfig);
+            return new ProducerBuilder<string, byte[]>(pconfig)
+                            //.SetValueSerializer((ISerializer<byte[]>)null)
+                            .Build();
+        });
 
         // create the shared consumer instance
-        var c_config = new ConsumerConfig(TransportOptions.AdminConfig)
+        consumer = new Lazy<IConsumer<string, byte[]>>(() =>
         {
-            GroupId = BusOptions.Naming.GetApplicationName(environment),
-            //EnableAutoCommit = false,
-            //StatisticsIntervalMs = 5000,
-            //SessionTimeoutMs = 6000,
-            //AutoOffsetReset = AutoOffsetReset.Earliest,
-            EnablePartitionEof = true,
-        };
-        consumer = new ConsumerBuilder<string, byte[]>(c_config)
-                        //.SetValueSerializer((ISerializer<byte[]>)null)
-                        .Build();
+            var c_config = new ConsumerConfig(Options.AdminConfig)
+            {
+                GroupId = BusOptions.Naming.GetApplicationName(environment),
+                //EnableAutoCommit = false,
+                //StatisticsIntervalMs = 5000,
+                //SessionTimeoutMs = 6000,
+                //AutoOffsetReset = AutoOffsetReset.Earliest,
+                EnablePartitionEof = true,
+            };
+            return new ConsumerBuilder<string, byte[]>(c_config)
+                            //.SetValueSerializer((ISerializer<byte[]>)null)
+                            .Build();
+        });
     }
 
     /// <inheritdoc/>
@@ -76,7 +82,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
         // only consume if there are topics to subscribe to
         if (topics.Count > 0)
         {
-            consumer.Subscribe(topics);
+            consumer.Value.Subscribe(topics);
             _ = ProcessAsync(cancellationToken: stoppingCts.Token);
         }
     }
@@ -92,7 +98,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
         try
         {
             // ensure all outstanding produce requests are processed
-            producer.Flush(cancellationToken);
+            producer.Value.Flush(cancellationToken);
 
             // Signal cancellation to the executing methods/tasks
             stoppingCts.Cancel();
@@ -135,7 +141,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
 
         // send the event
         var topic = registration.EventName;
-        var result = await producer.ProduceAsync(topic: topic, message: message, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var result = await producer.Value.ProduceAsync(topic: topic, message: message, cancellationToken: cancellationToken).ConfigureAwait(false);
         // Should we check persistence status?
 
         // return the sequence number
@@ -180,7 +186,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
 
             // send the event
             var topic = registration.EventName;
-            var result = await producer.ProduceAsync(topic: topic, message: message, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var result = await producer.Value.ProduceAsync(topic: topic, message: message, cancellationToken: cancellationToken).ConfigureAwait(false);
             // Should we check persistence status?
 
             // collect the sequence number
@@ -216,7 +222,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
         {
             try
             {
-                var result = consumer.Consume(cancellationToken);
+                var result = consumer.Value.Consume(cancellationToken);
                 if (result.IsPartitionEOF)
                 {
                     Logger.EndOfTopic(result.Topic, result.Partition, result.Offset);
@@ -236,7 +242,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
 
 
                 // if configured to checkpoint at intervals, respect it
-                if ((result.Offset % TransportOptions.CheckpointInterval) == 0)
+                if ((result.Offset % Options.CheckpointInterval) == 0)
                 {
                     // The Commit method sends a "commit offsets" request to the Kafka
                     // cluster and synchronously waits for the response. This is very
@@ -244,7 +250,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
                     // consuming messages. A high performance application will typically
                     // commit offsets relatively infrequently and be designed handle
                     // duplicate messages in the event of failure.
-                    consumer.Commit(result);
+                    consumer.Value.Commit(result);
                 }
             }
             catch (TaskCanceledException)
@@ -301,8 +307,8 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {
             // produce message on dead-letter topic
-            var dlt = reg.EventName += TransportOptions.DeadLetterSuffix;
-            await producer.ProduceAsync(topic: dlt, message: message, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var dlt = reg.EventName += Options.DeadLetterSuffix;
+            await producer.Value.ProduceAsync(topic: dlt, message: message, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         // TODO: find a better way to handle the checkpointing when there is an error

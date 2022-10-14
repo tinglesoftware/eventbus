@@ -20,8 +20,8 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
     private readonly Dictionary<string, ServiceBusProcessor> processorsCache = new();
     private readonly SemaphoreSlim processorsCacheLock = new(1, 1); // only one at a time.
     private readonly SemaphoreSlim propertiesCacheLock = new(1, 1); // only one at a time.
-    private readonly ServiceBusAdministrationClient managementClient;
-    private readonly ServiceBusClient serviceBusClient;
+    private readonly Lazy<ServiceBusAdministrationClient> managementClient;
+    private readonly Lazy<ServiceBusClient> serviceBusClient;
     private NamespaceProperties? properties;
 
     /// <summary>
@@ -29,29 +29,43 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
     /// </summary>
     /// <param name="serviceScopeFactory"></param>
     /// <param name="busOptionsAccessor"></param>
-    /// <param name="transportOptionsAccessor"></param>
+    /// <param name="optionsMonitor"></param>
     /// <param name="loggerFactory"></param>
     public AzureServiceBusTransport(IServiceScopeFactory serviceScopeFactory,
                                     IOptions<EventBusOptions> busOptionsAccessor,
-                                    IOptions<AzureServiceBusTransportOptions> transportOptionsAccessor,
+                                    IOptionsMonitor<AzureServiceBusTransportOptions> optionsMonitor,
                                     ILoggerFactory loggerFactory)
-        : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
+        : base(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory)
     {
-        var cred = TransportOptions.Credentials.CurrentValue;
-        var sbcOptions = new ServiceBusClientOptions { TransportType = TransportOptions.TransportType, };
-        if (cred is AzureServiceBusTransportCredentials asbtc)
+        managementClient = new Lazy<ServiceBusAdministrationClient>(() =>
         {
-            managementClient = new ServiceBusAdministrationClient(fullyQualifiedNamespace: asbtc.FullyQualifiedNamespace,
-                                                                  credential: asbtc.TokenCredential);
-            serviceBusClient = new ServiceBusClient(fullyQualifiedNamespace: asbtc.FullyQualifiedNamespace,
-                                                    credential: asbtc.TokenCredential,
-                                                    options: sbcOptions);
-        }
-        else
+            var cred = Options.Credentials.CurrentValue;
+            if (cred is AzureServiceBusTransportCredentials asbtc)
+            {
+                return new ServiceBusAdministrationClient(fullyQualifiedNamespace: asbtc.FullyQualifiedNamespace,
+                                                          credential: asbtc.TokenCredential);
+            }
+            else
+            {
+                return new ServiceBusAdministrationClient(connectionString: (string)cred);
+            }
+        });
+
+        serviceBusClient = new Lazy<ServiceBusClient>(() =>
         {
-            managementClient = new ServiceBusAdministrationClient(connectionString: (string)cred);
-            serviceBusClient = new ServiceBusClient(connectionString: (string)cred, options: sbcOptions);
-        }
+            var cred = Options.Credentials.CurrentValue;
+            var sbcOptions = new ServiceBusClientOptions { TransportType = Options.TransportType, };
+            if (cred is AzureServiceBusTransportCredentials asbtc)
+            {
+                return new ServiceBusClient(fullyQualifiedNamespace: asbtc.FullyQualifiedNamespace,
+                                            credential: asbtc.TokenCredential,
+                                            options: sbcOptions);
+            }
+            else
+            {
+                return new ServiceBusClient(connectionString: (string)cred, options: sbcOptions);
+            }
+        });
     }
 
     /// <inheritdoc/>
@@ -305,7 +319,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                 }
 
                 // Create the sender
-                sender = serviceBusClient.CreateSender(queueOrTopicName: name);
+                sender = serviceBusClient.Value.CreateSender(queueOrTopicName: name);
                 sendersCache[reg.EventType] = sender;
             }
 
@@ -341,14 +355,14 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                     AutoCompleteMessages = false,
 
                     // Set the period of time for which to keep renewing the lock token
-                    MaxAutoLockRenewalDuration = TransportOptions.DefaultMaxAutoLockRenewDuration,
+                    MaxAutoLockRenewalDuration = Options.DefaultMaxAutoLockRenewDuration,
 
                     // Set the number of items to be cached locally
-                    PrefetchCount = TransportOptions.DefaultPrefetchCount,
+                    PrefetchCount = Options.DefaultPrefetchCount,
                 };
 
                 // Allow for the defaults to be overridden
-                TransportOptions.SetupProcessorOptions?.Invoke(reg, ecr, sbpo);
+                Options.SetupProcessorOptions?.Invoke(reg, ecr, sbpo);
 
                 // Create the processor.
                 if (await ShouldUseQueueAsync(reg, cancellationToken).ConfigureAwait(false))
@@ -358,7 +372,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
                     // Create the processor for the Queue
                     Logger.CreatingQueueProcessor(queueName: topicName);
-                    processor = serviceBusClient.CreateProcessor(queueName: topicName, options: sbpo);
+                    processor = serviceBusClient.Value.CreateProcessor(queueName: topicName, options: sbpo);
                 }
                 else
                 {
@@ -373,9 +387,9 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
                     // Create the processor for the Subscription
                     Logger.CreatingSubscriptionProcessor(topicName: topicName, subscriptionName: subscriptionName);
-                    processor = serviceBusClient.CreateProcessor(topicName: topicName,
-                                                                 subscriptionName: subscriptionName,
-                                                                 options: sbpo);
+                    processor = serviceBusClient.Value.CreateProcessor(topicName: topicName,
+                                                                       subscriptionName: subscriptionName,
+                                                                       options: sbpo);
                 }
 
                 processorsCache[key] = processor;
@@ -392,7 +406,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
     private async Task CreateQueueIfNotExistsAsync(EventRegistration reg, string name, CancellationToken cancellationToken)
     {
         // if entity creation is not enabled, just return
-        if (!TransportOptions.EnableEntityCreation)
+        if (!Options.EnableEntityCreation)
         {
             Logger.QueueEntityCreationDisabled();
             return;
@@ -400,7 +414,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         // If the queue does not exist, create it
         Logger.CheckingQueueExistence(queueName: name);
-        if (!await managementClient.QueueExistsAsync(name: name, cancellationToken: cancellationToken).ConfigureAwait(false))
+        if (!await managementClient.Value.QueueExistsAsync(name: name, cancellationToken: cancellationToken).ConfigureAwait(false))
         {
             Logger.CreatingQueuePreparation(queueName: name);
             var options = new CreateQueueOptions(name: name)
@@ -410,30 +424,30 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                 EnablePartitioning = false,
                 EnableBatchedOperations = true,
                 DeadLetteringOnMessageExpiration = true,
-                LockDuration = TransportOptions.DefaultLockDuration,
-                MaxDeliveryCount = TransportOptions.DefaultMaxDeliveryCount,
+                LockDuration = Options.DefaultLockDuration,
+                MaxDeliveryCount = Options.DefaultMaxDeliveryCount,
             };
 
             // Certain properties are not allowed in Basic Tier or have lower limits
             if (!await IsBasicTierAsync(cancellationToken).ConfigureAwait(false))
             {
-                options.DefaultMessageTimeToLive = TransportOptions.DefaultMessageTimeToLive; // defaults to 14days in basic tier
+                options.DefaultMessageTimeToLive = Options.DefaultMessageTimeToLive; // defaults to 14days in basic tier
                 options.RequiresDuplicateDetection = BusOptions.EnableDeduplication;
                 options.DuplicateDetectionHistoryTimeWindow = BusOptions.DuplicateDetectionDuration;
-                options.AutoDeleteOnIdle = TransportOptions.DefaultAutoDeleteOnIdle;
+                options.AutoDeleteOnIdle = Options.DefaultAutoDeleteOnIdle;
             }
 
             // Allow for the defaults to be overridden
-            TransportOptions.SetupQueueOptions?.Invoke(reg, options);
+            Options.SetupQueueOptions?.Invoke(reg, options);
             Logger.CreatingQueue(queueName: name);
-            _ = await managementClient.CreateQueueAsync(options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
+            _ = await managementClient.Value.CreateQueueAsync(options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 
     private async Task CreateTopicIfNotExistsAsync(EventRegistration reg, string name, CancellationToken cancellationToken)
     {
         // if entity creation is not enabled, just return
-        if (!TransportOptions.EnableEntityCreation)
+        if (!Options.EnableEntityCreation)
         {
             Logger.TopicEntityCreationDisabled();
             return;
@@ -441,7 +455,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         // If the topic does not exist, create it
         Logger.CheckingTopicExistence(topicName: name);
-        if (!await managementClient.TopicExistsAsync(name: name, cancellationToken: cancellationToken).ConfigureAwait(false))
+        if (!await managementClient.Value.TopicExistsAsync(name: name, cancellationToken: cancellationToken).ConfigureAwait(false))
         {
             Logger.CreatingTopicPreparation(topicName: name);
             var options = new CreateTopicOptions(name: name)
@@ -450,22 +464,22 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                 EnablePartitioning = false,
                 RequiresDuplicateDetection = BusOptions.EnableDeduplication,
                 DuplicateDetectionHistoryTimeWindow = BusOptions.DuplicateDetectionDuration,
-                AutoDeleteOnIdle = TransportOptions.DefaultAutoDeleteOnIdle,
-                DefaultMessageTimeToLive = TransportOptions.DefaultMessageTimeToLive,
+                AutoDeleteOnIdle = Options.DefaultAutoDeleteOnIdle,
+                DefaultMessageTimeToLive = Options.DefaultMessageTimeToLive,
                 EnableBatchedOperations = true,
             };
 
             // Allow for the defaults to be overridden
-            TransportOptions.SetupTopicOptions?.Invoke(reg, options);
+            Options.SetupTopicOptions?.Invoke(reg, options);
             Logger.CreatingTopic(topicName: name);
-            _ = await managementClient.CreateTopicAsync(options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
+            _ = await managementClient.Value.CreateTopicAsync(options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 
     private async Task CreateSubscriptionIfNotExistsAsync(EventConsumerRegistration ecr, string topicName, string subscriptionName, CancellationToken cancellationToken)
     {
         // if entity creation is not enabled, just return
-        if (!TransportOptions.EnableEntityCreation)
+        if (!Options.EnableEntityCreation)
         {
             Logger.SubscriptionEntityCreationDisabled();
             return;
@@ -473,24 +487,24 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         // If the subscription does not exist, create it
         Logger.CheckingSubscriptionExistence(subscriptionName: subscriptionName, topicName: topicName);
-        if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionName, cancellationToken).ConfigureAwait(false))
+        if (!await managementClient.Value.SubscriptionExistsAsync(topicName, subscriptionName, cancellationToken).ConfigureAwait(false))
         {
             Logger.CreatingSubscriptionPreparation(subscriptionName: subscriptionName, topicName: topicName);
             var options = new CreateSubscriptionOptions(topicName: topicName, subscriptionName: subscriptionName)
             {
                 Status = EntityStatus.Active,
-                AutoDeleteOnIdle = TransportOptions.DefaultAutoDeleteOnIdle,
-                DefaultMessageTimeToLive = TransportOptions.DefaultMessageTimeToLive,
+                AutoDeleteOnIdle = Options.DefaultAutoDeleteOnIdle,
+                DefaultMessageTimeToLive = Options.DefaultMessageTimeToLive,
                 EnableBatchedOperations = true,
                 DeadLetteringOnMessageExpiration = true,
-                LockDuration = TransportOptions.DefaultLockDuration,
-                MaxDeliveryCount = TransportOptions.DefaultMaxDeliveryCount,
+                LockDuration = Options.DefaultLockDuration,
+                MaxDeliveryCount = Options.DefaultMaxDeliveryCount,
             };
 
             // Allow for the defaults to be overridden
-            TransportOptions.SetupSubscriptionOptions?.Invoke(ecr, options);
+            Options.SetupSubscriptionOptions?.Invoke(ecr, options);
             Logger.CreatingSubscription(subscriptionName: subscriptionName, topicName: topicName);
-            await managementClient.CreateSubscriptionAsync(options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await managementClient.Value.CreateSubscriptionAsync(options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -603,7 +617,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         try
         {
-            properties ??= await managementClient.GetNamespacePropertiesAsync(cancellationToken).ConfigureAwait(false);
+            properties ??= await managementClient.Value.GetNamespacePropertiesAsync(cancellationToken).ConfigureAwait(false);
         }
         finally
         {

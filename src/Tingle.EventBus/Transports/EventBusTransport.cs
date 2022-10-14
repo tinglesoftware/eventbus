@@ -12,12 +12,12 @@ namespace Tingle.EventBus.Transports;
 /// <summary>
 /// Abstract implementation for an event bus transport.
 /// </summary>
-/// <typeparam name="TTransportOptions">The type used for configuring options of the transport</typeparam>
-public abstract class EventBusTransport<TTransportOptions> : IEventBusTransportWithOptions, IEventBusTransport where TTransportOptions : EventBusTransportOptions, new()
+/// <typeparam name="TOptions">The type used for configuring options of the transport</typeparam>
+public abstract class EventBusTransport<TOptions> : IEventBusTransportWithOptions, IEventBusTransport where TOptions : EventBusTransportOptions, new()
 {
     private static readonly Regex CategoryNamePattern = new(@"Transport$", RegexOptions.Compiled);
     private readonly IServiceScopeFactory scopeFactory;
-    private readonly IOptionsMonitor<TTransportOptions> optionsMonitor;
+    private readonly IOptionsMonitor<TOptions> optionsMonitor;
 
     /// <summary>
     /// 
@@ -28,7 +28,7 @@ public abstract class EventBusTransport<TTransportOptions> : IEventBusTransportW
     /// <param name="loggerFactory"></param>
     public EventBusTransport(IServiceScopeFactory scopeFactory,
                              IOptions<EventBusOptions> busOptionsAccessor,
-                             IOptionsMonitor<TTransportOptions> optionsMonitor,
+                             IOptionsMonitor<TOptions> optionsMonitor,
                              ILoggerFactory loggerFactory)
     {
         this.scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
@@ -52,7 +52,7 @@ public abstract class EventBusTransport<TTransportOptions> : IEventBusTransportW
     /// <summary>
     /// Options for configuring the transport.
     /// </summary>
-    protected TTransportOptions Options { get; private set; } = default!;
+    protected TOptions Options { get; private set; } = default!;
 
     ///
     protected ILogger Logger { get; }

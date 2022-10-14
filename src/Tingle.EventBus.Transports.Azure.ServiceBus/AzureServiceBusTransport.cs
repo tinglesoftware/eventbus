@@ -11,7 +11,7 @@ using Tingle.EventBus.Diagnostics;
 namespace Tingle.EventBus.Transports.Azure.ServiceBus;
 
 /// <summary>
-/// Implementation of <see cref="EventBusTransport{TTransportOptions}"/> using Azure Service Bus.
+/// Implementation of <see cref="EventBusTransport{TOptions}"/> using Azure Service Bus.
 /// </summary>
 public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTransportOptions>
 {

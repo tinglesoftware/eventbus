@@ -11,7 +11,7 @@ using Tingle.EventBus.Diagnostics;
 namespace Tingle.EventBus.Transports.Kafka;
 
 /// <summary>
-/// Implementation of <see cref="EventBusTransport{TTransportOptions}"/> using Kafka.
+/// Implementation of <see cref="EventBusTransport{TOptions}"/> using Kafka.
 /// </summary>
 public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposable
 {

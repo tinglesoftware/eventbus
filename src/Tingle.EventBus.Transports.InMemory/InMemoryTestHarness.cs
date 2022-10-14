@@ -10,12 +10,11 @@ public class InMemoryTestHarness
     private readonly InMemoryTestHarnessOptions options;
 
     ///
-    public InMemoryTestHarness(IEnumerable<IEventBusTransport> transports, IOptions<InMemoryTestHarnessOptions> optionsAccessor)
+    public InMemoryTestHarness(EventBusTransportProvider transportProvider, IOptions<InMemoryTestHarnessOptions> optionsAccessor)
     {
         // Ensure we have the InMemoryTransport resolved
-        if (transports is null) throw new ArgumentNullException(nameof(transports));
-        transport = transports.OfType<InMemoryTransport>().SingleOrDefault()
-            ?? throw new ArgumentException("The InMemoryTransport must be added. Ensure 'services.AddInMemoryTransport()' has been called.", nameof(transports));
+        transport = transportProvider.GetTransport(InMemoryDefaults.Name) as InMemoryTransport
+            ?? throw new ArgumentException("The InMemoryTransport must be added. Ensure 'services.AddInMemoryTransport()' has been called.");
 
         options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
     }

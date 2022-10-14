@@ -210,17 +210,17 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
     }
 
     /// <inheritdoc/>
-    public override Task CancelAsync<TEvent>(string id,
-                                             EventRegistration registration,
-                                             CancellationToken cancellationToken = default)
+    protected override Task CancelCoreAsync<TEvent>(string id,
+                                                    EventRegistration registration,
+                                                    CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException("Azure EventHubs does not support canceling published events.");
     }
 
     /// <inheritdoc/>
-    public override Task CancelAsync<TEvent>(IList<string> ids,
-                                             EventRegistration registration,
-                                             CancellationToken cancellationToken = default)
+    protected override Task CancelCoreAsync<TEvent>(IList<string> ids,
+                                                    EventRegistration registration,
+                                                    CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException("Azure EventHubs does not support canceling published events.");
     }

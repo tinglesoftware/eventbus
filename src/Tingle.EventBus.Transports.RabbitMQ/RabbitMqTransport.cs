@@ -237,17 +237,17 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
     }
 
     /// <inheritdoc/>
-    public override Task CancelAsync<TEvent>(string id,
-                                             EventRegistration registration,
-                                             CancellationToken cancellationToken = default)
+    protected override Task CancelCoreAsync<TEvent>(string id,
+                                                    EventRegistration registration,
+                                                    CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException("RabbitMQ does not support canceling published messages.");
     }
 
     /// <inheritdoc/>
-    public override Task CancelAsync<TEvent>(IList<string> ids,
-                                             EventRegistration registration,
-                                             CancellationToken cancellationToken = default)
+    protected override Task CancelCoreAsync<TEvent>(IList<string> ids,
+                                                    EventRegistration registration,
+                                                    CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException("RabbitMQ does not support canceling published messages.");
     }

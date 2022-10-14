@@ -118,17 +118,53 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
 
     #endregion
 
+    #region Cancelling
+
     /// <inheritdoc/>
-    public abstract Task CancelAsync<TEvent>(string id,
-                                             EventRegistration registration,
-                                             CancellationToken cancellationToken = default)
+    public virtual async Task CancelAsync<TEvent>(string id, EventRegistration registration, CancellationToken cancellationToken = default)
+        where TEvent : class
+    {
+        // cancel, with retry if specified
+        var retryPolicy = registration.RetryPolicy;
+        if (retryPolicy != null)
+        {
+            await retryPolicy.ExecuteAsync(ct => CancelCoreAsync<TEvent>(id, registration, ct), cancellationToken);
+        }
+        else
+        {
+            await CancelCoreAsync<TEvent>(id, registration, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <inheritdoc/>
+    public virtual async Task CancelAsync<TEvent>(IList<string> ids, EventRegistration registration, CancellationToken cancellationToken = default)
+        where TEvent : class
+    {
+        // cancel, with retry if specified
+        var retryPolicy = registration.RetryPolicy;
+        if (retryPolicy != null)
+        {
+            await retryPolicy.ExecuteAsync(ct => CancelCoreAsync<TEvent>(ids, registration, ct), cancellationToken);
+        }
+        else
+        {
+            await CancelCoreAsync<TEvent>(ids, registration, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <inheritdoc/>
+    protected abstract Task CancelCoreAsync<TEvent>(string id,
+                                                    EventRegistration registration,
+                                                    CancellationToken cancellationToken = default)
         where TEvent : class;
 
     /// <inheritdoc/>
-    public abstract Task CancelAsync<TEvent>(IList<string> ids,
-                                             EventRegistration registration,
-                                             CancellationToken cancellationToken = default)
+    protected abstract Task CancelCoreAsync<TEvent>(IList<string> ids,
+                                                    EventRegistration registration,
+                                                    CancellationToken cancellationToken = default)
         where TEvent : class;
+
+    #endregion
 
     /// <inheritdoc/>
     public virtual Task StartAsync(CancellationToken cancellationToken)

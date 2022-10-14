@@ -193,17 +193,17 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
     }
 
     /// <inheritdoc/>
-    public override Task CancelAsync<TEvent>(string id,
-                                             EventRegistration registration,
-                                             CancellationToken cancellationToken = default)
+    protected override Task CancelCoreAsync<TEvent>(string id,
+                                                    EventRegistration registration,
+                                                    CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException("Kafka does not support canceling published events.");
     }
 
     /// <inheritdoc/>
-    public override Task CancelAsync<TEvent>(IList<string> ids,
-                                             EventRegistration registration,
-                                             CancellationToken cancellationToken = default)
+    protected override Task CancelCoreAsync<TEvent>(IList<string> ids,
+                                                    EventRegistration registration,
+                                                    CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException("Kafka does not support canceling published events.");
     }

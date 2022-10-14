@@ -236,9 +236,9 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
     }
 
     /// <inheritdoc/>
-    public override async Task CancelAsync<TEvent>(string id,
-                                                   EventRegistration registration,
-                                                   CancellationToken cancellationToken = default)
+    protected override async Task CancelCoreAsync<TEvent>(string id,
+                                                          EventRegistration registration,
+                                                          CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -257,9 +257,9 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
     }
 
     /// <inheritdoc/>
-    public override async Task CancelAsync<TEvent>(IList<string> ids,
-                                                   EventRegistration registration,
-                                                   CancellationToken cancellationToken = default)
+    protected override async Task CancelCoreAsync<TEvent>(IList<string> ids,
+                                                          EventRegistration registration,
+                                                          CancellationToken cancellationToken = default)
     {
         if (ids is null)
         {

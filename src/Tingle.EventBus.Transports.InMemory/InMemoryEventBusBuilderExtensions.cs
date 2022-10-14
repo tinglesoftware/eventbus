@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Extension methods on <see cref="EventBusBuilder"/> for InMemory.
 /// </summary>
-public static class EventBusBuilderExtensions
+public static class InMemoryEventBusBuilderExtensions
 {
     /// <summary>Add InMemory transport.</summary>
     /// <param name="builder"></param>

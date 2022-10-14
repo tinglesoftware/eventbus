@@ -6,7 +6,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Extension methods on <see cref="EventBusBuilder"/> for RabbitMQ.
 /// </summary>
-public static class EventBusBuilderExtensions
+public static class RabbitMqEventBusBuilderExtensions
 {
     /// <summary>Add RabbitMQ transport.</summary>
     /// <param name="builder">The <see cref="EventBusBuilder"/> to add to.</param>

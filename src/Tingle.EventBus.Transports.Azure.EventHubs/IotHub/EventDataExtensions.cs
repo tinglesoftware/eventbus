@@ -6,7 +6,7 @@ namespace Azure.Messaging.EventHubs;
 /// <summary>
 /// Extension methods on <see cref="EventData"/>.
 /// </summary>
-public static partial class EventDataExtensions
+public static class EventDataExtensions
 {
     private const string IotHubPropertyNameMessageId = "message-id";
     private const string IotHubPropertyNameMessageSchema = "iothub-message-schema";

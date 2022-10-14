@@ -1,17 +1,17 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Tingle.EventBus.Transports.InMemory.Client;
+﻿using Azure.Messaging.ServiceBus;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Tingle.EventBus;
 
 /// <summary>
 /// Extension methods on <see cref="EventContext"/> and <see cref="EventContext{T}"/>.
 /// </summary>
-public static class EventContextExtensions
+public static class AzureServiceBusEventContextExtensions
 {
-    internal const string ItemsKeyMessage = "inmemory.received-message";
+    internal const string ItemsKeyMessage = "azure.servicebus.received-message";
 
     /// <summary>
-    /// Gets the <see cref="InMemoryReceivedMessage"/> associated with the specified <see cref="EventContext"/>
+    /// Gets the <see cref="ServiceBusReceivedMessage"/> associated with the specified <see cref="EventContext"/>
     /// if the event uses Azure Service Bus transport.
     /// </summary>
     /// <param name="context">The <see cref="EventContext"/> to use.</param>
@@ -24,11 +24,11 @@ public static class EventContextExtensions
     /// true if the message is found; otherwise, false.
     /// </returns>
     /// <exception cref="ArgumentNullException">The context is null</exception>
-    public static bool TryGetInMemoryReceivedMessage(this EventContext context, [NotNullWhen(true)] out InMemoryReceivedMessage? message)
+    public static bool TryGetServiceBusReceivedMessage(this EventContext context, [NotNullWhen(true)] out ServiceBusReceivedMessage? message)
     {
         if (context is null) throw new ArgumentNullException(nameof(context));
 
-        if (context.Items.TryGetValue(ItemsKeyMessage, out var obj) && obj is InMemoryReceivedMessage msg)
+        if (context.Items.TryGetValue(ItemsKeyMessage, out var obj) && obj is ServiceBusReceivedMessage msg)
         {
             message = msg;
             return true;
@@ -39,13 +39,13 @@ public static class EventContextExtensions
     }
 
     /// <summary>
-    /// Set the <see cref="InMemoryReceivedMessage"/> for an event.
+    /// Set the <see cref="ServiceBusReceivedMessage"/> for an event.
     /// </summary>
     /// <typeparam name="T">The context type.</typeparam>
     /// <param name="context">The <see cref="EventContext"/> to update.</param>
     /// <param name="message">The value to set.</param>
     /// <returns>The updated context.</returns>
-    internal static T SetInMemoryReceivedMessage<T>(this T context, InMemoryReceivedMessage message) where T : EventContext
+    internal static T SetServiceBusReceivedMessage<T>(this T context, ServiceBusReceivedMessage message) where T : EventContext
     {
         if (context is null) throw new ArgumentNullException(nameof(context));
         if (message is null) throw new ArgumentNullException(nameof(message));

@@ -6,7 +6,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Extension methods on <see cref="EventBusBuilder"/> for Azure EventHubs
 /// </summary>
-public static class EventBusBuilderExtensions
+public static class AzureEventHubsEventBusBuilderExtensions
 {
     /// <summary>Add Azure EventHubs transport.</summary>
     /// <param name="builder">The <see cref="EventBusBuilder"/> to add to.</param>

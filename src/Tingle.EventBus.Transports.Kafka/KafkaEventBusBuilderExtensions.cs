@@ -6,7 +6,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Extension methods on <see cref="EventBusBuilder"/> for Kafka.
 /// </summary>
-public static class EventBusBuilderExtensions
+public static class KafkaEventBusBuilderExtensions
 {
     /// <summary>Add Kafka transport.</summary>
     /// <param name="builder">The <see cref="EventBusBuilder"/> to add to.</param>

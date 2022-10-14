@@ -6,7 +6,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Extension methods on <see cref="EventBusBuilder"/> for Azure Queue Storage.
 /// </summary>
-public static class EventBusBuilderExtensions
+public static class AzureQueueStorageEventBusBuilderExtensions
 {
     /// <summary>Add Azure Queue Storage transport.</summary>
     /// <param name="builder">The <see cref="EventBusBuilder"/> to add to.</param>

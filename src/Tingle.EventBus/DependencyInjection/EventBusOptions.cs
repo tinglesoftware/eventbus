@@ -11,6 +11,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public class EventBusOptions
 {
+    private readonly IList<EventBusTransportRegistrationBuilder> transports = new List<EventBusTransportRegistrationBuilder>();
+
     /// <summary>
     /// The duration of time to delay the starting of the bus.
     /// When <see langword="null"/>, the bus is started immediately.
@@ -80,9 +82,45 @@ public class EventBusOptions
     internal Dictionary<string, Type> RegisteredTransportNames { get; } = new Dictionary<string, Type>();
 
     /// <summary>
+    /// Transports in the order they were added.
+    /// </summary>
+    public IEnumerable<EventBusTransportRegistrationBuilder> Transports => transports;
+
+    /// <summary>
+    /// Maps schemes by name.
+    /// </summary>
+    public IDictionary<string, EventBusTransportRegistrationBuilder> TransportMap { get; } = new Dictionary<string, EventBusTransportRegistrationBuilder>(StringComparer.Ordinal);
+
+    /// <summary>
     /// The registrations for events and consumers for the EventBus.
     /// </summary>
     internal Dictionary<Type, EventRegistration> Registrations { get; } = new Dictionary<Type, EventRegistration>();
+
+    /// <summary>Adds a <see cref="TransportRegistration"/>.</summary>
+    /// <param name="name">The name of the transport being added.</param>
+    /// <param name="configureBuilder">Configures the transport.</param>
+    public void AddTransport(string name, Action<EventBusTransportRegistrationBuilder> configureBuilder)
+    {
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        if (configureBuilder == null) throw new ArgumentNullException(nameof(configureBuilder));
+        if (TransportMap.ContainsKey(name)) throw new InvalidOperationException("Transport already exists: " + name);
+
+        var builder = new EventBusTransportRegistrationBuilder(name);
+        configureBuilder(builder);
+        transports.Add(builder);
+        TransportMap[name] = builder;
+    }
+
+    /// <summary>Adds a <see cref="TransportRegistration"/>.</summary>
+    /// <typeparam name="THandler">The <see cref="IEventBusTransport"/> responsible for the scheme.</typeparam>
+    /// <param name="name">The name of the scheme being added.</param>
+    /// <param name="displayName">The display name for the transport.</param>
+    public void AddTransport<THandler>(string name, string? displayName) where THandler : IEventBusTransport
+        => AddTransport(name, b =>
+        {
+            b.DisplayName = displayName;
+            b.TransportType = typeof(THandler);
+        });
 
     /// <summary>
     /// Gets the consumer registrations for a given transport.

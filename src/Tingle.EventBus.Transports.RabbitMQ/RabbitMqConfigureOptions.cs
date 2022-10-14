@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;

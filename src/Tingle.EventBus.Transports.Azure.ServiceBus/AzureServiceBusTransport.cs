@@ -58,17 +58,17 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
     /// <inheritdoc/>
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        await base.StartAsync(cancellationToken);
+        await base.StartAsync(cancellationToken).ConfigureAwait(false);
 
         // Get the namespace properties once at the start
-        _ = await GetNamespacePropertiesAsync(cancellationToken);
+        _ = await GetNamespacePropertiesAsync(cancellationToken).ConfigureAwait(false);
 
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
             foreach (var ecr in reg.Consumers)
             {
-                var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken);
+                var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // register handlers for error and processing
                 processor.ProcessErrorAsync += OnMessageFaultedAsync;
@@ -82,7 +82,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
                 // start processing
                 Logger.StartingProcessing(entityPath: processor.EntityPath);
-                await processor.StartProcessingAsync(cancellationToken: cancellationToken);
+                await processor.StartProcessingAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
     }
@@ -90,7 +90,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
     /// <inheritdoc/>
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        await base.StopAsync(cancellationToken);
+        await base.StopAsync(cancellationToken).ConfigureAwait(false);
 
         var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
         foreach (var (key, proc) in clients)
@@ -99,7 +99,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
             try
             {
-                await proc.StopProcessingAsync(cancellationToken);
+                await proc.StopProcessingAsync(cancellationToken).ConfigureAwait(false);
                 processorsCache.Remove(key);
 
                 Logger.StoppedProcessor(processor: key);
@@ -121,7 +121,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
         var body = await SerializeAsync(scope: scope,
                                         @event: @event,
                                         registration: registration,
-                                        cancellationToken: cancellationToken);
+                                        cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var message = new ServiceBusMessage(body)
         {
@@ -154,18 +154,18 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                                      .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
         // Get the sender and send the message accordingly
-        var sender = await GetSenderAsync(registration, cancellationToken);
+        var sender = await GetSenderAsync(registration, cancellationToken).ConfigureAwait(false);
         Logger.SendingMessage(eventBusId: @event.Id, entityPath: sender.EntityPath, scheduled: scheduled);
         if (scheduled != null)
         {
             var seqNum = await sender.ScheduleMessageAsync(message: message,
                                                            scheduledEnqueueTime: message.ScheduledEnqueueTime,
-                                                           cancellationToken: cancellationToken);
+                                                           cancellationToken: cancellationToken).ConfigureAwait(false);
             return new ScheduledResult(id: seqNum, scheduled: scheduled.Value); // return the sequence number
         }
         else
         {
-            await sender.SendMessageAsync(message, cancellationToken);
+            await sender.SendMessageAsync(message, cancellationToken).ConfigureAwait(false);
             return null; // no sequence number available
         }
     }
@@ -183,7 +183,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
             var body = await SerializeAsync(scope: scope,
                                             @event: @event,
                                             registration: registration,
-                                            cancellationToken: cancellationToken);
+                                            cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var message = new ServiceBusMessage(body)
             {
@@ -219,18 +219,18 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
         }
 
         // Get the sender and send the messages accordingly
-        var sender = await GetSenderAsync(registration, cancellationToken);
+        var sender = await GetSenderAsync(registration, cancellationToken).ConfigureAwait(false);
         Logger.SendingMessages(events: events, entityPath: sender.EntityPath, scheduled: scheduled);
         if (scheduled != null)
         {
             var seqNums = await sender.ScheduleMessagesAsync(messages: messages,
                                                              scheduledEnqueueTime: messages.First().ScheduledEnqueueTime,
-                                                             cancellationToken: cancellationToken);
+                                                             cancellationToken: cancellationToken).ConfigureAwait(false);
             return seqNums.Select(n => new ScheduledResult(id: n, scheduled: scheduled.Value)).ToList(); // return the sequence numbers
         }
         else
         {
-            await sender.SendMessagesAsync(messages: messages, cancellationToken: cancellationToken);
+            await sender.SendMessagesAsync(messages: messages, cancellationToken: cancellationToken).ConfigureAwait(false);
             return Array.Empty<ScheduledResult>(); // no sequence numbers available
         }
     }
@@ -251,9 +251,9 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
         }
 
         // get the sender and cancel the message accordingly
-        var sender = await GetSenderAsync(registration, cancellationToken);
+        var sender = await GetSenderAsync(registration, cancellationToken).ConfigureAwait(false);
         Logger.CancelingMessage(sequenceNumber: seqNum, entityPath: sender.EntityPath);
-        await sender.CancelScheduledMessageAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken);
+        await sender.CancelScheduledMessageAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -276,14 +276,14 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
         }).ToList();
 
         // get the sender and cancel the messages accordingly
-        var sender = await GetSenderAsync(registration, cancellationToken);
+        var sender = await GetSenderAsync(registration, cancellationToken).ConfigureAwait(false);
         Logger.CancelingMessages(sequenceNumbers: seqNums, entityPath: sender.EntityPath);
-        await sender.CancelScheduledMessagesAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken);
+        await sender.CancelScheduledMessagesAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<ServiceBusSender> GetSenderAsync(EventRegistration reg, CancellationToken cancellationToken)
     {
-        await sendersCacheLock.WaitAsync(cancellationToken);
+        await sendersCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -292,17 +292,17 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                 var name = reg.EventName!;
 
                 // Create the entity.
-                if (await ShouldUseQueueAsync(reg, cancellationToken))
+                if (await ShouldUseQueueAsync(reg, cancellationToken).ConfigureAwait(false))
                 {
                     // Ensure Queue is created
                     Logger.CreatingQueueSender(queueName: name);
-                    await CreateQueueIfNotExistsAsync(reg: reg, name: name, cancellationToken: cancellationToken);
+                    await CreateQueueIfNotExistsAsync(reg: reg, name: name, cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
                     // Ensure topic is created
                     Logger.CreatingTopicSender(topicName: name);
-                    await CreateTopicIfNotExistsAsync(reg: reg, name: name, cancellationToken: cancellationToken);
+                    await CreateTopicIfNotExistsAsync(reg: reg, name: name, cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
 
                 // Create the sender
@@ -320,7 +320,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
     private async Task<ServiceBusProcessor> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
     {
-        await processorsCacheLock.WaitAsync(cancellationToken);
+        await processorsCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -352,10 +352,10 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                 TransportOptions.SetupProcessorOptions?.Invoke(reg, ecr, sbpo);
 
                 // Create the processor.
-                if (await ShouldUseQueueAsync(reg, cancellationToken))
+                if (await ShouldUseQueueAsync(reg, cancellationToken).ConfigureAwait(false))
                 {
                     // Ensure Queue is created
-                    await CreateQueueIfNotExistsAsync(reg: reg, name: topicName, cancellationToken: cancellationToken);
+                    await CreateQueueIfNotExistsAsync(reg: reg, name: topicName, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     // Create the processor for the Queue
                     Logger.CreatingQueueProcessor(queueName: topicName);
@@ -364,13 +364,13 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                 else
                 {
                     // Ensure Topic is created before creating the Subscription
-                    await CreateTopicIfNotExistsAsync(reg: reg, name: topicName, cancellationToken: cancellationToken);
+                    await CreateTopicIfNotExistsAsync(reg: reg, name: topicName, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     // Ensure Subscription is created
                     await CreateSubscriptionIfNotExistsAsync(ecr: ecr,
                                                              topicName: topicName,
                                                              subscriptionName: subscriptionName,
-                                                             cancellationToken: cancellationToken);
+                                                             cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     // Create the processor for the Subscription
                     Logger.CreatingSubscriptionProcessor(topicName: topicName, subscriptionName: subscriptionName);
@@ -401,7 +401,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         // If the queue does not exist, create it
         Logger.CheckingQueueExistence(queueName: name);
-        if (!await managementClient.QueueExistsAsync(name: name, cancellationToken: cancellationToken))
+        if (!await managementClient.QueueExistsAsync(name: name, cancellationToken: cancellationToken).ConfigureAwait(false))
         {
             Logger.CreatingQueuePreparation(queueName: name);
             var options = new CreateQueueOptions(name: name)
@@ -416,7 +416,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
             };
 
             // Certain properties are not allowed in Basic Tier or have lower limits
-            if (!await IsBasicTierAsync(cancellationToken))
+            if (!await IsBasicTierAsync(cancellationToken).ConfigureAwait(false))
             {
                 options.DefaultMessageTimeToLive = TransportOptions.DefaultMessageTimeToLive; // defaults to 14days in basic tier
                 options.RequiresDuplicateDetection = BusOptions.EnableDeduplication;
@@ -427,7 +427,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
             // Allow for the defaults to be overridden
             TransportOptions.SetupQueueOptions?.Invoke(reg, options);
             Logger.CreatingQueue(queueName: name);
-            _ = await managementClient.CreateQueueAsync(options: options, cancellationToken: cancellationToken);
+            _ = await managementClient.CreateQueueAsync(options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -442,7 +442,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         // If the topic does not exist, create it
         Logger.CheckingTopicExistence(topicName: name);
-        if (!await managementClient.TopicExistsAsync(name: name, cancellationToken: cancellationToken))
+        if (!await managementClient.TopicExistsAsync(name: name, cancellationToken: cancellationToken).ConfigureAwait(false))
         {
             Logger.CreatingTopicPreparation(topicName: name);
             var options = new CreateTopicOptions(name: name)
@@ -459,7 +459,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
             // Allow for the defaults to be overridden
             TransportOptions.SetupTopicOptions?.Invoke(reg, options);
             Logger.CreatingTopic(topicName: name);
-            _ = await managementClient.CreateTopicAsync(options: options, cancellationToken: cancellationToken);
+            _ = await managementClient.CreateTopicAsync(options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -474,7 +474,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         // If the subscription does not exist, create it
         Logger.CheckingSubscriptionExistence(subscriptionName: subscriptionName, topicName: topicName);
-        if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionName, cancellationToken))
+        if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionName, cancellationToken).ConfigureAwait(false))
         {
             Logger.CreatingSubscriptionPreparation(subscriptionName: subscriptionName, topicName: topicName);
             var options = new CreateSubscriptionOptions(topicName: topicName, subscriptionName: subscriptionName)
@@ -491,7 +491,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
             // Allow for the defaults to be overridden
             TransportOptions.SetupSubscriptionOptions?.Invoke(ecr, options);
             Logger.CreatingSubscription(subscriptionName: subscriptionName, topicName: topicName);
-            await managementClient.CreateSubscriptionAsync(options: options, cancellationToken: cancellationToken);
+            await managementClient.CreateSubscriptionAsync(options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -523,7 +523,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
         activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
         activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
-        var destination = await ShouldUseQueueAsync(reg, cancellationToken) ? reg.EventName : ecr.ConsumerName;
+        var destination = await ShouldUseQueueAsync(reg, cancellationToken).ConfigureAwait(false) ? reg.EventName : ecr.ConsumerName;
         activity?.AddTag(ActivityTagNames.MessagingDestination, destination); // name of the queue/subscription
         activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
 
@@ -536,7 +536,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                                                      registration: reg,
                                                      identifier: message.SequenceNumber.ToString(),
                                                      raw: message,
-                                                     cancellationToken: cancellationToken);
+                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
         Logger.ReceivedMessage(sequenceNumber: message.SequenceNumber, eventBusId: context.Id, entityPath: entityPath);
 
@@ -547,7 +547,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
                                                                      ecr: ecr,
                                                                      @event: context,
                                                                      scope: scope,
-                                                                     cancellationToken: cancellationToken);
+                                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
         // Decide the action to execute then execute
         var action = DecideAction(successful, ecr.UnhandledErrorBehaviour, processor.AutoCompleteMessages);
@@ -555,7 +555,7 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
 
         if (action == PostConsumeAction.Complete)
         {
-            await args.CompleteMessageAsync(message: message, cancellationToken: cancellationToken);
+            await args.CompleteMessageAsync(message: message, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
         else if (action == PostConsumeAction.Throw)
         {
@@ -566,11 +566,11 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
         }
         else if (action == PostConsumeAction.Deadletter)
         {
-            await args.DeadLetterMessageAsync(message, cancellationToken: cancellationToken);
+            await args.DeadLetterMessageAsync(message, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
         else if (action == PostConsumeAction.Abandon)
         {
-            await args.AbandonMessageAsync(message, cancellationToken: cancellationToken);
+            await args.AbandonMessageAsync(message, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -589,22 +589,22 @@ public class AzureServiceBusTransport : EventBusTransportBase<AzureServiceBusTra
          * Queues are used in the basic tier or when explicitly mapped to Queue.
          * Otherwise, Topics and Subscriptions are used.
         */
-        return reg.EntityKind == EntityKind.Queue || await IsBasicTierAsync(cancellationToken);
+        return reg.EntityKind == EntityKind.Queue || await IsBasicTierAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<bool> IsBasicTierAsync(CancellationToken cancellationToken)
     {
-        var np = await GetNamespacePropertiesAsync(cancellationToken);
+        var np = await GetNamespacePropertiesAsync(cancellationToken).ConfigureAwait(false);
         return np.MessagingSku == MessagingSku.Basic;
     }
 
     private async Task<NamespaceProperties> GetNamespacePropertiesAsync(CancellationToken cancellationToken)
     {
-        await propertiesCacheLock.WaitAsync(cancellationToken);
+        await propertiesCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
-            properties ??= await managementClient.GetNamespacePropertiesAsync(cancellationToken);
+            properties ??= await managementClient.GetNamespacePropertiesAsync(cancellationToken).ConfigureAwait(false);
         }
         finally
         {

@@ -53,7 +53,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
     /// <inheritdoc/>
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        await base.StartAsync(cancellationToken);
+        await base.StartAsync(cancellationToken).ConfigureAwait(false);
 
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
@@ -63,7 +63,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                 var queueUrl = await GetQueueUrlAsync(reg: reg,
                                                       ecr: ecr,
                                                       deadletter: false,
-                                                      cancellationToken: cancellationToken);
+                                                      cancellationToken: cancellationToken).ConfigureAwait(false);
                 var t = ReceiveAsync(reg: reg,
                                      ecr: ecr,
                                      queueUrl: queueUrl,
@@ -76,7 +76,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
     /// <inheritdoc/>
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        await base.StopAsync(cancellationToken);
+        await base.StopAsync(cancellationToken).ConfigureAwait(false);
 
         // Stop called without start or there was no consumers registered
         if (receiverTasks.Count == 0) return;
@@ -90,7 +90,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         {
             // Wait until the tasks complete or the stop token triggers
             var tasks = receiverTasks.Concat(new[] { Task.Delay(Timeout.Infinite, cancellationToken), });
-            await Task.WhenAny(tasks);
+            await Task.WhenAny(tasks).ConfigureAwait(false);
         }
     }
 
@@ -104,7 +104,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         var body = await SerializeAsync(scope: scope,
                                         @event: @event,
                                         registration: registration,
-                                        cancellationToken: cancellationToken);
+                                        cancellationToken: cancellationToken).ConfigureAwait(false);
 
         string sequenceNumber;
         if (registration.EntityKind != EntityKind.Broadcast)
@@ -116,17 +116,17 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
             }
 
             // get the topic arn and send the message
-            var topicArn = await GetTopicArnAsync(registration, cancellationToken);
+            var topicArn = await GetTopicArnAsync(registration, cancellationToken).ConfigureAwait(false);
             var request = new PublishRequest(topicArn: topicArn, message: body.ToString()).SetAttributes(@event);
             Logger.SendingToTopic(eventBusId: @event.Id, topicArn: topicArn, scheduled: scheduled);
-            var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
+            var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
             response.EnsureSuccess();
             sequenceNumber = response.SequenceNumber;
         }
         else
         {
             // get the queueUrl and prepare the message
-            var queueUrl = await GetQueueUrlAsync(registration, cancellationToken: cancellationToken);
+            var queueUrl = await GetQueueUrlAsync(registration, cancellationToken: cancellationToken).ConfigureAwait(false);
             var request = new SendMessageRequest(queueUrl: queueUrl, body.ToString()).SetAttributes(@event);
 
             // if scheduled for later, set the delay in the message
@@ -149,7 +149,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
 
             // send the message
             Logger.SendingToQueue(eventBusId: @event.Id, queueUrl: queueUrl, scheduled: scheduled);
-            var response = await sqsClient.SendMessageAsync(request: request, cancellationToken: cancellationToken);
+            var response = await sqsClient.SendMessageAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
             response.EnsureSuccess();
             sequenceNumber = response.SequenceNumber;
         }
@@ -185,13 +185,13 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                 var body = await SerializeAsync(scope: scope,
                                                 @event: @event,
                                                 registration: registration,
-                                                cancellationToken: cancellationToken);
+                                                cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // get the topic arn and send the message
-                var topicArn = await GetTopicArnAsync(registration, cancellationToken);
+                var topicArn = await GetTopicArnAsync(registration, cancellationToken).ConfigureAwait(false);
                 var request = new PublishRequest(topicArn: topicArn, message: body.ToString()).SetAttributes(@event);
                 Logger.SendingToTopic(eventBusId: @event.Id, topicArn: topicArn, scheduled: scheduled);
-                var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken);
+                var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
                 response.EnsureSuccess();
 
                 // collect the sequence number
@@ -207,7 +207,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                 var body = await SerializeAsync(scope: scope,
                                                 @event: @event,
                                                 registration: registration,
-                                                cancellationToken: cancellationToken);
+                                                cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var entry = new SendMessageBatchRequestEntry(id: @event.Id, messageBody: body.ToString()).SetAttributes(@event);
 
@@ -233,9 +233,9 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
             }
 
             // get the queueUrl and send the messages
-            var queueUrl = await GetQueueUrlAsync(registration, cancellationToken: cancellationToken);
+            var queueUrl = await GetQueueUrlAsync(registration, cancellationToken: cancellationToken).ConfigureAwait(false);
             var request = new SendMessageBatchRequest(queueUrl: queueUrl, entries: entries);
-            var response = await sqsClient.SendMessageBatchAsync(request: request, cancellationToken: cancellationToken);
+            var response = await sqsClient.SendMessageBatchAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
             response.EnsureSuccess();
             sequenceNumbers = response.Successful.Select(smbre => smbre.SequenceNumber).ToList();
         }
@@ -263,7 +263,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
 
     private async Task<string> GetTopicArnAsync(EventRegistration reg, CancellationToken cancellationToken)
     {
-        await topicArnsCacheLock.WaitAsync(cancellationToken);
+        await topicArnsCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -271,7 +271,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
             {
                 // ensure topic is created, then add it's arn to the cache
                 var name = reg.EventName!;
-                topicArn = await CreateTopicIfNotExistsAsync(topicName: name, reg: reg, cancellationToken: cancellationToken);
+                topicArn = await CreateTopicIfNotExistsAsync(topicName: name, reg: reg, cancellationToken: cancellationToken).ConfigureAwait(false);
                 topicArnsCache[reg.EventType] = topicArn;
             }
 
@@ -285,7 +285,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
 
     private async Task<string> GetQueueUrlAsync(EventRegistration reg, EventConsumerRegistration? ecr = null, bool deadletter = false, CancellationToken cancellationToken = default)
     {
-        await queueUrlsCacheLock.WaitAsync(cancellationToken);
+        await queueUrlsCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -293,17 +293,17 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
             if (!queueUrlsCache.TryGetValue(key, out var queueUrl))
             {
                 // ensure queue is created before creating subscription
-                queueUrl = await CreateQueueIfNotExistsAsync(queueName: key.Name, reg: reg, ecr: ecr, cancellationToken: cancellationToken);
+                queueUrl = await CreateQueueIfNotExistsAsync(queueName: key.Name, reg: reg, ecr: ecr, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // for non dead-letter broadcast types, we need to ensure the topic exists and the queue is subscribed to it
                 if (!deadletter && reg.EntityKind == EntityKind.Broadcast)
                 {
                     // ensure topic is created before creating the subscription
                     var topicName = reg.EventName!;
-                    var topicArn = await CreateTopicIfNotExistsAsync(topicName: topicName, reg: reg, cancellationToken: cancellationToken);
+                    var topicArn = await CreateTopicIfNotExistsAsync(topicName: topicName, reg: reg, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     // create subscription from the topic to the queue
-                    await snsClient.SubscribeQueueAsync(topicArn: topicArn, sqsClient, queueUrl);
+                    await snsClient.SubscribeQueueAsync(topicArn: topicArn, sqsClient, queueUrl).ConfigureAwait(false);
                 }
 
                 queueUrlsCache[key] = queueUrl;
@@ -344,7 +344,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
     private async Task<string> CreateTopicIfNotExistsAsync(string topicName, EventRegistration reg, CancellationToken cancellationToken)
     {
         // check if the topic exists
-        var topic = await snsClient.FindTopicAsync(topicName: topicName);
+        var topic = await snsClient.FindTopicAsync(topicName: topicName).ConfigureAwait(false);
         if (topic != null) return topic.TopicArn;
 
         // if entity creation is not enabled, throw exception
@@ -356,7 +356,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         // create the topic
         var request = new CreateTopicRequest(name: topicName);
         TransportOptions.SetupCreateTopicRequest?.Invoke(reg, request);
-        var response = await snsClient.CreateTopicAsync(request: request, cancellationToken: cancellationToken);
+        var response = await snsClient.CreateTopicAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
         response.EnsureSuccess();
 
         return response.TopicArn;
@@ -365,7 +365,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
     private async Task<string> CreateQueueIfNotExistsAsync(string queueName, EventRegistration reg, EventConsumerRegistration? ecr, CancellationToken cancellationToken)
     {
         // check if the queue exists
-        var urlResponse = await sqsClient.GetQueueUrlAsync(queueName: queueName, cancellationToken);
+        var urlResponse = await sqsClient.GetQueueUrlAsync(queueName: queueName, cancellationToken).ConfigureAwait(false);
         if (urlResponse != null && urlResponse.Successful()) return urlResponse.QueueUrl;
 
         // if entity creation is not enabled, throw exception
@@ -377,7 +377,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         // create the queue
         var request = new CreateQueueRequest(queueName: queueName);
         TransportOptions.SetupCreateQueueRequest?.Invoke(reg, ecr, request);
-        var response = await sqsClient.CreateQueueAsync(request: request, cancellationToken: cancellationToken);
+        var response = await sqsClient.CreateQueueAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
         response.EnsureSuccess();
 
         return response.QueueUrl;
@@ -393,7 +393,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         {
             try
             {
-                var response = await sqsClient.ReceiveMessageAsync(queueUrl, cancellationToken);
+                var response = await sqsClient.ReceiveMessageAsync(queueUrl, cancellationToken).ConfigureAwait(false);
                 response.EnsureSuccess();
                 var messages = response.Messages;
 
@@ -402,7 +402,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                 {
                     var delay = TransportOptions.EmptyResultsDelay;
                     Logger.NoMessages(queueUrl: queueUrl, delay: delay);
-                    await Task.Delay(delay, cancellationToken);
+                    await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -410,7 +410,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                     using var scope = CreateScope(); // shared
                     foreach (var message in messages)
                     {
-                        await (Task)method.Invoke(this, new object[] { reg, ecr, queueUrl, message, cancellationToken, })!;
+                        await ((Task)method.Invoke(this, new object[] { reg, ecr, queueUrl, message, cancellationToken, })!).ConfigureAwait(false);
                     }
                 }
             }
@@ -471,7 +471,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                                                      registration: reg,
                                                      identifier: messageId,
                                                      raw: message,
-                                                     cancellationToken: cancellationToken);
+                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
         Logger.ReceivedMessage(messageId: messageId, eventBusId: context.Id, queueUrl: queueUrl);
 
@@ -479,26 +479,26 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                                                                     ecr: ecr,
                                                                     @event: context,
                                                                     scope: scope,
-                                                                    cancellationToken: cancellationToken);
+                                                                    cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {
             // get the queueUrl for the dead letter queue and send the message there
-            var dlqQueueUrl = await GetQueueUrlAsync(reg: reg, ecr: ecr, deadletter: true, cancellationToken: cancellationToken);
+            var dlqQueueUrl = await GetQueueUrlAsync(reg: reg, ecr: ecr, deadletter: true, cancellationToken: cancellationToken).ConfigureAwait(false);
             var dlqRequest = new SendMessageRequest
             {
                 MessageAttributes = message.MessageAttributes,
                 MessageBody = message.Body,
                 QueueUrl = dlqQueueUrl,
             };
-            await sqsClient.SendMessageAsync(request: dlqRequest, cancellationToken: cancellationToken);
+            await sqsClient.SendMessageAsync(request: dlqRequest, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         // whether or not successful, always delete the message from the current queue
         Logger.DeletingMessage(messageId: messageId, queueUrl: queueUrl);
         await sqsClient.DeleteMessageAsync(queueUrl: queueUrl,
                                            receiptHandle: message.ReceiptHandle,
-                                           cancellationToken: cancellationToken);
+                                           cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     ///

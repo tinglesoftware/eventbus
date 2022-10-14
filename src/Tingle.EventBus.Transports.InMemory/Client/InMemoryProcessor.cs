@@ -20,7 +20,7 @@ internal class InMemoryProcessor : IDisposable
     private async Task RunAsync(CancellationToken cancellationToken)
     {
         var messages = reader.ReadAllAsync(cancellationToken);
-        await foreach (var message in messages)
+        await foreach (var message in messages.ConfigureAwait(false))
         {
             try
             {

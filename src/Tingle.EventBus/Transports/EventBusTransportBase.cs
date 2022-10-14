@@ -75,7 +75,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         var retryPolicy = registration.RetryPolicy;
         if (retryPolicy != null)
         {
-            return await retryPolicy.ExecuteAsync(ct => PublishCoreAsync(@event, registration, scheduled, ct), cancellationToken);
+            return await retryPolicy.ExecuteAsync(ct => PublishCoreAsync(@event, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -94,7 +94,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         var retryPolicy = registration.RetryPolicy;
         if (retryPolicy != null)
         {
-            return await retryPolicy.ExecuteAsync(ct => PublishCoreAsync(events, registration, scheduled, ct), cancellationToken);
+            return await retryPolicy.ExecuteAsync(ct => PublishCoreAsync(events, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -128,7 +128,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         var retryPolicy = registration.RetryPolicy;
         if (retryPolicy != null)
         {
-            await retryPolicy.ExecuteAsync(ct => CancelCoreAsync<TEvent>(id, registration, ct), cancellationToken);
+            await retryPolicy.ExecuteAsync(ct => CancelCoreAsync<TEvent>(id, registration, ct), cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -144,7 +144,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         var retryPolicy = registration.RetryPolicy;
         if (retryPolicy != null)
         {
-            await retryPolicy.ExecuteAsync(ct => CancelCoreAsync<TEvent>(ids, registration, ct), cancellationToken);
+            await retryPolicy.ExecuteAsync(ct => CancelCoreAsync<TEvent>(ids, registration, ct), cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -216,7 +216,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         var serializer = (IEventSerializer)ActivatorUtilities.GetServiceOrCreateInstance(ctx.ServiceProvider, registration.EventSerializerType!);
 
         // Deserialize the content into a context
-        var context = await serializer.DeserializeAsync<TEvent>(ctx, cancellationToken);
+        var context = await serializer.DeserializeAsync<TEvent>(ctx, cancellationToken).ConfigureAwait(false);
 
         // Ensure we are not null (throwing helps track the error)
         if (context is null)
@@ -253,7 +253,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
             ContentType = contentType,
             RawTransportData = raw,
         };
-        return await DeserializeAsync<TEvent>(ctx, cancellationToken);
+        return await DeserializeAsync<TEvent>(ctx, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -272,7 +272,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         var serializer = (IEventSerializer)ActivatorUtilities.GetServiceOrCreateInstance(ctx.ServiceProvider, registration.EventSerializerType!);
 
         // Serialize
-        await serializer.SerializeAsync(ctx, cancellationToken);
+        await serializer.SerializeAsync(ctx, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -291,7 +291,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         where TEvent : class
     {
         var ctx = new SerializationContext<TEvent>(scope.ServiceProvider, @event, registration);
-        await SerializeAsync(ctx, cancellationToken);
+        await SerializeAsync(ctx, cancellationToken).ConfigureAwait(false);
 
         return ctx.Body!;
     }
@@ -328,7 +328,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
             var retryPolicy = registration.RetryPolicy;
             if (retryPolicy != null)
             {
-                await retryPolicy.ExecuteAsync(ct => consumer.ConsumeAsync(@event, ct), cancellationToken);
+                await retryPolicy.ExecuteAsync(ct => consumer.ConsumeAsync(@event, ct), cancellationToken).ConfigureAwait(false);
             }
             else
             {

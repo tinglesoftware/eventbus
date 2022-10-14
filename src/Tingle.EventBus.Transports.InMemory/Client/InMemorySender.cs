@@ -31,7 +31,7 @@ internal sealed class InMemorySender : IDisposable
         while (!cancellationToken.IsCancellationRequested)
         {
             // wait to be notified of an item added
-            await available.WaitAsync(waitTimeout, cancellationToken);
+            await available.WaitAsync(waitTimeout, cancellationToken).ConfigureAwait(false);
 
             var cached = items.ToList(); // just in case it is changed
             foreach (var msg in cached)
@@ -39,7 +39,7 @@ internal sealed class InMemorySender : IDisposable
                 if (msg.Scheduled <= DateTimeOffset.UtcNow)
                 {
                     // write the message and remove it
-                    await writer.WriteAsync(msg, cancellationToken);
+                    await writer.WriteAsync(msg, cancellationToken).ConfigureAwait(false);
                     items.Remove(msg);
                 }
             }
@@ -69,7 +69,7 @@ internal sealed class InMemorySender : IDisposable
     {
         if (message is null) throw new ArgumentNullException(nameof(message));
 
-        await updateLock.WaitAsync(cancellationToken);
+        await updateLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             message.SequenceNumber = sng.Generate();
@@ -92,7 +92,7 @@ internal sealed class InMemorySender : IDisposable
     {
         if (messages is null) throw new ArgumentNullException(nameof(messages));
 
-        await updateLock.WaitAsync(cancellationToken);
+        await updateLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             // set sequence numbers
@@ -118,7 +118,7 @@ internal sealed class InMemorySender : IDisposable
     /// <returns></returns>
     public async Task<long> ScheduleMessageAsync(InMemoryMessage message, CancellationToken cancellationToken = default)
     {
-        await SendMessageAsync(message, cancellationToken);
+        await SendMessageAsync(message, cancellationToken).ConfigureAwait(false);
         return message.SequenceNumber;
     }
 
@@ -130,7 +130,7 @@ internal sealed class InMemorySender : IDisposable
     /// <returns></returns>
     public async Task<IReadOnlyList<long>> ScheduleMessagesAsync(IEnumerable<InMemoryMessage> messages, CancellationToken cancellationToken = default)
     {
-        await SendMessagesAsync(messages, cancellationToken);
+        await SendMessagesAsync(messages, cancellationToken).ConfigureAwait(false);
         return messages.Select(m => m.SequenceNumber).ToArray();
     }
 
@@ -144,7 +144,7 @@ internal sealed class InMemorySender : IDisposable
     /// <returns></returns>
     public async Task CancelScheduledMessageAsync(long sequenceNumber, CancellationToken cancellationToken)
     {
-        await updateLock.WaitAsync(cancellationToken);
+        await updateLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             // get matching
@@ -173,7 +173,7 @@ internal sealed class InMemorySender : IDisposable
     /// <returns></returns>
     public async Task CancelScheduledMessagesAsync(IEnumerable<long> sequenceNumbers, CancellationToken cancellationToken)
     {
-        await updateLock.WaitAsync(cancellationToken);
+        await updateLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             // get matching

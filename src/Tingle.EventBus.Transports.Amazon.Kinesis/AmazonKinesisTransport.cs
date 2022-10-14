@@ -37,7 +37,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
     /// <inheritdoc/>
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        await base.StartAsync(cancellationToken);
+        await base.StartAsync(cancellationToken).ConfigureAwait(false);
 
         // if there are consumers for this transport, throw exception
         var registrations = GetRegistrations();
@@ -51,7 +51,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
     /// <inheritdoc/>
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        await base.StopAsync(cancellationToken);
+        await base.StopAsync(cancellationToken).ConfigureAwait(false);
 
         // if there are consumers for this transport, throw exception
         var registrations = GetRegistrations();
@@ -78,7 +78,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
         var body = await SerializeAsync(scope: scope,
                                         @event: @event,
                                         registration: registration,
-                                        cancellationToken: cancellationToken);
+                                        cancellationToken: cancellationToken).ConfigureAwait(false);
 
         // prepare the record
         var streamName = registration.EventName!;
@@ -91,7 +91,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
 
         // send the event
         Logger.SendingToStream(eventBusId: @event.Id, streamName: streamName, scheduled: scheduled);
-        var response = await kinesisClient.PutRecordAsync(request, cancellationToken);
+        var response = await kinesisClient.PutRecordAsync(request, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccess();
 
         // return the sequence number
@@ -119,7 +119,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
             var body = await SerializeAsync(scope: scope,
                                             @event: @event,
                                             registration: registration,
-                                            cancellationToken: cancellationToken);
+                                            cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var record = new PutRecordsRequestEntry
             {
@@ -139,7 +139,7 @@ public class AmazonKinesisTransport : EventBusTransportBase<AmazonKinesisTranspo
 
         // send the events
         Logger.SendingEventsToStream(events, streamName, scheduled);
-        var response = await kinesisClient.PutRecordsAsync(request, cancellationToken);
+        var response = await kinesisClient.PutRecordsAsync(request, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccess();
 
         // Should we check for failed records and throw exception?

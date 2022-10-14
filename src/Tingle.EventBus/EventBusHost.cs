@@ -34,15 +34,15 @@ internal class EventBusHost : BackgroundService
             return;
         }
 
-        await bus.StartAsync(stoppingToken);
+        await bus.StartAsync(stoppingToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
         logger.StoppingBus();
-        await base.StopAsync(cancellationToken);
-        await bus.StopAsync(cancellationToken);
+        await base.StopAsync(cancellationToken).ConfigureAwait(false);
+        await bus.StopAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<bool> WaitForAppStartupAsync(IHostApplicationLifetime lifetime, CancellationToken stoppingToken)

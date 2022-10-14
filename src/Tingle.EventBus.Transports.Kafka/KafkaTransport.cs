@@ -68,7 +68,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
     /// <inheritdoc/>
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        await base.StartAsync(cancellationToken);
+        await base.StartAsync(cancellationToken).ConfigureAwait(false);
 
         var registrations = GetRegistrations();
         var topics = registrations.Where(r => r.Consumers.Count > 0) // filter out those with consumers
@@ -85,7 +85,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
     /// <inheritdoc/>
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        await base.StopAsync(cancellationToken);
+        await base.StopAsync(cancellationToken).ConfigureAwait(false);
 
         // Stop called without start or there was no consumers registered
         if (receiverTasks.Count == 0) return;
@@ -102,7 +102,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
         {
             // Wait until the tasks complete or the stop token triggers
             var tasks = receiverTasks.Concat(new[] { Task.Delay(Timeout.Infinite, cancellationToken), });
-            await Task.WhenAny(tasks);
+            await Task.WhenAny(tasks).ConfigureAwait(false);
         }
     }
 
@@ -122,7 +122,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
         var body = await SerializeAsync(scope: scope,
                                         @event: @event,
                                         registration: registration,
-                                        cancellationToken: cancellationToken);
+                                        cancellationToken: cancellationToken).ConfigureAwait(false);
 
         // prepare the message
         var message = new Message<string, byte[]>();
@@ -136,7 +136,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
 
         // send the event
         var topic = registration.EventName;
-        var result = await producer.ProduceAsync(topic: topic, message: message, cancellationToken: cancellationToken);
+        var result = await producer.ProduceAsync(topic: topic, message: message, cancellationToken: cancellationToken).ConfigureAwait(false);
         // Should we check persistence status?
 
         // return the sequence number
@@ -167,7 +167,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
             var body = await SerializeAsync(scope: scope,
                                             @event: @event,
                                             registration: registration,
-                                            cancellationToken: cancellationToken);
+                                            cancellationToken: cancellationToken).ConfigureAwait(false);
 
             // prepare the message
             var message = new Message<string, byte[]>();
@@ -181,7 +181,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
 
             // send the event
             var topic = registration.EventName;
-            var result = await producer.ProduceAsync(topic: topic, message: message, cancellationToken: cancellationToken);
+            var result = await producer.ProduceAsync(topic: topic, message: message, cancellationToken: cancellationToken).ConfigureAwait(false);
             // Should we check persistence status?
 
             // collect the sequence number
@@ -233,7 +233,7 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
                 // form the generic method
                 var ecr = reg.Consumers.Single(); // only one consumer per event
                 var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
-                await (Task)method.Invoke(this, new object[] { reg, ecr, result, cancellationToken, })!;
+                await ((Task)method.Invoke(this, new object[] { reg, ecr, result, cancellationToken, })!).ConfigureAwait(false);
 
 
                 // if configured to checkpoint at intervals, respect it
@@ -291,19 +291,19 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
                                                      registration: reg,
                                                      identifier: result.Offset.ToString(),
                                                      raw: message,
-                                                     cancellationToken: cancellationToken);
+                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.ReceivedEvent(messageKey, context.Id);
         var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
                                                                     ecr: ecr,
                                                                     @event: context,
                                                                     scope: scope,
-                                                                    cancellationToken: cancellationToken);
+                                                                    cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {
             // produce message on dead-letter topic
             var dlt = reg.EventName += TransportOptions.DeadLetterSuffix;
-            await producer.ProduceAsync(topic: dlt, message: message, cancellationToken: cancellationToken);
+            await producer.ProduceAsync(topic: dlt, message: message, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         // TODO: find a better way to handle the checkpointing when there is an error

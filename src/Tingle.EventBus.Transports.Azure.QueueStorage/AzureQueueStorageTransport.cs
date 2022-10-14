@@ -44,7 +44,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
     /// <inheritdoc/>
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        await base.StartAsync(cancellationToken);
+        await base.StartAsync(cancellationToken).ConfigureAwait(false);
 
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
@@ -60,7 +60,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
     /// <inheritdoc/>
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        await base.StopAsync(cancellationToken);
+        await base.StopAsync(cancellationToken).ConfigureAwait(false);
 
         // Stop called without start or there was no consumers registered
         if (receiverTasks.Count == 0) return;
@@ -74,7 +74,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
         {
             // Wait until the tasks complete or the stop token triggers
             var tasks = receiverTasks.Concat(new[] { Task.Delay(Timeout.Infinite, cancellationToken), });
-            await Task.WhenAny(tasks);
+            await Task.WhenAny(tasks).ConfigureAwait(false);
         }
     }
 
@@ -88,7 +88,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
         var body = await SerializeAsync(scope: scope,
                                         @event: @event,
                                         registration: registration,
-                                        cancellationToken: cancellationToken);
+                                        cancellationToken: cancellationToken).ConfigureAwait(false);
 
 
         // if scheduled for later, calculate the visibility timeout
@@ -98,12 +98,12 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
         var ttl = @event.Expires - DateTimeOffset.UtcNow;
 
         // get the queue client and send the message
-        var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
+        var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.SendingMessage(eventBusId: @event.Id, queueName: queueClient.Name, scheduled: scheduled);
         var response = await queueClient.SendMessageAsync(messageText: body.ToString(),
                                                           visibilityTimeout: visibilityTimeout,
                                                           timeToLive: ttl,
-                                                          cancellationToken: cancellationToken);
+                                                          cancellationToken: cancellationToken).ConfigureAwait(false);
 
         // return the sequence number; both MessageId and PopReceipt are needed to update or delete
         return scheduled != null
@@ -124,13 +124,13 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
 
         // work on each event
         var sequenceNumbers = new List<string>();
-        var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
+        var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         foreach (var @event in events)
         {
             var body = await SerializeAsync(scope: scope,
                                             @event: @event,
                                             registration: registration,
-                                            cancellationToken: cancellationToken);
+                                            cancellationToken: cancellationToken).ConfigureAwait(false);
             // if scheduled for later, calculate the visibility timeout
             var visibilityTimeout = scheduled - DateTimeOffset.UtcNow;
 
@@ -142,7 +142,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
             var response = await queueClient.SendMessageAsync(messageText: body.ToString(),
                                                               visibilityTimeout: visibilityTimeout,
                                                               timeToLive: ttl,
-                                                              cancellationToken: cancellationToken);
+                                                              cancellationToken: cancellationToken).ConfigureAwait(false);
             // collect the sequence number
             sequenceNumbers.Add((AzureQueueStorageSchedulingId)response.Value);
         }
@@ -167,11 +167,11 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
         }
 
         // get the queue client and cancel the message accordingly
-        var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
+        var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.CancelingMessage(messageId: sid.MessageId, popReceipt: sid.PopReceipt, queueName: queueClient.Name);
         await queueClient.DeleteMessageAsync(messageId: sid.MessageId,
                                              popReceipt: sid.PopReceipt,
-                                             cancellationToken: cancellationToken);
+                                             cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -197,19 +197,19 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
         }).ToList();
 
         // get the queue client and cancel the messages accordingly
-        var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
+        var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         foreach (var id in sids)
         {
             Logger.CancelingMessage(messageId: id.MessageId, popReceipt: id.PopReceipt, queueName: queueClient.Name);
             await queueClient.DeleteMessageAsync(messageId: id.MessageId,
                                                  popReceipt: id.PopReceipt,
-                                                 cancellationToken: cancellationToken);
+                                                 cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 
     private async Task<QueueClient> GetQueueClientAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
     {
-        await queueClientsCacheLock.WaitAsync(cancellationToken);
+        await queueClientsCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -239,7 +239,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
                 {
                     // ensure queue is created if it does not exist
                     Logger.EnsuringQueue(queueName: name);
-                    await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
+                    await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -263,13 +263,13 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
         var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
         var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
 
-        var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken);
+        var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
-                var response = await queueClient.ReceiveMessagesAsync(cancellationToken);
+                var response = await queueClient.ReceiveMessagesAsync(cancellationToken).ConfigureAwait(false);
                 var messages = response.Value;
 
                 // if the response is empty, introduce a delay
@@ -277,7 +277,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
                 {
                     var delay = TransportOptions.EmptyResultsDelay;
                     Logger.NoMessages(queueName: queueClient.Name, delay: delay);
-                    await Task.Delay(delay, cancellationToken);
+                    await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -285,7 +285,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
                     using var scope = CreateScope(); // shared
                     foreach (var message in messages)
                     {
-                        await (Task)method.Invoke(this, new object[] { reg, ecr, queueClient, message, scope, cancellationToken, })!;
+                        await ((Task)method.Invoke(this, new object[] { reg, ecr, queueClient, message, scope, cancellationToken, })!).ConfigureAwait(false);
                     }
                 }
             }
@@ -334,7 +334,7 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
                                                      registration: reg,
                                                      identifier: (AzureQueueStorageSchedulingId)message,
                                                      raw: message,
-                                                     cancellationToken: cancellationToken);
+                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
         Logger.ReceivedMessage(messageId: messageId, eventBusId: context.Id, queueName: queueClient.Name);
 
@@ -348,20 +348,20 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
                                                                     ecr: ecr,
                                                                     @event: context,
                                                                     scope: scope,
-                                                                    cancellationToken: cancellationToken);
+                                                                    cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {
             // get the client for the dead letter queue and send the message there
-            var dlqClient = await GetQueueClientAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
-            await dlqClient.SendMessageAsync(message.MessageText, cancellationToken);
+            var dlqClient = await GetQueueClientAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await dlqClient.SendMessageAsync(message.MessageText, cancellationToken).ConfigureAwait(false);
         }
 
         // whether or not successful, always delete the message from the current queue
         Logger.DeletingMessage(messageId: messageId, queueName: queueClient.Name);
         await queueClient.DeleteMessageAsync(messageId: messageId,
                                              popReceipt: message.PopReceipt,
-                                             cancellationToken: cancellationToken);
+                                             cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     ///

@@ -88,7 +88,7 @@ public class EventBus
         return await transport.PublishAsync(@event: @event,
                                             registration: reg,
                                             scheduled: scheduled,
-                                            cancellationToken: cancellationToken);
+                                            cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public class EventBus
         return await transport.PublishAsync(events: events,
                                             registration: reg,
                                             scheduled: scheduled,
-                                            cancellationToken: cancellationToken);
+                                            cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
 
@@ -167,7 +167,7 @@ public class EventBus
 
         // Cancel on the transport
         logger.CancelingEvent(id, transport.Name);
-        await transport.CancelAsync<TEvent>(id: id, registration: reg, cancellationToken: cancellationToken);
+        await transport.CancelAsync<TEvent>(id: id, registration: reg, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -192,7 +192,7 @@ public class EventBus
 
         // Cancel on the transport
         logger.CancelingEvents(ids, transport.Name);
-        await transport.CancelAsync<TEvent>(ids: ids, registration: reg, cancellationToken: cancellationToken);
+        await transport.CancelAsync<TEvent>(ids: ids, registration: reg, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     ///
@@ -207,8 +207,8 @@ public class EventBus
             try
             {
                 logger.DelayedBusStartup(delay.Value);
-                await Task.Delay(delay.Value, cancellationToken);
-                await StartTransportsAsync(cancellationToken);
+                await Task.Delay(delay.Value, cancellationToken).ConfigureAwait(false);
+                await StartTransportsAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
                 when (!(ex is OperationCanceledException || ex is TaskCanceledException)) // skip operation cancel
@@ -219,7 +219,7 @@ public class EventBus
         else
         {
             // Without a delay, just start the transports directly
-            await StartTransportsAsync(cancellationToken);
+            await StartTransportsAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -229,7 +229,7 @@ public class EventBus
         logger.StartingBus(transports.Count);
         foreach (var t in transports)
         {
-            await t.StartAsync(cancellationToken);
+            await t.StartAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -239,7 +239,7 @@ public class EventBus
         // Stop the transports in parallel
         logger.StoppingTransports();
         var tasks = transports.Select(t => t.StopAsync(cancellationToken));
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     internal (EventRegistration registration, IEventBusTransport transport) GetTransportForEvent<TEvent>()

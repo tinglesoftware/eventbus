@@ -69,14 +69,14 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
     /// <inheritdoc/>
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        await base.StartAsync(cancellationToken);
+        await base.StartAsync(cancellationToken).ConfigureAwait(false);
 
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
             foreach (var ecr in reg.Consumers)
             {
-                var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken);
+                var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // register handlers for error and processing
                 processor.ProcessErrorAsync += OnMessageFaultedAsync;
@@ -90,7 +90,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
 
                 // start processing
                 Logger.StartingProcessing(entityPath: processor.EntityPath);
-                await processor.StartProcessingAsync(cancellationToken: cancellationToken);
+                await processor.StartProcessingAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
     }
@@ -98,7 +98,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
     /// <inheritdoc/>
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        await base.StopAsync(cancellationToken);
+        await base.StopAsync(cancellationToken).ConfigureAwait(false);
 
         var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
         foreach (var (key, proc) in clients)
@@ -107,7 +107,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
 
             try
             {
-                await proc.StopProcessingAsync(cancellationToken);
+                await proc.StopProcessingAsync(cancellationToken).ConfigureAwait(false);
                 processorsCache.Remove(key);
 
                 Logger.StoppedProcessor(processor: key);
@@ -135,7 +135,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
         var body = await SerializeAsync(scope: scope,
                                         @event: @event,
                                         registration: registration,
-                                        cancellationToken: cancellationToken);
+                                        cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var message = new InMemoryMessage(body)
         {
@@ -159,16 +159,16 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
         published.Add(@event);
 
         // Get the queue and send the message accordingly
-        var sender = await GetSenderAsync(registration, cancellationToken);
+        var sender = await GetSenderAsync(registration, cancellationToken).ConfigureAwait(false);
         Logger.SendingMessage(eventBusId: @event.Id, entityPath: sender.EntityPath, scheduled: scheduled);
         if (scheduled != null)
         {
-            var seqNum = await sender.ScheduleMessageAsync(message: message, cancellationToken: cancellationToken);
+            var seqNum = await sender.ScheduleMessageAsync(message: message, cancellationToken: cancellationToken).ConfigureAwait(false);
             return new ScheduledResult(id: seqNum, scheduled: scheduled.Value); // return the sequence number
         }
         else
         {
-            await sender.SendMessageAsync(message, cancellationToken);
+            await sender.SendMessageAsync(message, cancellationToken).ConfigureAwait(false);
             return null; // no sequence number available
         }
     }
@@ -193,7 +193,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
             var body = await SerializeAsync(scope: scope,
                                             @event: @event,
                                             registration: registration,
-                                            cancellationToken: cancellationToken);
+                                            cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var message = new InMemoryMessage(body)
             {
@@ -220,16 +220,16 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
         AddBatch(published, events);
 
         // Get the queue and send the message accordingly
-        var sender = await GetSenderAsync(registration, cancellationToken);
+        var sender = await GetSenderAsync(registration, cancellationToken).ConfigureAwait(false);
         Logger.SendingMessages(events: events, entityPath: sender.EntityPath, scheduled: scheduled);
         if (scheduled != null)
         {
-            var seqNums = await sender.ScheduleMessagesAsync(messages: messages, cancellationToken: cancellationToken);
+            var seqNums = await sender.ScheduleMessagesAsync(messages: messages, cancellationToken: cancellationToken).ConfigureAwait(false);
             return seqNums.Select(n => new ScheduledResult(id: n, scheduled: scheduled.Value)).ToList(); // return the sequence numbers
         }
         else
         {
-            await sender.SendMessagesAsync(messages, cancellationToken);
+            await sender.SendMessagesAsync(messages, cancellationToken).ConfigureAwait(false);
             return Array.Empty<ScheduledResult>(); // no sequence numbers available
         }
     }
@@ -250,9 +250,9 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
         }
 
         // get the entity and cancel the message accordingly
-        var sender = await GetSenderAsync(registration, cancellationToken);
+        var sender = await GetSenderAsync(registration, cancellationToken).ConfigureAwait(false);
         Logger.CancelingMessage(sequenceNumber: seqNum, entityPath: sender.EntityPath);
-        await sender.CancelScheduledMessageAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken);
+        await sender.CancelScheduledMessageAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         // Add to cancelled list
         cancelled.Add(seqNum);
@@ -275,9 +275,9 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
         }).ToList();
 
         // get the entity and cancel the message accordingly
-        var sender = await GetSenderAsync(registration, cancellationToken);
+        var sender = await GetSenderAsync(registration, cancellationToken).ConfigureAwait(false);
         Logger.CancelingMessages(sequenceNumbers: seqNums, entityPath: sender.EntityPath);
-        await sender.CancelScheduledMessagesAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken);
+        await sender.CancelScheduledMessagesAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         // Add to cancelled list
         AddBatch(cancelled, seqNums);
@@ -285,7 +285,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
 
     private async Task<InMemorySender> GetSenderAsync(EventRegistration reg, CancellationToken cancellationToken)
     {
-        await sendersCacheLock.WaitAsync(cancellationToken);
+        await sendersCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -307,7 +307,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
 
     private async Task<InMemoryProcessor> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
     {
-        await processorsCacheLock.WaitAsync(cancellationToken);
+        await processorsCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -387,7 +387,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
                                                      registration: reg,
                                                      identifier: message.SequenceNumber.ToString(),
                                                      raw: message,
-                                                     cancellationToken: cancellationToken);
+                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
         Logger.ReceivedMessage(sequenceNumber: message.SequenceNumber, eventBusId: context.Id, entityPath: entityPath);
 
@@ -398,7 +398,7 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
                                                                     ecr: ecr,
                                                                     @event: context,
                                                                     scope: scope,
-                                                                    cancellationToken: cancellationToken);
+                                                                    cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (successful)
         {

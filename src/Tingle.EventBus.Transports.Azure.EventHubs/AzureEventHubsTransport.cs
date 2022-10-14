@@ -42,14 +42,14 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
     /// <inheritdoc/>
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        await base.StartAsync(cancellationToken);
+        await base.StartAsync(cancellationToken).ConfigureAwait(false);
 
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
             foreach (var ecr in reg.Consumers)
             {
-                var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken);
+                var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // register handlers for error and processing
                 processor.PartitionClosingAsync += delegate (PartitionClosingEventArgs args)
@@ -73,7 +73,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                 };
 
                 // start processing 
-                await processor.StartProcessingAsync(cancellationToken: cancellationToken);
+                await processor.StartProcessingAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
     }
@@ -81,7 +81,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
     /// <inheritdoc/>
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        await base.StopAsync(cancellationToken);
+        await base.StopAsync(cancellationToken).ConfigureAwait(false);
 
         var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
         foreach (var (key, proc) in clients)
@@ -90,7 +90,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
             try
             {
-                await proc.StopProcessingAsync(cancellationToken);
+                await proc.StopProcessingAsync(cancellationToken).ConfigureAwait(false);
                 processorsCache.Remove(key);
 
                 Logger.StoppedProcessor(processor: key);
@@ -124,7 +124,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
         var body = await SerializeAsync(scope: scope,
                                         @event: @event,
                                         registration: registration,
-                                        cancellationToken: cancellationToken);
+                                        cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var data = new EventData(body)
         {
@@ -145,9 +145,9 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                        .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
         // get the producer and send the event accordingly
-        var producer = await GetProducerAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
+        var producer = await GetProducerAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.SendingEvent(eventBusId: @event.Id, eventHubName: producer.EventHubName, scheduled: scheduled);
-        await producer.SendAsync(new[] { data }, cancellationToken);
+        await producer.SendAsync(new[] { data }, cancellationToken).ConfigureAwait(false);
 
         // return the sequence number
         return scheduled != null ? new ScheduledResult(id: data.SequenceNumber, scheduled: scheduled.Value) : null;
@@ -178,7 +178,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
             var body = await SerializeAsync(scope: scope,
                                             @event: @event,
                                             registration: registration,
-                                            cancellationToken: cancellationToken);
+                                            cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var data = new EventData(body)
             {
@@ -201,9 +201,9 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
         }
 
         // get the producer and send the events accordingly
-        var producer = await GetProducerAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken);
+        var producer = await GetProducerAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.SendingEvents(events: events, eventHubName: producer.EventHubName, scheduled: scheduled);
-        await producer.SendAsync(datas, cancellationToken);
+        await producer.SendAsync(datas, cancellationToken).ConfigureAwait(false);
 
         // return the sequence numbers
         return scheduled != null ? datas.Select(m => new ScheduledResult(id: m.SequenceNumber, scheduled: scheduled.Value)).ToList() : null;
@@ -227,7 +227,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
     private async Task<EventHubProducerClient> GetProducerAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
     {
-        await producersCacheLock.WaitAsync(cancellationToken);
+        await producersCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -277,7 +277,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
 
     private async Task<EventProcessorClient> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
     {
-        await processorsCacheLock.WaitAsync(cancellationToken);
+        await processorsCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -405,7 +405,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                                                      registration: reg,
                                                      identifier: data.SequenceNumber.ToString(),
                                                      raw: data,
-                                                     cancellationToken: cancellationToken);
+                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.ReceivedEvent(eventBusId: context.Id,
                              eventHubName: processor.EventHubName,
                              consumerGroup: processor.ConsumerGroup,
@@ -421,13 +421,13 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                                                                     ecr: ecr,
                                                                     @event: context,
                                                                     scope: scope,
-                                                                    cancellationToken: cancellationToken);
+                                                                    cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {
             // get the producer for the dead letter event hub and send the event there
-            var dlqProcessor = await GetProducerAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken);
-            await dlqProcessor.SendAsync(new[] { data }, cancellationToken);
+            var dlqProcessor = await GetProducerAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await dlqProcessor.SendAsync(new[] { data }, cancellationToken).ConfigureAwait(false);
         }
 
         /* 
@@ -441,7 +441,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                                  eventHubName: processor.EventHubName,
                                  consumerGroup: processor.ConsumerGroup,
                                  sequenceNumber: data.SequenceNumber);
-            await args.UpdateCheckpointAsync(args.CancellationToken);
+            await args.UpdateCheckpointAsync(args.CancellationToken).ConfigureAwait(false);
         }
     }
 

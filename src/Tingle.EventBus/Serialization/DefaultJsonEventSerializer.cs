@@ -30,7 +30,7 @@ public class DefaultJsonEventSerializer : AbstractEventSerializer
         var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;
         return await JsonSerializer.DeserializeAsync<EventEnvelope<T>>(utf8Json: stream,
                                                                        options: serializerOptions,
-                                                                       cancellationToken: cancellationToken);
+                                                                       cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -42,6 +42,6 @@ public class DefaultJsonEventSerializer : AbstractEventSerializer
         await JsonSerializer.SerializeAsync(utf8Json: stream,
                                             value: envelope,
                                             options: serializerOptions,
-                                            cancellationToken: cancellationToken);
+                                            cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 }

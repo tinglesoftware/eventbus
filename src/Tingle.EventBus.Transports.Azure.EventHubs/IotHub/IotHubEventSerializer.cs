@@ -44,7 +44,7 @@ internal class IotHubEventSerializer : AbstractEventSerializer
             telemetry = await JsonSerializer.DeserializeAsync(utf8Json: stream,
                                                               returnType: mapped.TelemetryType,
                                                               options: serializerOptions,
-                                                              cancellationToken: cancellationToken);
+                                                              cancellationToken: cancellationToken).ConfigureAwait(false);
         }
         else if (source is IotHubEventMessageSource.TwinChangeEvents
                         or IotHubEventMessageSource.DeviceLifecycleEvents
@@ -62,7 +62,7 @@ internal class IotHubEventSerializer : AbstractEventSerializer
                 var twinChangeEvent = await JsonSerializer.DeserializeAsync(utf8Json: stream,
                                                                             returnType: mapped.TwinChangeEventType,
                                                                             options: serializerOptions,
-                                                                            cancellationToken: cancellationToken);
+                                                                            cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var twinChangeOpEventType = typeof(IotHubOperationalEvent<>).MakeGenericType(mapped.TwinChangeEventType);
                 twinChange = Activator.CreateInstance(twinChangeOpEventType, new[] { hubName, deviceId, moduleId, type, operationTimestamp, twinChangeEvent, });
@@ -72,7 +72,7 @@ internal class IotHubEventSerializer : AbstractEventSerializer
                 var lifecycleEvent = await JsonSerializer.DeserializeAsync(utf8Json: stream,
                                                                            returnType: mapped.LifecycleEventType,
                                                                            options: serializerOptions,
-                                                                           cancellationToken: cancellationToken);
+                                                                           cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var lifecycleOpEventType = typeof(IotHubOperationalEvent<>).MakeGenericType(mapped.LifecycleEventType);
                 lifecycle = Activator.CreateInstance(lifecycleOpEventType, new[] { hubName, deviceId, moduleId, type, operationTimestamp, lifecycleEvent, });
@@ -82,7 +82,7 @@ internal class IotHubEventSerializer : AbstractEventSerializer
                 var connectionStateEvent = await JsonSerializer.DeserializeAsync<IotHubDeviceConnectionStateEvent>(
                     utf8Json: stream,
                     options: serializerOptions,
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 connectionState = new IotHubOperationalEvent<IotHubDeviceConnectionStateEvent>(
                     hubName: hubName,

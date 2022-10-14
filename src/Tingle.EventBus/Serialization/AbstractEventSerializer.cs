@@ -59,7 +59,7 @@ public abstract class AbstractEventSerializer : IEventSerializer
 
         // Deserialize
         using var stream = context.Body.ToStream();
-        var envelope = await DeserializeToEnvelopeAsync<T>(stream: stream, context: context, cancellationToken: cancellationToken);
+        var envelope = await DeserializeToEnvelopeAsync<T>(stream: stream, context: context, cancellationToken: cancellationToken).ConfigureAwait(false);
         if (envelope is null)
         {
             Logger.DeserializationResultedInNull(identifier: context.Identifier, eventType: context.Registration.EventType.FullName);
@@ -111,12 +111,12 @@ public abstract class AbstractEventSerializer : IEventSerializer
 
         // Serialize
         using var stream = new MemoryStream();
-        await SerializeEnvelopeAsync(stream: stream, envelope: envelope, cancellationToken: cancellationToken);
+        await SerializeEnvelopeAsync(stream: stream, envelope: envelope, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         // Return to the beginning of the stream
         stream.Seek(0, SeekOrigin.Begin);
 
-        context.Body = await BinaryData.FromStreamAsync(stream, cancellationToken);
+        context.Body = await BinaryData.FromStreamAsync(stream, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

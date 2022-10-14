@@ -23,13 +23,13 @@ public class InMemoryTestHarness
     ///
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
-        await transport.StartAsync(cancellationToken);
+        await transport.StartAsync(cancellationToken).ConfigureAwait(false);
     }
 
     ///
     public async Task StopAsync(CancellationToken cancellationToken = default)
     {
-        await transport.StopAsync(cancellationToken);
+        await transport.StopAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -48,7 +48,7 @@ public class InMemoryTestHarness
     /// <returns></returns>
     public async Task<IEnumerable<EventContext>> PublishedAsync(TimeSpan? delay = null, CancellationToken cancellationToken = default)
     {
-        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken);
+        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken).ConfigureAwait(false);
         return Published();
     }
 
@@ -71,7 +71,7 @@ public class InMemoryTestHarness
     public async Task<IEnumerable<EventContext<T>>> PublishedAsync<T>(TimeSpan? delay = null, CancellationToken cancellationToken = default)
         where T : class
     {
-        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken);
+        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken).ConfigureAwait(false);
         return Published<T>();
     }
 
@@ -91,7 +91,7 @@ public class InMemoryTestHarness
     /// <returns></returns>
     public async Task<IEnumerable<long>> CancelledAsync(TimeSpan? delay = null, CancellationToken cancellationToken = default)
     {
-        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken);
+        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken).ConfigureAwait(false);
         return Cancelled();
     }
 
@@ -111,7 +111,7 @@ public class InMemoryTestHarness
     /// <returns></returns>
     public async Task<IEnumerable<EventContext>> ConsumedAsync(TimeSpan? delay = null, CancellationToken cancellationToken = default)
     {
-        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken);
+        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken).ConfigureAwait(false);
         return Consumed();
     }
 
@@ -134,7 +134,7 @@ public class InMemoryTestHarness
     public async Task<IEnumerable<EventContext<T>>> ConsumedAsync<T>(TimeSpan? delay = null, CancellationToken cancellationToken = default)
         where T : class
     {
-        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken);
+        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken).ConfigureAwait(false);
         return Consumed<T>();
     }
 
@@ -154,7 +154,7 @@ public class InMemoryTestHarness
     /// <returns></returns>
     public async Task<IEnumerable<EventContext>> FailedAsync(TimeSpan? delay = null, CancellationToken cancellationToken = default)
     {
-        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken);
+        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken).ConfigureAwait(false);
         return Failed();
     }
 
@@ -176,7 +176,7 @@ public class InMemoryTestHarness
     public async Task<IEnumerable<EventContext<T>>> FailedAsync<T>(TimeSpan? delay = null, CancellationToken cancellationToken = default)
         where T : class
     {
-        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken);
+        await Task.Delay(delay ?? options.DefaultDelay, cancellationToken).ConfigureAwait(false);
         return Failed<T>();
     }
 }

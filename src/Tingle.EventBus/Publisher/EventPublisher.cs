@@ -22,7 +22,7 @@ internal class EventPublisher : IEventPublisher
                                                              CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        return await bus.PublishAsync(@event, scheduled, cancellationToken);
+        return await bus.PublishAsync(@event, scheduled, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -31,18 +31,18 @@ internal class EventPublisher : IEventPublisher
                                                                     CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        return await bus.PublishAsync(events: events, scheduled: scheduled, cancellationToken: cancellationToken);
+        return await bus.PublishAsync(events: events, scheduled: scheduled, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
     public async Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default) where TEvent : class
     {
-        await bus.CancelAsync<TEvent>(id: id, cancellationToken: cancellationToken);
+        await bus.CancelAsync<TEvent>(id: id, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
     public async Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default) where TEvent : class
     {
-        await bus.CancelAsync<TEvent>(ids: ids, cancellationToken: cancellationToken);
+        await bus.CancelAsync<TEvent>(ids: ids, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 }

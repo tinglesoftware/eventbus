@@ -54,15 +54,15 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
     /// <inheritdoc/>
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        await base.StartAsync(cancellationToken);
+        await base.StartAsync(cancellationToken).ConfigureAwait(false);
 
-        await ConnectConsumersAsync(cancellationToken);
+        await ConnectConsumersAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        await base.StopAsync(cancellationToken);
+        await base.StopAsync(cancellationToken).ConfigureAwait(false);
 
         var channels = subscriptionChannelsCache.Select(kvp => (key: kvp.Key, sc: kvp.Value)).ToList();
         foreach (var (key, channel) in channels)
@@ -94,7 +94,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
     {
         if (!IsConnected)
         {
-            await TryConnectAsync(cancellationToken);
+            await TryConnectAsync(cancellationToken).ConfigureAwait(false);
         }
 
         // create channel, declare a fanout exchange
@@ -107,7 +107,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
         var body = await SerializeAsync(scope: scope,
                                         @event: @event,
                                         registration: registration,
-                                        cancellationToken: cancellationToken);
+                                        cancellationToken: cancellationToken).ConfigureAwait(false);
 
         // publish message
         string? scheduledId = null;
@@ -165,7 +165,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
     {
         if (!IsConnected)
         {
-            await TryConnectAsync(cancellationToken);
+            await TryConnectAsync(cancellationToken).ConfigureAwait(false);
         }
 
         // create channel, declare a fanout exchange
@@ -181,7 +181,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
             var body = await SerializeAsync(scope: scope,
                                             @event: @event,
                                             registration: registration,
-                                            cancellationToken: cancellationToken);
+                                            cancellationToken: cancellationToken).ConfigureAwait(false);
             serializedEvents.Add((@event, @event.ContentType, body));
         }
 
@@ -256,7 +256,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
     {
         if (!IsConnected)
         {
-            await TryConnectAsync(cancellationToken);
+            await TryConnectAsync(cancellationToken).ConfigureAwait(false);
         }
 
         var registrations = GetRegistrations();
@@ -267,7 +267,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
             {
                 var queueName = ecr.ConsumerName!;
 
-                var channel = await GetSubscriptionChannelAsync(exchangeName: exchangeName, queueName: queueName, cancellationToken);
+                var channel = await GetSubscriptionChannelAsync(exchangeName: exchangeName, queueName: queueName, cancellationToken).ConfigureAwait(false);
                 var consumer = new AsyncEventingBasicConsumer(channel);
                 consumer.Received += delegate (object sender, BasicDeliverEventArgs @event)
                 {
@@ -318,7 +318,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
                                                      registration: reg,
                                                      identifier: messageId,
                                                      raw: args,
-                                                     cancellationToken: cancellationToken);
+                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
                               messageId,
                               context.Id);
@@ -326,7 +326,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
                                                                      ecr: ecr,
                                                                      @event: context,
                                                                      scope: scope,
-                                                                     cancellationToken: cancellationToken);
+                                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
         // Decide the action to execute then execute
         var action = DecideAction(successful, ecr.UnhandledErrorBehaviour);
@@ -354,7 +354,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
 
     private async Task<IModel> GetSubscriptionChannelAsync(string exchangeName, string queueName, CancellationToken cancellationToken)
     {
-        await subscriptionChannelsCacheLock.WaitAsync(cancellationToken);
+        await subscriptionChannelsCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -389,7 +389,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
     private async Task<bool> TryConnectAsync(CancellationToken cancellationToken)
     {
         Logger.LogDebug("RabbitMQ Client is trying to connect.");
-        await connectionLock.WaitAsync(cancellationToken);
+        await connectionLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {

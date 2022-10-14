@@ -8,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// for shared settings in <see cref="EventBusTransportOptionsBase"/>.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-internal class TransportOptionsConfigureOptions<T> : IPostConfigureOptions<T>, IValidateOptions<T> where T : EventBusTransportOptionsBase
+internal class TransportOptionsConfigureOptions<T> : IPostConfigureOptions<T> where T : EventBusTransportOptionsBase
 {
     public void PostConfigure(string name, T options)
     {
@@ -23,17 +23,5 @@ internal class TransportOptionsConfigureOptions<T> : IPostConfigureOptions<T>, I
         {
             throw new InvalidOperationException($"The '{nameof(options.DeadLetterSuffix)}' must be provided");
         }
-    }
-
-    public ValidateOptionsResult Validate(string name, T options)
-    {
-        // Ensure the name is set
-        if (string.IsNullOrWhiteSpace(options.Name))
-        {
-            return ValidateOptionsResult.Fail($"'{nameof(options.Name)}' cannot be null or whitespace.");
-        }
-
-        return ValidateOptionsResult.Success;
-
     }
 }

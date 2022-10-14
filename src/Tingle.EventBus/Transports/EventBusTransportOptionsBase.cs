@@ -9,12 +9,6 @@ namespace Tingle.EventBus.Transports;
 /// </summary>
 public abstract class EventBusTransportOptionsBase
 {
-    /// <summary>The name of the transport.</summary>
-    public string Name { get; internal set; } = default!;
-
-    /// <summary>The type of transport.</summary>
-    internal Type? Type { get; set; }
-
     /// <summary>
     /// The delay to introduce every time zero messages are received.
     /// This eases on the CPU consumption and reduces the query costs.

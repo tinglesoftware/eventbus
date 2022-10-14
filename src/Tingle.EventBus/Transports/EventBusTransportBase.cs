@@ -58,7 +58,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
     protected ILogger Logger { get; }
 
     /// <inheritdoc/>
-    public string Name => Options.Name;
+    public string Name => Registration.Name;
 
     /// <inheritdoc/>
     EventBusTransportOptionsBase IEventBusTransportWithOptions.GetOptions() => Options;

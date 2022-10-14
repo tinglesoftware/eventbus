@@ -13,7 +13,7 @@ var host = Host.CreateDefaultBuilder(args)
                        });
 
                        // Transport specific configuration
-                       builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");
+                       builder.AddAzureQueueStorageTransport(o => o.Credentials = "UseDevelopmentStorage=true;");
                    });
 
                    services.AddHostedService<PublisherService>();

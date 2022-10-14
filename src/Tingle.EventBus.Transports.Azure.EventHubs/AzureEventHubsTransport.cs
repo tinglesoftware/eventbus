@@ -103,10 +103,10 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
     }
 
     /// <inheritdoc/>
-    public override async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                      EventRegistration registration,
-                                                                      DateTimeOffset? scheduled = null,
-                                                                      CancellationToken cancellationToken = default)
+    protected override async Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
+                                                                             EventRegistration registration,
+                                                                             DateTimeOffset? scheduled = null,
+                                                                             CancellationToken cancellationToken = default)
     {
         // log warning when trying to publish scheduled event
         if (scheduled != null)
@@ -154,10 +154,10 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
     }
 
     /// <inheritdoc/>
-    public override async Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                             EventRegistration registration,
-                                                                             DateTimeOffset? scheduled = null,
-                                                                             CancellationToken cancellationToken = default)
+    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                                    EventRegistration registration,
+                                                                                    DateTimeOffset? scheduled = null,
+                                                                                    CancellationToken cancellationToken = default)
     {
         // log warning when trying to publish scheduled events
         if (scheduled != null)

@@ -73,6 +73,7 @@ public class EventBusBuilder
         Services.Configure<TOptions>(options =>
         {
             options.Name = name;
+            options.Type = typeof(TTransport);
             configure?.Invoke(options);
         });
 

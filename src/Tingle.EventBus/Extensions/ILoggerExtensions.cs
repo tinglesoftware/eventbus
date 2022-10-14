@@ -19,12 +19,6 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(103, LogLevel.Error, "Starting bus delayed error.")]
     public static partial void DelayedBusStartupError(this ILogger logger, Exception ex);
 
-    [LoggerMessage(104, LogLevel.Information, "Performing readiness check before starting bus.")]
-    public static partial void StartupReadinessCheck(this ILogger logger);
-
-    [LoggerMessage(105, LogLevel.Error, "Startup readiness check failed or timed-out.")]
-    public static partial void StartupReadinessCheckFailed(this ILogger logger, Exception ex);
-
     [LoggerMessage(106, LogLevel.Debug, "Starting bus with {TransportsCount} transports.")]
     public static partial void StartingBus(this ILogger logger, int transportsCount);
 
@@ -114,19 +108,6 @@ internal static partial class ILoggerExtensions
 
         logger.ConsumeFailed(action, eventBusId, ex);
     }
-
-    #endregion
-
-    #region Readiness (400 series)
-
-    [LoggerMessage(401, LogLevel.Information, "Performing readiness check. Timeout: '{ReadinessTimeout}'.")]
-    public static partial void ReadinessCheck(this ILogger logger, TimeSpan readinessTimeout);
-
-    [LoggerMessage(402, LogLevel.Error, "Startup readiness check failed or timed-out after '{ReadinessTimeout}'.")]
-    public static partial void ReadinessCheckTimedout(this ILogger logger, TimeSpan readinessTimeout);
-
-    [LoggerMessage(403, LogLevel.Debug, "Readiness check is disabled. Assumes ready by default.")]
-    public static partial void ReadinessCheckDisabled(this ILogger logger);
 
     #endregion
 

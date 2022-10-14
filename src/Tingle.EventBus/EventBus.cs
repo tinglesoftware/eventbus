@@ -263,13 +263,9 @@ public class EventBus
         var reg = GetOrCreateRegistration<TEvent>();
         var transport = transports.Values.Single(t => t.Name == reg.TransportName);
 
-        // For events that were not configured (e.g. publish only applications),
+        // For events that were not configured (e.g. publish only events),
         // the IdFormat will still be null, we have to set it
-        if (reg.IdFormat is null && transport is IEventBusTransportWithOptions withOptions)
-        {
-            var to = withOptions.GetOptions();
-            reg.IdFormat = to.DefaultEventIdFormat ?? options.DefaultEventIdFormat;
-        }
+        reg.IdFormat ??= transport.GetOptions()?.DefaultEventIdFormat ?? options.DefaultEventIdFormat;
 
         return (reg, transport);
     }

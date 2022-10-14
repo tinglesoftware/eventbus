@@ -88,4 +88,7 @@ public interface IEventBusTransport
                              EventRegistration registration,
                              CancellationToken cancellationToken = default)
         where TEvent : class;
+
+    ///
+    EventBusTransportOptions? GetOptions();
 }

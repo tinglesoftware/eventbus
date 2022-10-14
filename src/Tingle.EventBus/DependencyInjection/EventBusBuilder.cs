@@ -70,7 +70,11 @@ public class EventBusBuilder
         where TTransport : class, IEventBusTransport
         where TOptions : EventBusTransportOptionsBase
     {
-        Services.Configure(configure);
+        Services.Configure<TOptions>(options =>
+        {
+            options.Name = name;
+            configure?.Invoke(options);
+        });
 
         // Post configure the common transport options
         Services.ConfigureOptions<TransportOptionsConfigureOptions<TOptions>>();

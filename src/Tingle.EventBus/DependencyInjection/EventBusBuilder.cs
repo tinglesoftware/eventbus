@@ -94,21 +94,6 @@ public class EventBusBuilder
     }
 
     /// <summary>
-    /// Unregister a transport already registered on the bus.
-    /// </summary>
-    /// <typeparam name="TTransport"></typeparam>
-    /// <returns></returns>
-    public EventBusBuilder RemoveTransport<TTransport>(string name) where TTransport : class, IEventBusTransport
-    {
-        // remove the service descriptor if it exists
-        var target = Services.SingleOrDefault(t => t.ServiceType == typeof(IEventBusTransport) && t.ImplementationType == typeof(TTransport));
-        if (target != null) Services.Remove(target);
-
-        // Remove name from registered transports
-        return Configure(options => options.RegisteredTransportNames.Remove(name));
-    }
-
-    /// <summary>
     /// Setup the default serializer to use when serializing events to and from the EventBus transport.
     /// </summary>
     /// <typeparam name="TEventSerializer"></typeparam>

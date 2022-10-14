@@ -11,11 +11,10 @@ using Tingle.EventBus.Transports.InMemory.Client;
 namespace Tingle.EventBus.Transports.InMemory;
 
 /// <summary>
-/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using an in-memory transport.
+/// Implementation of <see cref="EventBusTransport{TOptions}"/> using an in-memory transport.
 /// This implementation should only be used for unit testing or similar scenarios as it does not offer persistence.
 /// </summary>
-[TransportName(TransportNames.InMemory)]
-public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
+public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
 {
     private readonly Dictionary<Type, InMemorySender> sendersCache = new();
     private readonly SemaphoreSlim sendersCacheLock = new(1, 1); // only one at a time.
@@ -33,15 +32,15 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
     /// </summary>
     /// <param name="serviceScopeFactory"></param>
     /// <param name="busOptionsAccessor"></param>
-    /// <param name="transportOptionsAccessor"></param>
+    /// <param name="optionsMonitor"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="sng"></param>
     public InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
                              IOptions<EventBusOptions> busOptionsAccessor,
-                             IOptions<InMemoryTransportOptions> transportOptionsAccessor,
+                             IOptionsMonitor<InMemoryTransportOptions> optionsMonitor,
                              ILoggerFactory loggerFactory,
                              SequenceNumberGenerator sng)
-        : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
+        : base(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory)
     {
         inMemoryClient = new InMemoryClient(sng);
     }

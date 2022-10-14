@@ -3,7 +3,7 @@
 /// <summary>
 /// Extension methods on <see cref="IServiceCollection"/> for EventBus.
 /// </summary>
-public static class IServiceCollectionExtensions
+public static class EventBusServiceCollectionExtensions
 {
     /// <summary>
     /// Add Event Bus services.

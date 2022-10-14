@@ -14,11 +14,10 @@ using Tingle.EventBus.Diagnostics;
 namespace Tingle.EventBus.Transports.Amazon.Sqs;
 
 /// <summary>
-/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using
+/// Implementation of <see cref="EventBusTransport{TOptions}"/> using
 /// Amazon SQS and Amazon SNS as the transport.
 /// </summary>
-[TransportName(TransportNames.AmazonSqs)]
-public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOptions>, IDisposable
+public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, IDisposable
 {
     private readonly Dictionary<Type, string> topicArnsCache = new();
     private readonly SemaphoreSlim topicArnsCacheLock = new(1, 1); // only one at a time.
@@ -26,8 +25,8 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
     private readonly SemaphoreSlim queueUrlsCacheLock = new(1, 1); // only one at a time.
     private readonly CancellationTokenSource stoppingCts = new();
     private readonly List<Task> receiverTasks = new();
-    private readonly AmazonSimpleNotificationServiceClient snsClient;
-    private readonly AmazonSQSClient sqsClient;
+    private readonly Lazy<AmazonSimpleNotificationServiceClient> snsClient;
+    private readonly Lazy<AmazonSQSClient> sqsClient;
     private bool disposedValue;
 
     /// <summary>
@@ -35,19 +34,19 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
     /// </summary>
     /// <param name="serviceScopeFactory"></param>
     /// <param name="optionsAccessor"></param>
-    /// <param name="transportOptionsAccessor"></param>
+    /// <param name="optionsMonitor"></param>
     /// <param name="loggerFactory"></param>
     public AmazonSqsTransport(IServiceScopeFactory serviceScopeFactory,
                               IOptions<EventBusOptions> optionsAccessor,
-                              IOptions<AmazonSqsTransportOptions> transportOptionsAccessor,
+                              IOptionsMonitor<AmazonSqsTransportOptions> optionsMonitor,
                               ILoggerFactory loggerFactory)
-        : base(serviceScopeFactory, optionsAccessor, transportOptionsAccessor, loggerFactory)
+        : base(serviceScopeFactory, optionsAccessor, optionsMonitor, loggerFactory)
     {
-        snsClient = new AmazonSimpleNotificationServiceClient(credentials: TransportOptions.Credentials,
-                                                              clientConfig: TransportOptions.SnsConfig);
+        snsClient = new Lazy<AmazonSimpleNotificationServiceClient>(
+            () => new AmazonSimpleNotificationServiceClient(credentials: Options.Credentials, clientConfig: Options.SnsConfig));
 
-        sqsClient = new AmazonSQSClient(credentials: TransportOptions.Credentials,
-                                        clientConfig: TransportOptions.SqsConfig);
+        sqsClient = new Lazy<AmazonSQSClient>(
+            () => new AmazonSQSClient(credentials: Options.Credentials, clientConfig: Options.SqsConfig));
     }
 
     /// <inheritdoc/>
@@ -119,7 +118,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
             var topicArn = await GetTopicArnAsync(registration, cancellationToken).ConfigureAwait(false);
             var request = new PublishRequest(topicArn: topicArn, message: body.ToString()).SetAttributes(@event);
             Logger.SendingToTopic(eventBusId: @event.Id, topicArn: topicArn, scheduled: scheduled);
-            var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await snsClient.Value.PublishAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
             response.EnsureSuccess();
             sequenceNumber = response.SequenceNumber;
         }
@@ -149,7 +148,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
 
             // send the message
             Logger.SendingToQueue(eventBusId: @event.Id, queueUrl: queueUrl, scheduled: scheduled);
-            var response = await sqsClient.SendMessageAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await sqsClient.Value.SendMessageAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
             response.EnsureSuccess();
             sequenceNumber = response.SequenceNumber;
         }
@@ -191,7 +190,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                 var topicArn = await GetTopicArnAsync(registration, cancellationToken).ConfigureAwait(false);
                 var request = new PublishRequest(topicArn: topicArn, message: body.ToString()).SetAttributes(@event);
                 Logger.SendingToTopic(eventBusId: @event.Id, topicArn: topicArn, scheduled: scheduled);
-                var response = await snsClient.PublishAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var response = await snsClient.Value.PublishAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
                 response.EnsureSuccess();
 
                 // collect the sequence number
@@ -235,7 +234,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
             // get the queueUrl and send the messages
             var queueUrl = await GetQueueUrlAsync(registration, cancellationToken: cancellationToken).ConfigureAwait(false);
             var request = new SendMessageBatchRequest(queueUrl: queueUrl, entries: entries);
-            var response = await sqsClient.SendMessageBatchAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await sqsClient.Value.SendMessageBatchAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
             response.EnsureSuccess();
             sequenceNumbers = response.Successful.Select(smbre => smbre.SequenceNumber).ToList();
         }
@@ -303,7 +302,7 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                     var topicArn = await CreateTopicIfNotExistsAsync(topicName: topicName, reg: reg, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     // create subscription from the topic to the queue
-                    await snsClient.SubscribeQueueAsync(topicArn: topicArn, sqsClient, queueUrl).ConfigureAwait(false);
+                    await snsClient.Value.SubscribeQueueAsync(topicArn: topicArn, sqsClient.Value, queueUrl).ConfigureAwait(false);
                 }
 
                 queueUrlsCache[key] = queueUrl;
@@ -337,26 +336,26 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         var name = (reg.EntityKind == EntityKind.Broadcast && ecr is not null)
                  ? $"{reg.EventName}-{ecr.ConsumerName}"
                  : reg.EventName!;
-        if (deadLetter) name += TransportOptions.DeadLetterSuffix;
+        if (deadLetter) name += Options.DeadLetterSuffix;
         return new QueueCacheKey(name, deadLetter);
     }
 
     private async Task<string> CreateTopicIfNotExistsAsync(string topicName, EventRegistration reg, CancellationToken cancellationToken)
     {
         // check if the topic exists
-        var topic = await snsClient.FindTopicAsync(topicName: topicName).ConfigureAwait(false);
+        var topic = await snsClient.Value.FindTopicAsync(topicName: topicName).ConfigureAwait(false);
         if (topic != null) return topic.TopicArn;
 
         // if entity creation is not enabled, throw exception
-        if (!TransportOptions.EnableEntityCreation)
+        if (!Options.EnableEntityCreation)
         {
             throw new InvalidOperationException("Entity creation is disabled. Required topic could not be created.");
         }
 
         // create the topic
         var request = new CreateTopicRequest(name: topicName);
-        TransportOptions.SetupCreateTopicRequest?.Invoke(reg, request);
-        var response = await snsClient.CreateTopicAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
+        Options.SetupCreateTopicRequest?.Invoke(reg, request);
+        var response = await snsClient.Value.CreateTopicAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
         response.EnsureSuccess();
 
         return response.TopicArn;
@@ -365,19 +364,19 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
     private async Task<string> CreateQueueIfNotExistsAsync(string queueName, EventRegistration reg, EventConsumerRegistration? ecr, CancellationToken cancellationToken)
     {
         // check if the queue exists
-        var urlResponse = await sqsClient.GetQueueUrlAsync(queueName: queueName, cancellationToken).ConfigureAwait(false);
+        var urlResponse = await sqsClient.Value.GetQueueUrlAsync(queueName: queueName, cancellationToken).ConfigureAwait(false);
         if (urlResponse != null && urlResponse.Successful()) return urlResponse.QueueUrl;
 
         // if entity creation is not enabled, throw exception
-        if (!TransportOptions.EnableEntityCreation)
+        if (!Options.EnableEntityCreation)
         {
             throw new InvalidOperationException("Entity creation is disabled. Required queue could not be created.");
         }
 
         // create the queue
         var request = new CreateQueueRequest(queueName: queueName);
-        TransportOptions.SetupCreateQueueRequest?.Invoke(reg, ecr, request);
-        var response = await sqsClient.CreateQueueAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
+        Options.SetupCreateQueueRequest?.Invoke(reg, ecr, request);
+        var response = await sqsClient.Value.CreateQueueAsync(request: request, cancellationToken: cancellationToken).ConfigureAwait(false);
         response.EnsureSuccess();
 
         return response.QueueUrl;
@@ -393,14 +392,14 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
         {
             try
             {
-                var response = await sqsClient.ReceiveMessageAsync(queueUrl, cancellationToken).ConfigureAwait(false);
+                var response = await sqsClient.Value.ReceiveMessageAsync(queueUrl, cancellationToken).ConfigureAwait(false);
                 response.EnsureSuccess();
                 var messages = response.Messages;
 
                 // if the response is empty, introduce a delay
                 if (messages.Count == 0)
                 {
-                    var delay = TransportOptions.EmptyResultsDelay;
+                    var delay = Options.EmptyResultsDelay;
                     Logger.NoMessages(queueUrl: queueUrl, delay: delay);
                     await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                 }
@@ -491,14 +490,14 @@ public class AmazonSqsTransport : EventBusTransportBase<AmazonSqsTransportOption
                 MessageBody = message.Body,
                 QueueUrl = dlqQueueUrl,
             };
-            await sqsClient.SendMessageAsync(request: dlqRequest, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await sqsClient.Value.SendMessageAsync(request: dlqRequest, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         // whether or not successful, always delete the message from the current queue
         Logger.DeletingMessage(messageId: messageId, queueUrl: queueUrl);
-        await sqsClient.DeleteMessageAsync(queueUrl: queueUrl,
-                                           receiptHandle: message.ReceiptHandle,
-                                           cancellationToken: cancellationToken).ConfigureAwait(false);
+        await sqsClient.Value.DeleteMessageAsync(queueUrl: queueUrl,
+                                                 receiptHandle: message.ReceiptHandle,
+                                                 cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     ///

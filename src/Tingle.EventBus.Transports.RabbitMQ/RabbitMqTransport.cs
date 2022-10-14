@@ -15,15 +15,14 @@ using Tingle.EventBus.Diagnostics;
 namespace Tingle.EventBus.Transports.RabbitMQ;
 
 /// <summary>
-/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using RabbitMQ.
+/// Implementation of <see cref="EventBusTransport{TOptions}"/> using RabbitMQ.
 /// </summary>
-[TransportName(TransportNames.RabbitMq)]
-public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>, IDisposable
+public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, IDisposable
 {
     private readonly SemaphoreSlim connectionLock = new(1, 1);
     private readonly Dictionary<string, IModel> subscriptionChannelsCache = new();
     private readonly SemaphoreSlim subscriptionChannelsCacheLock = new(1, 1); // only one at a time.
-    private readonly RetryPolicy retryPolicy;
+    private RetryPolicy? retryPolicy;
 
     private IConnection? connection;
     private bool disposed;
@@ -33,23 +32,13 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
     /// </summary>
     /// <param name="serviceScopeFactory"></param>
     /// <param name="busOptionsAccessor"></param>
-    /// <param name="transportOptionsAccessor"></param>
+    /// <param name="optionsMonitor"></param>
     /// <param name="loggerFactory"></param>
     public RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
                              IOptions<EventBusOptions> busOptionsAccessor,
-                             IOptions<RabbitMqTransportOptions> transportOptionsAccessor,
+                             IOptionsMonitor<RabbitMqTransportOptions> optionsMonitor,
                              ILoggerFactory loggerFactory)
-        : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
-    {
-        retryPolicy = Policy.Handle<BrokerUnreachableException>()
-                            .Or<SocketException>()
-                            .WaitAndRetry(retryCount: TransportOptions.RetryCount,
-                                          sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
-                                          onRetry: (ex, time) =>
-                                          {
-                                              Logger.LogError(ex, "RabbitMQ Client could not connect after {Timeout:n1}s ", time.TotalSeconds);
-                                          });
-    }
+        : base(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory) { }
 
     /// <inheritdoc/>
     public override async Task StartAsync(CancellationToken cancellationToken)
@@ -111,7 +100,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
 
         // publish message
         string? scheduledId = null;
-        retryPolicy.Execute(() =>
+        GetRetryPolicy().Execute(() =>
         {
             // setup properties
             var properties = channel.CreateBasicProperties();
@@ -185,7 +174,7 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
             serializedEvents.Add((@event, @event.ContentType, body));
         }
 
-        retryPolicy.Execute(() =>
+        GetRetryPolicy().Execute(() =>
         {
             var batch = channel.CreateBasicPublishBatch();
             foreach (var (@event, contentType, body) in serializedEvents)
@@ -250,6 +239,18 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
                                                     CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException("RabbitMQ does not support canceling published messages.");
+    }
+
+    private RetryPolicy GetRetryPolicy()
+    {
+        return retryPolicy ??= Policy.Handle<BrokerUnreachableException>()
+                                     .Or<SocketException>()
+                                     .WaitAndRetry(retryCount: Options.RetryCount,
+                                                   sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
+                                                   onRetry: (ex, time) =>
+                                                   {
+                                                       Logger.LogError(ex, "RabbitMQ Client could not connect after {Timeout:n1}s ", time.TotalSeconds);
+                                                   });
     }
 
     private async Task ConnectConsumersAsync(CancellationToken cancellationToken)
@@ -400,9 +401,9 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
                 return true;
             }
 
-            retryPolicy.Execute(() =>
+            GetRetryPolicy().Execute(() =>
             {
-                connection = TransportOptions.ConnectionFactory!.CreateConnection();
+                connection = Options.ConnectionFactory!.CreateConnection();
             });
 
             if (IsConnected)

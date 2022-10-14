@@ -14,10 +14,9 @@ using Tingle.EventBus.Diagnostics;
 namespace Tingle.EventBus.Transports.Azure.EventHubs;
 
 /// <summary>
-/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Azure Event Hubs.
+/// Implementation of <see cref="EventBusTransport{TOptions}"/> using Azure Event Hubs.
 /// </summary>
-[TransportName(TransportNames.AzureEventHubs)]
-public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTransportOptions>
+public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransportOptions>
 {
     private readonly Dictionary<(Type, bool), EventHubProducerClient> producersCache = new();
     private readonly SemaphoreSlim producersCacheLock = new(1, 1); // only one at a time.
@@ -29,15 +28,13 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
     /// </summary>
     /// <param name="serviceScopeFactory"></param>
     /// <param name="busOptionsAccessor"></param>
-    /// <param name="transportOptionsAccessor"></param>
+    /// <param name="optionsMonitor"></param>
     /// <param name="loggerFactory"></param>
     public AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
                                    IOptions<EventBusOptions> busOptionsAccessor,
-                                   IOptions<AzureEventHubsTransportOptions> transportOptionsAccessor,
+                                   IOptionsMonitor<AzureEventHubsTransportOptions> optionsMonitor,
                                    ILoggerFactory loggerFactory)
-        : base(serviceScopeFactory, busOptionsAccessor, transportOptionsAccessor, loggerFactory)
-    {
-    }
+        : base(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory) { }
 
     /// <inheritdoc/>
     public override async Task StartAsync(CancellationToken cancellationToken)
@@ -234,24 +231,24 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
             if (!producersCache.TryGetValue((reg.EventType, deadletter), out var producer))
             {
                 var name = reg.EventName;
-                if (deadletter) name += TransportOptions.DeadLetterSuffix;
+                if (deadletter) name += Options.DeadLetterSuffix;
 
                 // Create the producer options
                 var epco = new EventHubProducerClientOptions
                 {
                     ConnectionOptions = new EventHubConnectionOptions
                     {
-                        TransportType = TransportOptions.TransportType,
+                        TransportType = Options.TransportType,
                     },
                 };
 
                 // Allow for the defaults to be overridden
-                TransportOptions.SetupProducerClientOptions?.Invoke(reg, epco);
+                Options.SetupProducerClientOptions?.Invoke(reg, epco);
 
                 // Override values that must be overridden
 
                 // Create the producer client
-                var cred = TransportOptions.Credentials.CurrentValue;
+                var cred = Options.Credentials.CurrentValue;
                 producer = cred is AzureEventHubsTransportCredentials aehtc
                         ? new EventHubProducerClient(fullyQualifiedNamespace: aehtc.FullyQualifiedNamespace,
                                                      eventHubName: name,
@@ -286,7 +283,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
             // 2. The ConsumerGroup is set to $Default (this may be changed to support more)
             var isIotHub = reg.IsConfiguredAsIotHub();
             var eventHubName = isIotHub ? reg.GetIotHubEventHubName() : reg.EventName;
-            var consumerGroup = isIotHub || TransportOptions.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
+            var consumerGroup = isIotHub || Options.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
 
             var key = $"{eventHubName}/{consumerGroup}";
             if (!processorsCache.TryGetValue(key, out var processor))
@@ -305,31 +302,31 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
                  */
 
                 // blobContainerUri has the format "https://{account_name}.blob.core.windows.net/{container_name}" which can be made using "{BlobServiceUri}/{container_name}".
-                var cred_bs = TransportOptions.BlobStorageCredentials.CurrentValue;
+                var cred_bs = Options.BlobStorageCredentials.CurrentValue;
                 var blobContainerClient = cred_bs is AzureBlobStorageCredentials abstc
-                    ? new BlobContainerClient(blobContainerUri: new Uri($"{abstc.BlobServiceUrl}/{TransportOptions.BlobContainerName}"),
+                    ? new BlobContainerClient(blobContainerUri: new Uri($"{abstc.BlobServiceUrl}/{Options.BlobContainerName}"),
                                               credential: abstc.TokenCredential)
                     : new BlobContainerClient(connectionString: (string)cred_bs,
-                                              blobContainerName: TransportOptions.BlobContainerName);
+                                              blobContainerName: Options.BlobContainerName);
 
                 // Create the processor client options
                 var epco = new EventProcessorClientOptions
                 {
                     ConnectionOptions = new EventHubConnectionOptions
                     {
-                        TransportType = TransportOptions.TransportType,
+                        TransportType = Options.TransportType,
                     },
                 };
 
                 // Allow for the defaults to be overridden
-                TransportOptions.SetupProcessorClientOptions?.Invoke(reg, ecr, epco);
+                Options.SetupProcessorClientOptions?.Invoke(reg, ecr, epco);
 
                 // How to ensure consumer is created in the event hub?
                 // EventHubs and ConsumerGroups can only be create via Azure portal or using Resource Manager which need different credentials
 
 
                 // Create the processor client
-                var cred = TransportOptions.Credentials.CurrentValue;
+                var cred = Options.Credentials.CurrentValue;
                 processor = cred is AzureEventHubsTransportCredentials aehtc
                     ? new EventProcessorClient(checkpointStore: blobContainerClient,
                                                consumerGroup: consumerGroup,
@@ -434,7 +431,7 @@ public class AzureEventHubsTransport : EventBusTransportBase<AzureEventHubsTrans
          * Update the checkpoint store if needed so that the app receives
          * only newer events the next time it's run.
         */
-        if ((data.SequenceNumber % TransportOptions.CheckpointInterval) == 0
+        if ((data.SequenceNumber % Options.CheckpointInterval) == 0
             && ShouldCheckpoint(successful, ecr.UnhandledErrorBehaviour))
         {
             Logger.Checkpointing(partition: args.Partition,

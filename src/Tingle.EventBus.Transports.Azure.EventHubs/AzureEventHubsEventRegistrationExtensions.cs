@@ -6,7 +6,7 @@ namespace Tingle.EventBus.Configuration;
 /// <summary>
 /// Extension methods on <see cref="EventRegistration"/>.
 /// </summary>
-public static class EventRegistrationExtensions
+public static class AzureEventHubsEventRegistrationExtensions
 {
     internal const string MetadataKeyIotHubEventHubName = "azure.iothub.eventhub-name";
 

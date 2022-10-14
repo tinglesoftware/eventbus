@@ -1,7 +1,6 @@
 ﻿using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using Microsoft.Extensions.Options;
-using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -29,7 +28,7 @@ internal class AmazonSqsConfigureOptions : AmazonTransportConfigureOptions<Amazo
         options.SnsConfig.RegionEndpoint ??= options.Region;
 
         // Ensure the entity names are not longer than the limits
-        var registrations = busOptions.GetRegistrations(TransportNames.AmazonSqs);
+        var registrations = busOptions.GetRegistrations(name);
         foreach (var reg in registrations)
         {
             // Set the IdFormat

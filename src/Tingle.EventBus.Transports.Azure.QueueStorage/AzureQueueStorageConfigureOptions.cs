@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -28,7 +27,7 @@ internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOption
         }
 
         // Ensure there's only one consumer per event
-        var registrations = busOptions.GetRegistrations(TransportNames.AzureQueueStorage);
+        var registrations = busOptions.GetRegistrations(name);
         var multiple = registrations.FirstOrDefault(r => r.Consumers.Count > 1);
         if (multiple is not null)
         {

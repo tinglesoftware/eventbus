@@ -20,7 +20,7 @@ var host = Host.CreateDefaultBuilder(args)
                        builder.Services.AddSingleton<IEventConfigurator, MyConfigurator>();
 
                        // Transport specific configuration
-                       builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");
+                       builder.AddAzureQueueStorageTransport(o => o.Credentials = "UseDevelopmentStorage=true;");
                    });
                })
                .Build();

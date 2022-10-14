@@ -15,7 +15,7 @@ var host = Host.CreateDefaultBuilder(args)
                        builder.AddConsumer<SampleEventConsumer>();
 
                        // Transport specific configuration
-                       builder.AddAzureQueueStorageTransport("UseDevelopmentStorage=true;");
+                       builder.AddAzureQueueStorageTransport(o => o.Credentials = "UseDevelopmentStorage=true;");
                    });
                })
                .Build();

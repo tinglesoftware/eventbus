@@ -6,7 +6,7 @@ namespace Tingle.EventBus;
 /// <summary>
 /// Extension methods on <see cref="EventContext"/> and <see cref="EventContext{T}"/>.
 /// </summary>
-public static partial class EventContextExtensions
+public static class AzureEventHubsIotHubEventContextExtensions
 {
     /// <summary>Gets the message identifier for the IoT Hub message.</summary>
     /// <param name="context">The <see cref="EventContext"/> to use.</param>

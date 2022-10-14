@@ -21,14 +21,15 @@ public class EventBusBuilder
 
         // Configure the options
         Services.ConfigureOptions<EventBusConfigureOptions>();
-        Services.AddSingleton<IEventConfigurator, DefaultEventConfigurator>();
-        Services.AddSingleton<IEventIdGenerator, DefaultEventIdGenerator>();
 
         // Register the bus and its host
         Services.AddSingleton<EventBus>();
         Services.AddHostedService<EventBusHost>();
 
         // Register necessary services
+        Services.AddSingleton<EventBusTransportProvider>();
+        Services.AddSingleton<IEventConfigurator, DefaultEventConfigurator>();
+        Services.AddSingleton<IEventIdGenerator, DefaultEventIdGenerator>();
         Services.AddTransient<IEventPublisher, EventPublisher>();
         UseDefaultSerializer<DefaultJsonEventSerializer>();
     }
@@ -60,45 +61,37 @@ public class EventBusBuilder
         return this;
     }
 
-    /// <summary>
-    /// Register a transport to be used by the bus.
-    /// </summary>
-    /// <typeparam name="TTransport"></typeparam>
-    /// <typeparam name="TOptions"></typeparam>
-    /// <returns></returns>
-    public EventBusBuilder AddTransport<TTransport, TOptions>()
+    /// <summary>Adds a <see cref="EventBusTransportRegistration"/> which can be used by the event bus.</summary>
+    /// <typeparam name="TOptions">The <see cref="EventBusTransportOptions"/> type to configure the transport."/>.</typeparam>
+    /// <typeparam name="THandler">The <see cref="EventBusTransport{TOptions}"/> used to handle this transport.</typeparam>
+    /// <param name="name">The name of this transport.</param>
+    /// <param name="configureOptions">Used to configure the transport options.</param>
+    public EventBusBuilder AddTransport<TOptions, THandler>(string name, Action<TOptions>? configureOptions)
+        where TOptions : EventBusTransportOptions, new()
+        where THandler : EventBusTransport<TOptions>
+        => AddTransport<TOptions, THandler>(name, displayName: null, configureOptions: configureOptions);
+
+    /// <summary>Adds a <see cref="EventBusTransportRegistration"/> which can be used by the event bus.</summary>
+    /// <typeparam name="TOptions">The <see cref="EventBusTransportOptions"/> type to configure the transport."/>.</typeparam>
+    /// <typeparam name="THandler">The <see cref="EventBusTransport{TOptions}"/> used to handle this transport.</typeparam>
+    /// <param name="name">The name of this transport.</param>
+    /// <param name="displayName">The display name of this transport.</param>
+    /// <param name="configureOptions">Used to configure the transport options.</param>
+    public EventBusBuilder AddTransport<TOptions, THandler>(string name, string? displayName, Action<TOptions>? configureOptions)
+        where TOptions : EventBusTransportOptions, new()
+        where THandler : EventBusTransport<TOptions>
+        => AddTransportHelper<TOptions, THandler>(name, displayName, configureOptions);
+
+    private EventBusBuilder AddTransportHelper<TOptions, TTransport>(string name, string? displayName, Action<TOptions>? configureOptions)
+        where TOptions : EventBusTransportOptions, new()
         where TTransport : class, IEventBusTransport
-        where TOptions : EventBusTransportOptionsBase
     {
-        // Post configure the common transport options
+        Services.Configure<EventBusOptions>(o => o.AddTransport<TTransport>(name, displayName));
+        if (configureOptions is not null) Services.Configure(name, configureOptions);
+
         Services.ConfigureOptions<TransportOptionsConfigureOptions<TOptions>>();
-
-        // Register for resolution
-        Services.AddSingleton<IEventBusTransport, TTransport>();
-
-        // Get the name of the transport
-        var name = GetTransportName<TTransport>();
-
-        // Add name to registered transports
-        return Configure(options => options.RegisteredTransportNames.Add(name, typeof(TTransport)));
-    }
-
-    /// <summary>
-    /// Unregister a transport already registered on the bus.
-    /// </summary>
-    /// <typeparam name="TTransport"></typeparam>
-    /// <returns></returns>
-    public EventBusBuilder RemoveTransport<TTransport>() where TTransport : class, IEventBusTransport
-    {
-        // remove the service descriptor if it exists
-        var target = Services.SingleOrDefault(t => t.ServiceType == typeof(IEventBusTransport) && t.ImplementationType == typeof(TTransport));
-        if (target != null) Services.Remove(target);
-
-        // Get the name of the transport
-        var name = GetTransportName<TTransport>();
-
-        // Remove name from registered transports
-        return Configure(options => options.RegisteredTransportNames.Remove(name));
+        Services.AddSingleton<TTransport>();
+        return this;
     }
 
     /// <summary>
@@ -205,28 +198,5 @@ public class EventBusBuilder
                 }
             }
         });
-    }
-
-    private static string GetTransportName<TTransport>() where TTransport : IEventBusTransport => GetTransportName(typeof(TTransport));
-
-    internal static string GetTransportName(Type type)
-    {
-        if (type is null) throw new ArgumentNullException(nameof(type));
-
-        // Ensure the type implements IEventBusTransport
-        if (!(typeof(IEventBusTransport).IsAssignableFrom(type)))
-        {
-            throw new InvalidOperationException($"'{type.FullName}' must implement '{typeof(IEventBusTransport).FullName}'.");
-        }
-
-        // Ensure the TransportNameAttribute attribute is declared on it
-        var attrs = type.GetCustomAttributes(false).OfType<TransportNameAttribute>().ToList();
-        if (attrs.Count == 0)
-        {
-            throw new InvalidOperationException($"'{type.FullName}' must have '{typeof(TransportNameAttribute).FullName}' declared on it.");
-        }
-
-        // Ensure there is only one attribute and get the name
-        return attrs.Single().Name;
     }
 }

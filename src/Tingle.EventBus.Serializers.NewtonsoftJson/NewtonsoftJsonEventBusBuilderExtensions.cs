@@ -5,7 +5,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Extension methods on <see cref="EventBusBuilder"/> for NewtonsoftJson serializer.
 /// </summary>
-public static class EventBusBuilderExtensions
+public static class NewtonsoftJsonEventBusBuilderExtensions
 {
     /// <summary>
     /// Use the included NewtonsoftJson serializer as the default event serializer.

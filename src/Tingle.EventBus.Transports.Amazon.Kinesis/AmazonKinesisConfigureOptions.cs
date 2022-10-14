@@ -1,6 +1,5 @@
 ﻿using Amazon.Kinesis;
 using Microsoft.Extensions.Options;
-using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -32,7 +31,7 @@ internal class AmazonKinesisConfigureOptions : AmazonTransportConfigureOptions<A
         }
 
         // Ensure the entity names are not longer than the limits
-        var registrations = busOptions.GetRegistrations(TransportNames.AmazonKinesis);
+        var registrations = busOptions.GetRegistrations(name);
         foreach (var reg in registrations)
         {
             // Set the IdFormat

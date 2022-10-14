@@ -11,6 +11,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public class EventBusOptions
 {
+    private readonly IList<EventBusTransportRegistrationBuilder> transports = new List<EventBusTransportRegistrationBuilder>();
+
     /// <summary>
     /// The duration of time to delay the starting of the bus.
     /// When <see langword="null"/>, the bus is started immediately.
@@ -46,7 +48,7 @@ public class EventBusOptions
     /// <summary>
     /// Optional default format to use for generated event identifiers when for events where it is not specified.
     /// To specify a value per consumer, use the <see cref="EventRegistration.IdFormat"/> option.
-    /// To specify a value per transport, use the <see cref="EventBusTransportOptionsBase.DefaultEventIdFormat"/> option on the specific transport.
+    /// To specify a value per transport, use the <see cref="EventBusTransportOptions.DefaultEventIdFormat"/> option on the specific transport.
     /// Defaults to <see cref="EventIdFormat.Guid"/>.
     /// </summary>
     public EventIdFormat DefaultEventIdFormat { get; set; } = EventIdFormat.Guid;
@@ -54,7 +56,7 @@ public class EventBusOptions
     /// <summary>
     /// Optional default retry policy to use where it is not specified.
     /// To specify a value per consumer, use the <see cref="EventRegistration.RetryPolicy"/> option.
-    /// To specify a value per transport, use the <see cref="EventBusTransportOptionsBase.DefaultRetryPolicy"/> option on the specific transport.
+    /// To specify a value per transport, use the <see cref="EventBusTransportOptions.DefaultRetryPolicy"/> option on the specific transport.
     /// Defaults to <see langword="null"/>.
     /// </summary>
     public AsyncRetryPolicy? DefaultRetryPolicy { get; set; }
@@ -62,7 +64,7 @@ public class EventBusOptions
     /// <summary>
     /// Optional default behaviour for errors encountered in a consumer but are not handled.
     /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.UnhandledErrorBehaviour"/> option.
-    /// To specify a value per transport, use the <see cref="EventBusTransportOptionsBase.DefaultUnhandledConsumerErrorBehaviour"/> option on the specific transport.
+    /// To specify a value per transport, use the <see cref="EventBusTransportOptions.DefaultUnhandledConsumerErrorBehaviour"/> option on the specific transport.
     /// When an <see cref="AsyncRetryPolicy"/> is in force, only errors that are not handled by it will be subject to the value set here.
     /// Defaults to <see langword="null"/>.
     /// </summary>
@@ -74,15 +76,43 @@ public class EventBusOptions
     /// </summary>
     public string? DefaultTransportName { get; set; }
 
-    /// <summary>
-    /// The map of registered transport names to their types.
-    /// </summary>
-    internal Dictionary<string, Type> RegisteredTransportNames { get; } = new Dictionary<string, Type>();
+    /// <summary>Transports in the order they were added.</summary>
+    public IEnumerable<EventBusTransportRegistrationBuilder> Transports => transports;
+
+    /// <summary>Maps transports by name.</summary>
+    internal IDictionary<string, EventBusTransportRegistrationBuilder> TransportMap { get; } = new Dictionary<string, EventBusTransportRegistrationBuilder>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// The registrations for events and consumers for the EventBus.
     /// </summary>
     internal Dictionary<Type, EventRegistration> Registrations { get; } = new Dictionary<Type, EventRegistration>();
+
+
+    /// <summary>Adds a <see cref="EventBusTransportRegistration"/>.</summary>
+    /// <param name="name">The name of the transport being added.</param>
+    /// <param name="configureBuilder">Configures the transport.</param>
+    public void AddTransport(string name, Action<EventBusTransportRegistrationBuilder> configureBuilder)
+    {
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        if (configureBuilder == null) throw new ArgumentNullException(nameof(configureBuilder));
+        if (TransportMap.ContainsKey(name)) throw new InvalidOperationException("Transport already exists: " + name);
+
+        var builder = new EventBusTransportRegistrationBuilder(name);
+        configureBuilder(builder);
+        transports.Add(builder);
+        TransportMap[name] = builder;
+    }
+
+    /// <summary>Adds a <see cref="EventBusTransportRegistration"/>.</summary>
+    /// <typeparam name="THandler">The <see cref="IEventBusTransport"/> responsible for the transport.</typeparam>
+    /// <param name="name">The name of the transport being added.</param>
+    /// <param name="displayName">The display name for the transport.</param>
+    public void AddTransport<THandler>(string name, string? displayName) where THandler : IEventBusTransport
+        => AddTransport(name, b =>
+        {
+            b.DisplayName = displayName;
+            b.TransportType = typeof(THandler);
+        });
 
     /// <summary>
     /// Gets the consumer registrations for a given transport.

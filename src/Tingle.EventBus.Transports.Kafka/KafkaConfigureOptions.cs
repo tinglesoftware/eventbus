@@ -1,6 +1,5 @@
 ﻿using Confluent.Kafka;
 using Microsoft.Extensions.Options;
-using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -44,7 +43,7 @@ internal class KafkaConfigureOptions : IPostConfigureOptions<KafkaTransportOptio
         options.CheckpointInterval = Math.Max(options.CheckpointInterval, 1);
 
         // ensure there's only one consumer per event
-        var registrations = busOptions.GetRegistrations(TransportNames.Kafka);
+        var registrations = busOptions.GetRegistrations(name);
         var multiple = registrations.FirstOrDefault(r => r.Consumers.Count > 1);
         if (multiple is not null)
         {

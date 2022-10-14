@@ -15,30 +15,32 @@ namespace Tingle.EventBus;
 public class EventBus
 {
     private readonly IEventIdGenerator idGenerator;
-    private readonly IList<IEventBusTransport> transports;
     private readonly IList<IEventConfigurator> configurators;
     private readonly EventBusOptions options;
     private readonly ILogger logger;
 
+    private readonly IReadOnlyDictionary<string, IEventBusTransport> transports;
+
     /// <summary>
     /// 
     /// </summary>
+    /// <param name="transportProvider"></param>
     /// <param name="idGenerator"></param>
     /// <param name="optionsAccessor"></param>
-    /// <param name="transports"></param>
     /// <param name="configurators"></param>
     /// <param name="loggerFactory"></param>
-    public EventBus(IEventIdGenerator idGenerator,
-                    IEnumerable<IEventBusTransport> transports,
+    public EventBus(EventBusTransportProvider transportProvider,
+                    IEventIdGenerator idGenerator,
                     IEnumerable<IEventConfigurator> configurators,
                     IOptions<EventBusOptions> optionsAccessor,
                     ILoggerFactory loggerFactory)
     {
         this.idGenerator = idGenerator ?? throw new ArgumentNullException(nameof(idGenerator));
         this.configurators = configurators?.ToList() ?? throw new ArgumentNullException(nameof(configurators));
-        this.transports = transports?.ToList() ?? throw new ArgumentNullException(nameof(transports));
         options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
         logger = loggerFactory?.CreateLogger(LogCategoryNames.EventBus) ?? throw new ArgumentNullException(nameof(loggerFactory));
+
+        transports = transportProvider.GetTransports();
     }
 
     /// <summary>
@@ -227,7 +229,7 @@ public class EventBus
     {
         // Start the bus and its transports
         logger.StartingBus(transports.Count);
-        foreach (var t in transports)
+        foreach (var t in transports.Values)
         {
             await t.StartAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -238,7 +240,7 @@ public class EventBus
     {
         // Stop the transports in parallel
         logger.StoppingTransports();
-        var tasks = transports.Select(t => t.StopAsync(cancellationToken));
+        var tasks = transports.Values.Select(t => t.StopAsync(cancellationToken));
         await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
@@ -246,18 +248,16 @@ public class EventBus
     {
         // get the transport
         var reg = GetOrCreateRegistration<TEvent>();
-        var transport = transports.Single(t => t.Name == reg.TransportName);
+        var transport = GetTransportForEvent(reg.TransportName!);
 
-        // For events that were not configured (e.g. publish only applications),
+        // For events that were not configured (e.g. publish only events),
         // the IdFormat will still be null, we have to set it
-        if (reg.IdFormat is null && transport is IEventBusTransportWithOptions withOptions)
-        {
-            var to = withOptions.GetOptions();
-            reg.IdFormat = to.DefaultEventIdFormat ?? options.DefaultEventIdFormat;
-        }
+        reg.IdFormat ??= transport.GetOptions()?.DefaultEventIdFormat ?? options.DefaultEventIdFormat;
 
         return (reg, transport);
     }
+
+    internal IEventBusTransport GetTransportForEvent(string name) => transports[name];
 
     internal EventRegistration GetOrCreateRegistration<TEvent>()
     {

@@ -7,11 +7,25 @@ namespace Tingle.EventBus.Transports;
 /// </summary>
 public interface IEventBusTransport
 {
-    /// <summary>
-    /// The name of the transport as extracted from <see cref="TransportNameAttribute"/> declared.
-    /// This name cannot be changed during runtime.
-    /// </summary>
+    /// <summary>The name of the transport.</summary>
     string Name { get; }
+
+    /// 
+    void Initialize(EventBusTransportRegistration registration);
+
+    /// <summary>
+    /// Triggered when the bus host is ready to start.
+    /// </summary>
+    /// <param name="cancellationToken">Indicates that the start process has been aborted.</param>
+    /// <returns></returns>
+    Task StartAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Triggered when the bus host is performing a graceful shutdown.
+    /// </summary>
+    /// <param name="cancellationToken">Indicates that the shutdown process should no longer be graceful.</param>
+    /// <returns></returns>
+    Task StopAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Publish an event on the transport.
@@ -75,17 +89,6 @@ public interface IEventBusTransport
                              CancellationToken cancellationToken = default)
         where TEvent : class;
 
-    /// <summary>
-    /// Triggered when the bus host is ready to start.
-    /// </summary>
-    /// <param name="cancellationToken">Indicates that the start process has been aborted.</param>
-    /// <returns></returns>
-    Task StartAsync(CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Triggered when the bus host is performing a graceful shutdown.
-    /// </summary>
-    /// <param name="cancellationToken">Indicates that the shutdown process should no longer be graceful.</param>
-    /// <returns></returns>
-    Task StopAsync(CancellationToken cancellationToken);
+    ///
+    EventBusTransportOptions? GetOptions();
 }

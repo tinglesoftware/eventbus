@@ -12,7 +12,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
                                           IConfigureOptions<EventBusSerializationOptions>,
                                           IPostConfigureOptions<EventBusOptions>,
-                                          IPostConfigureOptions<EventBusReadinessOptions>,
                                           IValidateOptions<EventBusOptions>,
                                           IValidateOptions<EventBusSerializationOptions>
 {
@@ -97,19 +96,6 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
             {
                 cfg.Configure(evr, options);
             }
-        }
-    }
-
-    /// <inheritdoc/>
-    public void PostConfigure(string name, EventBusReadinessOptions options)
-    {
-        // Check bounds for readiness timeout
-        var ticks = options.Timeout.Ticks;
-        if (options.Enabled)
-        {
-            ticks = Math.Max(ticks, TimeSpan.FromSeconds(5).Ticks); // must be more than 5 seconds
-            ticks = Math.Min(ticks, TimeSpan.FromMinutes(15).Ticks); // must be less than 15 minutes
-            options.Timeout = TimeSpan.FromTicks(ticks);
         }
     }
 

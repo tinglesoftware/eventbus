@@ -19,19 +19,13 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(103, LogLevel.Error, "Starting bus delayed error.")]
     public static partial void DelayedBusStartupError(this ILogger logger, Exception ex);
 
-    [LoggerMessage(104, LogLevel.Information, "Performing readiness check before starting bus.")]
-    public static partial void StartupReadinessCheck(this ILogger logger);
-
-    [LoggerMessage(105, LogLevel.Error, "Startup readiness check failed or timed-out.")]
-    public static partial void StartupReadinessCheckFailed(this ILogger logger, Exception ex);
-
-    [LoggerMessage(106, LogLevel.Debug, "Starting bus with {TransportsCount} transports.")]
+    [LoggerMessage(104, LogLevel.Debug, "Starting bus with {TransportsCount} transports.")]
     public static partial void StartingBus(this ILogger logger, int transportsCount);
 
-    [LoggerMessage(107, LogLevel.Debug, "Stopping bus.")]
+    [LoggerMessage(105, LogLevel.Debug, "Stopping bus.")]
     public static partial void StoppingBus(this ILogger logger);
 
-    [LoggerMessage(108, LogLevel.Debug, "Stopping transports.")]
+    [LoggerMessage(106, LogLevel.Debug, "Stopping transports.")]
     public static partial void StoppingTransports(this ILogger logger);
 
     #endregion
@@ -117,25 +111,12 @@ internal static partial class ILoggerExtensions
 
     #endregion
 
-    #region Readiness (400 series)
+    #region Serialization (400 series)
 
-    [LoggerMessage(401, LogLevel.Information, "Performing readiness check. Timeout: '{ReadinessTimeout}'.")]
-    public static partial void ReadinessCheck(this ILogger logger, TimeSpan readinessTimeout);
-
-    [LoggerMessage(402, LogLevel.Error, "Startup readiness check failed or timed-out after '{ReadinessTimeout}'.")]
-    public static partial void ReadinessCheckTimedout(this ILogger logger, TimeSpan readinessTimeout);
-
-    [LoggerMessage(403, LogLevel.Debug, "Readiness check is disabled. Assumes ready by default.")]
-    public static partial void ReadinessCheckDisabled(this ILogger logger);
-
-    #endregion
-
-    #region Serialization (500 series)
-
-    [LoggerMessage(501, LogLevel.Warning, "Deserialization resulted in a null which should not happen. Identifier: '{Identifier}', Type: '{EventType}'.")]
+    [LoggerMessage(401, LogLevel.Warning, "Deserialization resulted in a null which should not happen. Identifier: '{Identifier}', Type: '{EventType}'.")]
     public static partial void DeserializationResultedInNull(this ILogger logger, string? identifier, string? eventType);
 
-    [LoggerMessage(502, LogLevel.Warning, "Deserialized event should not have a null event. Identifier: '{Identifier}', EventId: '{EventBusId}', Type: '{EventType}'.")]
+    [LoggerMessage(402, LogLevel.Warning, "Deserialized event should not have a null event. Identifier: '{Identifier}', EventId: '{EventBusId}', Type: '{EventType}'.")]
     public static partial void DeserializedEventShouldNotBeNull(this ILogger logger, string? identifier, string? eventBusId, string? eventType);
 
     #endregion

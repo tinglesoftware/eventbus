@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Tingle.EventBus.Configuration;
-using Tingle.EventBus.Readiness;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Tests.Configurator;
@@ -170,49 +169,5 @@ public class DefaultEventConfiguratorTests
         var registration = new EventRegistration(eventType);
         DefaultEventConfigurator.ConfigureEntityKind(registration);
         Assert.Equal(expected, registration.EntityKind);
-    }
-
-    [Fact]
-    public void ConfigureReadinessProviders_UsesDefault()
-    {
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
-
-        // when not set, use default
-        var ereg = new EventRegistration(typeof(TestEvent1));
-        var creg = new EventConsumerRegistration(typeof(TestConsumer1));
-        ereg.Consumers.Add(creg);
-        Assert.Null(creg.ReadinessProviderType);
-        DefaultEventConfigurator.ConfigureReadinessProviders(ereg);
-        Assert.Equal(typeof(IReadinessProvider), creg.ReadinessProviderType);
-    }
-
-    [Fact]
-    public void ConfigureReadinessProviders_RespectsAttribute()
-    {
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
-
-        // attribute is respected
-        var ereg = new EventRegistration(typeof(TestEvent2));
-        var creg = new EventConsumerRegistration(typeof(TestConsumer2));
-        ereg.Consumers.Add(creg);
-        Assert.Null(creg.ReadinessProviderType);
-        DefaultEventConfigurator.ConfigureReadinessProviders(ereg);
-        Assert.Equal(typeof(FakeReadinessProvider1), creg.ReadinessProviderType);
-    }
-
-    [Fact]
-    public void ConfigureReadinessProviders_Throws_InvalidOperationException()
-    {
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
-
-        // attribute is respected
-        var ereg = new EventRegistration(typeof(TestEvent3));
-        var creg = new EventConsumerRegistration(typeof(TestConsumer3));
-        ereg.Consumers.Add(creg);
-        Assert.Null(creg.ReadinessProviderType);
-        var ex = Assert.Throws<InvalidOperationException>(() => DefaultEventConfigurator.ConfigureReadinessProviders(ereg));
-        Assert.Equal("The type 'Tingle.EventBus.Tests.Configurator.FakeReadinessProvider2' is used"
-                   + " as a readiness provider but does not implement 'Tingle.EventBus.Readiness.IReadinessProvider'",
-            ex.Message);
     }
 }

@@ -76,14 +76,10 @@ public class EventBusOptions
     /// </summary>
     public string? DefaultTransportName { get; set; }
 
-    /// <summary>
-    /// Transports in the order they were added.
-    /// </summary>
+    /// <summary>Transports in the order they were added.</summary>
     public IEnumerable<EventBusTransportRegistrationBuilder> Transports => transports;
 
-    /// <summary>
-    /// Maps schemes by name.
-    /// </summary>
+    /// <summary>Maps transports by name.</summary>
     internal IDictionary<string, EventBusTransportRegistrationBuilder> TransportMap { get; } = new Dictionary<string, EventBusTransportRegistrationBuilder>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
@@ -108,8 +104,8 @@ public class EventBusOptions
     }
 
     /// <summary>Adds a <see cref="EventBusTransportRegistration"/>.</summary>
-    /// <typeparam name="THandler">The <see cref="IEventBusTransport"/> responsible for the scheme.</typeparam>
-    /// <param name="name">The name of the scheme being added.</param>
+    /// <typeparam name="THandler">The <see cref="IEventBusTransport"/> responsible for the transport.</typeparam>
+    /// <param name="name">The name of the transport being added.</param>
     /// <param name="displayName">The display name for the transport.</param>
     public void AddTransport<THandler>(string name, string? displayName) where THandler : IEventBusTransport
         => AddTransport(name, b =>

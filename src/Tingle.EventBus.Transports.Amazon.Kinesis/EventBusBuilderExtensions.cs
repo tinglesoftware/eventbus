@@ -16,6 +16,18 @@ public static class EventBusBuilderExtensions
     /// <returns></returns>
     public static EventBusBuilder AddAmazonKinesisTransport(this EventBusBuilder builder, Action<AmazonKinesisTransportOptions> configure)
     {
+        return builder.AddAmazonKinesisTransport(TransportNames.AmazonKinesis, configure);
+    }
+
+    /// <summary>
+    /// Add Amazon Kinesis as the underlying transport for the Event Bus.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="name"></param>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    public static EventBusBuilder AddAmazonKinesisTransport(this EventBusBuilder builder, string name, Action<AmazonKinesisTransportOptions> configure)
+    {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
         if (configure is null) throw new ArgumentNullException(nameof(configure));
 
@@ -26,7 +38,7 @@ public static class EventBusBuilderExtensions
         services.ConfigureOptions<AmazonKinesisConfigureOptions>();
 
         // Register the transport
-        builder.AddTransport<AmazonKinesisTransport, AmazonKinesisTransportOptions>(TransportNames.AmazonKinesis);
+        builder.AddTransport<AmazonKinesisTransport, AmazonKinesisTransportOptions>(name);
 
         return builder;
     }

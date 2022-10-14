@@ -15,6 +15,16 @@ public static class EventBusBuilderExtensions
     /// <param name="configure"></param>
     /// <returns></returns>
     public static EventBusBuilder AddRabbitMqTransport(this EventBusBuilder builder, Action<RabbitMqTransportOptions> configure)
+        => builder.AddRabbitMqTransport(TransportNames.RabbitMq, configure);
+
+    /// <summary>
+    /// Add RabbitMQ as the underlying transport for the Event Bus.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="name"></param>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    public static EventBusBuilder AddRabbitMqTransport(this EventBusBuilder builder, string name, Action<RabbitMqTransportOptions> configure)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
         if (configure is null) throw new ArgumentNullException(nameof(configure));
@@ -26,7 +36,7 @@ public static class EventBusBuilderExtensions
         services.ConfigureOptions<RabbitMqConfigureOptions>();
 
         // register the transport
-        builder.AddTransport<RabbitMqTransport, RabbitMqTransportOptions>(TransportNames.RabbitMq);
+        builder.AddTransport<RabbitMqTransport, RabbitMqTransportOptions>(name);
 
         return builder;
     }

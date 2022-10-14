@@ -15,8 +15,17 @@ public static class EventBusBuilderExtensions
     /// <param name="builder"></param>
     /// <param name="configure"></param>
     /// <returns></returns>
-    public static EventBusBuilder AddInMemoryTransport(this EventBusBuilder builder,
-                                                       Action<InMemoryTransportOptions>? configure = null)
+    public static EventBusBuilder AddInMemoryTransport(this EventBusBuilder builder, Action<InMemoryTransportOptions>? configure = null)
+        => builder.AddInMemoryTransport(TransportNames.InMemory);
+
+    /// <summary>
+    /// Add InMemory as the underlying transport for the Event Bus.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="name"></param>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    public static EventBusBuilder AddInMemoryTransport(this EventBusBuilder builder, string name, Action<InMemoryTransportOptions>? configure = null)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
@@ -32,7 +41,7 @@ public static class EventBusBuilderExtensions
         services.AddSingleton<SequenceNumberGenerator>();
 
         // register the transport
-        builder.AddTransport<InMemoryTransport, InMemoryTransportOptions>(TransportNames.InMemory);
+        builder.AddTransport<InMemoryTransport, InMemoryTransportOptions>(name);
 
         return builder;
     }

@@ -15,6 +15,16 @@ public static class EventBusBuilderExtensions
     /// <param name="configure"></param>
     /// <returns></returns>
     public static EventBusBuilder AddKafkaTransport(this EventBusBuilder builder, Action<KafkaTransportOptions> configure)
+        => builder.AddKafkaTransport(TransportNames.Kafka, configure);
+
+    /// <summary>
+    /// Add Kafka as the underlying transport for the Event Bus.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="name"></param>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    public static EventBusBuilder AddKafkaTransport(this EventBusBuilder builder, string name, Action<KafkaTransportOptions> configure)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
         if (configure is null) throw new ArgumentNullException(nameof(configure));
@@ -26,7 +36,7 @@ public static class EventBusBuilderExtensions
         services.ConfigureOptions<KafkaConfigureOptions>();
 
         // register the transport
-        builder.AddTransport<KafkaTransport, KafkaTransportOptions>(TransportNames.Kafka);
+        builder.AddTransport<KafkaTransport, KafkaTransportOptions>(name);
 
         return builder;
     }

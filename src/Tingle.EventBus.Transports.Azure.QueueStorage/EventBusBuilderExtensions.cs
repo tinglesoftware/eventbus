@@ -16,6 +16,18 @@ public static class EventBusBuilderExtensions
     /// <returns></returns>
     public static EventBusBuilder AddAzureQueueStorageTransport(this EventBusBuilder builder, Action<AzureQueueStorageTransportOptions> configure)
     {
+        return builder.AddAzureQueueStorageTransport(TransportNames.AzureQueueStorage, configure);
+    }
+
+    /// <summary>
+    /// Add Azure Queue Storage as the underlying transport for the Event Bus.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="name"></param>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    public static EventBusBuilder AddAzureQueueStorageTransport(this EventBusBuilder builder, string name, Action<AzureQueueStorageTransportOptions>? configure = null)
+    {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
         if (configure is null) throw new ArgumentNullException(nameof(configure));
 
@@ -26,35 +38,8 @@ public static class EventBusBuilderExtensions
         services.ConfigureOptions<AzureQueueStorageConfigureOptions>();
 
         // register the transport
-        builder.AddTransport<AzureQueueStorageTransport, AzureQueueStorageTransportOptions>(TransportNames.AzureQueueStorage);
+        builder.AddTransport<AzureQueueStorageTransport, AzureQueueStorageTransportOptions>(name);
 
         return builder;
-    }
-
-    /// <summary>
-    /// Add Azure Queue Storage as the underlying transport for the Event Bus.
-    /// </summary>
-    /// <param name="builder"></param>
-    /// <param name="connectionString">
-    /// The connection string to the Azure Storage account.
-    /// </param>
-    /// <param name="configure"></param>
-    /// <returns></returns>
-    public static EventBusBuilder AddAzureQueueStorageTransport(this EventBusBuilder builder,
-                                                                string connectionString,
-                                                                Action<AzureQueueStorageTransportOptions>? configure = null)
-    {
-        if (builder == null) throw new ArgumentNullException(nameof(builder));
-
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            throw new ArgumentException($"'{nameof(connectionString)}' cannot be null or whitespace", nameof(connectionString));
-        }
-
-        return builder.AddAzureQueueStorageTransport(options =>
-        {
-            options.Credentials = connectionString;
-            configure?.Invoke(options);
-        });
     }
 }

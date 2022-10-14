@@ -15,6 +15,16 @@ public static class EventBusBuilderExtensions
     /// <param name="configure"></param>
     /// <returns></returns>
     public static EventBusBuilder AddAzureEventHubsTransport(this EventBusBuilder builder, Action<AzureEventHubsTransportOptions> configure)
+        => builder.AddAzureEventHubsTransport(TransportNames.AzureEventHubs, configure);
+
+    /// <summary>
+    /// Add Azure EventHubs as the underlying transport for the Event Bus.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="name"></param>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    public static EventBusBuilder AddAzureEventHubsTransport(this EventBusBuilder builder, string name, Action<AzureEventHubsTransportOptions> configure)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
         if (configure is null) throw new ArgumentNullException(nameof(configure));
@@ -26,35 +36,8 @@ public static class EventBusBuilderExtensions
         services.ConfigureOptions<AzureEventHubsConfigureOptions>();
 
         // register the transport
-        builder.AddTransport<AzureEventHubsTransport, AzureEventHubsTransportOptions>(TransportNames.AzureEventHubs);
+        builder.AddTransport<AzureEventHubsTransport, AzureEventHubsTransportOptions>(name);
 
         return builder;
-    }
-
-    /// <summary>
-    /// Add Azure EventHubs as the underlying transport for the Event Bus.
-    /// </summary>
-    /// <param name="builder"></param>
-    /// <param name="connectionString">
-    /// The connection string to the Azure EventHubs namespace.
-    /// </param>
-    /// <param name="configure"></param>
-    /// <returns></returns>
-    public static EventBusBuilder AddAzureEventHubsTransport(this EventBusBuilder builder,
-                                                             string connectionString,
-                                                             Action<AzureEventHubsTransportOptions>? configure = null)
-    {
-        if (builder == null) throw new ArgumentNullException(nameof(builder));
-
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            throw new ArgumentException($"'{nameof(connectionString)}' cannot be null or whitespace", nameof(connectionString));
-        }
-
-        return builder.AddAzureEventHubsTransport(options =>
-        {
-            options.Credentials = connectionString;
-            configure?.Invoke(options);
-        });
     }
 }

@@ -10,7 +10,7 @@ using Tingle.EventBus.Diagnostics;
 namespace Tingle.EventBus.Transports.Azure.QueueStorage;
 
 /// <summary>
-/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransport{TTransportOptions}"/> using Azure Queue Storage.
+/// Implementation of <see cref="EventBusTransport{TTransportOptions}"/> using Azure Queue Storage.
 /// </summary>
 public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTransportOptions>, IDisposable
 {

@@ -15,7 +15,7 @@ using Tingle.EventBus.Diagnostics;
 namespace Tingle.EventBus.Transports.RabbitMQ;
 
 /// <summary>
-/// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransport{TTransportOptions}"/> using RabbitMQ.
+/// Implementation of <see cref="EventBusTransport{TTransportOptions}"/> using RabbitMQ.
 /// </summary>
 public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, IDisposable
 {

@@ -70,14 +70,24 @@ public class EventBusBuilder
         where TTransport : class, IEventBusTransport
         where TOptions : EventBusTransportOptionsBase
     {
+        return AddTransport<TTransport, TOptions>(GetTransportName<TTransport>());
+    }
+
+    /// <summary>
+    /// Register a transport to be used by the bus.
+    /// </summary>
+    /// <typeparam name="TTransport"></typeparam>
+    /// <typeparam name="TOptions"></typeparam>
+    /// <returns></returns>
+    public EventBusBuilder AddTransport<TTransport, TOptions>(string name)
+        where TTransport : class, IEventBusTransport
+        where TOptions : EventBusTransportOptionsBase
+    {
         // Post configure the common transport options
         Services.ConfigureOptions<TransportOptionsConfigureOptions<TOptions>>();
 
         // Register for resolution
         Services.AddSingleton<IEventBusTransport, TTransport>();
-
-        // Get the name of the transport
-        var name = GetTransportName<TTransport>();
 
         // Add name to registered transports
         return Configure(options => options.RegisteredTransportNames.Add(name, typeof(TTransport)));
@@ -89,13 +99,18 @@ public class EventBusBuilder
     /// <typeparam name="TTransport"></typeparam>
     /// <returns></returns>
     public EventBusBuilder RemoveTransport<TTransport>() where TTransport : class, IEventBusTransport
+        => RemoveTransport<TTransport>(GetTransportName<TTransport>());
+
+    /// <summary>
+    /// Unregister a transport already registered on the bus.
+    /// </summary>
+    /// <typeparam name="TTransport"></typeparam>
+    /// <returns></returns>
+    public EventBusBuilder RemoveTransport<TTransport>(string name) where TTransport : class, IEventBusTransport
     {
         // remove the service descriptor if it exists
         var target = Services.SingleOrDefault(t => t.ServiceType == typeof(IEventBusTransport) && t.ImplementationType == typeof(TTransport));
         if (target != null) Services.Remove(target);
-
-        // Get the name of the transport
-        var name = GetTransportName<TTransport>();
 
         // Remove name from registered transports
         return Configure(options => options.RegisteredTransportNames.Remove(name));

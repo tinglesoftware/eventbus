@@ -46,17 +46,12 @@ public static class EventBusBuilderExtensions
 
         var services = builder.Services;
 
-        // configure the options for InMemory test harness
-        if (configure != null)
-        {
-            services.Configure(configure);
-        }
+        // Configure the options for InMemory test harness
+        if (configure is not null) services.Configure(configure);
+        services.ConfigureOptions<InMemoryTestHarnessConfigureOptions>();
 
         // Register the harness
         services.AddSingleton<InMemoryTestHarness>();
-
-        // Set the delivery delay to zero for instance delivery
-        services.ConfigureOptions<InMemoryTestHarnessConfigureOptions>();
 
         return builder;
     }

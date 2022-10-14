@@ -9,18 +9,14 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static class EventBusBuilderExtensions
 {
-    /// <summary>
-    /// Add InMemory as the underlying transport for the Event Bus.
-    /// </summary>
+    /// <summary>Add InMemory transport.</summary>
     /// <param name="builder"></param>
     /// <param name="configure"></param>
     /// <returns></returns>
     public static EventBusBuilder AddInMemoryTransport(this EventBusBuilder builder, Action<InMemoryTransportOptions>? configure = null)
-        => builder.AddInMemoryTransport(TransportNames.InMemory);
+        => builder.AddInMemoryTransport(TransportNames.InMemory, configure);
 
-    /// <summary>
-    /// Add InMemory as the underlying transport for the Event Bus.
-    /// </summary>
+    /// <summary>Add InMemory transport.</summary>
     /// <param name="builder"></param>
     /// <param name="name"></param>
     /// <param name="configure"></param>
@@ -29,21 +25,9 @@ public static class EventBusBuilderExtensions
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
-        var services = builder.Services;
-
-        // configure the options for InMemory transport
-        if (configure != null)
-        {
-            services.Configure(configure);
-        }
-
-        services.ConfigureOptions<InMemoryTransportConfigureOptions>();
-        services.AddSingleton<SequenceNumberGenerator>();
-
-        // register the transport
-        builder.AddTransport<InMemoryTransport, InMemoryTransportOptions>(name);
-
-        return builder;
+        builder.Services.ConfigureOptions<InMemoryTransportConfigureOptions>();
+        builder.Services.AddSingleton<SequenceNumberGenerator>();
+        return builder.AddTransport<InMemoryTransport, InMemoryTransportOptions>(name, configure);
     }
 
     /// <summary>
@@ -56,8 +40,7 @@ public static class EventBusBuilderExtensions
     /// <param name="builder"></param>
     /// <param name="configure"></param>
     /// <returns></returns>
-    public static EventBusBuilder AddInMemoryTestHarness(this EventBusBuilder builder,
-                                                         Action<InMemoryTestHarnessOptions>? configure = null)
+    public static EventBusBuilder AddInMemoryTestHarness(this EventBusBuilder builder, Action<InMemoryTestHarnessOptions>? configure = null)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 

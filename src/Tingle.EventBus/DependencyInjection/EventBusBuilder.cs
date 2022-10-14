@@ -66,10 +66,12 @@ public class EventBusBuilder
     /// <typeparam name="TTransport"></typeparam>
     /// <typeparam name="TOptions"></typeparam>
     /// <returns></returns>
-    public EventBusBuilder AddTransport<TTransport, TOptions>(string name)
+    public EventBusBuilder AddTransport<TTransport, TOptions>(string name, Action<TOptions>? configure)
         where TTransport : class, IEventBusTransport
         where TOptions : EventBusTransportOptionsBase
     {
+        Services.Configure(configure);
+
         // Post configure the common transport options
         Services.ConfigureOptions<TransportOptionsConfigureOptions<TOptions>>();
 

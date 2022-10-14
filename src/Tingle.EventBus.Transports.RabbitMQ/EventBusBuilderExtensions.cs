@@ -8,36 +8,23 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static class EventBusBuilderExtensions
 {
-    /// <summary>
-    /// Add RabbitMQ as the underlying transport for the Event Bus.
-    /// </summary>
-    /// <param name="builder"></param>
-    /// <param name="configure"></param>
+    /// <summary>Add RabbitMQ transport.</summary>
+    /// <param name="builder">The <see cref="EventBusBuilder"/> to add to.</param>
+    /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
-    public static EventBusBuilder AddRabbitMqTransport(this EventBusBuilder builder, Action<RabbitMqTransportOptions> configure)
+    public static EventBusBuilder AddRabbitMqTransport(this EventBusBuilder builder, Action<RabbitMqTransportOptions>? configure = null)
         => builder.AddRabbitMqTransport(TransportNames.RabbitMq, configure);
 
-    /// <summary>
-    /// Add RabbitMQ as the underlying transport for the Event Bus.
-    /// </summary>
-    /// <param name="builder"></param>
-    /// <param name="name"></param>
-    /// <param name="configure"></param>
+    /// <summary>Add RabbitMQ transport.</summary>
+    /// <param name="builder">The <see cref="EventBusBuilder"/> to add to.</param>
+    /// <param name="name">The name of the transport</param>
+    /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
-    public static EventBusBuilder AddRabbitMqTransport(this EventBusBuilder builder, string name, Action<RabbitMqTransportOptions> configure)
+    public static EventBusBuilder AddRabbitMqTransport(this EventBusBuilder builder, string name, Action<RabbitMqTransportOptions>? configure = null)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
-        if (configure is null) throw new ArgumentNullException(nameof(configure));
 
-        var services = builder.Services;
-
-        // configure the options for RabbitMQ
-        services.Configure(configure);
-        services.ConfigureOptions<RabbitMqConfigureOptions>();
-
-        // register the transport
-        builder.AddTransport<RabbitMqTransport, RabbitMqTransportOptions>(name);
-
-        return builder;
+        builder.Services.ConfigureOptions<RabbitMqConfigureOptions>();
+        return builder.AddTransport<RabbitMqTransport, RabbitMqTransportOptions>(name, configure);
     }
 }

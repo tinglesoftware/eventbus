@@ -8,38 +8,23 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static class EventBusBuilderExtensions
 {
-    /// <summary>
-    /// Add Amazon Kinesis as the underlying transport for the Event Bus.
-    /// </summary>
-    /// <param name="builder"></param>
-    /// <param name="configure"></param>
+    /// <summary>Add Amazon Kinesis transport.</summary>
+    /// <param name="builder">The <see cref="EventBusBuilder"/> to add to.</param>
+    /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
-    public static EventBusBuilder AddAmazonKinesisTransport(this EventBusBuilder builder, Action<AmazonKinesisTransportOptions> configure)
-    {
-        return builder.AddAmazonKinesisTransport(TransportNames.AmazonKinesis, configure);
-    }
+    public static EventBusBuilder AddAmazonKinesisTransport(this EventBusBuilder builder, Action<AmazonKinesisTransportOptions>? configure = null)
+        => builder.AddAmazonKinesisTransport(TransportNames.AmazonKinesis, configure);
 
-    /// <summary>
-    /// Add Amazon Kinesis as the underlying transport for the Event Bus.
-    /// </summary>
-    /// <param name="builder"></param>
-    /// <param name="name"></param>
-    /// <param name="configure"></param>
+    /// <summary>Add Amazon Kinesis transport.</summary>
+    /// <param name="builder">The <see cref="EventBusBuilder"/> to add to.</param>
+    /// <param name="name">The name of the transport</param>
+    /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
-    public static EventBusBuilder AddAmazonKinesisTransport(this EventBusBuilder builder, string name, Action<AmazonKinesisTransportOptions> configure)
+    public static EventBusBuilder AddAmazonKinesisTransport(this EventBusBuilder builder, string name, Action<AmazonKinesisTransportOptions>? configure = null)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
-        if (configure is null) throw new ArgumentNullException(nameof(configure));
 
-        var services = builder.Services;
-
-        // Configure the options for Amazon Kinesis
-        services.Configure(configure);
-        services.ConfigureOptions<AmazonKinesisConfigureOptions>();
-
-        // Register the transport
-        builder.AddTransport<AmazonKinesisTransport, AmazonKinesisTransportOptions>(name);
-
-        return builder;
+        builder.Services.ConfigureOptions<AmazonKinesisConfigureOptions>();
+        return builder.AddTransport<AmazonKinesisTransport, AmazonKinesisTransportOptions>(name, configure);
     }
 }

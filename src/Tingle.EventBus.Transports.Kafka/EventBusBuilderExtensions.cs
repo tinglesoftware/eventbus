@@ -8,36 +8,23 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static class EventBusBuilderExtensions
 {
-    /// <summary>
-    /// Add Kafka as the underlying transport for the Event Bus.
-    /// </summary>
-    /// <param name="builder"></param>
-    /// <param name="configure"></param>
+    /// <summary>Add Kafka transport.</summary>
+    /// <param name="builder">The <see cref="EventBusBuilder"/> to add to.</param>
+    /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
-    public static EventBusBuilder AddKafkaTransport(this EventBusBuilder builder, Action<KafkaTransportOptions> configure)
+    public static EventBusBuilder AddKafkaTransport(this EventBusBuilder builder, Action<KafkaTransportOptions>? configure = null)
         => builder.AddKafkaTransport(TransportNames.Kafka, configure);
 
-    /// <summary>
-    /// Add Kafka as the underlying transport for the Event Bus.
-    /// </summary>
-    /// <param name="builder"></param>
-    /// <param name="name"></param>
-    /// <param name="configure"></param>
+    /// <summary>Add Kafka transport.</summary>
+    /// <param name="builder">The <see cref="EventBusBuilder"/> to add to.</param>
+    /// <param name="name">The name of the transport</param>
+    /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
-    public static EventBusBuilder AddKafkaTransport(this EventBusBuilder builder, string name, Action<KafkaTransportOptions> configure)
+    public static EventBusBuilder AddKafkaTransport(this EventBusBuilder builder, string name, Action<KafkaTransportOptions>? configure = null)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
-        if (configure is null) throw new ArgumentNullException(nameof(configure));
 
-        var services = builder.Services;
-
-        // configure the options for Kafka
-        services.Configure(configure);
-        services.ConfigureOptions<KafkaConfigureOptions>();
-
-        // register the transport
-        builder.AddTransport<KafkaTransport, KafkaTransportOptions>(name);
-
-        return builder;
+        builder.Services.ConfigureOptions<KafkaConfigureOptions>();
+        return builder.AddTransport<KafkaTransport, KafkaTransportOptions>(name, configure);
     }
 }

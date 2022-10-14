@@ -25,6 +25,6 @@ public static class EventBusBuilderExtensions
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
         builder.Services.ConfigureOptions<AzureQueueStorageConfigureOptions>();
-        return builder.AddTransport<AzureQueueStorageTransport, AzureQueueStorageTransportOptions>(name, configure);
+        return builder.AddTransport<AzureQueueStorageTransportOptions, AzureQueueStorageTransport>(name, configure);
     }
 }

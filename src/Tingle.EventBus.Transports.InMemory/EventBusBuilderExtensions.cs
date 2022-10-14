@@ -27,7 +27,7 @@ public static class EventBusBuilderExtensions
 
         builder.Services.ConfigureOptions<InMemoryTransportConfigureOptions>();
         builder.Services.AddSingleton<SequenceNumberGenerator>();
-        return builder.AddTransport<InMemoryTransport, InMemoryTransportOptions>(name, configure);
+        return builder.AddTransport<InMemoryTransportOptions, InMemoryTransport>(name, configure);
     }
 
     /// <summary>

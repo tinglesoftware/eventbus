@@ -25,6 +25,6 @@ public static class EventBusBuilderExtensions
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
         builder.Services.ConfigureOptions<AzureEventHubsConfigureOptions>();
-        return builder.AddTransport<AzureEventHubsTransport, AzureEventHubsTransportOptions>(name, configure);
+        return builder.AddTransport<AzureEventHubsTransportOptions, AzureEventHubsTransport>(name, configure);
     }
 }

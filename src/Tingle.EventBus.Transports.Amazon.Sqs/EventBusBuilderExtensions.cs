@@ -25,6 +25,6 @@ public static class EventBusBuilderExtensions
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
         builder.Services.ConfigureOptions<AmazonSqsConfigureOptions>();
-        return builder.AddTransport<AmazonSqsTransport, AmazonSqsTransportOptions>(name, configure);
+        return builder.AddTransport<AmazonSqsTransportOptions, AmazonSqsTransport>(name, configure);
     }
 }

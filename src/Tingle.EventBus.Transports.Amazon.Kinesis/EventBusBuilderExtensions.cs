@@ -25,6 +25,6 @@ public static class EventBusBuilderExtensions
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
         builder.Services.ConfigureOptions<AmazonKinesisConfigureOptions>();
-        return builder.AddTransport<AmazonKinesisTransport, AmazonKinesisTransportOptions>(name, configure);
+        return builder.AddTransport<AmazonKinesisTransportOptions, AmazonKinesisTransport>(name, configure);
     }
 }

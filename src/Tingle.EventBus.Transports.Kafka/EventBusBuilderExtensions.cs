@@ -25,6 +25,6 @@ public static class EventBusBuilderExtensions
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
         builder.Services.ConfigureOptions<KafkaConfigureOptions>();
-        return builder.AddTransport<KafkaTransport, KafkaTransportOptions>(name, configure);
+        return builder.AddTransport<KafkaTransportOptions, KafkaTransport>(name, configure);
     }
 }

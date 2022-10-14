@@ -25,6 +25,6 @@ public static class EventBusBuilderExtensions
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
         builder.Services.ConfigureOptions<RabbitMqConfigureOptions>();
-        return builder.AddTransport<RabbitMqTransport, RabbitMqTransportOptions>(name, configure);
+        return builder.AddTransport<RabbitMqTransportOptions, RabbitMqTransport>(name, configure);
     }
 }

@@ -72,7 +72,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         where TEvent : class
     {
         // publish, with retry if specified
-        var retryPolicy = registration.PublishRetryPolicy;
+        var retryPolicy = registration.RetryPolicy;
         if (retryPolicy != null)
         {
             return await retryPolicy.ExecuteAsync(ct => PublishCoreAsync(@event, registration, scheduled, ct), cancellationToken);
@@ -91,7 +91,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         where TEvent : class
     {
         // publish, with retry if specified
-        var retryPolicy = registration.PublishRetryPolicy;
+        var retryPolicy = registration.RetryPolicy;
         if (retryPolicy != null)
         {
             return await retryPolicy.ExecuteAsync(ct => PublishCoreAsync(events, registration, scheduled, ct), cancellationToken);
@@ -141,14 +141,12 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         foreach (var reg in registrations)
         {
             // Set publish retry policy
-            reg.PublishRetryPolicy ??= TransportOptions.DefaultPublishRetryPolicy;
-            reg.PublishRetryPolicy ??= BusOptions.DefaultPublishRetryPolicy;
+            reg.RetryPolicy ??= TransportOptions.DefaultRetryPolicy;
+            reg.RetryPolicy ??= BusOptions.DefaultRetryPolicy;
 
             foreach (var ecr in reg.Consumers)
             {
-                // Set consumer retry policy
-                ecr.RetryPolicy ??= TransportOptions.DefaultConsumerRetryPolicy;
-                ecr.RetryPolicy ??= BusOptions.DefaultConsumerRetryPolicy;
+                ecr.RetryPolicy = reg.RetryPolicy;
 
                 // Set unhandled error behaviour
                 ecr.UnhandledErrorBehaviour ??= TransportOptions.DefaultUnhandledConsumerErrorBehaviour;

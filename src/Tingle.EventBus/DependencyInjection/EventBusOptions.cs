@@ -52,20 +52,12 @@ public class EventBusOptions
     public EventIdFormat DefaultEventIdFormat { get; set; } = EventIdFormat.Guid;
 
     /// <summary>
-    /// Optional default retry policy to use for publishing where it is not specified.
-    /// To specify a value per consumer, use the <see cref="EventRegistration.PublishRetryPolicy"/> option.
-    /// To specify a value per transport, use the <see cref="EventBusTransportOptionsBase.DefaultPublishRetryPolicy"/> option on the specific transport.
+    /// Optional default retry policy to use where it is not specified.
+    /// To specify a value per consumer, use the <see cref="EventRegistration.RetryPolicy"/> option.
+    /// To specify a value per transport, use the <see cref="EventBusTransportOptionsBase.DefaultRetryPolicy"/> option on the specific transport.
     /// Defaults to <see langword="null"/>.
     /// </summary>
-    public AsyncRetryPolicy? DefaultPublishRetryPolicy { get; set; }
-
-    /// <summary>
-    /// Optional default retry policy to use for consumers where it is not specified.
-    /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.RetryPolicy"/> option.
-    /// To specify a value per transport, use the <see cref="EventBusTransportOptionsBase.DefaultConsumerRetryPolicy"/> option on the specific transport.
-    /// Defaults to <see langword="null"/>.
-    /// </summary>
-    public AsyncRetryPolicy? DefaultConsumerRetryPolicy { get; set; }
+    public AsyncRetryPolicy? DefaultRetryPolicy { get; set; }
 
     /// <summary>
     /// Optional default behaviour for errors encountered in a consumer but are not handled.

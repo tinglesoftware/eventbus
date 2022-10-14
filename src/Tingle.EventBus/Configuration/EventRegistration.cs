@@ -51,15 +51,18 @@ public class EventRegistration : IEquatable<EventRegistration?>
     public Type? EventSerializerType { get; set; }
 
     /// <summary>
-    /// The retry policy to apply when publishing events.
-    /// This is an outer wrapper around the
-    /// <see cref="IEventPublisher.PublishAsync{TEvent}(EventContext{TEvent}, DateTimeOffset?, CancellationToken)"/>
-    /// method.
-    /// When set to <see langword="null"/>, the method is only invoked once.
+    /// The retry policy to apply when in addition to what may be provided by the SDKs for each transport.
+    /// When set to <see langword="null"/>, no additional retry policy is applied.
     /// Defaults to <see langword="null"/>.
     /// When this value is set, it overrides the default value set on the transport or the bus.
     /// </summary>
-    public AsyncRetryPolicy? PublishRetryPolicy { get; set; }
+    /// <remarks>
+    /// When a value is provided, the transport may extend the lock for the
+    /// message during consumption until the execution with retry policy completes successfully or not.
+    /// In such a case, ensure the execution timeout (sometimes called the visibility timeout
+    /// or lock duration) is set to accommodate the longest possible duration of the retry policy.
+    /// </remarks>
+    public AsyncRetryPolicy? RetryPolicy { get; set; }
 
     /// <summary>
     /// The list of consumers registered for this event.

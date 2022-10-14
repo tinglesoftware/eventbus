@@ -6,7 +6,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Abstraction for options of Azure-based transports
 /// </summary>
-public abstract class AzureTransportOptions<TCredential> : EventBusTransportOptionsBase where TCredential : AzureTransportCredentials
+public abstract class AzureTransportOptions<TCredential> : EventBusTransportOptions where TCredential : AzureTransportCredentials
 {
     /// <summary>
     /// Authentication credentials.

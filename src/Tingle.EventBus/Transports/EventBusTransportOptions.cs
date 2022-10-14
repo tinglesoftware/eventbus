@@ -7,7 +7,7 @@ namespace Tingle.EventBus.Transports;
 /// <summary>
 /// The base options for an event bus transport
 /// </summary>
-public abstract class EventBusTransportOptionsBase
+public abstract class EventBusTransportOptions
 {
     /// <summary>
     /// The delay to introduce every time zero messages are received.

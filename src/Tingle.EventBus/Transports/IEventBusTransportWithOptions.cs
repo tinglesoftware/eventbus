@@ -2,5 +2,5 @@
 
 internal interface IEventBusTransportWithOptions
 {
-    EventBusTransportOptionsBase GetOptions();
+    EventBusTransportOptions GetOptions();
 }

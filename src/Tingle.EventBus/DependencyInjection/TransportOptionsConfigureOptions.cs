@@ -5,10 +5,10 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// Implementation of <see cref="IPostConfigureOptions{TOptions}"/>
-/// for shared settings in <see cref="EventBusTransportOptionsBase"/>.
+/// for shared settings in <see cref="EventBusTransportOptions"/>.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-internal class TransportOptionsConfigureOptions<T> : IPostConfigureOptions<T> where T : EventBusTransportOptionsBase
+internal class TransportOptionsConfigureOptions<T> : IPostConfigureOptions<T> where T : EventBusTransportOptions
 {
     public void PostConfigure(string name, T options)
     {

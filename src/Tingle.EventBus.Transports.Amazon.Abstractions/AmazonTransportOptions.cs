@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Abstraction for options of AWS-based transports
 /// </summary>
-public abstract class AmazonTransportOptions : EventBusTransportOptionsBase
+public abstract class AmazonTransportOptions : EventBusTransportOptions
 {
     /// <summary>
     /// The system name of the region to connect to.

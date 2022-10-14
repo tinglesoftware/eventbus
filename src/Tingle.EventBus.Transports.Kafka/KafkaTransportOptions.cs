@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Options for configuring Kafka based event bus.
 /// </summary>
-public class KafkaTransportOptions : EventBusTransportOptionsBase
+public class KafkaTransportOptions : EventBusTransportOptions
 {
     /// <inheritdoc/>
     public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Broadcast;

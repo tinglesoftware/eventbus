@@ -13,7 +13,7 @@ namespace Tingle.EventBus.Transports;
 /// Abstract implementation for an event bus transport.
 /// </summary>
 /// <typeparam name="TTransportOptions">The type used for configuring options of the transport</typeparam>
-public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransportWithOptions, IEventBusTransport where TTransportOptions : EventBusTransportOptionsBase, new()
+public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransportWithOptions, IEventBusTransport where TTransportOptions : EventBusTransportOptions, new()
 {
     private static readonly Regex CategoryNamePattern = new(@"Transport$", RegexOptions.Compiled);
     private readonly IServiceScopeFactory scopeFactory;
@@ -61,7 +61,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
     public string Name => Registration.Name;
 
     /// <inheritdoc/>
-    EventBusTransportOptionsBase IEventBusTransportWithOptions.GetOptions() => Options;
+    EventBusTransportOptions IEventBusTransportWithOptions.GetOptions() => Options;
 
     /// <inheritdoc/>
     public virtual void Initialize(EventBusTransportRegistration registration)

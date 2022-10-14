@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Options for configuring RabbitMQ based event bus.
 /// </summary>
-public class RabbitMqTransportOptions : EventBusTransportOptionsBase
+public class RabbitMqTransportOptions : EventBusTransportOptions
 {
     /// <inheritdoc/>
     public override EntityKind DefaultEntityKind { get; set; } = EntityKind.Broadcast;

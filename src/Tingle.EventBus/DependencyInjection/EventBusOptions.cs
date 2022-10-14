@@ -48,7 +48,7 @@ public class EventBusOptions
     /// <summary>
     /// Optional default format to use for generated event identifiers when for events where it is not specified.
     /// To specify a value per consumer, use the <see cref="EventRegistration.IdFormat"/> option.
-    /// To specify a value per transport, use the <see cref="EventBusTransportOptionsBase.DefaultEventIdFormat"/> option on the specific transport.
+    /// To specify a value per transport, use the <see cref="EventBusTransportOptions.DefaultEventIdFormat"/> option on the specific transport.
     /// Defaults to <see cref="EventIdFormat.Guid"/>.
     /// </summary>
     public EventIdFormat DefaultEventIdFormat { get; set; } = EventIdFormat.Guid;
@@ -56,7 +56,7 @@ public class EventBusOptions
     /// <summary>
     /// Optional default retry policy to use where it is not specified.
     /// To specify a value per consumer, use the <see cref="EventRegistration.RetryPolicy"/> option.
-    /// To specify a value per transport, use the <see cref="EventBusTransportOptionsBase.DefaultRetryPolicy"/> option on the specific transport.
+    /// To specify a value per transport, use the <see cref="EventBusTransportOptions.DefaultRetryPolicy"/> option on the specific transport.
     /// Defaults to <see langword="null"/>.
     /// </summary>
     public AsyncRetryPolicy? DefaultRetryPolicy { get; set; }
@@ -64,7 +64,7 @@ public class EventBusOptions
     /// <summary>
     /// Optional default behaviour for errors encountered in a consumer but are not handled.
     /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.UnhandledErrorBehaviour"/> option.
-    /// To specify a value per transport, use the <see cref="EventBusTransportOptionsBase.DefaultUnhandledConsumerErrorBehaviour"/> option on the specific transport.
+    /// To specify a value per transport, use the <see cref="EventBusTransportOptions.DefaultUnhandledConsumerErrorBehaviour"/> option on the specific transport.
     /// When an <see cref="AsyncRetryPolicy"/> is in force, only errors that are not handled by it will be subject to the value set here.
     /// Defaults to <see langword="null"/>.
     /// </summary>

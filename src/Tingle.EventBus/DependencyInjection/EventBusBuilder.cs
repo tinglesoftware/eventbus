@@ -61,28 +61,28 @@ public class EventBusBuilder
     }
 
     /// <summary>Adds a <see cref="EventBusTransportRegistration"/> which can be used by the event bus.</summary>
-    /// <typeparam name="TOptions">The <see cref="EventBusTransportOptionsBase"/> type to configure the transport."/>.</typeparam>
+    /// <typeparam name="TOptions">The <see cref="EventBusTransportOptions"/> type to configure the transport."/>.</typeparam>
     /// <typeparam name="THandler">The <see cref="EventBusTransportBase{TOptions}"/> used to handle this transport.</typeparam>
     /// <param name="name">The name of this transport.</param>
     /// <param name="configureOptions">Used to configure the transport options.</param>
     public virtual EventBusBuilder AddTransport<TOptions, THandler>(string name, Action<TOptions>? configureOptions)
-        where TOptions : EventBusTransportOptionsBase, new()
+        where TOptions : EventBusTransportOptions, new()
         where THandler : EventBusTransportBase<TOptions>
         => AddTransport<TOptions, THandler>(name, displayName: null, configureOptions: configureOptions);
 
     /// <summary>Adds a <see cref="EventBusTransportRegistration"/> which can be used by the event bus.</summary>
-    /// <typeparam name="TOptions">The <see cref="EventBusTransportOptionsBase"/> type to configure the transport."/>.</typeparam>
+    /// <typeparam name="TOptions">The <see cref="EventBusTransportOptions"/> type to configure the transport."/>.</typeparam>
     /// <typeparam name="THandler">The <see cref="EventBusTransportBase{TOptions}"/> used to handle this transport.</typeparam>
     /// <param name="name">The name of this transport.</param>
     /// <param name="displayName">The display name of this transport.</param>
     /// <param name="configureOptions">Used to configure the transport options.</param>
     public virtual EventBusBuilder AddTransport<TOptions, THandler>(string name, string? displayName, Action<TOptions>? configureOptions)
-        where TOptions : EventBusTransportOptionsBase, new()
+        where TOptions : EventBusTransportOptions, new()
         where THandler : EventBusTransportBase<TOptions>
         => AddTransportHelper<TOptions, THandler>(name, displayName, configureOptions);
 
     private EventBusBuilder AddTransportHelper<TOptions, TTransport>(string name, string? displayName, Action<TOptions>? configureOptions)
-        where TOptions : EventBusTransportOptionsBase, new()
+        where TOptions : EventBusTransportOptions, new()
         where TTransport : class, IEventBusTransport
     {
         Services.Configure<EventBusOptions>(o => o.AddTransport<TTransport>(name, displayName));

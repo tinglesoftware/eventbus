@@ -62,31 +62,109 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
     /// <inheritdoc/>
     EventBusTransportOptionsBase IEventBusTransportWithOptions.GetOptions() => TransportOptions;
 
-    /// <inheritdoc/>
-    public abstract Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                EventRegistration registration,
-                                                                DateTimeOffset? scheduled = null,
-                                                                CancellationToken cancellationToken = default)
-        where TEvent : class;
+    #region Publishing
 
     /// <inheritdoc/>
-    public abstract Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+    public virtual async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
+                                                                     EventRegistration registration,
+                                                                     DateTimeOffset? scheduled = null,
+                                                                     CancellationToken cancellationToken = default)
+        where TEvent : class
+    {
+        // publish, with retry if specified
+        var retryPolicy = registration.RetryPolicy;
+        if (retryPolicy != null)
+        {
+            return await retryPolicy.ExecuteAsync(ct => PublishCoreAsync(@event, registration, scheduled, ct), cancellationToken);
+        }
+        else
+        {
+            return await PublishCoreAsync(@event, registration, scheduled, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <inheritdoc/>
+    public virtual async Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                            EventRegistration registration,
+                                                                            DateTimeOffset? scheduled = null,
+                                                                            CancellationToken cancellationToken = default)
+        where TEvent : class
+    {
+        // publish, with retry if specified
+        var retryPolicy = registration.RetryPolicy;
+        if (retryPolicy != null)
+        {
+            return await retryPolicy.ExecuteAsync(ct => PublishCoreAsync(events, registration, scheduled, ct), cancellationToken);
+        }
+        else
+        {
+            return await PublishCoreAsync(events, registration, scheduled, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <inheritdoc/>
+    protected abstract Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
                                                                        EventRegistration registration,
                                                                        DateTimeOffset? scheduled = null,
                                                                        CancellationToken cancellationToken = default)
         where TEvent : class;
 
     /// <inheritdoc/>
-    public abstract Task CancelAsync<TEvent>(string id,
-                                             EventRegistration registration,
-                                             CancellationToken cancellationToken = default)
+    protected abstract Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                              EventRegistration registration,
+                                                                              DateTimeOffset? scheduled = null,
+                                                                              CancellationToken cancellationToken = default)
+        where TEvent : class;
+
+    #endregion
+
+    #region Cancelling
+
+    /// <inheritdoc/>
+    public virtual async Task CancelAsync<TEvent>(string id, EventRegistration registration, CancellationToken cancellationToken = default)
+        where TEvent : class
+    {
+        // cancel, with retry if specified
+        var retryPolicy = registration.RetryPolicy;
+        if (retryPolicy != null)
+        {
+            await retryPolicy.ExecuteAsync(ct => CancelCoreAsync<TEvent>(id, registration, ct), cancellationToken);
+        }
+        else
+        {
+            await CancelCoreAsync<TEvent>(id, registration, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <inheritdoc/>
+    public virtual async Task CancelAsync<TEvent>(IList<string> ids, EventRegistration registration, CancellationToken cancellationToken = default)
+        where TEvent : class
+    {
+        // cancel, with retry if specified
+        var retryPolicy = registration.RetryPolicy;
+        if (retryPolicy != null)
+        {
+            await retryPolicy.ExecuteAsync(ct => CancelCoreAsync<TEvent>(ids, registration, ct), cancellationToken);
+        }
+        else
+        {
+            await CancelCoreAsync<TEvent>(ids, registration, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <inheritdoc/>
+    protected abstract Task CancelCoreAsync<TEvent>(string id,
+                                                    EventRegistration registration,
+                                                    CancellationToken cancellationToken = default)
         where TEvent : class;
 
     /// <inheritdoc/>
-    public abstract Task CancelAsync<TEvent>(IList<string> ids,
-                                             EventRegistration registration,
-                                             CancellationToken cancellationToken = default)
+    protected abstract Task CancelCoreAsync<TEvent>(IList<string> ids,
+                                                    EventRegistration registration,
+                                                    CancellationToken cancellationToken = default)
         where TEvent : class;
+
+    #endregion
 
     /// <inheritdoc/>
     public virtual Task StartAsync(CancellationToken cancellationToken)
@@ -98,11 +176,13 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
+            // Set publish retry policy
+            reg.RetryPolicy ??= TransportOptions.DefaultRetryPolicy;
+            reg.RetryPolicy ??= BusOptions.DefaultRetryPolicy;
+
             foreach (var ecr in reg.Consumers)
             {
-                // Set retry policy
-                ecr.RetryPolicy ??= TransportOptions.DefaultConsumerRetryPolicy;
-                ecr.RetryPolicy ??= BusOptions.DefaultConsumerRetryPolicy;
+                ecr.RetryPolicy = reg.RetryPolicy;
 
                 // Set unhandled error behaviour
                 ecr.UnhandledErrorBehaviour ??= TransportOptions.DefaultUnhandledConsumerErrorBehaviour;

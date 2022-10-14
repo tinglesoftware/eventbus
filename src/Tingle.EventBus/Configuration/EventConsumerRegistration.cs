@@ -41,23 +41,6 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     public ICollection<string>? ReadinessTags { get; set; }
 
     /// <summary>
-    /// The retry policy to apply when consuming events.
-    /// This is an outer wrapper around the
-    /// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, CancellationToken)"/>
-    /// method.
-    /// When set to <see langword="null"/>, the method is only invoked once.
-    /// Defaults to <see langword="null"/>.
-    /// When this value is set, it overrides the default value set on the transport or the bus.
-    /// </summary>
-    /// <remarks>
-    /// When a value is provided, the transport may extend the lock for the
-    /// message until the execution with retry policy completes successfully or not.
-    /// In such a case, ensure the execution timeout (sometimes called the visibility timeout
-    /// or lock duration) is set to accommodate the longest possible duration of the retry policy.
-    /// </remarks>
-    public AsyncRetryPolicy? RetryPolicy { get; set; }
-
-    /// <summary>
     /// The behaviour for unhandled errors when consuming events via the
     /// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, CancellationToken)"/>
     /// method.
@@ -67,7 +50,7 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     /// Defaults to <see langword="null"/>.
     /// When this value is set, it overrides the default value set on the transport or the bus.
     /// <br/>
-    /// When a <see cref="RetryPolicy"/> is in force, only errors not handled by it will be subject to the value set here.
+    /// When a retry policy is in force, only errors not handled by it will be subject to the value set here.
     /// </summary>
     public UnhandledConsumerErrorBehaviour? UnhandledErrorBehaviour { get; set; }
 
@@ -99,6 +82,8 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     /// </summary>
     /// <returns>The <see cref="EventConsumerRegistration"/> for further configuration.</returns>
     public EventConsumerRegistration OnErrorDiscard() => OnError(UnhandledConsumerErrorBehaviour.Discard);
+
+    internal AsyncRetryPolicy? RetryPolicy { get; set; }
 
     #region Equality Overrides
 

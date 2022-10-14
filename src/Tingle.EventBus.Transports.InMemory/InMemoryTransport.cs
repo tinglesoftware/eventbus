@@ -120,10 +120,10 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
     }
 
     /// <inheritdoc/>
-    public override async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                      EventRegistration registration,
-                                                                      DateTimeOffset? scheduled = null,
-                                                                      CancellationToken cancellationToken = default)
+    protected override async Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
+                                                                             EventRegistration registration,
+                                                                             DateTimeOffset? scheduled = null,
+                                                                             CancellationToken cancellationToken = default)
     {
         // log warning when trying to publish scheduled message
         if (scheduled != null)
@@ -174,10 +174,10 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
     }
 
     /// <inheritdoc/>
-    public async override Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                             EventRegistration registration,
-                                                                             DateTimeOffset? scheduled = null,
-                                                                             CancellationToken cancellationToken = default)
+    protected async override Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                                    EventRegistration registration,
+                                                                                    DateTimeOffset? scheduled = null,
+                                                                                    CancellationToken cancellationToken = default)
     {
         // log warning when trying to publish scheduled message
         if (scheduled != null)
@@ -235,9 +235,9 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
     }
 
     /// <inheritdoc/>
-    public override async Task CancelAsync<TEvent>(string id,
-                                                   EventRegistration registration,
-                                                   CancellationToken cancellationToken = default)
+    protected override async Task CancelCoreAsync<TEvent>(string id,
+                                                          EventRegistration registration,
+                                                          CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -259,9 +259,9 @@ public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
     }
 
     /// <inheritdoc/>
-    public override async Task CancelAsync<TEvent>(IList<string> ids,
-                                                   EventRegistration registration,
-                                                   CancellationToken cancellationToken = default)
+    protected override async Task CancelCoreAsync<TEvent>(IList<string> ids,
+                                                          EventRegistration registration,
+                                                          CancellationToken cancellationToken = default)
     {
         if (ids is null) throw new ArgumentNullException(nameof(ids));
 

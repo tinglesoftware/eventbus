@@ -1,4 +1,5 @@
-﻿using Tingle.EventBus.Serialization;
+﻿using Polly.Retry;
+using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Configuration;
 
@@ -48,6 +49,20 @@ public class EventRegistration : IEquatable<EventRegistration?>
     /// This type must implement <see cref="IEventSerializer"/>.
     /// </summary>
     public Type? EventSerializerType { get; set; }
+
+    /// <summary>
+    /// The retry policy to apply when in addition to what may be provided by the SDKs for each transport.
+    /// When set to <see langword="null"/>, no additional retry policy is applied.
+    /// Defaults to <see langword="null"/>.
+    /// When this value is set, it overrides the default value set on the transport or the bus.
+    /// </summary>
+    /// <remarks>
+    /// When a value is provided, the transport may extend the lock for the
+    /// message during consumption until the execution with retry policy completes successfully or not.
+    /// In such a case, ensure the execution timeout (sometimes called the visibility timeout
+    /// or lock duration) is set to accommodate the longest possible duration of the retry policy.
+    /// </remarks>
+    public AsyncRetryPolicy? RetryPolicy { get; set; }
 
     /// <summary>
     /// The list of consumers registered for this event.

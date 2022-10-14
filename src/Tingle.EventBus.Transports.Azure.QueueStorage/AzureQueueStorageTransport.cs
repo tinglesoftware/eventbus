@@ -79,10 +79,10 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
     }
 
     /// <inheritdoc/>
-    public override async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                      EventRegistration registration,
-                                                                      DateTimeOffset? scheduled = null,
-                                                                      CancellationToken cancellationToken = default)
+    protected override async Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
+                                                                             EventRegistration registration,
+                                                                             DateTimeOffset? scheduled = null,
+                                                                             CancellationToken cancellationToken = default)
     {
         using var scope = CreateScope();
         var body = await SerializeAsync(scope: scope,
@@ -112,10 +112,10 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
     }
 
     /// <inheritdoc/>
-    public override async Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                             EventRegistration registration,
-                                                                             DateTimeOffset? scheduled = null,
-                                                                             CancellationToken cancellationToken = default)
+    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                                    EventRegistration registration,
+                                                                                    DateTimeOffset? scheduled = null,
+                                                                                    CancellationToken cancellationToken = default)
     {
         // log warning when doing batch
         Logger.BatchingNotSupported();
@@ -152,9 +152,9 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
     }
 
     /// <inheritdoc/>
-    public override async Task CancelAsync<TEvent>(string id,
-                                                   EventRegistration registration,
-                                                   CancellationToken cancellationToken = default)
+    protected override async Task CancelCoreAsync<TEvent>(string id,
+                                                          EventRegistration registration,
+                                                          CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -175,9 +175,9 @@ public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorag
     }
 
     /// <inheritdoc/>
-    public override async Task CancelAsync<TEvent>(IList<string> ids,
-                                                   EventRegistration registration,
-                                                   CancellationToken cancellationToken = default)
+    protected override async Task CancelCoreAsync<TEvent>(IList<string> ids,
+                                                          EventRegistration registration,
+                                                          CancellationToken cancellationToken = default)
     {
         if (ids is null)
         {

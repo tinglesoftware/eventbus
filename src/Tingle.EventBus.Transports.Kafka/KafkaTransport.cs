@@ -107,10 +107,10 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
     }
 
     /// <inheritdoc/>
-    public async override Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                      EventRegistration registration,
-                                                                      DateTimeOffset? scheduled = null,
-                                                                      CancellationToken cancellationToken = default)
+    protected async override Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
+                                                                             EventRegistration registration,
+                                                                             DateTimeOffset? scheduled = null,
+                                                                             CancellationToken cancellationToken = default)
     {
         // log warning when trying to publish scheduled message
         if (scheduled != null)
@@ -144,10 +144,10 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
     }
 
     /// <inheritdoc/>
-    public async override Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                             EventRegistration registration,
-                                                                             DateTimeOffset? scheduled = null,
-                                                                             CancellationToken cancellationToken = default)
+    protected async override Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                                    EventRegistration registration,
+                                                                                    DateTimeOffset? scheduled = null,
+                                                                                    CancellationToken cancellationToken = default)
     {
         // log warning when doing batch
         Logger.BatchingNotSupported();
@@ -193,17 +193,17 @@ public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDis
     }
 
     /// <inheritdoc/>
-    public override Task CancelAsync<TEvent>(string id,
-                                             EventRegistration registration,
-                                             CancellationToken cancellationToken = default)
+    protected override Task CancelCoreAsync<TEvent>(string id,
+                                                    EventRegistration registration,
+                                                    CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException("Kafka does not support canceling published events.");
     }
 
     /// <inheritdoc/>
-    public override Task CancelAsync<TEvent>(IList<string> ids,
-                                             EventRegistration registration,
-                                             CancellationToken cancellationToken = default)
+    protected override Task CancelCoreAsync<TEvent>(IList<string> ids,
+                                                    EventRegistration registration,
+                                                    CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException("Kafka does not support canceling published events.");
     }

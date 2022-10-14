@@ -87,10 +87,10 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
     }
 
     /// <inheritdoc/>
-    public override async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                      EventRegistration registration,
-                                                                      DateTimeOffset? scheduled = null,
-                                                                      CancellationToken cancellationToken = default)
+    protected override async Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
+                                                                             EventRegistration registration,
+                                                                             DateTimeOffset? scheduled = null,
+                                                                             CancellationToken cancellationToken = default)
     {
         if (!IsConnected)
         {
@@ -158,10 +158,10 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
     }
 
     /// <inheritdoc/>
-    public override async Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                             EventRegistration registration,
-                                                                             DateTimeOffset? scheduled = null,
-                                                                             CancellationToken cancellationToken = default)
+    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
+                                                                                    EventRegistration registration,
+                                                                                    DateTimeOffset? scheduled = null,
+                                                                                    CancellationToken cancellationToken = default)
     {
         if (!IsConnected)
         {
@@ -237,17 +237,17 @@ public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>
     }
 
     /// <inheritdoc/>
-    public override Task CancelAsync<TEvent>(string id,
-                                             EventRegistration registration,
-                                             CancellationToken cancellationToken = default)
+    protected override Task CancelCoreAsync<TEvent>(string id,
+                                                    EventRegistration registration,
+                                                    CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException("RabbitMQ does not support canceling published messages.");
     }
 
     /// <inheritdoc/>
-    public override Task CancelAsync<TEvent>(IList<string> ids,
-                                             EventRegistration registration,
-                                             CancellationToken cancellationToken = default)
+    protected override Task CancelCoreAsync<TEvent>(IList<string> ids,
+                                                    EventRegistration registration,
+                                                    CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException("RabbitMQ does not support canceling published messages.");
     }

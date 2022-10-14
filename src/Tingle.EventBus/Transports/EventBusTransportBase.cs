@@ -47,7 +47,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
     protected EventBusOptions BusOptions { get; }
 
     /// <inheritdoc/>
-    protected TransportRegistration Registration { get; private set; } = default!;
+    protected EventBusTransportRegistration Registration { get; private set; } = default!;
 
     /// <summary>
     /// Options for configuring the transport.
@@ -64,7 +64,7 @@ public abstract class EventBusTransportBase<TTransportOptions> : IEventBusTransp
     EventBusTransportOptionsBase IEventBusTransportWithOptions.GetOptions() => Options;
 
     /// <inheritdoc/>
-    public virtual void Initialize(TransportRegistration registration)
+    public virtual void Initialize(EventBusTransportRegistration registration)
     {
         Registration = registration ?? throw new ArgumentNullException(nameof(registration));
         Options = optionsMonitor.Get(registration.Name);

@@ -96,7 +96,7 @@ public class EventBusOptions
     /// </summary>
     internal Dictionary<Type, EventRegistration> Registrations { get; } = new Dictionary<Type, EventRegistration>();
 
-    /// <summary>Adds a <see cref="TransportRegistration"/>.</summary>
+    /// <summary>Adds a <see cref="EventBusTransportRegistration"/>.</summary>
     /// <param name="name">The name of the transport being added.</param>
     /// <param name="configureBuilder">Configures the transport.</param>
     public void AddTransport(string name, Action<EventBusTransportRegistrationBuilder> configureBuilder)
@@ -111,7 +111,7 @@ public class EventBusOptions
         TransportMap[name] = builder;
     }
 
-    /// <summary>Adds a <see cref="TransportRegistration"/>.</summary>
+    /// <summary>Adds a <see cref="EventBusTransportRegistration"/>.</summary>
     /// <typeparam name="THandler">The <see cref="IEventBusTransport"/> responsible for the scheme.</typeparam>
     /// <param name="name">The name of the scheme being added.</param>
     /// <param name="displayName">The display name for the transport.</param>

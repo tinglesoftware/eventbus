@@ -60,7 +60,7 @@ public class EventBusBuilder
         return this;
     }
 
-    /// <summary>Adds a <see cref="TransportRegistration"/> which can be used by the event bus.</summary>
+    /// <summary>Adds a <see cref="EventBusTransportRegistration"/> which can be used by the event bus.</summary>
     /// <typeparam name="TOptions">The <see cref="EventBusTransportOptionsBase"/> type to configure the transport."/>.</typeparam>
     /// <typeparam name="THandler">The <see cref="EventBusTransportBase{TOptions}"/> used to handle this transport.</typeparam>
     /// <param name="name">The name of this transport.</param>
@@ -70,7 +70,7 @@ public class EventBusBuilder
         where THandler : EventBusTransportBase<TOptions>
         => AddTransport<TOptions, THandler>(name, displayName: null, configureOptions: configureOptions);
 
-    /// <summary>Adds a <see cref="TransportRegistration"/> which can be used by the event bus.</summary>
+    /// <summary>Adds a <see cref="EventBusTransportRegistration"/> which can be used by the event bus.</summary>
     /// <typeparam name="TOptions">The <see cref="EventBusTransportOptionsBase"/> type to configure the transport."/>.</typeparam>
     /// <typeparam name="THandler">The <see cref="EventBusTransportBase{TOptions}"/> used to handle this transport.</typeparam>
     /// <param name="name">The name of this transport.</param>

@@ -11,7 +11,7 @@ public interface IEventBusTransport
     string Name { get; }
 
     /// 
-    void Initialize(TransportRegistration registration);
+    void Initialize(EventBusTransportRegistration registration);
 
     /// <summary>
     /// Triggered when the bus host is ready to start.

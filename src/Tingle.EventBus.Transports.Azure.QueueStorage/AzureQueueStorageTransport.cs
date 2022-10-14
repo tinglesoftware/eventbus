@@ -12,7 +12,6 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage;
 /// <summary>
 /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Azure Queue Storage.
 /// </summary>
-[TransportName(TransportNames.AzureQueueStorage)]
 public class AzureQueueStorageTransport : EventBusTransportBase<AzureQueueStorageTransportOptions>, IDisposable
 {
     private readonly Dictionary<(Type, bool), QueueClient> queueClientsCache = new();

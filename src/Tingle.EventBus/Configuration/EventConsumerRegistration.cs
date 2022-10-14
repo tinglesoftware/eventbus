@@ -1,6 +1,4 @@
-﻿using Polly.Retry;
-
-namespace Tingle.EventBus.Configuration;
+﻿namespace Tingle.EventBus.Configuration;
 
 /// <summary>
 /// Represents a registration for a consumer of an event.

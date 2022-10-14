@@ -13,7 +13,6 @@ namespace Tingle.EventBus.Transports.Kafka;
 /// <summary>
 /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using Kafka.
 /// </summary>
-[TransportName(TransportNames.Kafka)]
 public class KafkaTransport : EventBusTransportBase<KafkaTransportOptions>, IDisposable
 {
     // the timeout used for non-async operations

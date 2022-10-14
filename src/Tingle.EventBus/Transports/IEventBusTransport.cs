@@ -7,10 +7,7 @@ namespace Tingle.EventBus.Transports;
 /// </summary>
 public interface IEventBusTransport
 {
-    /// <summary>
-    /// The name of the transport as extracted from <see cref="TransportNameAttribute"/> declared.
-    /// This name cannot be changed during runtime.
-    /// </summary>
+    /// <summary>The name of the transport.</summary>
     string Name { get; }
 
     /// <summary>

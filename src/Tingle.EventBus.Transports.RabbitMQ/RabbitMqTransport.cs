@@ -17,7 +17,6 @@ namespace Tingle.EventBus.Transports.RabbitMQ;
 /// <summary>
 /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using RabbitMQ.
 /// </summary>
-[TransportName(TransportNames.RabbitMq)]
 public class RabbitMqTransport : EventBusTransportBase<RabbitMqTransportOptions>, IDisposable
 {
     private readonly SemaphoreSlim connectionLock = new(1, 1);

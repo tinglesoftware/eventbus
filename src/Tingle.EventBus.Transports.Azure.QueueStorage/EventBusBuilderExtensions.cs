@@ -1,4 +1,5 @@
-﻿using Tingle.EventBus.Transports.Azure.QueueStorage;
+﻿using Tingle.EventBus;
+using Tingle.EventBus.Transports.Azure.QueueStorage;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -25,7 +26,7 @@ public static class EventBusBuilderExtensions
         services.ConfigureOptions<AzureQueueStorageConfigureOptions>();
 
         // register the transport
-        builder.AddTransport<AzureQueueStorageTransport, AzureQueueStorageTransportOptions>();
+        builder.AddTransport<AzureQueueStorageTransport, AzureQueueStorageTransportOptions>(TransportNames.AzureQueueStorage);
 
         return builder;
     }

@@ -14,7 +14,6 @@ namespace Tingle.EventBus.Transports.InMemory;
 /// Implementation of <see cref="IEventBusTransport"/> via <see cref="EventBusTransportBase{TTransportOptions}"/> using an in-memory transport.
 /// This implementation should only be used for unit testing or similar scenarios as it does not offer persistence.
 /// </summary>
-[TransportName(TransportNames.InMemory)]
 public class InMemoryTransport : EventBusTransportBase<InMemoryTransportOptions>
 {
     private readonly Dictionary<Type, InMemorySender> sendersCache = new();

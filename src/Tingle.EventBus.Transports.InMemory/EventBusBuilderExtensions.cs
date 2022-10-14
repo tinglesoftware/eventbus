@@ -1,4 +1,5 @@
-﻿using Tingle.EventBus.Transports.InMemory;
+﻿using Tingle.EventBus;
+using Tingle.EventBus.Transports.InMemory;
 using Tingle.EventBus.Transports.InMemory.Client;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -31,7 +32,7 @@ public static class EventBusBuilderExtensions
         services.AddSingleton<SequenceNumberGenerator>();
 
         // register the transport
-        builder.AddTransport<InMemoryTransport, InMemoryTransportOptions>();
+        builder.AddTransport<InMemoryTransport, InMemoryTransportOptions>(TransportNames.InMemory);
 
         return builder;
     }

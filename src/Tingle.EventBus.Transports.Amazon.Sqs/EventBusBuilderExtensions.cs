@@ -1,4 +1,5 @@
-﻿using Tingle.EventBus.Transports.Amazon.Sqs;
+﻿using Tingle.EventBus;
+using Tingle.EventBus.Transports.Amazon.Sqs;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -25,7 +26,7 @@ public static class EventBusBuilderExtensions
         services.ConfigureOptions<AmazonSqsConfigureOptions>();
 
         // register the transport
-        builder.AddTransport<AmazonSqsTransport, AmazonSqsTransportOptions>();
+        builder.AddTransport<AmazonSqsTransport, AmazonSqsTransportOptions>(TransportNames.AmazonSqs);
 
         return builder;
     }

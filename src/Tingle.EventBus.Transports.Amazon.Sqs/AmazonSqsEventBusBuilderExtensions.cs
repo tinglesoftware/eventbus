@@ -1,5 +1,4 @@
-﻿using Tingle.EventBus;
-using Tingle.EventBus.Transports.Amazon.Sqs;
+﻿using Tingle.EventBus.Transports.Amazon.Sqs;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -13,7 +12,7 @@ public static class AmazonSqsEventBusBuilderExtensions
     /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
     public static EventBusBuilder AddAmazonSqsTransport(this EventBusBuilder builder, Action<AmazonSqsTransportOptions>? configure = null)
-        => builder.AddAmazonSqsTransport(TransportNames.AmazonSqs, configure);
+        => builder.AddAmazonSqsTransport(AmazonSqsDefaults.Name, configure);
 
     /// <summary>Add Amazon SQS transport.</summary>
     /// <param name="builder">The <see cref="EventBusBuilder"/> to add to.</param>

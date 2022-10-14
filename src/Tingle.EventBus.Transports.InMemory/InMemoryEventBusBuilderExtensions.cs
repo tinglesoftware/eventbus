@@ -1,5 +1,4 @@
-﻿using Tingle.EventBus;
-using Tingle.EventBus.Transports.InMemory;
+﻿using Tingle.EventBus.Transports.InMemory;
 using Tingle.EventBus.Transports.InMemory.Client;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -14,7 +13,7 @@ public static class InMemoryEventBusBuilderExtensions
     /// <param name="configure"></param>
     /// <returns></returns>
     public static EventBusBuilder AddInMemoryTransport(this EventBusBuilder builder, Action<InMemoryTransportOptions>? configure = null)
-        => builder.AddInMemoryTransport(TransportNames.InMemory, configure);
+        => builder.AddInMemoryTransport(InMemoryDefaults.Name, configure);
 
     /// <summary>Add InMemory transport.</summary>
     /// <param name="builder"></param>

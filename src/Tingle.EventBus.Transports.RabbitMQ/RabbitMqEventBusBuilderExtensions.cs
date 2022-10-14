@@ -1,5 +1,4 @@
-﻿using Tingle.EventBus;
-using Tingle.EventBus.Transports.RabbitMQ;
+﻿using Tingle.EventBus.Transports.RabbitMQ;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -13,7 +12,7 @@ public static class RabbitMqEventBusBuilderExtensions
     /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
     public static EventBusBuilder AddRabbitMqTransport(this EventBusBuilder builder, Action<RabbitMqTransportOptions>? configure = null)
-        => builder.AddRabbitMqTransport(TransportNames.RabbitMq, configure);
+        => builder.AddRabbitMqTransport(RabbitMqDefaults.Name, configure);
 
     /// <summary>Add RabbitMQ transport.</summary>
     /// <param name="builder">The <see cref="EventBusBuilder"/> to add to.</param>

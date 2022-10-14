@@ -1,5 +1,4 @@
-﻿using Tingle.EventBus;
-using Tingle.EventBus.Transports.Azure.ServiceBus;
+﻿using Tingle.EventBus.Transports.Azure.ServiceBus;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -13,7 +12,7 @@ public static class AzureServiceBusEventBusBuilderExtensions
     /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
     public static EventBusBuilder AddAzureServiceBusTransport(this EventBusBuilder builder, Action<AzureServiceBusTransportOptions>? configure = null)
-        => builder.AddAzureServiceBusTransport(TransportNames.AzureServiceBus, configure);
+        => builder.AddAzureServiceBusTransport(AzureServiceBusDefaults.Name, configure);
 
     /// <summary>Add Azure Service Bus transport.</summary>
     /// <param name="builder">The <see cref="EventBusBuilder"/> to add to.</param>

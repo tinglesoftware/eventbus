@@ -1,5 +1,4 @@
-﻿using Tingle.EventBus;
-using Tingle.EventBus.Transports.Kafka;
+﻿using Tingle.EventBus.Transports.Kafka;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -13,7 +12,7 @@ public static class KafkaEventBusBuilderExtensions
     /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
     public static EventBusBuilder AddKafkaTransport(this EventBusBuilder builder, Action<KafkaTransportOptions>? configure = null)
-        => builder.AddKafkaTransport(TransportNames.Kafka, configure);
+        => builder.AddKafkaTransport(KafkaDefaults.Name, configure);
 
     /// <summary>Add Kafka transport.</summary>
     /// <param name="builder">The <see cref="EventBusBuilder"/> to add to.</param>

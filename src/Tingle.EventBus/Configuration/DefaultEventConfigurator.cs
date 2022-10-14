@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Tingle.EventBus.Readiness;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Configuration;
@@ -33,9 +32,8 @@ internal class DefaultEventConfigurator : IEventConfigurator
         // set the consumer names
         ConfigureConsumerNames(registration, options.Naming);
 
-        // set the serializer and the readiness provider
+        // set the serializer
         ConfigureSerializer(registration);
-        ConfigureReadinessProviders(registration);
     }
 
     internal static void ConfigureTransportName(EventRegistration reg, EventBusOptions options)
@@ -150,26 +148,6 @@ internal class DefaultEventConfigurator : IEventConfigurator
         {
             throw new InvalidOperationException($"The type '{reg.EventSerializerType.FullName}' is used as a serializer "
                                               + $"but does not implement '{typeof(IEventSerializer).FullName}'");
-        }
-    }
-
-    internal static void ConfigureReadinessProviders(EventRegistration reg)
-    {
-        foreach (var ecr in reg.Consumers)
-        {
-            // If the readiness provider has not been specified, attempt to get from the attribute
-            var type = ecr.ConsumerType;
-            var attrs = type.GetCustomAttributes(false);
-            ecr.ReadinessProviderType ??= attrs.OfType<ConsumerReadinessProviderAttribute>().SingleOrDefault()?.ReadinessProviderType;
-            ecr.ReadinessProviderType ??= typeof(IReadinessProvider); // use the default when not provided
-
-            // Ensure the provider is either default or it implements IReadinessProvider
-            if (ecr.ReadinessProviderType != typeof(IReadinessProvider)
-                && !typeof(IReadinessProvider).IsAssignableFrom(ecr.ReadinessProviderType))
-            {
-                throw new InvalidOperationException($"The type '{ecr.ReadinessProviderType.FullName}' is used as a readiness provider "
-                                                  + $"but does not implement '{typeof(IReadinessProvider).FullName}'");
-            }
         }
     }
 }

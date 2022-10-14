@@ -1,8 +1,6 @@
-﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Tingle.EventBus;
+﻿using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Ids;
-using Tingle.EventBus.Readiness;
 using Tingle.EventBus.Serialization;
 using Tingle.EventBus.Transports;
 
@@ -33,11 +31,6 @@ public class EventBusBuilder
         // Register necessary services
         Services.AddTransient<IEventPublisher, EventPublisher>();
         UseDefaultSerializer<DefaultJsonEventSerializer>();
-
-        // Register health/readiness services needed
-        Services.AddSingleton<DefaultReadinessProvider>();
-        Services.AddSingleton<IHealthCheckPublisher>(p => p.GetRequiredService<DefaultReadinessProvider>());
-        Services.AddSingleton<IReadinessProvider>(p => p.GetRequiredService<DefaultReadinessProvider>());
     }
 
     /// <summary>
@@ -49,17 +42,6 @@ public class EventBusBuilder
     /// <param name="configure"></param>
     /// <returns></returns>
     public EventBusBuilder Configure(Action<EventBusOptions> configure)
-    {
-        if (configure is null) throw new ArgumentNullException(nameof(configure));
-
-        Services.Configure(configure);
-        return this;
-    }
-
-    /// <summary>Configure readiness options for the EventBus.</summary>
-    /// <param name="configure"></param>
-    /// <returns></returns>
-    public EventBusBuilder ConfigureReadiness(Action<EventBusReadinessOptions> configure)
     {
         if (configure is null) throw new ArgumentNullException(nameof(configure));
 
@@ -127,17 +109,6 @@ public class EventBusBuilder
     public EventBusBuilder UseDefaultSerializer<TEventSerializer>() where TEventSerializer : class, IEventSerializer
     {
         Services.AddSingleton<IEventSerializer, TEventSerializer>();
-        return this;
-    }
-
-    /// <summary>
-    /// Setup the default readiness provider to use when deciding if a consumer is ready to consume events.
-    /// </summary>
-    /// <typeparam name="TReadinessProvider"></typeparam>
-    /// <returns></returns>
-    public EventBusBuilder UseDefaultReadinessProvider<TReadinessProvider>() where TReadinessProvider : class, IReadinessProvider
-    {
-        Services.AddSingleton<IReadinessProvider, TReadinessProvider>();
         return this;
     }
 

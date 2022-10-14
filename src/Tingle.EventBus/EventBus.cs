@@ -5,7 +5,6 @@ using System.Diagnostics;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Ids;
-using Tingle.EventBus.Readiness;
 using Tingle.EventBus.Transports;
 
 namespace Tingle.EventBus;
@@ -15,7 +14,6 @@ namespace Tingle.EventBus;
 /// </summary>
 public class EventBus
 {
-    private readonly IReadinessProvider readinessProvider;
     private readonly IEventIdGenerator idGenerator;
     private readonly IList<IEventBusTransport> transports;
     private readonly IList<IEventConfigurator> configurators;
@@ -25,20 +23,17 @@ public class EventBus
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="readinessProvider"></param>
     /// <param name="idGenerator"></param>
     /// <param name="optionsAccessor"></param>
     /// <param name="transports"></param>
     /// <param name="configurators"></param>
     /// <param name="loggerFactory"></param>
-    public EventBus(IReadinessProvider readinessProvider,
-                    IEventIdGenerator idGenerator,
+    public EventBus(IEventIdGenerator idGenerator,
                     IEnumerable<IEventBusTransport> transports,
                     IEnumerable<IEventConfigurator> configurators,
                     IOptions<EventBusOptions> optionsAccessor,
                     ILoggerFactory loggerFactory)
     {
-        this.readinessProvider = readinessProvider ?? throw new ArgumentNullException(nameof(readinessProvider));
         this.idGenerator = idGenerator ?? throw new ArgumentNullException(nameof(idGenerator));
         this.configurators = configurators?.ToList() ?? throw new ArgumentNullException(nameof(configurators));
         this.transports = transports?.ToList() ?? throw new ArgumentNullException(nameof(transports));
@@ -230,18 +225,6 @@ public class EventBus
 
     private async Task StartTransportsAsync(CancellationToken cancellationToken)
     {
-        try
-        {
-            // Perform readiness check before starting bus.
-            logger.StartupReadinessCheck();
-            await readinessProvider.WaitReadyAsync(cancellationToken: cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            logger.StartupReadinessCheckFailed(ex);
-            throw; // re-throw to prevent from getting healthy
-        }
-
         // Start the bus and its transports
         logger.StartingBus(transports.Count);
         foreach (var t in transports)

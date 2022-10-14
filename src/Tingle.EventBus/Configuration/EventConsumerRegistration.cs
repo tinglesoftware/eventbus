@@ -1,5 +1,4 @@
 ﻿using Polly.Retry;
-using Tingle.EventBus.Readiness;
 
 namespace Tingle.EventBus.Configuration;
 
@@ -26,19 +25,6 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     /// The name generated for the consumer.
     /// </summary>
     public string? ConsumerName { get; set; }
-
-    /// <summary>
-    /// The type used for checking if the consumer is ready to consume events.
-    /// This type must implement <see cref="IReadinessProvider"/>.
-    /// </summary>
-    public Type? ReadinessProviderType { get; set; }
-
-    /// <summary>
-    /// The tags to use when checking for readiness before the consumer can be asked to consume an event.
-    /// This tags should match the health registrations for them to work with the default implementation
-    /// of <see cref="IReadinessProvider"/>.
-    /// </summary>
-    public ICollection<string>? ReadinessTags { get; set; }
 
     /// <summary>
     /// The behaviour for unhandled errors when consuming events via the

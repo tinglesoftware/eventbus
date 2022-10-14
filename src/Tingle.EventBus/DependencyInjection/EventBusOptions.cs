@@ -77,11 +77,6 @@ public class EventBusOptions
     public string? DefaultTransportName { get; set; }
 
     /// <summary>
-    /// The map of registered transport names to their types.
-    /// </summary>
-    internal Dictionary<string, Type> RegisteredTransportNames { get; } = new Dictionary<string, Type>();
-
-    /// <summary>
     /// Transports in the order they were added.
     /// </summary>
     public IEnumerable<EventBusTransportRegistrationBuilder> Transports => transports;
@@ -89,12 +84,13 @@ public class EventBusOptions
     /// <summary>
     /// Maps schemes by name.
     /// </summary>
-    public IDictionary<string, EventBusTransportRegistrationBuilder> TransportMap { get; } = new Dictionary<string, EventBusTransportRegistrationBuilder>(StringComparer.Ordinal);
+    internal IDictionary<string, EventBusTransportRegistrationBuilder> TransportMap { get; } = new Dictionary<string, EventBusTransportRegistrationBuilder>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// The registrations for events and consumers for the EventBus.
     /// </summary>
     internal Dictionary<Type, EventRegistration> Registrations { get; } = new Dictionary<Type, EventRegistration>();
+
 
     /// <summary>Adds a <see cref="EventBusTransportRegistration"/>.</summary>
     /// <param name="name">The name of the transport being added.</param>

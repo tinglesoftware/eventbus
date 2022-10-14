@@ -54,7 +54,7 @@ internal class DefaultEventConfigurator : IEventConfigurator
         }
 
         // Ensure the transport name set has been registered
-        if (!options.RegisteredTransportNames.ContainsKey(reg.TransportName))
+        if (!options.TransportMap.ContainsKey(reg.TransportName))
         {
             throw new InvalidOperationException($"Transport '{reg.TransportName}' on event '{type.FullName}' must be registered.");
         }

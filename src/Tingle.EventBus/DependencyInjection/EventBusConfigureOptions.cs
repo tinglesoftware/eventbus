@@ -63,7 +63,7 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
         }
 
         // Ensure there is at least one registered transport
-        if (options.RegisteredTransportNames.Count == 0)
+        if (options.TransportMap.Count == 0)
         {
             throw new InvalidOperationException("There must be at least one registered transport.");
         }
@@ -73,7 +73,7 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
         {
             // ensure the transport name set has been registered
             var tName = options.DefaultTransportName;
-            if (!options.RegisteredTransportNames.ContainsKey(tName))
+            if (!options.TransportMap.ContainsKey(tName))
             {
                 throw new InvalidOperationException($"The default transport  specified '{tName}' must be a registered one.");
             }
@@ -82,9 +82,9 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
         // If the default transport name has not been set, and there is only one registered, set it as default
         if (string.IsNullOrWhiteSpace(options.DefaultTransportName))
         {
-            if (options.RegisteredTransportNames.Count == 1)
+            if (options.TransportMap.Count == 1)
             {
-                options.DefaultTransportName = options.RegisteredTransportNames.Single().Key;
+                options.DefaultTransportName = options.TransportMap.Keys.Single();
             }
         }
 

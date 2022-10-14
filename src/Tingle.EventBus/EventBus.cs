@@ -15,30 +15,45 @@ namespace Tingle.EventBus;
 public class EventBus
 {
     private readonly IEventIdGenerator idGenerator;
-    private readonly IList<IEventBusTransport> transports;
     private readonly IList<IEventConfigurator> configurators;
     private readonly EventBusOptions options;
     private readonly ILogger logger;
 
+    private readonly Dictionary<string, EventBusTransportRegistration> registrationsMap = new();
+    private readonly Dictionary<string, IEventBusTransport> transports = new();
+
     /// <summary>
     /// 
     /// </summary>
+    /// <param name="serviceProvider"></param>
     /// <param name="idGenerator"></param>
     /// <param name="optionsAccessor"></param>
-    /// <param name="transports"></param>
     /// <param name="configurators"></param>
     /// <param name="loggerFactory"></param>
-    public EventBus(IEventIdGenerator idGenerator,
-                    IEnumerable<IEventBusTransport> transports,
+    public EventBus(IServiceProvider serviceProvider,
+                    IEventIdGenerator idGenerator,
                     IEnumerable<IEventConfigurator> configurators,
                     IOptions<EventBusOptions> optionsAccessor,
                     ILoggerFactory loggerFactory)
     {
         this.idGenerator = idGenerator ?? throw new ArgumentNullException(nameof(idGenerator));
         this.configurators = configurators?.ToList() ?? throw new ArgumentNullException(nameof(configurators));
-        this.transports = transports?.ToList() ?? throw new ArgumentNullException(nameof(transports));
         options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
         logger = loggerFactory?.CreateLogger(LogCategoryNames.EventBus) ?? throw new ArgumentNullException(nameof(loggerFactory));
+
+        foreach (var builder in options.Transports)
+        {
+            // build the registration
+            var tr = builder.Build();
+            registrationsMap.Add(tr.Name, tr);
+
+            // resolve the transport
+            var transport = (IEventBusTransport)serviceProvider.GetRequiredService(tr.TransportType);
+            transports.Add(tr.Name, transport);
+
+            // initialize the transport
+            transport.Initialize(tr);
+        }
     }
 
     /// <summary>
@@ -227,7 +242,7 @@ public class EventBus
     {
         // Start the bus and its transports
         logger.StartingBus(transports.Count);
-        foreach (var t in transports)
+        foreach (var t in transports.Values)
         {
             await t.StartAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -238,7 +253,7 @@ public class EventBus
     {
         // Stop the transports in parallel
         logger.StoppingTransports();
-        var tasks = transports.Select(t => t.StopAsync(cancellationToken));
+        var tasks = transports.Values.Select(t => t.StopAsync(cancellationToken));
         await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
@@ -246,7 +261,7 @@ public class EventBus
     {
         // get the transport
         var reg = GetOrCreateRegistration<TEvent>();
-        var transport = transports.Single(t => t.Name == reg.TransportName);
+        var transport = transports.Values.Single(t => t.Name == reg.TransportName);
 
         // For events that were not configured (e.g. publish only applications),
         // the IdFormat will still be null, we have to set it

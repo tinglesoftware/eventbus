@@ -71,10 +71,8 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
     }
 
     /// <inheritdoc/>
-    protected override async Task StartCoreAsync(CancellationToken cancellationToken)
+    protected override Task StartCoreAsync(CancellationToken cancellationToken)
     {
-        await base.StartAsync(cancellationToken).ConfigureAwait(false);
-
         var registrations = GetRegistrations();
         var topics = registrations.Where(r => r.Consumers.Count > 0) // filter out those with consumers
                                   .Select(r => r.EventName) // pick the event name which is also the topic name
@@ -85,13 +83,13 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
             consumer.Value.Subscribe(topics);
             _ = ProcessAsync(cancellationToken: stoppingCts.Token);
         }
+
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
     protected override async Task StopCoreAsync(CancellationToken cancellationToken)
     {
-        await base.StopAsync(cancellationToken).ConfigureAwait(false);
-
         // Stop called without start or there was no consumers registered
         if (receiverTasks.Count == 0) return;
 

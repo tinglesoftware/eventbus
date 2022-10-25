@@ -34,10 +34,8 @@ public class AmazonKinesisTransport : EventBusTransport<AmazonKinesisTransportOp
     }
 
     /// <inheritdoc/>
-    protected override async Task StartCoreAsync(CancellationToken cancellationToken)
+    protected override Task StartCoreAsync(CancellationToken cancellationToken)
     {
-        await base.StartAsync(cancellationToken).ConfigureAwait(false);
-
         // if there are consumers for this transport, throw exception
         var registrations = GetRegistrations();
         if (registrations.Count > 0)
@@ -45,13 +43,13 @@ public class AmazonKinesisTransport : EventBusTransport<AmazonKinesisTransportOp
             // Consuming is not yet supported on this bus due to it's complexity
             throw new NotSupportedException("Amazon Kinesis does not support consumers yet due to complexity requirements from KCL.");
         }
+
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
-    protected override async Task StopCoreAsync(CancellationToken cancellationToken)
+    protected override Task StopCoreAsync(CancellationToken cancellationToken)
     {
-        await base.StopAsync(cancellationToken).ConfigureAwait(false);
-
         // if there are consumers for this transport, throw exception
         var registrations = GetRegistrations();
         if (registrations.Count > 0)
@@ -59,6 +57,8 @@ public class AmazonKinesisTransport : EventBusTransport<AmazonKinesisTransportOp
             // Consuming is not yet supported on this bus due to it's complexity
             throw new NotSupportedException("Amazon Kinesis does not support consumers yet due to complexity requirements from KCL.");
         }
+
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>

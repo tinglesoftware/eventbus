@@ -39,8 +39,6 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
     /// <inheritdoc/>
     protected override async Task StartCoreAsync(CancellationToken cancellationToken)
     {
-        await base.StartAsync(cancellationToken).ConfigureAwait(false);
-
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
@@ -78,8 +76,6 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
     /// <inheritdoc/>
     protected override async Task StopCoreAsync(CancellationToken cancellationToken)
     {
-        await base.StopAsync(cancellationToken).ConfigureAwait(false);
-
         var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
         foreach (var (key, proc) in clients)
         {

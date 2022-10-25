@@ -93,7 +93,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             }
         }
         Logger.StartingTransport(registrations.Count, Options.EmptyResultsDelay);
-        startedTcs.TrySetResult(true);
+        startedTcs.TrySetResult(true); // signal completion of startup
         return Task.CompletedTask;
     }
 
@@ -104,7 +104,12 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         return Task.CompletedTask;
     }
 
-    private Task WaitStartedAsync(CancellationToken cancellationToken) => Task.Run(() => startedTcs.Task, cancellationToken);
+    private Task WaitStartedAsync(CancellationToken cancellationToken)
+    {
+        var tsk = startedTcs.Task;
+        if (tsk.Status is TaskStatus.RanToCompletion) return tsk;
+        return Task.Run(() => tsk, cancellationToken); // allows for cancellation by caller
+    }
 
     #region Publishing
 

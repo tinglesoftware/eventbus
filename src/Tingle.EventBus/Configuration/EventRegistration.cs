@@ -1,4 +1,5 @@
-﻿using Polly.Retry;
+﻿using Polly;
+using Polly.Retry;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Configuration;
@@ -51,10 +52,9 @@ public class EventRegistration : IEquatable<EventRegistration?>
     public Type? EventSerializerType { get; set; }
 
     /// <summary>
-    /// The retry policy to apply when in addition to what may be provided by the SDKs for each transport.
-    /// When set to <see langword="null"/>, no additional retry policy is applied.
-    /// Defaults to <see langword="null"/>.
-    /// When this value is set, it overrides the default value set on the transport or the bus.
+    /// The retry policy to apply specifically for this event.
+    /// This is in addition to what may be provided by the SDKs for each transport.
+    /// When provided alongside policies on the transport and the bus, it is used as the inner most policy.
     /// </summary>
     /// <remarks>
     /// When a value is provided, the transport may extend the lock for the
@@ -77,6 +77,12 @@ public class EventRegistration : IEquatable<EventRegistration?>
     /// of the event bus such as the bus, the transport or the serializer.
     /// </summary>
     public IDictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
+
+    /// <summary>Whether the execution policies have been merged.</summary>
+    internal bool MergedExecutionPolicies { get; set; } = false;
+
+    /// <summary>The final policy used in executions for the event and it's consumers.</summary>
+    internal IAsyncPolicy ExecutionPolicy { get; set; } = Policy.NoOpAsync();
 
     #region Equality Overrides
 

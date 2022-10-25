@@ -25,6 +25,17 @@ public class EventBusOptions
     public EventBusNamingOptions Naming { get; } = new EventBusNamingOptions();
 
     /// <summary>
+    /// Optional retry policy to apply to the bus.
+    /// When provided alongside policies on the transport and the event registration, it is used as the putter most policy.
+    /// Defaults to <see langword="null"/>.
+    /// </summary>
+    /// <remarks>
+    /// To specify a value on an event registration, use <see cref="EventRegistration.RetryPolicy"/>.
+    /// To specify a value on a transport, use <see cref="EventBusTransportOptions.RetryPolicy"/> for the specific transport.
+    /// </remarks>
+    public AsyncRetryPolicy? RetryPolicy { get; set; }
+
+    /// <summary>
     /// Indicates if the messages/events produced require guard against duplicate messages.
     /// If <see langword="true"/>, duplicate messages having the same <see cref="EventContext.Id"/>
     /// sent to the same destination within a duration of <see cref="DuplicateDetectionDuration"/> will be discarded.
@@ -52,14 +63,6 @@ public class EventBusOptions
     /// Defaults to <see cref="EventIdFormat.Guid"/>.
     /// </summary>
     public EventIdFormat DefaultEventIdFormat { get; set; } = EventIdFormat.Guid;
-
-    /// <summary>
-    /// Optional default retry policy to use where it is not specified.
-    /// To specify a value per consumer, use the <see cref="EventRegistration.RetryPolicy"/> option.
-    /// To specify a value per transport, use the <see cref="EventBusTransportOptions.DefaultRetryPolicy"/> option on the specific transport.
-    /// Defaults to <see langword="null"/>.
-    /// </summary>
-    public AsyncRetryPolicy? DefaultRetryPolicy { get; set; }
 
     /// <summary>
     /// Optional default behaviour for errors encountered in a consumer but are not handled.

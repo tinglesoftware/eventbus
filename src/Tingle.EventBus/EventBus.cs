@@ -200,33 +200,6 @@ public class EventBus
     ///
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        // If a startup delay has been specified, apply it
-        var delay = options.StartupDelay;
-        if (delay != null && delay > TimeSpan.Zero)
-        {
-            // With delayed startup, the error may disappear since the call to this method is not awaited.
-            // The appropriate logging needs to be done.
-            try
-            {
-                logger.DelayedBusStartup(delay.Value);
-                await Task.Delay(delay.Value, cancellationToken).ConfigureAwait(false);
-                await StartTransportsAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-                when (!(ex is OperationCanceledException || ex is TaskCanceledException)) // skip operation cancel
-            {
-                logger.DelayedBusStartupError(ex);
-            }
-        }
-        else
-        {
-            // Without a delay, just start the transports directly
-            await StartTransportsAsync(cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    private async Task StartTransportsAsync(CancellationToken cancellationToken)
-    {
         // Start the bus and its transports
         logger.StartingBus(transports.Count);
         foreach (var t in transports.Values)

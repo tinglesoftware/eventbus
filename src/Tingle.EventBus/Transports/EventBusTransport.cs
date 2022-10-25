@@ -153,14 +153,30 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             ct => PublishCoreAsync(events, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
     }
 
-    /// <inheritdoc/>
+    /// <summary>Publish an event on the transport.</summary>
+    /// <typeparam name="TEvent">The event type.</typeparam>
+    /// <param name="event">The event to publish.</param>
+    /// <param name="registration">The registration for the event.</param>
+    /// <param name="scheduled">
+    /// The time at which the event should be availed for consumption.
+    /// Set <see langword="null"/> for immediate availability.
+    /// </param>
+    /// <param name="cancellationToken"></param>
     protected abstract Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
                                                                        EventRegistration registration,
                                                                        DateTimeOffset? scheduled = null,
                                                                        CancellationToken cancellationToken = default)
         where TEvent : class;
 
-    /// <inheritdoc/>
+    /// <summary>Publish a batch of events on the transport.</summary>
+    /// <typeparam name="TEvent">The event type.</typeparam>
+    /// <param name="events">The events to publish.</param>
+    /// <param name="registration">The registration for the events.</param>
+    /// <param name="scheduled">
+    /// The time at which the event should be availed for consumption.
+    /// Set <see langword="null"/> for immediate availability.
+    /// </param>
+    /// <param name="cancellationToken"></param>
     protected abstract Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
                                                                               EventRegistration registration,
                                                                               DateTimeOffset? scheduled = null,
@@ -169,7 +185,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
 
     #endregion
 
-    #region Cancelling
+    #region Canceling
 
     /// <inheritdoc/>
     public virtual async Task CancelAsync<TEvent>(string id, EventRegistration registration, CancellationToken cancellationToken = default)
@@ -193,13 +209,21 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             ct => CancelCoreAsync<TEvent>(ids, registration, ct), cancellationToken).ConfigureAwait(false);
     }
 
-    /// <inheritdoc/>
+    /// <summary>Cancel a scheduled event on the transport.</summary>
+    /// <typeparam name="TEvent">The event type.</typeparam>
+    /// <param name="id">The scheduling identifier of the scheduled event.</param>
+    /// <param name="registration">The registration for the event.</param>
+    /// <param name="cancellationToken"></param>
     protected abstract Task CancelCoreAsync<TEvent>(string id,
                                                     EventRegistration registration,
                                                     CancellationToken cancellationToken = default)
         where TEvent : class;
 
-    /// <inheritdoc/>
+    /// <summary>Cancel a batch of scheduled events on the transport.</summary>
+    /// <typeparam name="TEvent">The event type.</typeparam>
+    /// <param name="ids">The scheduling identifiers of the scheduled events.</param>
+    /// <param name="registration">The registration for the events.</param>
+    /// <param name="cancellationToken"></param>
     protected abstract Task CancelCoreAsync<TEvent>(IList<string> ids,
                                                     EventRegistration registration,
                                                     CancellationToken cancellationToken = default)

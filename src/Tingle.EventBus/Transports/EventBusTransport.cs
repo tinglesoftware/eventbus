@@ -19,6 +19,8 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     private readonly IServiceScopeFactory scopeFactory;
     private readonly IOptionsMonitor<TOptions> optionsMonitor;
 
+    private readonly TaskCompletionSource<bool> startedTcs = new(false);
+
     /// <summary>
     /// 
     /// </summary>
@@ -91,6 +93,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             }
         }
         Logger.StartingTransport(registrations.Count, Options.EmptyResultsDelay);
+        startedTcs.TrySetResult(true);
         return Task.CompletedTask;
     }
 
@@ -100,6 +103,8 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         Logger.StoppingTransport();
         return Task.CompletedTask;
     }
+
+    private Task WaitStartedAsync(CancellationToken cancellationToken) => Task.Run(() => startedTcs.Task, cancellationToken);
 
     #region Publishing
 

@@ -14,12 +14,6 @@ public class EventBusOptions
     private readonly IList<EventBusTransportRegistrationBuilder> transports = new List<EventBusTransportRegistrationBuilder>();
 
     /// <summary>
-    /// The duration of time to delay the starting of the bus.
-    /// When <see langword="null"/>, the bus is started immediately.
-    /// </summary>
-    public TimeSpan? StartupDelay { get; set; }
-
-    /// <summary>
     /// Gets the <see cref="EventBusNamingOptions"/> for the Event Bus.
     /// </summary>
     public EventBusNamingOptions Naming { get; } = new EventBusNamingOptions();

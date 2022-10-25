@@ -19,6 +19,8 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     private readonly IServiceScopeFactory scopeFactory;
     private readonly IOptionsMonitor<TOptions> optionsMonitor;
 
+    private readonly TaskCompletionSource<bool> startedTcs = new(false);
+
     /// <summary>
     /// 
     /// </summary>
@@ -71,7 +73,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     }
 
     /// <inheritdoc/>
-    public virtual Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         /*
          * Set the retry policy and unhandled error behaviour if not set.
@@ -91,14 +93,34 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             }
         }
         Logger.StartingTransport(registrations.Count, Options.EmptyResultsDelay);
-        return Task.CompletedTask;
+
+        await StartCoreAsync(cancellationToken).ConfigureAwait(false);
+
+        startedTcs.TrySetResult(true); // signal completion of startup
     }
 
+    /// <summary>Triggered when the bus host is ready to start.</summary>
+    /// <param name="cancellationToken">Indicates that the start process has been aborted.</param>
+    /// <returns></returns>
+    protected abstract Task StartCoreAsync(CancellationToken cancellationToken);
+
     /// <inheritdoc/>
-    public virtual Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
         Logger.StoppingTransport();
-        return Task.CompletedTask;
+        await StopCoreAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>Triggered when the bus host is performing a graceful shutdown.</summary>
+    /// <param name="cancellationToken">Indicates that the shutdown process should no longer be graceful.</param>
+    /// <returns></returns>
+    protected abstract Task StopCoreAsync(CancellationToken cancellationToken);
+
+    private Task WaitStartedAsync(CancellationToken cancellationToken)
+    {
+        var tsk = startedTcs.Task;
+        if (tsk.Status is TaskStatus.RanToCompletion) return tsk;
+        return Task.Run(() => tsk, cancellationToken); // allows for cancellation by caller
     }
 
     #region Publishing
@@ -111,6 +133,8 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         where TEvent : class
     {
         // publish, with resilience policies
+        await WaitStartedAsync(cancellationToken).ConfigureAwait(false);
+        Logger.SendingEvent(eventBusId: @event.Id, transportName: Name, scheduled: scheduled);
         return await registration.ExecutionPolicy.ExecuteAsync(
             ct => PublishCoreAsync(@event, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
     }
@@ -123,18 +147,36 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         where TEvent : class
     {
         // publish, with resilience policies
+        await WaitStartedAsync(cancellationToken).ConfigureAwait(false);
+        Logger.SendingEvents(events, Name, scheduled);
         return await registration.ExecutionPolicy.ExecuteAsync(
             ct => PublishCoreAsync(events, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
     }
 
-    /// <inheritdoc/>
+    /// <summary>Publish an event on the transport.</summary>
+    /// <typeparam name="TEvent">The event type.</typeparam>
+    /// <param name="event">The event to publish.</param>
+    /// <param name="registration">The registration for the event.</param>
+    /// <param name="scheduled">
+    /// The time at which the event should be availed for consumption.
+    /// Set <see langword="null"/> for immediate availability.
+    /// </param>
+    /// <param name="cancellationToken"></param>
     protected abstract Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
                                                                        EventRegistration registration,
                                                                        DateTimeOffset? scheduled = null,
                                                                        CancellationToken cancellationToken = default)
         where TEvent : class;
 
-    /// <inheritdoc/>
+    /// <summary>Publish a batch of events on the transport.</summary>
+    /// <typeparam name="TEvent">The event type.</typeparam>
+    /// <param name="events">The events to publish.</param>
+    /// <param name="registration">The registration for the events.</param>
+    /// <param name="scheduled">
+    /// The time at which the event should be availed for consumption.
+    /// Set <see langword="null"/> for immediate availability.
+    /// </param>
+    /// <param name="cancellationToken"></param>
     protected abstract Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
                                                                               EventRegistration registration,
                                                                               DateTimeOffset? scheduled = null,
@@ -143,13 +185,15 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
 
     #endregion
 
-    #region Cancelling
+    #region Canceling
 
     /// <inheritdoc/>
     public virtual async Task CancelAsync<TEvent>(string id, EventRegistration registration, CancellationToken cancellationToken = default)
         where TEvent : class
     {
         // cancel, with resilience policies
+        await WaitStartedAsync(cancellationToken).ConfigureAwait(false);
+        Logger.CancelingEvent(id, Name);
         await registration.ExecutionPolicy.ExecuteAsync(
             ct => CancelCoreAsync<TEvent>(id, registration, ct), cancellationToken).ConfigureAwait(false);
     }
@@ -159,17 +203,27 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         where TEvent : class
     {
         // cancel, with resilience policies
+        await WaitStartedAsync(cancellationToken).ConfigureAwait(false);
+        Logger.CancelingEvents(ids, Name);
         await registration.ExecutionPolicy.ExecuteAsync(
             ct => CancelCoreAsync<TEvent>(ids, registration, ct), cancellationToken).ConfigureAwait(false);
     }
 
-    /// <inheritdoc/>
+    /// <summary>Cancel a scheduled event on the transport.</summary>
+    /// <typeparam name="TEvent">The event type.</typeparam>
+    /// <param name="id">The scheduling identifier of the scheduled event.</param>
+    /// <param name="registration">The registration for the event.</param>
+    /// <param name="cancellationToken"></param>
     protected abstract Task CancelCoreAsync<TEvent>(string id,
                                                     EventRegistration registration,
                                                     CancellationToken cancellationToken = default)
         where TEvent : class;
 
-    /// <inheritdoc/>
+    /// <summary>Cancel a batch of scheduled events on the transport.</summary>
+    /// <typeparam name="TEvent">The event type.</typeparam>
+    /// <param name="ids">The scheduling identifiers of the scheduled events.</param>
+    /// <param name="registration">The registration for the events.</param>
+    /// <param name="cancellationToken"></param>
     protected abstract Task CancelCoreAsync<TEvent>(IList<string> ids,
                                                     EventRegistration registration,
                                                     CancellationToken cancellationToken = default)

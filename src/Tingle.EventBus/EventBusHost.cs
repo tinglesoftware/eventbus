@@ -40,7 +40,6 @@ internal class EventBusHost : BackgroundService
     /// <inheritdoc/>
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        logger.StoppingBus();
         await base.StopAsync(cancellationToken).ConfigureAwait(false);
         await bus.StopAsync(cancellationToken).ConfigureAwait(false);
     }

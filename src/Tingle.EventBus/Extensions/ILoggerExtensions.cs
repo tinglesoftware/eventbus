@@ -13,19 +13,13 @@ internal static partial class ILoggerExtensions
     [LoggerMessage(101, LogLevel.Debug, "Application did not startup. Event Bus cannot continue.")]
     public static partial void ApplicationDidNotStartup(this ILogger logger);
 
-    [LoggerMessage(102, LogLevel.Information, "Delaying bus startup for '{StartupDelay}'.")]
-    public static partial void DelayedBusStartup(this ILogger logger, TimeSpan startupDelay);
-
-    [LoggerMessage(103, LogLevel.Error, "Starting bus delayed error.")]
-    public static partial void DelayedBusStartupError(this ILogger logger, Exception ex);
-
-    [LoggerMessage(104, LogLevel.Debug, "Starting bus with {TransportsCount} transports.")]
+    [LoggerMessage(102, LogLevel.Debug, "Starting bus with {TransportsCount} transports.")]
     public static partial void StartingBus(this ILogger logger, int transportsCount);
 
-    [LoggerMessage(105, LogLevel.Debug, "Stopping bus.")]
+    [LoggerMessage(103, LogLevel.Debug, "Stopping bus.")]
     public static partial void StoppingBus(this ILogger logger);
 
-    [LoggerMessage(106, LogLevel.Debug, "Stopping transports.")]
+    [LoggerMessage(104, LogLevel.Debug, "Stopping transports.")]
     public static partial void StoppingTransports(this ILogger logger);
 
     #endregion

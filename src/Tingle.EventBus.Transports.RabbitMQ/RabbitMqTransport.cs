@@ -41,18 +41,14 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
         : base(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory) { }
 
     /// <inheritdoc/>
-    public override async Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task StartCoreAsync(CancellationToken cancellationToken)
     {
-        await base.StartAsync(cancellationToken).ConfigureAwait(false);
-
         await ConnectConsumersAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public override async Task StopAsync(CancellationToken cancellationToken)
+    protected override Task StopCoreAsync(CancellationToken cancellationToken)
     {
-        await base.StopAsync(cancellationToken).ConfigureAwait(false);
-
         var channels = subscriptionChannelsCache.Select(kvp => (key: kvp.Key, sc: kvp.Value)).ToList();
         foreach (var (key, channel) in channels)
         {
@@ -73,6 +69,8 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
                 Logger.LogWarning(exception, "Close channel faulted for {Subscription}", key);
             }
         }
+
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>

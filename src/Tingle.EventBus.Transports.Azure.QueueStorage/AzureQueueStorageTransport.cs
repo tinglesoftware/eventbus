@@ -44,10 +44,8 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
     }
 
     /// <inheritdoc/>
-    public override async Task StartAsync(CancellationToken cancellationToken)
+    protected override Task StartCoreAsync(CancellationToken cancellationToken)
     {
-        await base.StartAsync(cancellationToken).ConfigureAwait(false);
-
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
@@ -57,13 +55,13 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
                 receiverTasks.Add(t);
             }
         }
+
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
-    public override async Task StopAsync(CancellationToken cancellationToken)
+    protected override async Task StopCoreAsync(CancellationToken cancellationToken)
     {
-        await base.StopAsync(cancellationToken).ConfigureAwait(false);
-
         // Stop called without start or there was no consumers registered
         if (receiverTasks.Count == 0) return;
 

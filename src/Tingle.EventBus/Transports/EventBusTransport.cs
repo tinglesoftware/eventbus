@@ -111,6 +111,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         where TEvent : class
     {
         // publish, with resilience policies
+        Logger.SendingEvent(eventBusId: @event.Id, transportName: Name, scheduled: scheduled);
         return await registration.ExecutionPolicy.ExecuteAsync(
             ct => PublishCoreAsync(@event, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
     }
@@ -123,6 +124,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         where TEvent : class
     {
         // publish, with resilience policies
+        Logger.SendingEvents(events, Name, scheduled);
         return await registration.ExecutionPolicy.ExecuteAsync(
             ct => PublishCoreAsync(events, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
     }
@@ -150,6 +152,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         where TEvent : class
     {
         // cancel, with resilience policies
+        Logger.CancelingEvent(id, Name);
         await registration.ExecutionPolicy.ExecuteAsync(
             ct => CancelCoreAsync<TEvent>(id, registration, ct), cancellationToken).ConfigureAwait(false);
     }
@@ -159,6 +162,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         where TEvent : class
     {
         // cancel, with resilience policies
+        Logger.CancelingEvents(ids, Name);
         await registration.ExecutionPolicy.ExecuteAsync(
             ct => CancelCoreAsync<TEvent>(ids, registration, ct), cancellationToken).ConfigureAwait(false);
     }

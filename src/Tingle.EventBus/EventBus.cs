@@ -86,7 +86,6 @@ public class EventBus
         activity?.AddTag(ActivityTagNames.MessagingConversationId, @event.CorrelationId);
 
         // Publish on the transport
-        logger.SendingEvent(eventBusId: @event.Id, transportName: transport.Name, scheduled: scheduled);
         return await transport.PublishAsync(@event: @event,
                                             registration: reg,
                                             scheduled: scheduled,
@@ -139,7 +138,6 @@ public class EventBus
         activity?.AddTag(ActivityTagNames.MessagingConversationId, string.Join(",", events.Select(e => e.CorrelationId)));
 
         // Publish on the transport
-        logger.SendingEvents(events, transport.Name, scheduled);
         return await transport.PublishAsync(events: events,
                                             registration: reg,
                                             scheduled: scheduled,
@@ -168,7 +166,6 @@ public class EventBus
         activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
 
         // Cancel on the transport
-        logger.CancelingEvent(id, transport.Name);
         await transport.CancelAsync<TEvent>(id: id, registration: reg, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
@@ -193,7 +190,6 @@ public class EventBus
         activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
 
         // Cancel on the transport
-        logger.CancelingEvents(ids, transport.Name);
         await transport.CancelAsync<TEvent>(ids: ids, registration: reg, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 

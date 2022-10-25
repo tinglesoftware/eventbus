@@ -34,7 +34,7 @@ public class AmazonKinesisTransport : EventBusTransport<AmazonKinesisTransportOp
     }
 
     /// <inheritdoc/>
-    public override async Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task StartCoreAsync(CancellationToken cancellationToken)
     {
         await base.StartAsync(cancellationToken).ConfigureAwait(false);
 
@@ -48,7 +48,7 @@ public class AmazonKinesisTransport : EventBusTransport<AmazonKinesisTransportOp
     }
 
     /// <inheritdoc/>
-    public override async Task StopAsync(CancellationToken cancellationToken)
+    protected override async Task StopCoreAsync(CancellationToken cancellationToken)
     {
         await base.StopAsync(cancellationToken).ConfigureAwait(false);
 

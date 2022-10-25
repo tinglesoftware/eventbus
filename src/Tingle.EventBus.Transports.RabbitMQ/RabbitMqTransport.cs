@@ -41,7 +41,7 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
         : base(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory) { }
 
     /// <inheritdoc/>
-    public override async Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task StartCoreAsync(CancellationToken cancellationToken)
     {
         await base.StartAsync(cancellationToken).ConfigureAwait(false);
 
@@ -49,7 +49,7 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
     }
 
     /// <inheritdoc/>
-    public override async Task StopAsync(CancellationToken cancellationToken)
+    protected override async Task StopCoreAsync(CancellationToken cancellationToken)
     {
         await base.StopAsync(cancellationToken).ConfigureAwait(false);
 

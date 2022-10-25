@@ -73,7 +73,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     }
 
     /// <inheritdoc/>
-    public virtual Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         /*
          * Set the retry policy and unhandled error behaviour if not set.
@@ -93,16 +93,28 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             }
         }
         Logger.StartingTransport(registrations.Count, Options.EmptyResultsDelay);
+
+        await StartCoreAsync(cancellationToken).ConfigureAwait(false);
+
         startedTcs.TrySetResult(true); // signal completion of startup
-        return Task.CompletedTask;
     }
 
+    /// <summary>Triggered when the bus host is ready to start.</summary>
+    /// <param name="cancellationToken">Indicates that the start process has been aborted.</param>
+    /// <returns></returns>
+    protected abstract Task StartCoreAsync(CancellationToken cancellationToken);
+
     /// <inheritdoc/>
-    public virtual Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
         Logger.StoppingTransport();
-        return Task.CompletedTask;
+        await StopCoreAsync(cancellationToken).ConfigureAwait(false);
     }
+
+    /// <summary>Triggered when the bus host is performing a graceful shutdown.</summary>
+    /// <param name="cancellationToken">Indicates that the shutdown process should no longer be graceful.</param>
+    /// <returns></returns>
+    protected abstract Task StopCoreAsync(CancellationToken cancellationToken);
 
     private Task WaitStartedAsync(CancellationToken cancellationToken)
     {

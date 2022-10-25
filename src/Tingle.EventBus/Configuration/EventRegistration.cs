@@ -1,4 +1,5 @@
-﻿using Polly.Retry;
+﻿using Polly;
+using Polly.Retry;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Configuration;
@@ -76,6 +77,9 @@ public class EventRegistration : IEquatable<EventRegistration?>
     /// of the event bus such as the bus, the transport or the serializer.
     /// </summary>
     public IDictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
+
+    /// <summary>The final policy used in executions for the event and it's consumers.</summary>
+    internal IAsyncPolicy MergedPolicy { get; set; } = Policy.NoOpAsync();
 
     #region Equality Overrides
 

@@ -111,16 +111,9 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                                                                      CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        // publish, with retry if specified
-        var retryPolicy = registration.RetryPolicy;
-        if (retryPolicy != null)
-        {
-            return await retryPolicy.ExecuteAsync(ct => PublishCoreAsync(@event, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            return await PublishCoreAsync(@event, registration, scheduled, cancellationToken).ConfigureAwait(false);
-        }
+        // publish, with resilience policies
+        return await registration.MergedPolicy.ExecuteAsync(
+            ct => PublishCoreAsync(@event, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -130,16 +123,9 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                                                                             CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        // publish, with retry if specified
-        var retryPolicy = registration.RetryPolicy;
-        if (retryPolicy != null)
-        {
-            return await retryPolicy.ExecuteAsync(ct => PublishCoreAsync(events, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            return await PublishCoreAsync(events, registration, scheduled, cancellationToken).ConfigureAwait(false);
-        }
+        // publish, with resilience policies
+        return await registration.MergedPolicy.ExecuteAsync(
+            ct => PublishCoreAsync(events, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -164,32 +150,18 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     public virtual async Task CancelAsync<TEvent>(string id, EventRegistration registration, CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        // cancel, with retry if specified
-        var retryPolicy = registration.RetryPolicy;
-        if (retryPolicy != null)
-        {
-            await retryPolicy.ExecuteAsync(ct => CancelCoreAsync<TEvent>(id, registration, ct), cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            await CancelCoreAsync<TEvent>(id, registration, cancellationToken).ConfigureAwait(false);
-        }
+        // cancel, with resilience policies
+        await registration.MergedPolicy.ExecuteAsync(
+            ct => CancelCoreAsync<TEvent>(id, registration, ct), cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
     public virtual async Task CancelAsync<TEvent>(IList<string> ids, EventRegistration registration, CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        // cancel, with retry if specified
-        var retryPolicy = registration.RetryPolicy;
-        if (retryPolicy != null)
-        {
-            await retryPolicy.ExecuteAsync(ct => CancelCoreAsync<TEvent>(ids, registration, ct), cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            await CancelCoreAsync<TEvent>(ids, registration, cancellationToken).ConfigureAwait(false);
-        }
+        // cancel, with resilience policies
+        await registration.MergedPolicy.ExecuteAsync(
+            ct => CancelCoreAsync<TEvent>(ids, registration, ct), cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -332,16 +304,9 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             // Resolve the consumer
             var consumer = ActivatorUtilities.GetServiceOrCreateInstance<TConsumer>(scope.ServiceProvider);
 
-            // Invoke handler method, with retry if specified
-            var retryPolicy = registration.RetryPolicy;
-            if (retryPolicy != null)
-            {
-                await retryPolicy.ExecuteAsync(ct => consumer.ConsumeAsync(@event, ct), cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                await consumer.ConsumeAsync(@event, cancellationToken).ConfigureAwait(false);
-            }
+            // Invoke handler method, with resilience policies
+            await registration.MergedPolicy.ExecuteAsync(
+                ct => consumer.ConsumeAsync(@event, ct), cancellationToken).ConfigureAwait(false);
 
             return new EventConsumeResult(successful: true, exception: null);
         }

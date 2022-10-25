@@ -78,8 +78,11 @@ public class EventRegistration : IEquatable<EventRegistration?>
     /// </summary>
     public IDictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
 
+    /// <summary>Whether the execution policies have been merged.</summary>
+    internal bool MergedExecutionPolicies { get; set; } = false;
+
     /// <summary>The final policy used in executions for the event and it's consumers.</summary>
-    internal IAsyncPolicy MergedPolicy { get; set; } = Policy.NoOpAsync();
+    internal IAsyncPolicy ExecutionPolicy { get; set; } = Policy.NoOpAsync();
 
     #region Equality Overrides
 

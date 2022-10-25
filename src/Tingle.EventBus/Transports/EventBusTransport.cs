@@ -80,9 +80,8 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
-            // Set publish retry policy
-            reg.RetryPolicy ??= Options.RetryPolicy;
-            reg.RetryPolicy ??= BusOptions.RetryPolicy;
+            // Combine the retry policies
+            PollyHelper.Combine(BusOptions, Options, reg);
 
             foreach (var ecr in reg.Consumers)
             {
@@ -112,7 +111,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         where TEvent : class
     {
         // publish, with resilience policies
-        return await registration.MergedPolicy.ExecuteAsync(
+        return await registration.ExecutionPolicy.ExecuteAsync(
             ct => PublishCoreAsync(@event, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
     }
 
@@ -124,7 +123,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         where TEvent : class
     {
         // publish, with resilience policies
-        return await registration.MergedPolicy.ExecuteAsync(
+        return await registration.ExecutionPolicy.ExecuteAsync(
             ct => PublishCoreAsync(events, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
     }
 
@@ -151,7 +150,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         where TEvent : class
     {
         // cancel, with resilience policies
-        await registration.MergedPolicy.ExecuteAsync(
+        await registration.ExecutionPolicy.ExecuteAsync(
             ct => CancelCoreAsync<TEvent>(id, registration, ct), cancellationToken).ConfigureAwait(false);
     }
 
@@ -160,7 +159,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         where TEvent : class
     {
         // cancel, with resilience policies
-        await registration.MergedPolicy.ExecuteAsync(
+        await registration.ExecutionPolicy.ExecuteAsync(
             ct => CancelCoreAsync<TEvent>(ids, registration, ct), cancellationToken).ConfigureAwait(false);
     }
 
@@ -305,7 +304,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             var consumer = ActivatorUtilities.GetServiceOrCreateInstance<TConsumer>(scope.ServiceProvider);
 
             // Invoke handler method, with resilience policies
-            await registration.MergedPolicy.ExecuteAsync(
+            await registration.ExecutionPolicy.ExecuteAsync(
                 ct => consumer.ConsumeAsync(@event, ct), cancellationToken).ConfigureAwait(false);
 
             return new EventConsumeResult(successful: true, exception: null);

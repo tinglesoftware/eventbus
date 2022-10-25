@@ -81,8 +81,8 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         foreach (var reg in registrations)
         {
             // Set publish retry policy
-            reg.RetryPolicy ??= Options.DefaultRetryPolicy;
-            reg.RetryPolicy ??= BusOptions.DefaultRetryPolicy;
+            reg.RetryPolicy ??= Options.RetryPolicy;
+            reg.RetryPolicy ??= BusOptions.RetryPolicy;
 
             foreach (var ecr in reg.Consumers)
             {

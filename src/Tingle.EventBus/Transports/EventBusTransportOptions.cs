@@ -10,6 +10,18 @@ namespace Tingle.EventBus.Transports;
 public abstract class EventBusTransportOptions
 {
     /// <summary>
+    /// Optional retry policy to apply specifically for this transport.
+    /// This is in addition to what may be provided by the transport SDKs.
+    /// When provided alongside policies on the bus and the event registration,
+    /// it is configured inner to the one on the bus and outer to the one on the event registration.
+    /// </summary>
+    /// <remarks>
+    /// To specify a value on an event registration, use <see cref="EventRegistration.RetryPolicy"/>.
+    /// To specify a value on the bus, use <see cref="EventBusOptions.RetryPolicy"/>.
+    /// </remarks>
+    public AsyncRetryPolicy? RetryPolicy { get; set; }
+
+    /// <summary>
     /// The delay to introduce every time zero messages are received.
     /// This eases on the CPU consumption and reduces the query costs.
     /// The default value is 1 minute. Max value is 10 minutes and minimum is 30 seconds.
@@ -47,18 +59,6 @@ public abstract class EventBusTransportOptions
     /// To specify a value per consumer, use the <see cref="EventRegistration.IdFormat"/> option.
     /// </summary>
     public EventIdFormat? DefaultEventIdFormat { get; set; }
-
-    /// <summary>
-    /// Optional retry policy to apply specifically for this transport.
-    /// This is in addition to what may be provided by the transport SDKs.
-    /// When provided alongside policies on the bus and the event registration,
-    /// it is configured inner to the one on the bus and outer to the one on the event registration.
-    /// </summary>
-    /// <remarks>
-    /// To specify a value on an event registration, use <see cref="EventRegistration.RetryPolicy"/>.
-    /// To specify a value on the bus, use <see cref="EventBusOptions.DefaultRetryPolicy"/>.
-    /// </remarks>
-    public AsyncRetryPolicy? DefaultRetryPolicy { get; set; }
 
     /// <summary>
     /// Optional default behaviour for errors encountered in a consumer but are not handled.

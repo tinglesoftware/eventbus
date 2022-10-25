@@ -51,10 +51,9 @@ public class EventRegistration : IEquatable<EventRegistration?>
     public Type? EventSerializerType { get; set; }
 
     /// <summary>
-    /// The retry policy to apply when in addition to what may be provided by the SDKs for each transport.
-    /// When set to <see langword="null"/>, no additional retry policy is applied.
-    /// Defaults to <see langword="null"/>.
-    /// When this value is set, it overrides the default value set on the transport or the bus.
+    /// The retry policy to apply specifically for this event.
+    /// This is in addition to what may be provided by the SDKs for each transport.
+    /// When provided alongside policies on the transport and the bus, it is used as the inner most policy.
     /// </summary>
     /// <remarks>
     /// When a value is provided, the transport may extend the lock for the

@@ -54,11 +54,14 @@ public class EventBusOptions
     public EventIdFormat DefaultEventIdFormat { get; set; } = EventIdFormat.Guid;
 
     /// <summary>
-    /// Optional default retry policy to use where it is not specified.
-    /// To specify a value per consumer, use the <see cref="EventRegistration.RetryPolicy"/> option.
-    /// To specify a value per transport, use the <see cref="EventBusTransportOptions.DefaultRetryPolicy"/> option on the specific transport.
+    /// Optional retry policy to apply to the bus.
+    /// When provided alongside policies on the transport and the event registration, it is used as the putter most policy.
     /// Defaults to <see langword="null"/>.
     /// </summary>
+    /// <remarks>
+    /// To specify a value on an event registration, use <see cref="EventRegistration.RetryPolicy"/>.
+    /// To specify a value on a transport, use <see cref="EventBusTransportOptions.DefaultRetryPolicy"/> for the specific transport.
+    /// </remarks>
     public AsyncRetryPolicy? DefaultRetryPolicy { get; set; }
 
     /// <summary>

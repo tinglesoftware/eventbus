@@ -207,6 +207,9 @@ public class EventBus
     ///
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        // Stop the bus
+        logger.StoppingBus();
+
         // Stop the transports in parallel
         logger.StoppingTransports();
         var tasks = transports.Values.Select(t => t.StopAsync(cancellationToken));

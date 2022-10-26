@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <!--<UserSecretsId>710bcdca-052b-456d-be46-4efede662bb2</UserSecretsId>-->
+    <UserSecretsId>50e90b43-cf86-44cc-b5f8-2c8c5ff11362</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

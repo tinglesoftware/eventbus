@@ -83,7 +83,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         foreach (var reg in registrations)
         {
             // Combine the retry policies
-            PollyHelper.Combine(BusOptions, Options, reg);
+            PollyHelper.CombineIfNeeded(BusOptions, Options, reg);
 
             foreach (var ecr in reg.Consumers)
             {

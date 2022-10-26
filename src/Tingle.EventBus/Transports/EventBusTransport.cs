@@ -134,6 +134,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     {
         // publish, with resilience policies
         await WaitStartedAsync(cancellationToken).ConfigureAwait(false);
+        PollyHelper.CombineIfNeeded(BusOptions, Options, registration); // ensure policy is set for non-consumer events
         Logger.SendingEvent(eventBusId: @event.Id, transportName: Name, scheduled: scheduled);
         return await registration.ExecutionPolicy.ExecuteAsync(
             ct => PublishCoreAsync(@event, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
@@ -148,6 +149,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     {
         // publish, with resilience policies
         await WaitStartedAsync(cancellationToken).ConfigureAwait(false);
+        PollyHelper.CombineIfNeeded(BusOptions, Options, registration); // ensure policy is set for non-consumer events
         Logger.SendingEvents(events, Name, scheduled);
         return await registration.ExecutionPolicy.ExecuteAsync(
             ct => PublishCoreAsync(events, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
@@ -193,6 +195,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     {
         // cancel, with resilience policies
         await WaitStartedAsync(cancellationToken).ConfigureAwait(false);
+        PollyHelper.CombineIfNeeded(BusOptions, Options, registration); // ensure policy is set for non-consumer events
         Logger.CancelingEvent(id, Name);
         await registration.ExecutionPolicy.ExecuteAsync(
             ct => CancelCoreAsync<TEvent>(id, registration, ct), cancellationToken).ConfigureAwait(false);
@@ -204,6 +207,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     {
         // cancel, with resilience policies
         await WaitStartedAsync(cancellationToken).ConfigureAwait(false);
+        PollyHelper.CombineIfNeeded(BusOptions, Options, registration); // ensure policy is set for non-consumer events
         Logger.CancelingEvents(ids, Name);
         await registration.ExecutionPolicy.ExecuteAsync(
             ct => CancelCoreAsync<TEvent>(ids, registration, ct), cancellationToken).ConfigureAwait(false);

@@ -7,7 +7,7 @@ namespace Tingle.EventBus;
 
 internal static class PollyHelper
 {
-    public static void Combine(EventBusOptions busOptions, EventBusTransportOptions transportOptions, EventRegistration registration)
+    public static void CombineIfNeeded(EventBusOptions busOptions, EventBusTransportOptions transportOptions, EventRegistration registration)
     {
         if (busOptions is null) throw new ArgumentNullException(nameof(busOptions));
         if (transportOptions is null) throw new ArgumentNullException(nameof(transportOptions));
@@ -16,11 +16,11 @@ internal static class PollyHelper
         // if the policies have been merged, there is no need to repeat the process
         if (registration.MergedExecutionPolicies) return;
 
-        registration.ExecutionPolicy = CombineInternal(busOptions, transportOptions, registration);
+        registration.ExecutionPolicy = Combine(busOptions, transportOptions, registration);
         registration.MergedExecutionPolicies = true;
     }
 
-    private static IAsyncPolicy CombineInternal(EventBusOptions busOptions, EventBusTransportOptions transportOptions, EventRegistration registration)
+    private static IAsyncPolicy Combine(EventBusOptions busOptions, EventBusTransportOptions transportOptions, EventRegistration registration)
     {
         var policies = new IAsyncPolicy?[] {
             busOptions.RetryPolicy,          // outer

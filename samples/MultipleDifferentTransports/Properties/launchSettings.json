@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MultipleDifferentTransports": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

@@ -90,7 +90,8 @@ public class EventBusBuilder
         if (configureOptions is not null) Services.Configure(name, configureOptions);
 
         Services.ConfigureOptions<TransportOptionsConfigureOptions<TOptions>>();
-        Services.AddSingleton<TTransport>();
+        // //  transport is not registered because multiple separate instances are required per name
+        // Services.AddSingleton<TTransport>();
         return this;
     }
 

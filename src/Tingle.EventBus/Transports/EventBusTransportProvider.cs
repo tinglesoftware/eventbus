@@ -46,8 +46,14 @@ public sealed class EventBusTransportProvider
             throw new InvalidOperationException($"The transport '{name}' is not registered. Ensure the transport is registered via builder.AddTransport(...)");
         }
 
-        // resolve the transport
-        transport = (IEventBusTransport)serviceProvider.GetRequiredService(tr.TransportType);
+        /*
+         * Create the transport.
+         * 
+         * Do not resolve transports from services because multiple transports of the same type but different names maybe registered.
+         * Resolving the same transport type would result in initialization the same instance, which would be erroneous when started.
+         * Create multiple transports of the same type means each instance can listen to events/messages independently.
+        */
+        transport = (IEventBusTransport)ActivatorUtilities.CreateInstance(serviceProvider, tr.TransportType);
         transport.Initialize(tr); // initialize the transport
         transports.Add(tr.Name, transport);
 

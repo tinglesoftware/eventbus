@@ -16,8 +16,10 @@ internal class AmazonKinesisConfigureOptions : AmazonTransportConfigureOptions<A
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
-    public override void PostConfigure(string name, AmazonKinesisTransportOptions options)
+    public override void PostConfigure(string? name, AmazonKinesisTransportOptions options)
     {
+        if (name is null) throw new ArgumentNullException(nameof(name));
+
         base.PostConfigure(name, options);
 
         // Ensure we have options for Kinesis and the region is set

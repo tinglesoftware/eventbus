@@ -16,8 +16,10 @@ internal class KafkaConfigureOptions : IPostConfigureOptions<KafkaTransportOptio
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
-    public void PostConfigure(string name, KafkaTransportOptions options)
+    public void PostConfigure(string? name, KafkaTransportOptions options)
     {
+        if (name is null) throw new ArgumentNullException(nameof(name));
+
         if (options.BootstrapServers == null && options.AdminConfig == null)
         {
             throw new InvalidOperationException($"Either '{nameof(options.BootstrapServers)}' or '{nameof(options.AdminConfig)}' must be provided");

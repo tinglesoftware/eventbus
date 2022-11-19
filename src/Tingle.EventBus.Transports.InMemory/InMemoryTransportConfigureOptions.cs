@@ -15,8 +15,10 @@ internal class InMemoryTransportConfigureOptions : IPostConfigureOptions<InMemor
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
-    public void PostConfigure(string name, InMemoryTransportOptions options)
+    public void PostConfigure(string? name, InMemoryTransportOptions options)
     {
+        if (name is null) throw new ArgumentNullException(nameof(name));
+
         var registrations = busOptions.GetRegistrations(name);
         foreach (var reg in registrations)
         {

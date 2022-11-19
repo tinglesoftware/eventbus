@@ -16,7 +16,7 @@ var host = Host.CreateDefaultBuilder(args)
 
                            o.ConfigureEvent<VehicleTelemetryEvent>(reg =>
                            {
-                               reg.ConfigureAsIotHubEvent(configuration["IotHubEventHubName"])
+                               reg.ConfigureAsIotHubEvent(configuration["IotHubEventHubName"]!)
                                   .UseIotHubEventSerializer();
 
                                reg.TransportName = AzureEventHubsDefaults.Name; // you can also use EventTransportNameAttribute on the event type declaration
@@ -28,14 +28,14 @@ var host = Host.CreateDefaultBuilder(args)
                        // Transport specific configuration
                        builder.AddAzureEventHubsTransport(options =>
                        {
-                           options.Credentials = configuration.GetConnectionString("EventHub");
-                           options.BlobStorageCredentials = configuration.GetConnectionString("AzureStorage");
+                           options.Credentials = configuration.GetConnectionString("EventHub")!;
+                           options.BlobStorageCredentials = configuration.GetConnectionString("AzureStorage")!;
                        });
 
                        // Transport specific configuration
                        builder.AddAzureServiceBusTransport(options =>
                        {
-                           options.Credentials = configuration.GetConnectionString("ServiceBus");
+                           options.Credentials = configuration.GetConnectionString("ServiceBus")!;
                            options.DefaultEntityKind = EntityKind.Queue; // required if using the basic SKU (does not support topics)
                        });
                    });

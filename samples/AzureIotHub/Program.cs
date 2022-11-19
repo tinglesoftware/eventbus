@@ -10,7 +10,7 @@ var host = Host.CreateDefaultBuilder(args)
                    {
                        builder.Configure(o => o.ConfigureEvent<MyIotHubEvent>(reg =>
                        {
-                           reg.ConfigureAsIotHubEvent(configuration["IotHubEventHubName"])
+                           reg.ConfigureAsIotHubEvent(configuration["IotHubEventHubName"]!)
                               .UseIotHubEventSerializer();
                        }));
 
@@ -19,8 +19,8 @@ var host = Host.CreateDefaultBuilder(args)
                        // Transport specific configuration
                        builder.AddAzureEventHubsTransport(options =>
                        {
-                           options.Credentials = configuration.GetConnectionString("EventHub");
-                           options.BlobStorageCredentials = configuration.GetConnectionString("AzureStorage");
+                           options.Credentials = configuration.GetConnectionString("EventHub")!;
+                           options.BlobStorageCredentials = configuration.GetConnectionString("AzureStorage")!;
                        });
                    });
                })

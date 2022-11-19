@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 internal class XmlEventSerializerConfigureOptions : IValidateOptions<XmlEventSerializerOptions>
 {
-    public ValidateOptionsResult Validate(string name, XmlEventSerializerOptions options)
+    public ValidateOptionsResult Validate(string? name, XmlEventSerializerOptions options)
     {
         return ValidateOptionsResult.Success;
     }

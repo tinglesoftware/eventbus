@@ -407,10 +407,10 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     /// <param name="sequenceNumber"></param>
     /// <param name="extras">The extras to put in the scope. (Optional)</param>
     /// <returns>A disposable object that ends the logical operation scope on dispose.</returns>
-    protected IDisposable BeginLoggingScopeForConsume(string? id,
-                                                      string? correlationId,
-                                                      string? sequenceNumber = null,
-                                                      IDictionary<string, string?>? extras = null)
+    protected IDisposable? BeginLoggingScopeForConsume(string? id,
+                                                       string? correlationId,
+                                                       string? sequenceNumber = null,
+                                                       IDictionary<string, string?>? extras = null)
     {
         var state = new Dictionary<string, string>();
         state.AddIfNotDefault(MetadataNames.Id, id);

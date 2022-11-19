@@ -10,7 +10,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 public abstract class AmazonTransportConfigureOptions<TOptions> : IPostConfigureOptions<TOptions> where TOptions : AmazonTransportOptions
 {
     /// <inheritdoc/>
-    public virtual void PostConfigure(string name, TOptions options)
+    public virtual void PostConfigure(string? name, TOptions options)
     {
         // Ensure the region is provided
         if (string.IsNullOrWhiteSpace(options.RegionName) && options.Region == null)

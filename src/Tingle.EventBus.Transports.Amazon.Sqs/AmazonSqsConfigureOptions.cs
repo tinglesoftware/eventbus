@@ -17,8 +17,10 @@ internal class AmazonSqsConfigureOptions : AmazonTransportConfigureOptions<Amazo
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
-    public override void PostConfigure(string name, AmazonSqsTransportOptions options)
+    public override void PostConfigure(string? name, AmazonSqsTransportOptions options)
     {
+        if (name is null) throw new ArgumentNullException(nameof(name));
+
         base.PostConfigure(name, options);
 
         // Ensure we have options for SQS and SNS and their regions are set

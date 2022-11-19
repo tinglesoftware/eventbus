@@ -51,7 +51,7 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
     }
 
     /// <inheritdoc/>
-    public void PostConfigure(string name, EventBusOptions options)
+    public void PostConfigure(string? name, EventBusOptions options)
     {
         // Check bounds for duplicate detection duration, if duplicate detection is enabled
         if (options.EnableDeduplication)
@@ -100,7 +100,7 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
     }
 
     /// <inheritdoc/>
-    public ValidateOptionsResult Validate(string name, EventBusOptions options)
+    public ValidateOptionsResult Validate(string? name, EventBusOptions options)
     {
         // Ensure there are no events with the same name
         var registrations = options.Registrations.Values.ToList();
@@ -128,7 +128,7 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
     }
 
     /// <inheritdoc/>
-    public ValidateOptionsResult Validate(string name, EventBusSerializationOptions options)
+    public ValidateOptionsResult Validate(string? name, EventBusSerializationOptions options)
     {
         // Ensure we have SerializerOptions set
         if (options.SerializerOptions == null)

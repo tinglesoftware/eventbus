@@ -16,8 +16,10 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
     }
 
     /// <inheritdoc/>
-    public override void PostConfigure(string name, AzureEventHubsTransportOptions options)
+    public override void PostConfigure(string? name, AzureEventHubsTransportOptions options)
     {
+        if (name is null) throw new ArgumentNullException(nameof(name));
+
         base.PostConfigure(name, options);
 
         // ensure we have a FullyQualifiedNamespace when using AzureEventHubsTransportCredentials

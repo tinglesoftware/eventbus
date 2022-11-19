@@ -10,13 +10,13 @@ public abstract class AzureTransportConfigureOptions<TCredential, TOptions> : IP
     where TOptions : AzureTransportOptions<TCredential>
 {
     /// <inheritdoc/>
-    public virtual void PostConfigure(string name, TOptions options)
+    public virtual void PostConfigure(string? name, TOptions options)
     {
         // intentionally left bank for future use
     }
 
     /// <inheritdoc/>
-    public virtual ValidateOptionsResult Validate(string name, TOptions options)
+    public virtual ValidateOptionsResult Validate(string? name, TOptions options)
     {
         // We should either have a token credential or a connection string
         if (options.Credentials == default || options.Credentials.CurrentValue is null)

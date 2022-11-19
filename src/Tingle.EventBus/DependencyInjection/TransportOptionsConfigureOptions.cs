@@ -10,7 +10,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <typeparam name="T"></typeparam>
 internal class TransportOptionsConfigureOptions<T> : IPostConfigureOptions<T> where T : EventBusTransportOptions
 {
-    public void PostConfigure(string name, T options)
+    public void PostConfigure(string? name, T options)
     {
         // check bounds for empty results delay
         var ticks = options.EmptyResultsDelay.Ticks;

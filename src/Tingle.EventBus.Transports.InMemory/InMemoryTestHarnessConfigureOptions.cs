@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 internal class InMemoryTestHarnessConfigureOptions : IPostConfigureOptions<InMemoryTestHarnessOptions>
 {
-    public void PostConfigure(string name, InMemoryTestHarnessOptions options)
+    public void PostConfigure(string? name, InMemoryTestHarnessOptions options)
     {
         // intentionally left bank for future use
     }

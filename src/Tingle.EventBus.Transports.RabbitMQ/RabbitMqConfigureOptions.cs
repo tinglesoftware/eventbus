@@ -16,8 +16,10 @@ internal class RabbitMqConfigureOptions : IPostConfigureOptions<RabbitMqTranspor
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
-    public void PostConfigure(string name, RabbitMqTransportOptions options)
+    public void PostConfigure(string? name, RabbitMqTransportOptions options)
     {
+        if (name is null) throw new ArgumentNullException(nameof(name));
+
         // If there are consumers for this transport, confirm the right Bus options
         var registrations = busOptions.GetRegistrations(name);
         if (registrations.Any(r => r.Consumers.Count > 0))

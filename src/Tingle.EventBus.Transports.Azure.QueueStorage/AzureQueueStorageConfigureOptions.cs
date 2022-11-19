@@ -16,8 +16,10 @@ internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOption
     }
 
     /// <inheritdoc/>
-    public override void PostConfigure(string name, AzureQueueStorageTransportOptions options)
+    public override void PostConfigure(string? name, AzureQueueStorageTransportOptions options)
     {
+        if (name is null) throw new ArgumentNullException(nameof(name));
+
         base.PostConfigure(name, options);
 
         // ensure we have a ServiceUrl when using AzureQueueStorageTransportCredentials

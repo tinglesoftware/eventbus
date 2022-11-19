@@ -8,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 internal class NewtonsoftJsonSerializerConfigureOptions : IValidateOptions<NewtonsoftJsonSerializerOptions>
 {
-    public ValidateOptionsResult Validate(string name, NewtonsoftJsonSerializerOptions options)
+    public ValidateOptionsResult Validate(string? name, NewtonsoftJsonSerializerOptions options)
     {
         // Ensure the settings are provided
         if (options.SerializerSettings == null)

@@ -5,6 +5,7 @@ using System.Net.Mime;
 using System.Text.RegularExpressions;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Internal;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Transports;

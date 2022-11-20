@@ -3,7 +3,7 @@ using Polly;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Transports;
 
-namespace Tingle.EventBus;
+namespace Tingle.EventBus.Internal;
 
 internal static class PollyHelper
 {

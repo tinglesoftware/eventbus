@@ -234,19 +234,17 @@ public class EventBus
     internal EventRegistration GetOrCreateRegistration<TEvent>()
     {
         // if there's already a registration for the event return it
-        var eventType = typeof(TEvent);
-        if (options.Registrations.TryGetValue(key: eventType, out var registration)) return registration;
-
-        // at this point, the registration does not exist;
-        // create it and add to the registrations for repeated use
-        options.Registrations[eventType] = registration = new EventRegistration(eventType);
-
-        // pass the registration via all the configurators.
-        foreach (var cfg in configurators)
+        return options.Registrations.GetOrAdd(typeof(TEvent), et =>
         {
-            cfg.Configure(registration, options);
-        }
+            // at this point, the registration does not exist;
+            // create it and pass it through all the configurators.
+            var registration = new EventRegistration(et);
+            foreach (var cfg in configurators)
+            {
+                cfg.Configure(registration, options);
+            }
 
-        return registration;
+            return registration;
+        });
     }
 }

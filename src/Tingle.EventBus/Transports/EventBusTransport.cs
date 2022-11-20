@@ -412,22 +412,24 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                                                        string? sequenceNumber = null,
                                                        IDictionary<string, string?>? extras = null)
     {
-        var state = new EventBusDictionaryWrapper<string, string>();
-        state.AddIfNotDefault(MetadataNames.Id, id);
-        state.AddIfNotDefault(MetadataNames.CorrelationId, correlationId);
-        state.AddIfNotDefault(MetadataNames.SequenceNumber, sequenceNumber);
+        var state = new Dictionary<string, string>();
+        state.ToEventBusWrapper()
+             .AddIfNotDefault(MetadataNames.Id, id)
+             .AddIfNotDefault(MetadataNames.CorrelationId, correlationId)
+             .AddIfNotDefault(MetadataNames.SequenceNumber, sequenceNumber);
 
         // if there are extras, add them
         if (extras != null)
         {
+            var wr = state.ToEventBusWrapper();
             foreach (var kvp in extras)
             {
-                state.AddIfNotDefault(kvp.Key, kvp.Value);
+                wr.AddIfNotDefault(kvp.Key, kvp.Value);
             }
         }
 
         // create the scope
-        return Logger.BeginScope(state.Dictionary);
+        return Logger.BeginScope(state);
     }
 
     #endregion

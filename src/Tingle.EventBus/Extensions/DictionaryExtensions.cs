@@ -1,4 +1,4 @@
-﻿using Tingle.EventBus;
+﻿using Tingle.EventBus.Internal;
 
 namespace System.Collections.Generic;
 

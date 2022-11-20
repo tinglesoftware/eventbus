@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Internal;
 
 namespace Tingle.EventBus.Transports.Azure.QueueStorage;
 
@@ -14,8 +15,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage;
 /// </summary>
 public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTransportOptions>, IDisposable
 {
-    private readonly Dictionary<(Type, bool), QueueClient> queueClientsCache = new();
-    private readonly SemaphoreSlim queueClientsCacheLock = new(1, 1); // only one at a time.
+    private readonly EventBusConcurrentDictionary<(Type, bool), QueueClient> queueClientsCache = new(1, 1);
     private readonly CancellationTokenSource stoppingCts = new();
     private readonly List<Task> receiverTasks = new();
     private readonly Lazy<QueueServiceClient> serviceClient;
@@ -207,54 +207,44 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
         }
     }
 
-    private async Task<QueueClient> GetQueueClientAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
+    private Task<QueueClient> GetQueueClientAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
     {
-        await queueClientsCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-        try
+        async Task<QueueClient> creator((Type, bool) _, CancellationToken ct)
         {
-            if (!queueClientsCache.TryGetValue((reg.EventType, deadletter), out var queueClient))
+            var name = reg.EventName!;
+            if (deadletter) name += Options.DeadLetterSuffix;
+
+            // create the queue client options
+            var qco = new QueueClientOptions
             {
-                var name = reg.EventName!;
-                if (deadletter) name += Options.DeadLetterSuffix;
+                // Using base64 encoding allows for complex data like JSON
+                // to be embedded in the generated XML request body
+                // https://github.com/Azure-Samples/storage-queue-dotnet-getting-started/issues/4
+                MessageEncoding = QueueMessageEncoding.Base64,
+            };
 
-                // create the queue client options
-                var qco = new QueueClientOptions
-                {
-                    // Using base64 encoding allows for complex data like JSON
-                    // to be embedded in the generated XML request body
-                    // https://github.com/Azure-Samples/storage-queue-dotnet-getting-started/issues/4
-                    MessageEncoding = QueueMessageEncoding.Base64,
-                };
+            // create the queue client
+            // queueUri has the format "https://{account_name}.queue.core.windows.net/{queue_name}" which can be made using "{serviceClient.Uri}/{queue_name}"
+            var cred = Options.Credentials.CurrentValue;
+            var queueClient = cred is AzureQueueStorageTransportCredentials aqstc
+                ? new QueueClient(queueUri: new Uri($"{serviceClient.Value.Uri}/{name}"), credential: aqstc.TokenCredential, options: qco)
+                : new QueueClient(connectionString: (string)cred, queueName: name, options: qco);
 
-                // create the queue client
-                // queueUri has the format "https://{account_name}.queue.core.windows.net/{queue_name}" which can be made using "{serviceClient.Uri}/{queue_name}"
-                var cred = Options.Credentials.CurrentValue;
-                queueClient = cred is AzureQueueStorageTransportCredentials aqstc
-                    ? new QueueClient(queueUri: new Uri($"{serviceClient.Value.Uri}/{name}"), credential: aqstc.TokenCredential, options: qco)
-                    : new QueueClient(connectionString: (string)cred, queueName: name, options: qco);
-
-                // if entity creation is enabled, ensure queue is created
-                if (Options.EnableEntityCreation)
-                {
-                    // ensure queue is created if it does not exist
-                    Logger.EnsuringQueue(queueName: name);
-                    await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    Logger.EntityCreationDisabled();
-                }
-
-                queueClientsCache[(reg.EventType, deadletter)] = queueClient;
+            // if entity creation is enabled, ensure queue is created
+            if (Options.EnableEntityCreation)
+            {
+                // ensure queue is created if it does not exist
+                Logger.EnsuringQueue(queueName: name);
+                await queueClient.CreateIfNotExistsAsync(cancellationToken: ct).ConfigureAwait(false);
+            }
+            else
+            {
+                Logger.EntityCreationDisabled();
             }
 
             return queueClient;
         }
-        finally
-        {
-            queueClientsCacheLock.Release();
-        }
+        return queueClientsCache.GetOrAddAsync((reg.EventType, deadletter), creator, cancellationToken);
     }
 
     private async Task ReceiveAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)

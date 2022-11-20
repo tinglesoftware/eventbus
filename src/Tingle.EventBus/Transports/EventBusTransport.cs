@@ -5,6 +5,7 @@ using System.Net.Mime;
 using System.Text.RegularExpressions;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Internal;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Transports;
@@ -413,16 +414,18 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                                                        IDictionary<string, string?>? extras = null)
     {
         var state = new Dictionary<string, string>();
-        state.AddIfNotDefault(MetadataNames.Id, id);
-        state.AddIfNotDefault(MetadataNames.CorrelationId, correlationId);
-        state.AddIfNotDefault(MetadataNames.SequenceNumber, sequenceNumber);
+        state.ToEventBusWrapper()
+             .AddIfNotDefault(MetadataNames.Id, id)
+             .AddIfNotDefault(MetadataNames.CorrelationId, correlationId)
+             .AddIfNotDefault(MetadataNames.SequenceNumber, sequenceNumber);
 
         // if there are extras, add them
         if (extras != null)
         {
+            var wr = state.ToEventBusWrapper();
             foreach (var kvp in extras)
             {
-                state.AddIfNotDefault(kvp.Key, kvp.Value);
+                wr.AddIfNotDefault(kvp.Key, kvp.Value);
             }
         }
 

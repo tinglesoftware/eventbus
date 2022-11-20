@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Tingle.EventBus;
+namespace Tingle.EventBus.Internal;
 
 /// <summary>
 /// Host for <see cref="EventBus"/>.

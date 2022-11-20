@@ -1,6 +1,7 @@
 ﻿using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Ids;
+using Tingle.EventBus.Internal;
 using Tingle.EventBus.Serialization;
 using Tingle.EventBus.Transports;
 

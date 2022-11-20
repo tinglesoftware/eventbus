@@ -12,30 +12,6 @@ namespace Tingle.EventBus.Internal;
 [DefaultMember("Item")]
 public sealed class EventBusConcurrentDictionary<TKey, TValue> : ConcurrentDictionary<TKey, Task<TValue>> where TKey : notnull
 {
-    /// <inheritdoc/>
-    public EventBusConcurrentDictionary() { }
-
-    /// <inheritdoc/>
-    public EventBusConcurrentDictionary(IEnumerable<KeyValuePair<TKey, Task<TValue>>> collection) : base(collection) { }
-
-    /// <inheritdoc/>
-    public EventBusConcurrentDictionary(IEqualityComparer<TKey>? comparer) : base(comparer) { }
-
-    /// <inheritdoc/>
-    public EventBusConcurrentDictionary(IEnumerable<KeyValuePair<TKey, Task<TValue>>> collection, IEqualityComparer<TKey>? comparer)
-        : base(collection, comparer) { }
-
-    /// <inheritdoc/>
-    public EventBusConcurrentDictionary(int concurrencyLevel, int capacity) : base(concurrencyLevel, capacity) { }
-
-    /// <inheritdoc/>
-    public EventBusConcurrentDictionary(int concurrencyLevel, IEnumerable<KeyValuePair<TKey, Task<TValue>>> collection, IEqualityComparer<TKey>? comparer)
-        : base(concurrencyLevel, collection, comparer) { }
-
-    /// <inheritdoc/>
-    public EventBusConcurrentDictionary(int concurrencyLevel, int capacity, IEqualityComparer<TKey>? comparer)
-        : base(concurrencyLevel, capacity, comparer) { }
-
     // Code below is inspired by https://gist.github.com/davidfowl/3dac8f7b3d141ae87abf770d5781feed#file-concurrentdictionaryextensions-cs-L53-L87
 
     /// <summary>

@@ -20,8 +20,8 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs;
 /// </summary>
 public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, IDisposable
 {
-    private readonly EventBusConcurrentDictionary<Type, string> topicArnsCache = new(1, 1);
-    private readonly EventBusConcurrentDictionary<QueueCacheKey, string> queueUrlsCache = new(1, 1);
+    private readonly EventBusConcurrentDictionary<Type, string> topicArnsCache = new();
+    private readonly EventBusConcurrentDictionary<QueueCacheKey, string> queueUrlsCache = new();
     private readonly CancellationTokenSource stoppingCts = new();
     private readonly List<Task> receiverTasks = new();
     private readonly Lazy<AmazonSimpleNotificationServiceClient> snsClient;

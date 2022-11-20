@@ -15,7 +15,7 @@ namespace Tingle.EventBus.Transports.Azure.QueueStorage;
 /// </summary>
 public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTransportOptions>, IDisposable
 {
-    private readonly EventBusConcurrentDictionary<(Type, bool), QueueClient> queueClientsCache = new(1, 1);
+    private readonly EventBusConcurrentDictionary<(Type, bool), QueueClient> queueClientsCache = new();
     private readonly CancellationTokenSource stoppingCts = new();
     private readonly List<Task> receiverTasks = new();
     private readonly Lazy<QueueServiceClient> serviceClient;

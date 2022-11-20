@@ -17,8 +17,8 @@ namespace Tingle.EventBus.Transports.InMemory;
 /// </summary>
 public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
 {
-    private readonly EventBusConcurrentDictionary<Type, InMemorySender> sendersCache = new(1, 1);
-    private readonly EventBusConcurrentDictionary<string, InMemoryProcessor> processorsCache = new(1, 1);
+    private readonly EventBusConcurrentDictionary<Type, InMemorySender> sendersCache = new();
+    private readonly EventBusConcurrentDictionary<string, InMemoryProcessor> processorsCache = new();
     private readonly InMemoryClient inMemoryClient;
 
     private readonly ConcurrentBag<EventContext> published = new();

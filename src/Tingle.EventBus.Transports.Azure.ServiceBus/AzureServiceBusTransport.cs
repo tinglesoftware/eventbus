@@ -16,8 +16,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus;
 /// </summary>
 public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTransportOptions>
 {
-    private readonly EventBusConcurrentDictionary<Type, ServiceBusSender> sendersCache = new(1, 1);
-    private readonly EventBusConcurrentDictionary<string, ServiceBusProcessor> processorsCache = new(1, 1);
+    private readonly EventBusConcurrentDictionary<Type, ServiceBusSender> sendersCache = new();
+    private readonly EventBusConcurrentDictionary<string, ServiceBusProcessor> processorsCache = new();
     private readonly SemaphoreSlim propertiesCacheLock = new(1, 1); // only one at a time.
     private readonly Lazy<ServiceBusAdministrationClient> managementClient;
     private readonly Lazy<ServiceBusClient> serviceBusClient;

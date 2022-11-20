@@ -19,8 +19,8 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs;
 /// </summary>
 public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransportOptions>
 {
-    private readonly EventBusConcurrentDictionary<(Type, bool), EventHubProducerClient> producersCache = new(1, 1);
-    private readonly EventBusConcurrentDictionary<string, EventProcessorClient> processorsCache = new(1, 1);
+    private readonly EventBusConcurrentDictionary<(Type, bool), EventHubProducerClient> producersCache = new();
+    private readonly EventBusConcurrentDictionary<string, EventProcessorClient> processorsCache = new();
 
     /// <summary>
     /// 

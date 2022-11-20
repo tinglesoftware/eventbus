@@ -158,7 +158,8 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
         }
 
         // Add custom properties
-        message.ApplicationProperties.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+        message.ApplicationProperties.ToEventBusWrapper()
+                                     .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                                      .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                                      .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
@@ -220,7 +221,8 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
             }
 
             // Add custom properties
-            message.ApplicationProperties.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+            message.ApplicationProperties.ToEventBusWrapper()
+                                         .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                                          .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                                          .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 

@@ -74,8 +74,9 @@ public class EventBus
         activity?.AddTag(ActivityTagNames.EventBusEventsCount, 1);
 
         // Add diagnostics headers to event
-        @event.Headers.AddIfNotDefault(HeaderNames.EventType, typeof(TEvent).FullName);
-        @event.Headers.AddIfNotDefault(HeaderNames.ActivityId, activity?.Id);
+        @event.Headers.ToEventBusWrapper()
+                      .AddIfNotDefault(HeaderNames.EventType, typeof(TEvent).FullName)
+                      .AddIfNotDefault(HeaderNames.ActivityId, activity?.Id);
 
         // Set properties that may be missing
         @event.Id ??= idGenerator.Generate(reg);
@@ -125,8 +126,9 @@ public class EventBus
         foreach (var @event in events)
         {
             // Add diagnostics headers
-            @event.Headers.AddIfNotDefault(HeaderNames.EventType, typeof(TEvent).FullName);
-            @event.Headers.AddIfNotDefault(HeaderNames.ActivityId, Activity.Current?.Id);
+            @event.Headers.ToEventBusWrapper()
+                          .AddIfNotDefault(HeaderNames.EventType, typeof(TEvent).FullName)
+                          .AddIfNotDefault(HeaderNames.ActivityId, Activity.Current?.Id);
 
             // Set properties that may be missing
             @event.Id ??= idGenerator.Generate(reg);

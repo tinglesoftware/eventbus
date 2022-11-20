@@ -131,7 +131,8 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
             data.CorrelationId = @event.CorrelationId;
         }
 
-        data.Properties.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+        data.Properties.ToEventBusWrapper()
+                       .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                        .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                        .AddIfNotDefault(MetadataNames.EventName, registration.EventName)
                        .AddIfNotDefault(MetadataNames.EventType, registration.EventType.FullName)
@@ -185,7 +186,8 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
                 data.CorrelationId = @event.CorrelationId;
             }
 
-            data.Properties.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+            data.Properties.ToEventBusWrapper()
+                           .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                            .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                            .AddIfNotDefault(MetadataNames.EventName, registration.EventName)
                            .AddIfNotDefault(MetadataNames.EventType, registration.EventType.FullName)

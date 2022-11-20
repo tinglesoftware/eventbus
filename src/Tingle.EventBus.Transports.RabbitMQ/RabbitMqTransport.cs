@@ -126,7 +126,8 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
             }
 
             // Add custom properties
-            properties.Headers.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+            properties.Headers.ToEventBusWrapper()
+                              .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                               .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                               .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
@@ -202,7 +203,8 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
                 }
 
                 // Add custom properties
-                properties.Headers.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+                properties.Headers.ToEventBusWrapper()
+                                  .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                                   .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                                   .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 

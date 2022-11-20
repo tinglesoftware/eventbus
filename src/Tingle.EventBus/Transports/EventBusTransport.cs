@@ -412,7 +412,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                                                        string? sequenceNumber = null,
                                                        IDictionary<string, string?>? extras = null)
     {
-        var state = new Dictionary<string, string>();
+        var state = new EventBusDictionaryWrapper<string, string>();
         state.AddIfNotDefault(MetadataNames.Id, id);
         state.AddIfNotDefault(MetadataNames.CorrelationId, correlationId);
         state.AddIfNotDefault(MetadataNames.SequenceNumber, sequenceNumber);
@@ -427,7 +427,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         }
 
         // create the scope
-        return Logger.BeginScope(state);
+        return Logger.BeginScope(state.Dictionary);
     }
 
     #endregion

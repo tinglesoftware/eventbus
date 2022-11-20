@@ -146,7 +146,8 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
         }
 
         // Add custom properties
-        message.Properties.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+        message.Properties.ToEventBusWrapper()
+                          .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                           .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                           .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
@@ -204,7 +205,8 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
             }
 
             // Add custom properties
-            message.Properties.AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
+            message.Properties.ToEventBusWrapper()
+                              .AddIfNotDefault(MetadataNames.RequestId, @event.RequestId)
                               .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                               .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 

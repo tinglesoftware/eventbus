@@ -29,23 +29,24 @@ A number fo the documents below are still a work in progress and would be added 
 
 ### Getting started
 
-[Bus Concepts and Configuration](docs/Bus-Concepts-and-Configuration.md)
+[Bus Concepts and Configuration](docs/bus-concepts-and-configuration.md)
 
 #### Features
 
-* [Choosing a transport](docs/Transport-Selection.md)
-* [Multiple transports in one bus](docs/Multi-Transport-One-Bus.md)
-* [Retries](docs/Retries.md)
-* [Event and Consumers](docs/Events-and-Consumers.md)
-* [Observability](docs/Observability.md)
-* [Your first app](docs/Your-first-app.md)
+* [Choosing a transport](docs/transport-selection.md)
+* [Multiple transports in one bus](docs/multi-transport-one-bus.md)
+* [Retries](docs/retries.md)
+* [Event and Consumers](docs/events-and-consumers.md)
+* [Observability](docs/observability.md)
+* [Your first app](docs/your-first-app.md)
 
 #### How to ...
 
-* [Work with Azure IoT Hub](docs/Work-with-Azure-IoT-Hub.md)
-* [Advanced Service Bus options](docs/Advanced-Service-Bus-options.md)
-* [Work with Feature Management](docs/Work-with-Feature-Management.md)
-* [Extend event configuration](docs/Extend-Event-Configuration.md)
+* [Work with Azure IoT Hub](docs/work-with-azure-iot-hub.md)
+* [Work with Azure Managed Identities](docs/work-with-azure-managed-identities.md)
+* [Advanced Service Bus options](docs/advanced-service-bus-options.md)
+* [Work with Feature Management](docs/work-with-feature-management.md)
+* [Extend event configuration](docs/extend-event-configuration.md)
 
 ## Samples
 
@@ -55,7 +56,12 @@ A number fo the documents below are still a work in progress and would be added 
 * [Build a custom event configurator](./samples/CustomEventConfigurator)
 * [Consume multiple events in one consumer](./samples/MultiEventsConsumer)
 * [Consume same event in multiple consumers](./samples/MultipleConsumers)
+* [Publish and consume events from multiple transports of the same type](./samples/MultipleSimilarTransports)
+* [Publish and consume events from multiple transports of different types](./samples/MultipleDifferentTransports)
 * [In memory background processing](./samples/InMemoryBackgroundProcessing)
+* [Using Amazon SQS and SNS](./samples/AmazonSqsAndSns)
+* [Receive events from Azure IoT Hub](./samples/AzureIotHub)
+* [Using Azure Managed Identity instead of Connection Strings](./samples/AzureManagedIdentity)
 
 ## Issues &amp; Comments
 

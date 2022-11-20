@@ -11,6 +11,7 @@ using System.Net.Mime;
 using System.Net.Sockets;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Internal;
 
 namespace Tingle.EventBus.Transports.RabbitMQ;
 
@@ -20,8 +21,7 @@ namespace Tingle.EventBus.Transports.RabbitMQ;
 public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, IDisposable
 {
     private readonly SemaphoreSlim connectionLock = new(1, 1);
-    private readonly Dictionary<string, IModel> subscriptionChannelsCache = new();
-    private readonly SemaphoreSlim subscriptionChannelsCacheLock = new(1, 1); // only one at a time.
+    private readonly EventBusConcurrentDictionary<string, IModel> subscriptionChannelsCache = new(1, 1);
     private RetryPolicy? retryPolicy;
 
     private IConnection? connection;
@@ -47,19 +47,20 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
     }
 
     /// <inheritdoc/>
-    protected override Task StopCoreAsync(CancellationToken cancellationToken)
+    protected override async Task StopCoreAsync(CancellationToken cancellationToken)
     {
-        var channels = subscriptionChannelsCache.Select(kvp => (key: kvp.Key, sc: kvp.Value)).ToList();
-        foreach (var (key, channel) in channels)
+        var channels = subscriptionChannelsCache.ToArray().Select(kvp => (key: kvp.Key, sc: kvp.Value)).ToList();
+        foreach (var (key, t) in channels)
         {
             Logger.LogDebug("Closing channel: {Subscription}", key);
 
             try
             {
+                var channel = await t.ConfigureAwait(false);
                 if (!channel.IsClosed)
                 {
                     channel.Close();
-                    subscriptionChannelsCache.Remove(key);
+                    subscriptionChannelsCache.TryRemove(key, out _);
                 }
 
                 Logger.LogDebug("Closed channel for {Subscription}", key);
@@ -69,8 +70,6 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
                 Logger.LogWarning(exception, "Close channel faulted for {Subscription}", key);
             }
         }
-
-        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
@@ -355,36 +354,30 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
 
     private async Task<IModel> GetSubscriptionChannelAsync(string exchangeName, string queueName, CancellationToken cancellationToken)
     {
-        await subscriptionChannelsCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-        try
+        Task<IModel> creator(string key, CancellationToken ct)
         {
-            var key = $"{exchangeName}/{queueName}";
-            if (!subscriptionChannelsCache.TryGetValue(key, out var channel)
-                || channel.IsClosed)
+            var channel = connection!.CreateModel();
+            channel.ExchangeDeclare(exchange: exchangeName, type: "fanout");
+            channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+            channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: "");
+            channel.CallbackException += delegate (object? sender, CallbackExceptionEventArgs e)
             {
-                // dispose existing channel
-                if (channel != null) channel.Dispose();
+                Logger.LogError(e.Exception, "Callback exception for {Subscription}", key);
+                var _ = ConnectConsumersAsync(CancellationToken.None); // do not await or chain token
+            };
 
-                channel = connection!.CreateModel();
-                channel.ExchangeDeclare(exchange: exchangeName, type: "fanout");
-                channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-                channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: "");
-                channel.CallbackException += delegate (object? sender, CallbackExceptionEventArgs e)
-                {
-                    Logger.LogError(e.Exception, "Callback exception for {Subscription}", key);
-                    var _ = ConnectConsumersAsync(CancellationToken.None); // do not await or chain token
-                };
-
-                subscriptionChannelsCache[key] = channel;
-            }
-
-            return channel;
+            return Task.FromResult(channel);
         }
-        finally
+
+        var key = $"{exchangeName}/{queueName}";
+        var c = await subscriptionChannelsCache.GetOrAddAsync(key, creator, cancellationToken).ConfigureAwait(false);
+        if (c.IsClosed)
         {
-            subscriptionChannelsCacheLock.Release();
+            subscriptionChannelsCache.TryRemove(key, out _);
+            c.Dispose();
         }
+
+        return await subscriptionChannelsCache.GetOrAddAsync(key, creator, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<bool> TryConnectAsync(CancellationToken cancellationToken)

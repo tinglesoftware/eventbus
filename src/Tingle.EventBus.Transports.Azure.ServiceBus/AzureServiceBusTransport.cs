@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Net.Mime;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Internal;
 
 namespace Tingle.EventBus.Transports.Azure.ServiceBus;
 
@@ -15,10 +16,8 @@ namespace Tingle.EventBus.Transports.Azure.ServiceBus;
 /// </summary>
 public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTransportOptions>
 {
-    private readonly Dictionary<Type, ServiceBusSender> sendersCache = new();
-    private readonly SemaphoreSlim sendersCacheLock = new(1, 1); // only one at a time.
-    private readonly Dictionary<string, ServiceBusProcessor> processorsCache = new();
-    private readonly SemaphoreSlim processorsCacheLock = new(1, 1); // only one at a time.
+    private readonly EventBusConcurrentDictionary<Type, ServiceBusSender> sendersCache = new(1, 1);
+    private readonly EventBusConcurrentDictionary<string, ServiceBusProcessor> processorsCache = new(1, 1);
     private readonly SemaphoreSlim propertiesCacheLock = new(1, 1); // only one at a time.
     private readonly Lazy<ServiceBusAdministrationClient> managementClient;
     private readonly Lazy<ServiceBusClient> serviceBusClient;
@@ -101,15 +100,16 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
     /// <inheritdoc/>
     protected override async Task StopCoreAsync(CancellationToken cancellationToken)
     {
-        var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
-        foreach (var (key, proc) in clients)
+        var clients = processorsCache.ToArray().Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
+        foreach (var (key, t) in clients)
         {
             Logger.StoppingProcessor(processor: key);
 
             try
             {
+                var proc = await t.ConfigureAwait(false);
                 await proc.StopProcessingAsync(cancellationToken).ConfigureAwait(false);
-                processorsCache.Remove(key);
+                processorsCache.TryRemove(key, out _);
 
                 Logger.StoppedProcessor(processor: key);
             }
@@ -292,113 +292,89 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
         await sender.CancelScheduledMessagesAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<ServiceBusSender> GetSenderAsync(EventRegistration reg, CancellationToken cancellationToken)
+    private Task<ServiceBusSender> GetSenderAsync(EventRegistration reg, CancellationToken cancellationToken)
     {
-        await sendersCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-        try
+        async Task<ServiceBusSender> creator(Type _, CancellationToken ct)
         {
-            if (!sendersCache.TryGetValue(reg.EventType, out var sender))
+            var name = reg.EventName!;
+
+            // Create the entity.
+            if (await ShouldUseQueueAsync(reg, ct).ConfigureAwait(false))
             {
-                var name = reg.EventName!;
-
-                // Create the entity.
-                if (await ShouldUseQueueAsync(reg, cancellationToken).ConfigureAwait(false))
-                {
-                    // Ensure Queue is created
-                    Logger.CreatingQueueSender(queueName: name);
-                    await CreateQueueIfNotExistsAsync(reg: reg, name: name, cancellationToken: cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    // Ensure topic is created
-                    Logger.CreatingTopicSender(topicName: name);
-                    await CreateTopicIfNotExistsAsync(reg: reg, name: name, cancellationToken: cancellationToken).ConfigureAwait(false);
-                }
-
-                // Create the sender
-                sender = serviceBusClient.Value.CreateSender(queueOrTopicName: name);
-                sendersCache[reg.EventType] = sender;
+                // Ensure Queue is created
+                Logger.CreatingQueueSender(queueName: name);
+                await CreateQueueIfNotExistsAsync(reg: reg, name: name, cancellationToken: ct).ConfigureAwait(false);
+            }
+            else
+            {
+                // Ensure topic is created
+                Logger.CreatingTopicSender(topicName: name);
+                await CreateTopicIfNotExistsAsync(reg: reg, name: name, cancellationToken: ct).ConfigureAwait(false);
             }
 
-            return sender;
+            // Create the sender
+            return serviceBusClient.Value.CreateSender(queueOrTopicName: name);
         }
-        finally
-        {
-            sendersCacheLock.Release();
-        }
+        return sendersCache.GetOrAddAsync(reg.EventType, creator, cancellationToken);
     }
 
-    private async Task<ServiceBusProcessor> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
+    private Task<ServiceBusProcessor> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
     {
-        await processorsCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var topicName = reg.EventName!;
+        var subscriptionName = ecr.ConsumerName!;
 
-        try
+        async Task<ServiceBusProcessor> creator(string key, CancellationToken ct)
         {
-            var topicName = reg.EventName!;
-            var subscriptionName = ecr.ConsumerName!;
-
-            var key = $"{topicName}/{subscriptionName}";
-            if (!processorsCache.TryGetValue(key, out var processor))
+            // Create the processor options
+            var sbpo = new ServiceBusProcessorOptions
             {
-                // Create the processor options
-                var sbpo = new ServiceBusProcessorOptions
-                {
-                    // Maximum number of concurrent calls to the callback ProcessMessagesAsync(), set to 1 for simplicity.
-                    // Set it according to how many messages the application wants to process in parallel.
-                    MaxConcurrentCalls = 1,
+                // Maximum number of concurrent calls to the callback ProcessMessagesAsync(), set to 1 for simplicity.
+                // Set it according to how many messages the application wants to process in parallel.
+                MaxConcurrentCalls = 1,
 
-                    // Indicates whether MessagePump should automatically complete the messages after returning from User Callback.
-                    // False below indicates the Complete will be handled by the User Callback as in `ProcessMessagesAsync` below.
-                    AutoCompleteMessages = false,
+                // Indicates whether MessagePump should automatically complete the messages after returning from User Callback.
+                // False below indicates the Complete will be handled by the User Callback as in `ProcessMessagesAsync` below.
+                AutoCompleteMessages = false,
 
-                    // Set the period of time for which to keep renewing the lock token
-                    MaxAutoLockRenewalDuration = Options.DefaultMaxAutoLockRenewDuration,
+                // Set the period of time for which to keep renewing the lock token
+                MaxAutoLockRenewalDuration = Options.DefaultMaxAutoLockRenewDuration,
 
-                    // Set the number of items to be cached locally
-                    PrefetchCount = Options.DefaultPrefetchCount,
-                };
+                // Set the number of items to be cached locally
+                PrefetchCount = Options.DefaultPrefetchCount,
+            };
 
-                // Allow for the defaults to be overridden
-                Options.SetupProcessorOptions?.Invoke(reg, ecr, sbpo);
+            // Allow for the defaults to be overridden
+            Options.SetupProcessorOptions?.Invoke(reg, ecr, sbpo);
 
-                // Create the processor.
-                if (await ShouldUseQueueAsync(reg, cancellationToken).ConfigureAwait(false))
-                {
-                    // Ensure Queue is created
-                    await CreateQueueIfNotExistsAsync(reg: reg, name: topicName, cancellationToken: cancellationToken).ConfigureAwait(false);
+            // Create the processor.
+            if (await ShouldUseQueueAsync(reg, ct).ConfigureAwait(false))
+            {
+                // Ensure Queue is created
+                await CreateQueueIfNotExistsAsync(reg: reg, name: topicName, cancellationToken: ct).ConfigureAwait(false);
 
-                    // Create the processor for the Queue
-                    Logger.CreatingQueueProcessor(queueName: topicName);
-                    processor = serviceBusClient.Value.CreateProcessor(queueName: topicName, options: sbpo);
-                }
-                else
-                {
-                    // Ensure Topic is created before creating the Subscription
-                    await CreateTopicIfNotExistsAsync(reg: reg, name: topicName, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                    // Ensure Subscription is created
-                    await CreateSubscriptionIfNotExistsAsync(ecr: ecr,
-                                                             topicName: topicName,
-                                                             subscriptionName: subscriptionName,
-                                                             cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                    // Create the processor for the Subscription
-                    Logger.CreatingSubscriptionProcessor(topicName: topicName, subscriptionName: subscriptionName);
-                    processor = serviceBusClient.Value.CreateProcessor(topicName: topicName,
-                                                                       subscriptionName: subscriptionName,
-                                                                       options: sbpo);
-                }
-
-                processorsCache[key] = processor;
+                // Create the processor for the Queue
+                Logger.CreatingQueueProcessor(queueName: topicName);
+                return serviceBusClient.Value.CreateProcessor(queueName: topicName, options: sbpo);
             }
+            else
+            {
+                // Ensure Topic is created before creating the Subscription
+                await CreateTopicIfNotExistsAsync(reg: reg, name: topicName, cancellationToken: ct).ConfigureAwait(false);
 
-            return processor;
+                // Ensure Subscription is created
+                await CreateSubscriptionIfNotExistsAsync(ecr: ecr,
+                                                         topicName: topicName,
+                                                         subscriptionName: subscriptionName,
+                                                         cancellationToken: ct).ConfigureAwait(false);
+
+                // Create the processor for the Subscription
+                Logger.CreatingSubscriptionProcessor(topicName: topicName, subscriptionName: subscriptionName);
+                return serviceBusClient.Value.CreateProcessor(topicName: topicName, subscriptionName: subscriptionName, options: sbpo);
+            }
         }
-        finally
-        {
-            processorsCacheLock.Release();
-        }
+
+        var key = $"{topicName}/{subscriptionName}";
+        return processorsCache.GetOrAddAsync(key, creator, cancellationToken);
     }
 
     private async Task CreateQueueIfNotExistsAsync(EventRegistration reg, string name, CancellationToken cancellationToken)

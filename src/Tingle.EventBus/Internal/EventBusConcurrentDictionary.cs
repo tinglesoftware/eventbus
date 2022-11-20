@@ -12,6 +12,18 @@ namespace Tingle.EventBus.Internal;
 [DefaultMember("Item")]
 public sealed class EventBusConcurrentDictionary<TKey, TValue> : ConcurrentDictionary<TKey, Task<TValue>> where TKey : notnull
 {
+    /// <inheritdoc/>
+    [Obsolete("Use '" + nameof(GetOrAddAsync) + "(...)' instead")]
+    public new Task<TValue> GetOrAdd(TKey key, Task<TValue> value) => base.GetOrAdd(key, value);
+
+    /// <inheritdoc/>
+    [Obsolete("Use '" + nameof(GetOrAddAsync) + "(...)' instead")]
+    public new Task<TValue> GetOrAdd(TKey key, Func<TKey, Task<TValue>> valueFactory) => base.GetOrAdd(key, valueFactory);
+
+    /// <inheritdoc/>
+    [Obsolete("Use '" + nameof(GetOrAddAsync) + "(...)' instead")]
+    public new Task<TValue> GetOrAdd<TArg>(TKey key, Func<TKey, TArg, Task<TValue>> valueFactory, TArg factoryArgument) => base.GetOrAdd(key, valueFactory, factoryArgument);
+
     // Code below is inspired by https://gist.github.com/davidfowl/3dac8f7b3d141ae87abf770d5781feed#file-concurrentdictionaryextensions-cs-L53-L87
 
     /// <summary>

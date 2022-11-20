@@ -151,10 +151,7 @@ public class EventBusBuilder
             foreach (var et in eventTypes)
             {
                 // get or create a simple EventRegistration
-                if (!options.Registrations.TryGetValue(et, out var reg))
-                {
-                    reg = options.Registrations[et] = new EventRegistration(et);
-                }
+                var reg = options.Registrations.GetOrAdd(et, t => new EventRegistration(t));
 
                 // create a ConsumerRegistration
                 var ecr = new EventConsumerRegistration(consumerType: consumerType);

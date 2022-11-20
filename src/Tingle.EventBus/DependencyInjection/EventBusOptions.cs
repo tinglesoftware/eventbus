@@ -1,4 +1,5 @@
 ﻿using Polly.Retry;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
@@ -82,7 +83,7 @@ public class EventBusOptions
     /// <summary>
     /// The registrations for events and consumers for the EventBus.
     /// </summary>
-    internal Dictionary<Type, EventRegistration> Registrations { get; } = new Dictionary<Type, EventRegistration>();
+    internal ConcurrentDictionary<Type, EventRegistration> Registrations { get; } = new();
 
 
     /// <summary>Adds a <see cref="EventBusTransportRegistration"/>.</summary>
@@ -183,11 +184,7 @@ public class EventBusOptions
 
         // if there's already a registration for the event return it
         var eventType = typeof(TEvent);
-        if (!Registrations.TryGetValue(key: eventType, out var registration))
-        {
-            Registrations[eventType] = registration = new EventRegistration(eventType);
-        }
-
+        var registration = Registrations.GetOrAdd(eventType, et => new EventRegistration(et));
         configure(registration);
 
         return this;

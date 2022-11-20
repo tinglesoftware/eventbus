@@ -45,8 +45,13 @@ public sealed class EventBusConcurrentDictionary<TKey, TValue> : ConcurrentDicti
     /// </summary>
     /// <param name="key">The key of the element to add.</param>
     /// <param name="valueFactory">The function used to generate a value for the key.</param>
+    /// <param name="cancellationToken">
+    /// Optional <see cref="CancellationToken"/> to propagate notifications that the operation should be cancelled.
+    /// </param>
     /// <exception cref="ArgumentNullException">key or valueFactory is null.</exception>
     /// <exception cref="OverflowException">The dictionary contains too many elements.</exception>
+    /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
+    /// <exception cref="ObjectDisposedException">The associated <see cref="CancellationTokenSource"/> has been disposed.</exception>
     /// <returns>
     /// The value for the key.
     /// This will be either the existing value for the key if the key is already in the dictionary,
@@ -65,7 +70,7 @@ public sealed class EventBusConcurrentDictionary<TKey, TValue> : ConcurrentDicti
 
             // This is the task that we'll return to all waiters. We'll complete it when the factory is complete
             var tcs = new TaskCompletionSource<TValue>(TaskCreationOptions.RunContinuationsAsynchronously);
-            if (TryAdd(key, tcs.Task))
+            if (TryAdd(key, tcs.Task)) // Adding this means the factory is only called once (only when addition works) which is better than GetOrAdd(...)
             {
                 try
                 {

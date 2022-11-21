@@ -55,7 +55,7 @@ public class XmlEventEnvelope<T> : IEventEnvelope<T> where T : class
     }
 
     ///
-    public XmlHeader[] Headers { get; set; } = new XmlHeader[0];
+    public XmlHeader[] Headers { get; set; } = Array.Empty<XmlHeader>();
 
     /// <inheritdoc/>
     public HostInfo? Host { get; set; }

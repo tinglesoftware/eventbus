@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Ids;
+using Tingle.EventBus.Internal;
 using Tingle.EventBus.Transports;
 
 namespace Tingle.EventBus;

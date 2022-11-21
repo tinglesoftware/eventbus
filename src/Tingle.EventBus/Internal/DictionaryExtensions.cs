@@ -1,6 +1,4 @@
-﻿using Tingle.EventBus.Internal;
-
-namespace System.Collections.Generic;
+﻿namespace Tingle.EventBus.Internal;
 
 /// <summary>Extension methods on <see cref="IDictionary{TKey, TValue}"/>.</summary>
 public static class DictionaryExtensions

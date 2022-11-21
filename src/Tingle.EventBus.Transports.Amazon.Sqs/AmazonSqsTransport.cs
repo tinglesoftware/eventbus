@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Net.Mime;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Internal;
 
 namespace Tingle.EventBus.Transports.Amazon.Sqs;
 
@@ -19,10 +20,8 @@ namespace Tingle.EventBus.Transports.Amazon.Sqs;
 /// </summary>
 public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, IDisposable
 {
-    private readonly Dictionary<Type, string> topicArnsCache = new();
-    private readonly SemaphoreSlim topicArnsCacheLock = new(1, 1); // only one at a time.
-    private readonly Dictionary<QueueCacheKey, string> queueUrlsCache = new();
-    private readonly SemaphoreSlim queueUrlsCacheLock = new(1, 1); // only one at a time.
+    private readonly EventBusConcurrentDictionary<Type, string> topicArnsCache = new();
+    private readonly EventBusConcurrentDictionary<QueueCacheKey, string> queueUrlsCache = new();
     private readonly CancellationTokenSource stoppingCts = new();
     private readonly List<Task> receiverTasks = new();
     private readonly Lazy<AmazonSimpleNotificationServiceClient> snsClient;
@@ -256,60 +255,30 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
         throw new NotSupportedException("Amazon SNS does not support canceling published messages.");
     }
 
-    private async Task<string> GetTopicArnAsync(EventRegistration reg, CancellationToken cancellationToken)
+    private Task<string> GetTopicArnAsync(EventRegistration reg, CancellationToken cancellationToken)
+        => topicArnsCache.GetOrAddAsync(reg.EventType, (_, ct) => CreateTopicIfNotExistsAsync(topicName: reg.EventName!, reg: reg, cancellationToken: ct), cancellationToken);
+
+    private Task<string> GetQueueUrlAsync(EventRegistration reg, EventConsumerRegistration? ecr = null, bool deadletter = false, CancellationToken cancellationToken = default)
     {
-        await topicArnsCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-        try
+        var key = CreateQueueCacheKey(reg, ecr, deadletter);
+        return queueUrlsCache.GetOrAddAsync(key, async (_, ct) =>
         {
-            if (!topicArnsCache.TryGetValue(reg.EventType, out var topicArn))
+            // ensure queue is created before creating subscription
+            var queueUrl = await CreateQueueIfNotExistsAsync(queueName: key.Name, reg: reg, ecr: ecr, cancellationToken: ct).ConfigureAwait(false);
+
+            // for non dead-letter broadcast types, we need to ensure the topic exists and the queue is subscribed to it
+            if (!deadletter && reg.EntityKind == EntityKind.Broadcast)
             {
-                // ensure topic is created, then add it's arn to the cache
-                var name = reg.EventName!;
-                topicArn = await CreateTopicIfNotExistsAsync(topicName: name, reg: reg, cancellationToken: cancellationToken).ConfigureAwait(false);
-                topicArnsCache[reg.EventType] = topicArn;
-            }
+                // ensure topic is created before creating the subscription
+                var topicName = reg.EventName!;
+                var topicArn = await CreateTopicIfNotExistsAsync(topicName: topicName, reg: reg, cancellationToken: ct).ConfigureAwait(false);
 
-            return topicArn;
-        }
-        finally
-        {
-            topicArnsCacheLock.Release();
-        }
-    }
-
-    private async Task<string> GetQueueUrlAsync(EventRegistration reg, EventConsumerRegistration? ecr = null, bool deadletter = false, CancellationToken cancellationToken = default)
-    {
-        await queueUrlsCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-        try
-        {
-            var key = CreateQueueCacheKey(reg, ecr, deadletter);
-            if (!queueUrlsCache.TryGetValue(key, out var queueUrl))
-            {
-                // ensure queue is created before creating subscription
-                queueUrl = await CreateQueueIfNotExistsAsync(queueName: key.Name, reg: reg, ecr: ecr, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                // for non dead-letter broadcast types, we need to ensure the topic exists and the queue is subscribed to it
-                if (!deadletter && reg.EntityKind == EntityKind.Broadcast)
-                {
-                    // ensure topic is created before creating the subscription
-                    var topicName = reg.EventName!;
-                    var topicArn = await CreateTopicIfNotExistsAsync(topicName: topicName, reg: reg, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                    // create subscription from the topic to the queue
-                    await snsClient.Value.SubscribeQueueAsync(topicArn: topicArn, sqsClient.Value, queueUrl).ConfigureAwait(false);
-                }
-
-                queueUrlsCache[key] = queueUrl;
+                // create subscription from the topic to the queue
+                await snsClient.Value.SubscribeQueueAsync(topicArn: topicArn, sqsClient.Value, queueUrl).ConfigureAwait(false);
             }
 
             return queueUrl;
-        }
-        finally
-        {
-            queueUrlsCacheLock.Release();
-        }
+        }, cancellationToken);
     }
 
     record QueueCacheKey

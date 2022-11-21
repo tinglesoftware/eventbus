@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Net.Mime;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Internal;
 
 namespace Tingle.EventBus.Transports.Azure.EventHubs;
 
@@ -18,10 +19,8 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs;
 /// </summary>
 public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransportOptions>
 {
-    private readonly Dictionary<(Type, bool), EventHubProducerClient> producersCache = new();
-    private readonly SemaphoreSlim producersCacheLock = new(1, 1); // only one at a time.
-    private readonly Dictionary<string, EventProcessorClient> processorsCache = new();
-    private readonly SemaphoreSlim processorsCacheLock = new(1, 1); // only one at a time.
+    private readonly EventBusConcurrentDictionary<(Type, bool), EventHubProducerClient> producersCache = new();
+    private readonly EventBusConcurrentDictionary<string, EventProcessorClient> processorsCache = new();
 
     /// <summary>
     /// 
@@ -77,14 +76,15 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
     protected override async Task StopCoreAsync(CancellationToken cancellationToken)
     {
         var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
-        foreach (var (key, proc) in clients)
+        foreach (var (key, t) in clients)
         {
             Logger.StoppingProcessor(processor: key);
 
             try
             {
+                var proc = await t.ConfigureAwait(false);
                 await proc.StopProcessingAsync(cancellationToken).ConfigureAwait(false);
-                processorsCache.Remove(key);
+                processorsCache.TryRemove(key, out _);
 
                 Logger.StoppedProcessor(processor: key);
             }
@@ -220,112 +220,97 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
         throw new NotSupportedException("Azure EventHubs does not support canceling published events.");
     }
 
-    private async Task<EventHubProducerClient> GetProducerAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
+    private Task<EventHubProducerClient> GetProducerAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
     {
-        await producersCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-        try
+        Task<EventHubProducerClient> creator((Type, bool) _, CancellationToken ct)
         {
-            if (!producersCache.TryGetValue((reg.EventType, deadletter), out var producer))
+            var name = reg.EventName;
+            if (deadletter) name += Options.DeadLetterSuffix;
+
+            // Create the producer options
+            var epco = new EventHubProducerClientOptions
             {
-                var name = reg.EventName;
-                if (deadletter) name += Options.DeadLetterSuffix;
-
-                // Create the producer options
-                var epco = new EventHubProducerClientOptions
+                ConnectionOptions = new EventHubConnectionOptions
                 {
-                    ConnectionOptions = new EventHubConnectionOptions
-                    {
-                        TransportType = Options.TransportType,
-                    },
-                };
+                    TransportType = Options.TransportType,
+                },
+            };
 
-                // Allow for the defaults to be overridden
-                Options.SetupProducerClientOptions?.Invoke(reg, epco);
+            // Allow for the defaults to be overridden
+            Options.SetupProducerClientOptions?.Invoke(reg, epco);
 
-                // Override values that must be overridden
+            // Override values that must be overridden
 
-                // Create the producer client
-                var cred = Options.Credentials.CurrentValue;
-                producer = cred is AzureEventHubsTransportCredentials aehtc
-                        ? new EventHubProducerClient(fullyQualifiedNamespace: aehtc.FullyQualifiedNamespace,
-                                                     eventHubName: name,
-                                                     credential: aehtc.TokenCredential,
-                                                     clientOptions: epco)
-                        : new EventHubProducerClient(connectionString: (string)cred,
-                                                     eventHubName: name,
-                                                     clientOptions: epco);
+            // Create the producer client
+            var cred = Options.Credentials.CurrentValue;
+            var producer = cred is AzureEventHubsTransportCredentials aehtc
+                    ? new EventHubProducerClient(fullyQualifiedNamespace: aehtc.FullyQualifiedNamespace,
+                                                 eventHubName: name,
+                                                 credential: aehtc.TokenCredential,
+                                                 clientOptions: epco)
+                    : new EventHubProducerClient(connectionString: (string)cred,
+                                                 eventHubName: name,
+                                                 clientOptions: epco);
 
-                // How to ensure event hub is created?
-                // EventHubs can only be create via Azure portal or using Resource Manager which need different credentials
+            // How to ensure event hub is created?
+            // EventHubs can only be create via Azure portal or using Resource Manager which need different credentials
 
-                producersCache[(reg.EventType, deadletter)] = producer;
-            }
-
-            return producer;
+            return Task.FromResult(producer);
         }
-        finally
-        {
-            producersCacheLock.Release();
-        }
+        return producersCache.GetOrAddAsync((reg.EventType, deadletter), creator, cancellationToken);
     }
 
-    private async Task<EventProcessorClient> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
+    private Task<EventProcessorClient> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
     {
-        await processorsCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        // For events configured as sourced from IoT Hub,
+        // 1. The event hub name is in the metadata
+        // 2. The ConsumerGroup is set to $Default (this may be changed to support more)
+        var isIotHub = reg.IsConfiguredAsIotHub();
+        var eventHubName = isIotHub ? reg.GetIotHubEventHubName() : reg.EventName;
+        var consumerGroup = isIotHub || Options.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
 
-        try
+        Task<EventProcessorClient> creator(string key, CancellationToken ct)
         {
-            // For events configured as sourced from IoT Hub,
-            // 1. The event hub name is in the metadata
-            // 2. The ConsumerGroup is set to $Default (this may be changed to support more)
-            var isIotHub = reg.IsConfiguredAsIotHub();
-            var eventHubName = isIotHub ? reg.GetIotHubEventHubName() : reg.EventName;
-            var consumerGroup = isIotHub || Options.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
+            // if the EventHub or consumer group does not exist, create it
 
-            var key = $"{eventHubName}/{consumerGroup}";
-            if (!processorsCache.TryGetValue(key, out var processor))
+            /*
+             * The publish/subscribe mechanism of Event Hubs is enabled through consumer groups.
+             * A consumer group is a view (state, position, or offset) of an entire event hub.
+             * Consumer groups enable multiple consuming applications to each have a separate view
+             * of the event stream, and to read the stream independently at their own pace and with
+             * their own offsets.
+             * 
+             * EventHubs and ConsumerGroups can only be create via Azure portal or using Resource Manager
+             * which needs different credentials.
+             */
+
+            // blobContainerUri has the format "https://{account_name}.blob.core.windows.net/{container_name}" which can be made using "{BlobServiceUri}/{container_name}".
+            var cred_bs = Options.BlobStorageCredentials.CurrentValue;
+            var blobContainerClient = cred_bs is AzureBlobStorageCredentials abstc
+                ? new BlobContainerClient(blobContainerUri: new Uri($"{abstc.BlobServiceUrl}/{Options.BlobContainerName}"),
+                                          credential: abstc.TokenCredential)
+                : new BlobContainerClient(connectionString: (string)cred_bs,
+                                          blobContainerName: Options.BlobContainerName);
+
+            // Create the processor client options
+            var epco = new EventProcessorClientOptions
             {
-                // if the EventHub or consumer group does not exist, create it
-
-                /*
-                 * The publish/subscribe mechanism of Event Hubs is enabled through consumer groups.
-                 * A consumer group is a view (state, position, or offset) of an entire event hub.
-                 * Consumer groups enable multiple consuming applications to each have a separate view
-                 * of the event stream, and to read the stream independently at their own pace and with
-                 * their own offsets.
-                 * 
-                 * EventHubs and ConsumerGroups can only be create via Azure portal or using Resource Manager
-                 * which needs different credentials.
-                 */
-
-                // blobContainerUri has the format "https://{account_name}.blob.core.windows.net/{container_name}" which can be made using "{BlobServiceUri}/{container_name}".
-                var cred_bs = Options.BlobStorageCredentials.CurrentValue;
-                var blobContainerClient = cred_bs is AzureBlobStorageCredentials abstc
-                    ? new BlobContainerClient(blobContainerUri: new Uri($"{abstc.BlobServiceUrl}/{Options.BlobContainerName}"),
-                                              credential: abstc.TokenCredential)
-                    : new BlobContainerClient(connectionString: (string)cred_bs,
-                                              blobContainerName: Options.BlobContainerName);
-
-                // Create the processor client options
-                var epco = new EventProcessorClientOptions
+                ConnectionOptions = new EventHubConnectionOptions
                 {
-                    ConnectionOptions = new EventHubConnectionOptions
-                    {
-                        TransportType = Options.TransportType,
-                    },
-                };
+                    TransportType = Options.TransportType,
+                },
+            };
 
-                // Allow for the defaults to be overridden
-                Options.SetupProcessorClientOptions?.Invoke(reg, ecr, epco);
+            // Allow for the defaults to be overridden
+            Options.SetupProcessorClientOptions?.Invoke(reg, ecr, epco);
 
-                // How to ensure consumer is created in the event hub?
-                // EventHubs and ConsumerGroups can only be create via Azure portal or using Resource Manager which need different credentials
+            // How to ensure consumer is created in the event hub?
+            // EventHubs and ConsumerGroups can only be create via Azure portal or using Resource Manager which need different credentials
 
 
-                // Create the processor client
-                var cred = Options.Credentials.CurrentValue;
-                processor = cred is AzureEventHubsTransportCredentials aehtc
+            // Create the processor client
+            var cred = Options.Credentials.CurrentValue;
+            var processor = cred is AzureEventHubsTransportCredentials aehtc
                     ? new EventProcessorClient(checkpointStore: blobContainerClient,
                                                consumerGroup: consumerGroup,
                                                fullyQualifiedNamespace: aehtc.FullyQualifiedNamespace,
@@ -338,15 +323,11 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
                                                eventHubName: eventHubName,
                                                clientOptions: epco);
 
-                processorsCache[key] = processor;
-            }
+            return Task.FromResult(processor);
+        }
 
-            return processor;
-        }
-        finally
-        {
-            processorsCacheLock.Release();
-        }
+        var key = $"{eventHubName}/{consumerGroup}";
+        return processorsCache.GetOrAddAsync(key, creator, cancellationToken);
     }
 
     private async Task OnEventReceivedAsync<TEvent, TConsumer>(EventRegistration reg,

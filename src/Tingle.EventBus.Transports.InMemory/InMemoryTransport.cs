@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Net.Mime;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Internal;
 using Tingle.EventBus.Transports.InMemory.Client;
 
 namespace Tingle.EventBus.Transports.InMemory;
@@ -16,10 +17,8 @@ namespace Tingle.EventBus.Transports.InMemory;
 /// </summary>
 public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
 {
-    private readonly Dictionary<Type, InMemorySender> sendersCache = new();
-    private readonly SemaphoreSlim sendersCacheLock = new(1, 1); // only one at a time.
-    private readonly Dictionary<string, InMemoryProcessor> processorsCache = new();
-    private readonly SemaphoreSlim processorsCacheLock = new(1, 1); // only one at a time.
+    private readonly EventBusConcurrentDictionary<Type, InMemorySender> sendersCache = new();
+    private readonly EventBusConcurrentDictionary<string, InMemoryProcessor> processorsCache = new();
     private readonly InMemoryClient inMemoryClient;
 
     private readonly ConcurrentBag<EventContext> published = new();
@@ -95,15 +94,16 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
     /// <inheritdoc/>
     protected override async Task StopCoreAsync(CancellationToken cancellationToken)
     {
-        var clients = processorsCache.Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
-        foreach (var (key, proc) in clients)
+        var clients = processorsCache.ToArray().Select(kvp => (key: kvp.Key, proc: kvp.Value)).ToList();
+        foreach (var (key, t) in clients)
         {
             Logger.StoppingProcessor(processor: key);
 
             try
             {
+                var proc = await t.ConfigureAwait(false);
                 await proc.StopProcessingAsync(cancellationToken).ConfigureAwait(false);
-                processorsCache.Remove(key);
+                processorsCache.TryRemove(key, out _);
 
                 Logger.StoppedProcessor(processor: key);
             }
@@ -280,68 +280,45 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
         AddBatch(cancelled, seqNums);
     }
 
-    private async Task<InMemorySender> GetSenderAsync(EventRegistration reg, CancellationToken cancellationToken)
+    private Task<InMemorySender> GetSenderAsync(EventRegistration reg, CancellationToken cancellationToken)
     {
-        await sendersCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-        try
+        Task<InMemorySender> creator(Type _, CancellationToken ct)
         {
-            if (!sendersCache.TryGetValue(reg.EventType, out var sender))
-            {
-                // Create the sender
-                var name = reg.EventName!;
-                sender = inMemoryClient.CreateSender(name: name, broadcast: reg.EntityKind == EntityKind.Broadcast);
-                sendersCache[reg.EventType] = sender;
-            }
-
-            return sender;
+            var sender = inMemoryClient.CreateSender(name: reg.EventName!, broadcast: reg.EntityKind == EntityKind.Broadcast);
+            return Task.FromResult(sender);
         }
-        finally
-        {
-            sendersCacheLock.Release();
-        }
+        return sendersCache.GetOrAddAsync(reg.EventType, creator, cancellationToken);
     }
 
-    private async Task<InMemoryProcessor> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
+    private Task<InMemoryProcessor> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
     {
-        await processorsCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var topicName = reg.EventName!;
+        var subscriptionName = ecr.ConsumerName!;
 
-        try
+        var key = $"{topicName}/{subscriptionName}";
+        Task<InMemoryProcessor> creator(string _, CancellationToken ct)
         {
-            var topicName = reg.EventName!;
-            var subscriptionName = ecr.ConsumerName!;
+            // Create the processor options
+            var inpo = new InMemoryProcessorOptions { };
 
-            var key = $"{topicName}/{subscriptionName}";
-            if (!processorsCache.TryGetValue(key, out var processor))
+            // Create the processor.
+            InMemoryProcessor processor;
+            if (reg.EntityKind == EntityKind.Queue)
             {
-                // Create the processor options
-                var inpo = new InMemoryProcessorOptions { };
-
-                // Create the processor.
-                if (reg.EntityKind == EntityKind.Queue)
-                {
-                    // Create the processor for the Queue
-                    Logger.CreatingQueueProcessor(queueName: topicName);
-                    processor = inMemoryClient.CreateProcessor(queueName: topicName, options: inpo);
-                }
-                else
-                {
-                    // Create the processor for the Subscription
-                    Logger.CreatingSubscriptionProcessor(topicName: topicName, subscriptionName: subscriptionName);
-                    processor = inMemoryClient.CreateProcessor(topicName: topicName,
-                                                               subscriptionName: subscriptionName,
-                                                               options: inpo);
-                }
-
-                processorsCache[key] = processor;
+                // Create the processor for the Queue
+                Logger.CreatingQueueProcessor(queueName: topicName);
+                processor = inMemoryClient.CreateProcessor(queueName: topicName, options: inpo);
+            }
+            else
+            {
+                // Create the processor for the Subscription
+                Logger.CreatingSubscriptionProcessor(topicName: topicName, subscriptionName: subscriptionName);
+                processor = inMemoryClient.CreateProcessor(topicName: topicName, subscriptionName: subscriptionName, options: inpo);
             }
 
-            return processor;
+            return Task.FromResult(processor);
         }
-        finally
-        {
-            processorsCacheLock.Release();
-        }
+        return processorsCache.GetOrAddAsync(key, creator, cancellationToken);
     }
 
     private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,

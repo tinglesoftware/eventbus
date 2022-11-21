@@ -1,6 +1,4 @@
-﻿using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
-
-namespace AzureManagedIdentity;
+﻿namespace AzureManagedIdentity;
 
 internal class VehicleTelemetryEventsConsumer : IEventConsumer<VehicleTelemetryEvent>
 {
@@ -13,17 +11,7 @@ internal class VehicleTelemetryEventsConsumer : IEventConsumer<VehicleTelemetryE
 
     public async Task ConsumeAsync(EventContext<VehicleTelemetryEvent> context, CancellationToken cancellationToken)
     {
-        var evt = context.Event;
-        var source = evt.Source;
-        if (source != IotHubEventMessageSource.Telemetry) return;
-
-        var telemetry = evt.Telemetry!;
-        var action = telemetry.Action;
-        if (action is not "door-status-changed")
-        {
-            logger.LogWarning("Telemetry with action '{TelemetryAction}' is not yet supported", action);
-            return;
-        }
+        var telemetry = context.Event;
 
         var status = telemetry.VehicleDoorStatus;
         if (status is not VehicleDoorStatus.Open and not VehicleDoorStatus.Closed)
@@ -39,11 +27,10 @@ internal class VehicleTelemetryEventsConsumer : IEventConsumer<VehicleTelemetryE
             return;
         }
 
-        var deviceId = context.GetIotHubDeviceId();
         var timestamp = telemetry.Timestamp;
         var updateEvt = new VehicleDoorOpenedEvent
         {
-            VehicleId = deviceId, // not the registration number
+            VehicleId = telemetry.DeviceId,
             Kind = kind.Value,
             Closed = status is VehicleDoorStatus.Closed ? timestamp : null,
             Opened = status is VehicleDoorStatus.Open ? timestamp : null,

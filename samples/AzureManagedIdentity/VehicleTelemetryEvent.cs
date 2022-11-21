@@ -1,21 +1,12 @@
 ﻿using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
 namespace AzureManagedIdentity;
 
-internal record VehicleTelemetryEvent : IotHubEvent<VehicleTelemetry>
+internal class VehicleTelemetryEvent
 {
-    public VehicleTelemetryEvent(IotHubEventMessageSource source,
-                                 VehicleTelemetry? telemetry,
-                                 IotHubOperationalEvent<IotHubDeviceTwinChangeEvent>? twinEvent,
-                                 IotHubOperationalEvent<IotHubDeviceLifecycleEvent>? lifecycleEvent,
-                                 IotHubOperationalEvent<IotHubDeviceConnectionStateEvent>? connectionStateEvent)
-        : base(source, telemetry, twinEvent, lifecycleEvent, connectionStateEvent) { }
-}
+    public string? DeviceId { get; set; }
 
-internal class VehicleTelemetry
-{
     public DateTimeOffset Timestamp { get; set; }
 
     public string? Action { get; set; }

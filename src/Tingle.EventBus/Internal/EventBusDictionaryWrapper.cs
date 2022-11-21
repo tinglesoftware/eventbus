@@ -1,6 +1,8 @@
 ﻿namespace Tingle.EventBus.Internal;
 
 /// <summary>A wrapper around <see cref="IDictionary{TKey, TValue}"/> for EventBus related functionality.</summary>
+/// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
+/// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
 /// <remarks>
 /// This type exists instead of extension methods so that it is exposed to other projects/packages in the Tingle.EventBus group
 /// while discouraging external projects/packages/application from using the methods

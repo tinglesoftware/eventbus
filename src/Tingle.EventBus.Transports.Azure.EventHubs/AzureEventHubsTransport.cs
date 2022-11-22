@@ -269,7 +269,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
         var eventHubName = isIotHub ? reg.GetIotHubEventHubName() : reg.EventName;
         var consumerGroup = isIotHub || Options.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
 
-        Task<EventProcessorClient> creator(string key, CancellationToken ct)
+        async Task<EventProcessorClient> creator(string key, CancellationToken ct)
         {
             // if the EventHub or consumer group does not exist, create it
 
@@ -291,6 +291,12 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
                                           credential: abstc.TokenCredential)
                 : new BlobContainerClient(connectionString: (string)cred_bs,
                                           blobContainerName: Options.BlobContainerName);
+
+            // Create the blob container if it does not exist
+            if (Options.EnableEntityCreation)
+            {
+                await blobContainerClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
 
             // Create the processor client options
             var epco = new EventProcessorClientOptions
@@ -323,7 +329,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
                                                eventHubName: eventHubName,
                                                clientOptions: epco);
 
-            return Task.FromResult(processor);
+            return processor;
         }
 
         var key = $"{eventHubName}/{consumerGroup}";

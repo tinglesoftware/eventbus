@@ -78,7 +78,7 @@ public class MultiEventsConsumer : IEventConsumer<DoorClosed>, IEventConsumer<Do
 
         string key = MakeCacheKey(vehicleId, kind);
         var stateStr = await cache.GetStringAsync(key, cancellationToken);
-        return Enum.TryParse<DoorState>(stateStr, ignoreCase: true, out var state) ? (DoorState?)state : null;
+        return Enum.TryParse<DoorState>(stateStr, ignoreCase: true, out var state) ? state : null;
     }
 
     private async Task SaveDoorStateAsync(string? vehicleId, DoorKind kind, DoorState state, CancellationToken cancellation)

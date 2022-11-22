@@ -20,7 +20,7 @@ public class PublisherService : BackgroundService
         {
             var evt = new DoorOpened
             {
-                Kind = (OpenDoorKind)(int)rnd.Next(0, 5),
+                Kind = (OpenDoorKind)rnd.Next(0, 5),
                 Opened = DateTimeOffset.UtcNow.AddMinutes(rnd.Next(-10, 10)),
                 VehicleId = "123456",
             };

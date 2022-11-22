@@ -627,7 +627,7 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
          * - When Successful = false, the action will be throw if AutoComplete=true
          * */
 
-        if (successful) return autoComplete ? null : (PostConsumeAction?)PostConsumeAction.Complete;
+        if (successful) return autoComplete ? null : PostConsumeAction.Complete;
 
         // At this point it is not successful
         if (autoComplete) return behaviour is UnhandledConsumerErrorBehaviour.Discard ? null : PostConsumeAction.Throw;

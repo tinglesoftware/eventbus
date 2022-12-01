@@ -5,30 +5,30 @@
 
 version: 2
 updates:
-  - package-ecosystem: "nuget" # See documentation for possible values
-    directory: "/" # Location of package manifests
-    schedule:
-      interval: "weekly"
-      time: "02:00"
-      day: "wednesday"
-    open-pull-requests-limit: 10
-    ignore:
-      # Ignore patch updates for some packages
-      - dependency-name: "AWSSDK.*"
-        update-types: ["version-update:semver-patch"]
-      - dependency-name: "Azure.*"
-        update-types: ["version-update:semver-patch"]
-      - dependency-name: "Microsoft.*"
-        update-types: ["version-update:semver-patch"]
-      - dependency-name: "System.*"
-        update-types: ["version-update:semver-patch"]
-      - dependency-name: "RabbitMQ.Client"
-        update-types: ["version-update:semver-patch"]
-      - dependency-name: "Newtonsoft.Json"
-        update-types: ["version-update:semver-patch"]
-  - package-ecosystem: "github-actions" # See documentation for possible values
-    directory: "/" # Location of package manifests
-    schedule:
-      interval: "weekly"
-      time: "02:00"
-    open-pull-requests-limit: 10
+- package-ecosystem: "nuget" # See documentation for possible values
+  directory: "/" # Location of package manifests
+  schedule:
+    interval: "weekly"
+    time: "02:00"
+    day: "wednesday"
+  open-pull-requests-limit: 10
+  ignore:
+  # Ignore patch updates for some packages
+  - dependency-name: "AWSSDK.*"
+    update-types: ["version-update:semver-patch"]
+  - dependency-name: "Azure.*"
+    update-types: ["version-update:semver-patch"]
+  - dependency-name: "Microsoft.*"
+    update-types: ["version-update:semver-patch"]
+  - dependency-name: "System.*"
+    update-types: ["version-update:semver-patch"]
+  - dependency-name: "RabbitMQ.Client"
+    update-types: ["version-update:semver-patch"]
+  - dependency-name: "Newtonsoft.Json"
+    update-types: ["version-update:semver-patch"]
+- package-ecosystem: "github-actions" # See documentation for possible values
+  directory: "/" # Location of package manifests
+  schedule:
+    interval: "weekly"
+    time: "02:00"
+  open-pull-requests-limit: 10

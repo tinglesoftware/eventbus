@@ -1,4 +1,5 @@
-﻿using Polly.Retry;
+﻿using Microsoft.Extensions.Hosting;
+using Polly.Retry;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Tingle.EventBus;
@@ -13,6 +14,14 @@ namespace Microsoft.Extensions.DependencyInjection;
 public class EventBusOptions
 {
     private readonly IList<EventBusTransportRegistrationBuilder> transports = new List<EventBusTransportRegistrationBuilder>();
+
+    /// <summary>
+    /// Whether to wait for the transport to be ready before publishing/cancelling events.
+    /// Set this to false when not using or starting an <see cref="IHost"/> because the bus and its transports
+    /// are started in an <see cref="IHostedService"/>.
+    /// Defaults to <see langword="true"/>.
+    /// </summary>
+    public bool WaitTransportStarted { get; set; } = true;
 
     /// <summary>
     /// Gets the <see cref="EventBusNamingOptions"/> for the Event Bus.

@@ -119,6 +119,8 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
 
     private Task WaitStartedAsync(CancellationToken cancellationToken)
     {
+        if (!BusOptions.WaitTransportStarted) return Task.CompletedTask;
+
         var tsk = startedTcs.Task;
         if (tsk.Status is TaskStatus.RanToCompletion) return tsk;
         return Task.Run(() => tsk, cancellationToken); // allows for cancellation by caller

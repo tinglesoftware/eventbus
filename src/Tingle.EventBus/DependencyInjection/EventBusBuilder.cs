@@ -1,4 +1,5 @@
-﻿using Tingle.EventBus;
+﻿using Microsoft.Extensions.DependencyInjection.Extensions;
+using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Ids;
 using Tingle.EventBus.Internal;
@@ -94,7 +95,29 @@ public class EventBusBuilder
         where TConfigurator : EventBusTransportConfigureOptions<TOptions>
     {
         Services.Configure<EventBusOptions>(o => o.AddTransport<TTransport>(name, displayName));
-        Services.ConfigureOptions<TConfigurator>();
+
+        // Calling ConfigureOptions results in more than one call to the configuration implementations so we have to implement our own logic
+        // TODO: remove after https://github.com/dotnet/runtime/issues/42358 is addressed
+
+        static Type[] GetInterfacesOnType(Type t) => t.GetInterfaces();
+        static IEnumerable<Type> FindConfigurationServices(Type type)
+        {
+            foreach (var t in GetInterfacesOnType(type))
+            {
+                if (t.IsGenericType)
+                {
+                    var gtd = t.GetGenericTypeDefinition();
+                    if (gtd == typeof(Options.IConfigureOptions<>) || gtd == typeof(Options.IPostConfigureOptions<>) || gtd == typeof(Options.IValidateOptions<>))
+                    {
+                        yield return t;
+                    }
+                }
+            }
+        }
+        foreach (var serviceType in FindConfigurationServices(typeof(TConfigurator)))
+        {
+            Services.TryAddEnumerable(ServiceDescriptor.Transient(serviceType, typeof(TConfigurator)));
+        }
 
         if (configureOptions is not null) Services.Configure(name, configureOptions);
 

@@ -8,9 +8,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="KafkaTransportOptions"/>.
 /// </summary>
-internal class KafkaConfigureOptions : IConfigureNamedOptions<KafkaTransportOptions>, IPostConfigureOptions<KafkaTransportOptions>
+internal class KafkaConfigureOptions : TransportOptionsConfigureOptions<KafkaTransportOptions>
 {
-    private readonly IEventBusConfigurationProvider configurationProvider;
     private readonly EventBusOptions busOptions;
 
     /// <summary>
@@ -20,34 +19,28 @@ internal class KafkaConfigureOptions : IConfigureNamedOptions<KafkaTransportOpti
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>
     /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
     public KafkaConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
+        : base(configurationProvider)
     {
-        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
     /// <inheritdoc/>
-    public void Configure(string? name, KafkaTransportOptions options)
+    protected override void Configure(IConfiguration configuration, KafkaTransportOptions options)
     {
-        if (string.IsNullOrEmpty(name)) return;
+        base.Configure(configuration, options);
 
-        var configSection = configurationProvider.GetTransportConfiguration(name);
-        if (configSection is null || !configSection.GetChildren().Any()) return;
-
-        options.CheckpointInterval = configSection.GetValue<int?>(nameof(options.CheckpointInterval)) ?? options.CheckpointInterval;
-        var configSectionBootstrapServers = configSection.GetSection(nameof(options.BootstrapServers));
-        if (configSectionBootstrapServers is not null && configSectionBootstrapServers.GetChildren().Any())
+        options.CheckpointInterval = configuration.GetValue<int?>(nameof(options.CheckpointInterval)) ?? options.CheckpointInterval;
+        var section = configuration.GetSection(nameof(options.BootstrapServers));
+        if (section is not null && section.GetChildren().Any())
         {
-            configSectionBootstrapServers.Bind(options.BootstrapServers);
+            section.Bind(options.BootstrapServers);
         }
     }
 
     /// <inheritdoc/>
-    public void Configure(KafkaTransportOptions options) => Configure(Options.Options.DefaultName, options);
-
-    /// <inheritdoc/>
-    public void PostConfigure(string? name, KafkaTransportOptions options)
+    public override void PostConfigure(string? name, KafkaTransportOptions options)
     {
-        if (name is null) throw new ArgumentNullException(nameof(name));
+        base.PostConfigure(name, options);
 
         if (options.BootstrapServers == null && options.AdminConfig == null)
         {
@@ -74,7 +67,7 @@ internal class KafkaConfigureOptions : IConfigureNamedOptions<KafkaTransportOpti
         options.CheckpointInterval = Math.Max(options.CheckpointInterval, 1);
 
         // ensure there's only one consumer per event
-        var registrations = busOptions.GetRegistrations(name);
+        var registrations = busOptions.GetRegistrations(name!);
         var multiple = registrations.FirstOrDefault(r => r.Consumers.Count > 1);
         if (multiple is not null)
         {

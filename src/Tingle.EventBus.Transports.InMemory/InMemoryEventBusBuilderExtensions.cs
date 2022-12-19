@@ -24,9 +24,8 @@ public static class InMemoryEventBusBuilderExtensions
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
-        builder.Services.ConfigureOptions<InMemoryTransportConfigureOptions>();
         builder.Services.AddSingleton<SequenceNumberGenerator>();
-        return builder.AddTransport<InMemoryTransportOptions, InMemoryTransport>(name, configure);
+        return builder.AddTransport<InMemoryTransport, InMemoryTransportOptions, InMemoryTransportConfigureOptions>(name, configure);
     }
 
     /// <summary>

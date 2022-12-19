@@ -10,7 +10,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// for shared settings in <see cref="EventBusTransportOptions"/>.
 /// </summary>
 /// <typeparam name="TOptions"></typeparam>
-internal class TransportOptionsConfigureOptions<TOptions> : IConfigureNamedOptions<TOptions>, IPostConfigureOptions<TOptions>, IValidateOptions<TOptions>
+public class TransportOptionsConfigureOptions<TOptions> : IConfigureNamedOptions<TOptions>, IPostConfigureOptions<TOptions>, IValidateOptions<TOptions>
     where TOptions : EventBusTransportOptions
 {
     private readonly IEventBusConfigurationProvider configurationProvider;
@@ -26,26 +26,38 @@ internal class TransportOptionsConfigureOptions<TOptions> : IConfigureNamedOptio
     }
 
     /// <inheritdoc/>
-    public void Configure(string? name, TOptions options)
+    public virtual void Configure(string? name, TOptions options)
     {
         if (string.IsNullOrEmpty(name)) return;
 
         var configSection = configurationProvider.GetTransportConfiguration(name);
         if (configSection is null || !configSection.GetChildren().Any()) return;
 
-        options.EmptyResultsDelay = configSection.GetValue<TimeSpan?>(nameof(options.EmptyResultsDelay)) ?? options.EmptyResultsDelay;
-        options.EnableEntityCreation = configSection.GetValue<bool?>(nameof(options.EnableEntityCreation)) ?? options.EnableEntityCreation;
-        options.DeadLetterSuffix = configSection.GetValue<string?>(nameof(options.DeadLetterSuffix)) ?? options.DeadLetterSuffix;
-        options.DefaultEntityKind = configSection.GetValue<EntityKind?>(nameof(options.DefaultEntityKind)) ?? options.DefaultEntityKind;
-        options.DefaultEventIdFormat = configSection.GetValue<EventIdFormat?>(nameof(options.DefaultEventIdFormat)) ?? options.DefaultEventIdFormat;
-        options.DefaultUnhandledConsumerErrorBehaviour = configSection.GetValue<UnhandledConsumerErrorBehaviour?>(nameof(options.DefaultUnhandledConsumerErrorBehaviour)) ?? options.DefaultUnhandledConsumerErrorBehaviour;
+        Configure(configSection, options);
+    }
+
+    /// <summary>
+    /// Invoked to configure an instance of <typeparamref name="TOptions"/> with the relevant configuration
+    /// provided by <see cref="IConfigurationProvider"/> for the specific transport by name.
+    /// </summary>
+    /// <param name="configuration"></param>
+    /// <param name="options"></param>
+    protected virtual void Configure(IConfiguration configuration, TOptions options)
+    {
+        options.EmptyResultsDelay = configuration.GetValue<TimeSpan?>(nameof(options.EmptyResultsDelay)) ?? options.EmptyResultsDelay;
+        options.EnableEntityCreation = configuration.GetValue<bool?>(nameof(options.EnableEntityCreation)) ?? options.EnableEntityCreation;
+        options.DeadLetterSuffix = configuration.GetValue<string?>(nameof(options.DeadLetterSuffix)) ?? options.DeadLetterSuffix;
+        options.DefaultEntityKind = configuration.GetValue<EntityKind?>(nameof(options.DefaultEntityKind)) ?? options.DefaultEntityKind;
+        options.DefaultEventIdFormat = configuration.GetValue<EventIdFormat?>(nameof(options.DefaultEventIdFormat)) ?? options.DefaultEventIdFormat;
+        options.DefaultUnhandledConsumerErrorBehaviour = configuration.GetValue<UnhandledConsumerErrorBehaviour?>(nameof(options.DefaultUnhandledConsumerErrorBehaviour))
+                                                      ?? options.DefaultUnhandledConsumerErrorBehaviour;
     }
 
     /// <inheritdoc/>
-    public void Configure(TOptions options) => Configure(Options.Options.DefaultName, options);
+    public virtual void Configure(TOptions options) => Configure(Options.Options.DefaultName, options);
 
     /// <inheritdoc/>
-    public void PostConfigure(string? name, TOptions options)
+    public virtual void PostConfigure(string? name, TOptions options)
     {
         // check bounds for empty results delay
         var ticks = options.EmptyResultsDelay.Ticks;
@@ -54,7 +66,8 @@ internal class TransportOptionsConfigureOptions<TOptions> : IConfigureNamedOptio
         options.EmptyResultsDelay = TimeSpan.FromTicks(ticks);
     }
 
-    public ValidateOptionsResult Validate(string? name, TOptions options)
+    /// <inheritdoc/>
+    public virtual ValidateOptionsResult Validate(string? name, TOptions options)
     {
         // ensure the dead-letter suffix name has been set
         if (string.IsNullOrWhiteSpace(options.DeadLetterSuffix))

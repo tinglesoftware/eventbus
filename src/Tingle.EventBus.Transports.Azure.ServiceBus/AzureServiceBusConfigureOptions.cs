@@ -11,7 +11,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<AzureServiceBusTransportCredentials, AzureServiceBusTransportOptions>,
                                                  IConfigureNamedOptions<AzureServiceBusTransportOptions>
 {
-    private readonly IEventBusConfigurationProvider configurationProvider;
     private readonly EventBusOptions busOptions;
 
     /// <summary>
@@ -21,42 +20,34 @@ internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
     /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
     public AzureServiceBusConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
+        : base(configurationProvider)
     {
-        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
     /// <inheritdoc/>
-    public void Configure(string? name, AzureServiceBusTransportOptions options)
+    protected override void Configure(IConfiguration configuration, AzureServiceBusTransportOptions options)
     {
-        if (string.IsNullOrEmpty(name)) return;
+        base.Configure(configuration, options);
 
-        var configSection = configurationProvider.GetTransportConfiguration(name);
-        if (configSection is null || !configSection.GetChildren().Any()) return;
+        options.TransportType = configuration.GetValue<ServiceBusTransportType?>(nameof(options.TransportType)) ?? options.TransportType;
+        options.DefaultLockDuration = configuration.GetValue<TimeSpan?>(nameof(options.DefaultLockDuration)) ?? options.DefaultLockDuration;
+        options.DefaultMessageTimeToLive = configuration.GetValue<TimeSpan?>(nameof(options.DefaultMessageTimeToLive)) ?? options.DefaultMessageTimeToLive;
+        options.DefaultMaxDeliveryCount = configuration.GetValue<int?>(nameof(options.DefaultMaxDeliveryCount)) ?? options.DefaultMaxDeliveryCount;
+        options.DefaultAutoDeleteOnIdle = configuration.GetValue<TimeSpan?>(nameof(options.DefaultAutoDeleteOnIdle)) ?? options.DefaultAutoDeleteOnIdle;
+        options.DefaultMaxAutoLockRenewDuration = configuration.GetValue<TimeSpan?>(nameof(options.DefaultMaxAutoLockRenewDuration)) ?? options.DefaultMaxAutoLockRenewDuration;
+        options.DefaultPrefetchCount = configuration.GetValue<int?>(nameof(options.DefaultPrefetchCount)) ?? options.DefaultPrefetchCount;
 
-        options.TransportType = configSection.GetValue<ServiceBusTransportType?>(nameof(options.TransportType)) ?? options.TransportType;
-        options.DefaultLockDuration = configSection.GetValue<TimeSpan?>(nameof(options.DefaultLockDuration)) ?? options.DefaultLockDuration;
-        options.DefaultMessageTimeToLive = configSection.GetValue<TimeSpan?>(nameof(options.DefaultMessageTimeToLive)) ?? options.DefaultMessageTimeToLive;
-        options.DefaultMaxDeliveryCount = configSection.GetValue<int?>(nameof(options.DefaultMaxDeliveryCount)) ?? options.DefaultMaxDeliveryCount;
-        options.DefaultAutoDeleteOnIdle = configSection.GetValue<TimeSpan?>(nameof(options.DefaultAutoDeleteOnIdle)) ?? options.DefaultAutoDeleteOnIdle;
-        options.DefaultMaxAutoLockRenewDuration = configSection.GetValue<TimeSpan?>(nameof(options.DefaultMaxAutoLockRenewDuration)) ?? options.DefaultMaxAutoLockRenewDuration;
-        options.DefaultPrefetchCount = configSection.GetValue<int?>(nameof(options.DefaultPrefetchCount)) ?? options.DefaultPrefetchCount;
-
-        var fullyQualifiedNamespace = configSection.GetValue<string?>(nameof(AzureServiceBusTransportCredentials.FullyQualifiedNamespace))
-                                   ?? configSection.GetValue<string?>("Namespace");
+        var fullyQualifiedNamespace = configuration.GetValue<string?>(nameof(AzureServiceBusTransportCredentials.FullyQualifiedNamespace))
+                                   ?? configuration.GetValue<string?>("Namespace");
         options.Credentials = fullyQualifiedNamespace is not null
             ? new AzureServiceBusTransportCredentials { FullyQualifiedNamespace = fullyQualifiedNamespace }
-            : (configSection.GetValue<string?>("ConnectionString") ?? options.Credentials);
+            : (configuration.GetValue<string?>("ConnectionString") ?? options.Credentials);
     }
-
-    /// <inheritdoc/>
-    public void Configure(AzureServiceBusTransportOptions options) => Configure(Options.Options.DefaultName, options);
 
     /// <inheritdoc/>
     public override void PostConfigure(string? name, AzureServiceBusTransportOptions options)
     {
-        if (name is null) throw new ArgumentNullException(nameof(name));
-
         base.PostConfigure(name, options);
 
         // ensure we have a FullyQualifiedNamespace when using AzureServiceBusTransportCredentials
@@ -67,7 +58,7 @@ internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<
 
         // Ensure the entity names are not longer than the limits
         // See https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas#messaging-quotas
-        var registrations = busOptions.GetRegistrations(name);
+        var registrations = busOptions.GetRegistrations(name!);
         foreach (var reg in registrations)
         {
             // Set the IdFormat

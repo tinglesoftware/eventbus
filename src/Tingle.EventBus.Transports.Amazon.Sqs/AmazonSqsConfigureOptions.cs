@@ -27,8 +27,6 @@ internal class AmazonSqsConfigureOptions : AmazonTransportConfigureOptions<Amazo
     /// <inheritdoc/>
     public override void PostConfigure(string? name, AmazonSqsTransportOptions options)
     {
-        if (name is null) throw new ArgumentNullException(nameof(name));
-
         base.PostConfigure(name, options);
 
         // Ensure we have options for SQS and SNS and their regions are set
@@ -38,7 +36,7 @@ internal class AmazonSqsConfigureOptions : AmazonTransportConfigureOptions<Amazo
         options.SnsConfig.RegionEndpoint ??= options.Region;
 
         // Ensure the entity names are not longer than the limits
-        var registrations = busOptions.GetRegistrations(name);
+        var registrations = busOptions.GetRegistrations(name!);
         foreach (var reg in registrations)
         {
             // Set the IdFormat

@@ -20,10 +20,5 @@ public static class AmazonSqsEventBusBuilderExtensions
     /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
     public static EventBusBuilder AddAmazonSqsTransport(this EventBusBuilder builder, string name, Action<AmazonSqsTransportOptions>? configure = null)
-    {
-        if (builder == null) throw new ArgumentNullException(nameof(builder));
-
-        builder.Services.ConfigureOptions<AmazonSqsConfigureOptions>();
-        return builder.AddTransport<AmazonSqsTransportOptions, AmazonSqsTransport>(name, configure);
-    }
+        => builder.AddTransport<AmazonSqsTransport, AmazonSqsTransportOptions, AmazonSqsConfigureOptions>(name, configure);
 }

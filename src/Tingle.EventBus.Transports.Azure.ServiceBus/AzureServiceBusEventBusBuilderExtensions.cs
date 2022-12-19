@@ -20,10 +20,5 @@ public static class AzureServiceBusEventBusBuilderExtensions
     /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
     public static EventBusBuilder AddAzureServiceBusTransport(this EventBusBuilder builder, string name, Action<AzureServiceBusTransportOptions>? configure = null)
-    {
-        if (builder == null) throw new ArgumentNullException(nameof(builder));
-
-        builder.Services.ConfigureOptions<AzureServiceBusConfigureOptions>();
-        return builder.AddTransport<AzureServiceBusTransportOptions, AzureServiceBusTransport>(name, configure);
-    }
+        => builder.AddTransport<AzureServiceBusTransport, AzureServiceBusTransportOptions, AzureServiceBusConfigureOptions>(name, configure);
 }

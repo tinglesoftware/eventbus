@@ -8,9 +8,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="RabbitMqTransportOptions"/>.
 /// </summary>
-internal class RabbitMqConfigureOptions : IConfigureNamedOptions<RabbitMqTransportOptions>, IPostConfigureOptions<RabbitMqTransportOptions>
+internal class RabbitMqConfigureOptions : TransportOptionsConfigureOptions<RabbitMqTransportOptions>
 {
-    private readonly IEventBusConfigurationProvider configurationProvider;
     private readonly EventBusOptions busOptions;
 
     /// <summary>
@@ -20,35 +19,29 @@ internal class RabbitMqConfigureOptions : IConfigureNamedOptions<RabbitMqTranspo
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>
     /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
     public RabbitMqConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
+        : base(configurationProvider)
     {
-        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
     /// <inheritdoc/>
-    public void Configure(string? name, RabbitMqTransportOptions options)
+    protected override void Configure(IConfiguration configuration, RabbitMqTransportOptions options)
     {
-        if (string.IsNullOrEmpty(name)) return;
+        base.Configure(configuration, options);
 
-        var configSection = configurationProvider.GetTransportConfiguration(name);
-        if (configSection is null || !configSection.GetChildren().Any()) return;
-
-        options.RetryCount = configSection.GetValue<int?>(nameof(options.RetryCount)) ?? options.RetryCount;
-        options.Hostname = configSection.GetValue<string?>(nameof(options.Hostname)) ?? options.Hostname;
-        options.Username = configSection.GetValue<string?>(nameof(options.Username)) ?? options.Username;
-        options.Password = configSection.GetValue<string?>(nameof(options.Password)) ?? options.Password;
+        options.RetryCount = configuration.GetValue<int?>(nameof(options.RetryCount)) ?? options.RetryCount;
+        options.Hostname = configuration.GetValue<string?>(nameof(options.Hostname)) ?? options.Hostname;
+        options.Username = configuration.GetValue<string?>(nameof(options.Username)) ?? options.Username;
+        options.Password = configuration.GetValue<string?>(nameof(options.Password)) ?? options.Password;
     }
 
     /// <inheritdoc/>
-    public void Configure(RabbitMqTransportOptions options) => Configure(Options.Options.DefaultName, options);
-
-    /// <inheritdoc/>
-    public void PostConfigure(string? name, RabbitMqTransportOptions options)
+    public override void PostConfigure(string? name, RabbitMqTransportOptions options)
     {
-        if (name is null) throw new ArgumentNullException(nameof(name));
+        base.PostConfigure(name, options);
 
         // If there are consumers for this transport, confirm the right Bus options
-        var registrations = busOptions.GetRegistrations(name);
+        var registrations = busOptions.GetRegistrations(name!);
         if (registrations.Any(r => r.Consumers.Count > 0))
         {
             // we need full type names

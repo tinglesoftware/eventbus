@@ -20,10 +20,5 @@ public static class KafkaEventBusBuilderExtensions
     /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
     public static EventBusBuilder AddKafkaTransport(this EventBusBuilder builder, string name, Action<KafkaTransportOptions>? configure = null)
-    {
-        if (builder == null) throw new ArgumentNullException(nameof(builder));
-
-        builder.Services.ConfigureOptions<KafkaConfigureOptions>();
-        return builder.AddTransport<KafkaTransportOptions, KafkaTransport>(name, configure);
-    }
+        => builder.AddTransport<KafkaTransport, KafkaTransportOptions, KafkaConfigureOptions>(name, configure);
 }

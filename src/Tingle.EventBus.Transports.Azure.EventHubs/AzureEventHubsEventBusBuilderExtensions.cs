@@ -20,10 +20,5 @@ public static class AzureEventHubsEventBusBuilderExtensions
     /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
     public static EventBusBuilder AddAzureEventHubsTransport(this EventBusBuilder builder, string name, Action<AzureEventHubsTransportOptions>? configure = null)
-    {
-        if (builder == null) throw new ArgumentNullException(nameof(builder));
-
-        builder.Services.ConfigureOptions<AzureEventHubsConfigureOptions>();
-        return builder.AddTransport<AzureEventHubsTransportOptions, AzureEventHubsTransport>(name, configure);
-    }
+        => builder.AddTransport<AzureEventHubsTransport, AzureEventHubsTransportOptions, AzureEventHubsConfigureOptions>(name, configure);
 }

@@ -218,4 +218,14 @@ public class DeadLetteredEventContext<T> : EventContext where T : class
     /// The dead-lettered event.
     /// </summary>
     public T Event { get; set; }
+
+    /// <summary>
+    /// Gets the dead letter reason for the event.
+    /// </summary>
+    public string? DeadLetterReason { get; set; }
+
+    /// <summary>
+    /// Gets the dead letter error description for the event.
+    /// </summary>
+    public string? DeadLetterErrorDescription { get; set; }
 }

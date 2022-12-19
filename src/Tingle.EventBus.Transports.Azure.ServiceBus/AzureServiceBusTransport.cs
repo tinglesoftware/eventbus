@@ -553,6 +553,11 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
 
         // set the extras
         context.SetServiceBusReceivedMessage(message);
+        if (ecr.Deadletter && context is DeadLetteredEventContext<TEvent> dlec)
+        {
+            dlec.DeadLetterReason = message.DeadLetterReason;
+            dlec.DeadLetterErrorDescription = message.DeadLetterErrorDescription;
+        }
 
         var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
                                                                      ecr: ecr,

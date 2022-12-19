@@ -128,7 +128,7 @@ public class EventBusNamingOptions
             NamingConvention.KebabCase => string.Join("-", args).ToLowerInvariant(),
             NamingConvention.SnakeCase => string.Join("_", args).ToLowerInvariant(),
             NamingConvention.DotCase => string.Join(".", args).ToLowerInvariant(),
-            _ => throw new ArgumentOutOfRangeException(nameof(Convention), $"'{Convention}' does not support joining"),
+            _ => throw new InvalidOperationException($"'{nameof(NamingConvention)}.{Convention}' does not support joining"),
         };
     }
 }

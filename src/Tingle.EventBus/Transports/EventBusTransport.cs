@@ -93,7 +93,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                 ecr.UnhandledErrorBehaviour ??= BusOptions.DefaultUnhandledConsumerErrorBehaviour;
             }
         }
-        Logger.StartingTransport(registrations.Count, Options.EmptyResultsDelay);
+        Logger.StartingTransport(Name, registrations.Count, Options.EmptyResultsDelay);
 
         await StartCoreAsync(cancellationToken).ConfigureAwait(false);
 
@@ -108,7 +108,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     /// <inheritdoc/>
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        Logger.StoppingTransport();
+        Logger.StoppingTransport(Name);
         await StopCoreAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -372,7 +372,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         }
         catch (Exception ex)
         {
-            Logger.ConsumeFailed(ecr.UnhandledErrorBehaviour, @event.Id, ex);
+            Logger.ConsumeFailed(Name, ecr.UnhandledErrorBehaviour, @event.Id, ex);
             return new EventConsumeResult(successful: false, exception: ex);
         }
     }

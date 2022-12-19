@@ -41,6 +41,8 @@ public abstract class EventBusTransportConfigureOptions<TOptions> : IConfigureNa
 
         var configuration = configurationProvider.Configuration.GetSection($"Transports:{name}");
         if (configuration.GetChildren().Any()) Configure(configuration, options);
+
+        options.WaitTransportStarted ??= BusOptions.DefaultTransportWaitStarted;
     }
 
     /// <summary>

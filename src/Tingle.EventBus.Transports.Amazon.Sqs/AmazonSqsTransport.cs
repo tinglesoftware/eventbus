@@ -58,7 +58,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
             {
                 var queueUrl = await GetQueueUrlAsync(reg: reg,
                                                       ecr: ecr,
-                                                      deadletter: false,
+                                                      deadletter: ecr.Deadletter,
                                                       cancellationToken: cancellationToken).ConfigureAwait(false);
                 var t = ReceiveAsync(reg: reg,
                                      ecr: ecr,
@@ -445,6 +445,9 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
                                                                     @event: context,
                                                                     scope: scope,
                                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        // dead-letter cannot be dead-lettered again, what else can we do?
+        if (ecr.Deadletter) return; // TODO: figure out what to do when dead-letter fails
 
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {

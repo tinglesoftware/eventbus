@@ -84,13 +84,20 @@ internal class RabbitMqConfigureOptions : EventBusTransportConfigureOptions<Rabb
                                                    + "RabbitMQ does not allow more than 255 characters for Exchange names.");
             }
 
-            // Consumer names become Queue names and they should not be longer than 255 characters
             foreach (var ecr in reg.Consumers.Values)
             {
+                // Consumer names become Queue names and they should not be longer than 255 characters
                 if (ecr.ConsumerName!.Length > 255)
                 {
                     throw new InvalidOperationException($"ConsumerName '{ecr.ConsumerName}' generated from '{ecr.ConsumerType.Name}' is too long. "
                                                        + "RabbitMQ does not allow more than 255 characters for Queue names.");
+                }
+
+                // This does not support dead-letter yet
+                if (ecr.Deadletter)
+                {
+                    throw new InvalidOperationException($"ConsumerName '{ecr.ConsumerName}' is setup for dead-letter but the RabbitMQ "
+                                                       + "implementation doesn't yet support it.");
                 }
             }
         }

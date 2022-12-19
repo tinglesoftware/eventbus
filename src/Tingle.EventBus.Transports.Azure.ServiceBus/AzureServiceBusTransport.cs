@@ -341,6 +341,9 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
 
                 // Set the number of items to be cached locally
                 PrefetchCount = Options.DefaultPrefetchCount,
+
+                // Set the sub-queue to be used
+                SubQueue = ecr.Deadletter ? SubQueue.DeadLetter : SubQueue.None,
             };
 
             // Allow for the defaults to be overridden

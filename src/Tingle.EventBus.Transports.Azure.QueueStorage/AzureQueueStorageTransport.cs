@@ -253,7 +253,7 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
         var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
         var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
 
-        var queueClient = await GetQueueClientAsync(reg: reg, deadletter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var queueClient = await GetQueueClientAsync(reg: reg, deadletter: ecr.Deadletter, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -340,6 +340,9 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
                                                                     @event: context,
                                                                     scope: scope,
                                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        // dead-letter cannot be dead-lettered again, what else can we do?
+        if (ecr.Deadletter) return; // TODO: figure out what to do when dead-letter fails
 
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {

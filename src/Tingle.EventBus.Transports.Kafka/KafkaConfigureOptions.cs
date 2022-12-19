@@ -74,13 +74,20 @@ internal class KafkaConfigureOptions : EventBusTransportConfigureOptions<KafkaTr
                                                    + "Kafka does not allow more than 255 characters for Topic names.");
             }
 
-            // Consumer names become Consumer Group IDs and they should not be longer than 255 characters
             foreach (var ecr in reg.Consumers.Values)
             {
+                // Consumer names become Consumer Group IDs and they should not be longer than 255 characters
                 if (ecr.ConsumerName!.Length > 255)
                 {
                     throw new InvalidOperationException($"ConsumerName '{ecr.ConsumerName}' generated from '{ecr.ConsumerType.Name}' is too long. "
                                                        + "Kafka does not allow more than 255 characters for Consumer Group IDs.");
+                }
+
+                // This does not support dead-letter yet
+                if (ecr.Deadletter)
+                {
+                    throw new InvalidOperationException($"ConsumerName '{ecr.ConsumerName}' is setup for dead-letter but the Kafka "
+                                                       + "implementation doesn't yet support it.");
                 }
             }
         }

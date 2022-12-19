@@ -31,6 +31,17 @@ internal class InMemoryTransportConfigureOptions : EventBusTransportConfigureOpt
 
             // Ensure the entity type is allowed
             options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast, EntityKind.Queue);
+
+            // This does not support dead-letter yet
+            foreach (var ecr in reg.Consumers.Values)
+            {
+                if (ecr.Deadletter)
+                {
+                    throw new InvalidOperationException($"ConsumerName '{ecr.ConsumerName}' is setup for dead-letter but the InMemory "
+                                                       + "implementation doesn't yet support it.");
+                }
+            }
+
         }
     }
 }

@@ -262,11 +262,14 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
 
     private Task<EventProcessorClient> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
     {
+        var name = reg.EventName;
+        if (ecr.Deadletter) name += Options.DeadLetterSuffix;
+
         // For events configured as sourced from IoT Hub,
         // 1. The event hub name is in the metadata
         // 2. The ConsumerGroup is set to $Default (this may be changed to support more)
         var isIotHub = reg.IsConfiguredAsIotHub();
-        var eventHubName = isIotHub ? reg.GetIotHubEventHubName() : reg.EventName;
+        var eventHubName = isIotHub ? reg.GetIotHubEventHubName() : name;
         var consumerGroup = isIotHub || Options.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
 
         async Task<EventProcessorClient> creator(string key, CancellationToken ct)
@@ -405,6 +408,9 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
                                                                     @event: context,
                                                                     scope: scope,
                                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        // dead-letter cannot be dead-lettered again, what else can we do?
+        if (ecr.Deadletter) return; // TODO: figure out what to do when dead-letter fails
 
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {

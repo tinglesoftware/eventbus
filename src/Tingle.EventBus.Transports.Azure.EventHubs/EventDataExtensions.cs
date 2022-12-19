@@ -1,6 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Azure.Messaging.EventHubs;
+using System.Diagnostics.CodeAnalysis;
 
-namespace Azure.Messaging.EventHubs;
+namespace Tingle.EventBus.Transports.Azure.EventHubs;
 
 /// <summary>
 /// Extension methods on <see cref="EventData"/>.

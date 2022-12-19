@@ -1,5 +1,4 @@
-﻿using Azure.Messaging.EventHubs;
-using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
+﻿using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
 namespace Tingle.EventBus;
 

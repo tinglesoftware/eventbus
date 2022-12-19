@@ -342,6 +342,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             // Resolve the consumer
             var consumer = ActivatorUtilities.GetServiceOrCreateInstance<TConsumer>(scope.ServiceProvider);
 
+            // Consume the event with the consumer appropriately
             if (consumer is IEventConsumer<TEvent> consumer_normal)
             {
                 if (@event is EventContext<TEvent> evt_normal)
@@ -349,6 +350,10 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                     // Invoke handler method, with resilience policies
                     await registration.ExecutionPolicy.ExecuteAsync(
                         ct => consumer_normal.ConsumeAsync(evt_normal, ct), cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Consumer '{typeof(TConsumer).FullName}' can only be used for normal events. Check you configuration.");
                 }
             }
             else if (consumer is IDeadLetteredEventConsumer<TEvent> consumer_deadletter)
@@ -359,6 +364,14 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                     await registration.ExecutionPolicy.ExecuteAsync(
                         ct => consumer_deadletter.ConsumeAsync(evt_deadletter, ct), cancellationToken).ConfigureAwait(false);
                 }
+                else
+                {
+                    throw new InvalidOperationException($"Consumer '{typeof(TConsumer).FullName}' can only be used for dead-letter events. Check you configuration.");
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException($"Consumer '{typeof(TConsumer).FullName}' can't consume events. This shouldn't happen. Please file an issue.");
             }
 
             return new EventConsumeResult(successful: true, exception: null);

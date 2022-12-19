@@ -299,7 +299,7 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
                                                                  IServiceScope scope,
                                                                  CancellationToken cancellationToken)
         where TEvent : class
-        where TConsumer : IEventConsumer<TEvent>
+        where TConsumer : IEventConsumer
     {
         var messageId = message.MessageId;
         using var log_scope = BeginLoggingScopeForConsume(id: messageId,

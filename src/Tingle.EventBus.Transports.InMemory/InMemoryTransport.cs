@@ -326,7 +326,7 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
                                                                  InMemoryProcessor processor,
                                                                  ProcessMessageEventArgs args)
         where TEvent : class
-        where TConsumer : IEventConsumer<TEvent>
+        where TConsumer : IEventConsumer
     {
         var entityPath = processor.EntityPath;
         var message = args.Message;

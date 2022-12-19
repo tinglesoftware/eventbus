@@ -397,7 +397,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
                                                                  Message message,
                                                                  CancellationToken cancellationToken)
         where TEvent : class
-        where TConsumer : IEventConsumer<TEvent>
+        where TConsumer : IEventConsumer
     {
         var messageId = message.MessageId;
         message.TryGetAttribute(MetadataNames.CorrelationId, out var correlationId);

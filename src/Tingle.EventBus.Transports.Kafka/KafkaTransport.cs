@@ -269,7 +269,7 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                                                                ConsumeResult<string, byte[]> result,
                                                                CancellationToken cancellationToken)
         where TEvent : class
-        where TConsumer : IEventConsumer<TEvent>
+        where TConsumer : IEventConsumer
     {
         var message = result.Message;
         var messageKey = message.Key;

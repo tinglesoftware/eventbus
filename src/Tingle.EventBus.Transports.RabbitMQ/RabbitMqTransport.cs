@@ -287,7 +287,7 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
                                                                  BasicDeliverEventArgs args,
                                                                  CancellationToken cancellationToken)
         where TEvent : class
-        where TConsumer : IEventConsumer<TEvent>
+        where TConsumer : IEventConsumer
     {
         var messageId = args.BasicProperties?.MessageId;
         using var log_scope = BeginLoggingScopeForConsume(id: messageId,

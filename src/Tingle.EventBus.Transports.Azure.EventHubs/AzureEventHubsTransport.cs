@@ -341,7 +341,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
                                                                EventProcessorClient processor,
                                                                ProcessEventArgs args)
         where TEvent : class
-        where TConsumer : IEventConsumer<TEvent>
+        where TConsumer : IEventConsumer
     {
         Logger.ProcessorReceivedEvent(eventHubName: processor.EventHubName,
                                       consumerGroup: processor.ConsumerGroup,

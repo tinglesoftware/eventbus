@@ -507,7 +507,7 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
                                                                  ServiceBusProcessor processor,
                                                                  ProcessMessageEventArgs args)
         where TEvent : class
-        where TConsumer : IEventConsumer<TEvent>
+        where TConsumer : IEventConsumer
     {
         var entityPath = args.EntityPath;
         var message = args.Message;

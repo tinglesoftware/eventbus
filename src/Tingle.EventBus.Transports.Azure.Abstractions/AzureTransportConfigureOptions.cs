@@ -15,7 +15,9 @@ public abstract class AzureTransportConfigureOptions<TCredential, TOptions> : Ev
     /// provided by the <paramref name="configurationProvider"/>.
     /// </summary>
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
-    public AzureTransportConfigureOptions(IEventBusConfigurationProvider configurationProvider) : base(configurationProvider) { }
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+    public AzureTransportConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
+        : base(configurationProvider, busOptionsAccessor) { }
 
     /// <inheritdoc/>
     public override ValidateOptionsResult Validate(string? name, TOptions options)

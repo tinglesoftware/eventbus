@@ -9,8 +9,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 internal class RabbitMqConfigureOptions : EventBusTransportConfigureOptions<RabbitMqTransportOptions>
 {
-    private readonly EventBusOptions busOptions;
-
     /// <summary>
     /// Initializes a new <see cref="RabbitMqConfigureOptions"/> given the configuration
     /// provided by the <paramref name="configurationProvider"/>.
@@ -18,10 +16,7 @@ internal class RabbitMqConfigureOptions : EventBusTransportConfigureOptions<Rabb
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>
     /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
     public RabbitMqConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
-        : base(configurationProvider)
-    {
-        busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
-    }
+        : base(configurationProvider, busOptionsAccessor) { }
 
     /// <inheritdoc/>
     public override void PostConfigure(string? name, RabbitMqTransportOptions options)
@@ -29,19 +24,19 @@ internal class RabbitMqConfigureOptions : EventBusTransportConfigureOptions<Rabb
         base.PostConfigure(name, options);
 
         // If there are consumers for this transport, confirm the right Bus options
-        var registrations = busOptions.GetRegistrations(name!);
+        var registrations = BusOptions.GetRegistrations(name!);
         if (registrations.Any(r => r.Consumers.Count > 0))
         {
             // we need full type names
-            if (!busOptions.Naming.UseFullTypeNames)
+            if (!BusOptions.Naming.UseFullTypeNames)
             {
-                throw new NotSupportedException($"When using RabbitMQ transport '{nameof(busOptions.Naming.UseFullTypeNames)}' must be 'true'");
+                throw new NotSupportedException($"When using RabbitMQ transport '{nameof(BusOptions.Naming.UseFullTypeNames)}' must be 'true'");
             }
 
             // consumer names must be suffixed
-            if (!busOptions.Naming.SuffixConsumerName)
+            if (!BusOptions.Naming.SuffixConsumerName)
             {
-                throw new NotSupportedException($"When using RabbitMQ transport '{nameof(busOptions.Naming.SuffixConsumerName)}' must be 'true'");
+                throw new NotSupportedException($"When using RabbitMQ transport '{nameof(BusOptions.Naming.SuffixConsumerName)}' must be 'true'");
             }
         }
 
@@ -77,7 +72,7 @@ internal class RabbitMqConfigureOptions : EventBusTransportConfigureOptions<Rabb
         foreach (var reg in registrations)
         {
             // Set the IdFormat
-            options.SetEventIdFormat(reg, busOptions);
+            options.SetEventIdFormat(reg, BusOptions);
 
             // Ensure the entity type is allowed
             options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast, EntityKind.Queue);

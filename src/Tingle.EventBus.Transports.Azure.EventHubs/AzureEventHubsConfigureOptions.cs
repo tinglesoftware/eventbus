@@ -1,5 +1,4 @@
-﻿using Azure.Messaging.EventHubs;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Tingle.EventBus.Configuration;
 
@@ -11,8 +10,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<AzureEventHubsTransportCredentials, AzureEventHubsTransportOptions>,
                                                 IConfigureNamedOptions<AzureEventHubsTransportOptions>
 {
-    private readonly EventBusOptions busOptions;
-
     /// <summary>
     /// Initializes a new <see cref="AzureEventHubsConfigureOptions"/> given the configuration
     /// provided by the <paramref name="configurationProvider"/>.
@@ -20,10 +17,7 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
     /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
     public AzureEventHubsConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
-        : base(configurationProvider)
-    {
-        busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
-    }
+        : base(configurationProvider, busOptionsAccessor) { }
 
     /// <inheritdoc/>
     protected override void Configure(IConfiguration configuration, AzureEventHubsTransportOptions options)
@@ -76,7 +70,7 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
         options.CheckpointInterval = Math.Max(options.CheckpointInterval, 1);
 
         // If there are consumers for this transport, we must check azure blob storage
-        var registrations = busOptions.GetRegistrations(name!);
+        var registrations = BusOptions.GetRegistrations(name!);
         if (registrations.Any(r => r.Consumers.Count > 0))
         {
             // ensure the connection string for blob storage or token credential is provided
@@ -106,7 +100,7 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
         foreach (var reg in registrations)
         {
             // Set the IdFormat
-            options.SetEventIdFormat(reg, busOptions);
+            options.SetEventIdFormat(reg, BusOptions);
 
             // Ensure the entity type is allowed
             options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast);

@@ -20,10 +20,19 @@ public abstract class EventBusTransportConfigureOptions<TOptions> : IConfigureNa
     /// provided by the <paramref name="configurationProvider"/>.
     /// </summary>
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
-    public EventBusTransportConfigureOptions(IEventBusConfigurationProvider configurationProvider)
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+    public EventBusTransportConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
     {
         this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
+        BusOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
+
+    /// <summary>
+    /// The options for the current EventBus instance. They can be used to
+    /// cross-configure or validate the options for the transport, an
+    /// event/consumer registration from within this type.
+    /// </summary>
+    protected EventBusOptions BusOptions { get; }
 
     /// <inheritdoc/>
     public virtual void Configure(string? name, TOptions options)

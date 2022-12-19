@@ -6,7 +6,7 @@ namespace Azure.Messaging.EventHubs;
 /// <summary>
 /// Extension methods on <see cref="EventData"/>.
 /// </summary>
-public static class EventDataExtensions
+public static class IotHubEventDataExtensions
 {
     private const string IotHubPropertyNameMessageId = "message-id";
     private const string IotHubPropertyNameMessageSchema = "iothub-message-schema";
@@ -23,23 +23,6 @@ public static class EventDataExtensions
     private const string IotHubMessageSourceTwinChangeEvents = "twinChangeEvents";
     private const string IotHubMessageSourceDeviceLifecycleEvents = "deviceLifecycleEvents";
     private const string IotHubMessageSourceDeviceConnectionStateEvents = "deviceConnectionStateEvents";
-
-    internal static bool TryGetPropertyValue(this EventData data, string key, [NotNullWhen(true)] out object? value)
-    {
-        if (data is null) throw new ArgumentNullException(nameof(data));
-        if (string.IsNullOrWhiteSpace(key))
-        {
-            throw new ArgumentException($"'{nameof(key)}' cannot be null or whitespace.", nameof(key));
-        }
-
-        return data.SystemProperties.TryGetValue(key, out value)
-            || data.Properties.TryGetValue(key, out value);
-    }
-
-    internal static T? GetPropertyValue<T>(this EventData data, string key)
-    {
-        return data.TryGetPropertyValue(key, out var value) && value is not null ? (T?)value : default;
-    }
 
     /// <summary>Gets the message identifier for the IoT Hub message.</summary>
     /// <param name="data">The <see cref="EventData"/> to use.</param>
@@ -111,5 +94,4 @@ public static class EventDataExtensions
     /// <summary>Gets the subject for the IoT Hub message.</summary>
     /// <param name="data">The <see cref="EventData"/> to use.</param>
     public static string? GetIotHubSubject(this EventData data) => data.GetPropertyValue<string>(IotHubPropertyNameSubject);
-
 }

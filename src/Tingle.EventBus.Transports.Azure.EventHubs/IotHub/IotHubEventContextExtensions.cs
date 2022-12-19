@@ -1,12 +1,11 @@
-﻿using Azure.Messaging.EventHubs;
-using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
+﻿using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
 namespace Tingle.EventBus;
 
 /// <summary>
 /// Extension methods on <see cref="EventContext"/> and <see cref="EventContext{T}"/>.
 /// </summary>
-public static class AzureEventHubsIotHubEventContextExtensions
+public static class IotHubEventContextExtensions
 {
     /// <summary>Gets the message identifier for the IoT Hub message.</summary>
     /// <param name="context">The <see cref="EventContext"/> to use.</param>

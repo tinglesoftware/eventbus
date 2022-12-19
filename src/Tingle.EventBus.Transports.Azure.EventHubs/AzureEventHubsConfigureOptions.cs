@@ -30,17 +30,35 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
     {
         base.Configure(configuration, options);
 
-        var fullyQualifiedNamespace = configuration.GetValue<string?>(nameof(AzureEventHubsTransportCredentials.FullyQualifiedNamespace))
-                                   ?? configuration.GetValue<string?>("Namespace");
-        options.Credentials = fullyQualifiedNamespace is not null
-            ? new AzureEventHubsTransportCredentials { FullyQualifiedNamespace = fullyQualifiedNamespace, }
-            : (configuration.GetValue<string?>("ConnectionString") ?? options.Credentials);
+        if (options.Credentials == default || options.Credentials.CurrentValue is null)
+        {
+            var fullyQualifiedNamespace = configuration.GetValue<string>(nameof(AzureEventHubsTransportCredentials.FullyQualifiedNamespace))
+                                       ?? configuration.GetValue<string>("Namespace");
+            if (fullyQualifiedNamespace is not null)
+            {
+                options.Credentials = new AzureEventHubsTransportCredentials { FullyQualifiedNamespace = fullyQualifiedNamespace, };
+            }
+            else
+            {
+                var connectionString = configuration.GetValue<string>("ConnectionString");
+                if (connectionString is not null) options.Credentials = connectionString;
+            }
+        }
 
-        var serviceUrl = configuration.GetValue<Uri?>("BlobStorageServiceUrl")
-                      ?? configuration.GetValue<Uri?>("BlobStorageEndpoint");
-        options.BlobStorageCredentials = serviceUrl is not null
-            ? new AzureBlobStorageCredentials { ServiceUrl = serviceUrl, }
-            : (configuration.GetValue<string?>("BlobStorageConnectionString") ?? options.Credentials);
+        if (options.BlobStorageCredentials == default || options.BlobStorageCredentials.CurrentValue is null)
+        {
+            var serviceUrl = configuration.GetValue<Uri>("BlobStorageServiceUrl")
+                          ?? configuration.GetValue<Uri>("BlobStorageEndpoint");
+            if (serviceUrl is not null)
+            {
+                options.BlobStorageCredentials = new AzureBlobStorageCredentials { ServiceUrl = serviceUrl, };
+            }
+            else
+            {
+                var connectionString = configuration.GetValue<string>("BlobStorageConnectionString");
+                if (connectionString is not null) options.BlobStorageCredentials = connectionString;
+            }
+        }
     }
 
     /// <inheritdoc/>

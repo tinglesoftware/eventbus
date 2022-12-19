@@ -44,7 +44,6 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
         if (configSection is not null && configSection.GetChildren().Any())
         {
             var serviceUrl = configSection.GetValue<Uri?>(nameof(AzureBlobStorageCredentials.ServiceUrl))
-                          ?? configSection.GetValue<Uri?>("BlobServiceUrl")
                           ?? configSection.GetValue<Uri?>("Endpoint");
             options.BlobStorageCredentials = serviceUrl is not null
                 ? new AzureBlobStorageCredentials { ServiceUrl = serviceUrl, }

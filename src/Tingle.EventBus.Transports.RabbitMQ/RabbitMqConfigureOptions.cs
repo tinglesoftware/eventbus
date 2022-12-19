@@ -85,7 +85,7 @@ internal class RabbitMqConfigureOptions : EventBusTransportConfigureOptions<Rabb
             }
 
             // Consumer names become Queue names and they should not be longer than 255 characters
-            foreach (var ecr in reg.Consumers)
+            foreach (var ecr in reg.Consumers.Values)
             {
                 if (ecr.ConsumerName!.Length > 255)
                 {

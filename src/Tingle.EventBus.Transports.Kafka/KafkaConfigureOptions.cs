@@ -75,7 +75,7 @@ internal class KafkaConfigureOptions : EventBusTransportConfigureOptions<KafkaTr
             }
 
             // Consumer names become Consumer Group IDs and they should not be longer than 255 characters
-            foreach (var ecr in reg.Consumers)
+            foreach (var ecr in reg.Consumers.Values)
             {
                 if (ecr.ConsumerName!.Length > 255)
                 {

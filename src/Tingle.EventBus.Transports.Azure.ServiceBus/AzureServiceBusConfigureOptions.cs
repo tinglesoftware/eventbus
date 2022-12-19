@@ -73,7 +73,7 @@ internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<
             // When not using Queues, ConsumerName -> SubscriptionName does not happen
             if (reg.EntityKind == EntityKind.Broadcast)
             {
-                foreach (var ecr in reg.Consumers)
+                foreach (var ecr in reg.Consumers.Values)
                 {
                     if (ecr.ConsumerName!.Length > 50)
                     {

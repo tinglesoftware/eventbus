@@ -49,7 +49,7 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
-            foreach (var ecr in reg.Consumers)
+            foreach (var ecr in reg.Consumers.Values)
             {
                 var t = ReceiveAsync(reg: reg, ecr: ecr, cancellationToken: stoppingCts.Token);
                 receiverTasks.Add(t);

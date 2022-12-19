@@ -82,7 +82,7 @@ public class EventRegistration : IEquatable<EventRegistration?>
     /// <remarks>
     /// This is backed by a <see cref="HashSet{T}"/> to ensure no duplicates.
     /// </remarks>
-    public ICollection<EventConsumerRegistration> Consumers { get; set; } = new HashSet<EventConsumerRegistration>();
+    public Dictionary<Type, EventConsumerRegistration> Consumers { get; } = new();
 
     /// <summary>
     /// Gets a key/value collection that can be used to organize and share data across components

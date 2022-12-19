@@ -50,7 +50,7 @@ internal class AmazonSqsConfigureOptions : AmazonTransportConfigureOptions<Amazo
 
             // Consumer names become Queue names and they should not be longer than 80 characters
             // See https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/quotas-queues.html
-            foreach (var ecr in reg.Consumers)
+            foreach (var ecr in reg.Consumers.Values)
             {
                 if (ecr.ConsumerName!.Length > 80)
                 {

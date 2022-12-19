@@ -263,7 +263,7 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
         foreach (var reg in registrations)
         {
             var exchangeName = reg.EventName!;
-            foreach (var ecr in reg.Consumers)
+            foreach (var ecr in reg.Consumers.Values)
             {
                 var queueName = ecr.ConsumerName!;
 

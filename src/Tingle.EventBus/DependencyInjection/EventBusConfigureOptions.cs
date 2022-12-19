@@ -113,7 +113,7 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
         // Ensure there are no consumers with the same name per event
         foreach (var evr in registrations)
         {
-            var conflict = evr.Consumers.GroupBy(ecr => ecr.ConsumerName).FirstOrDefault(kvp => kvp.Count() > 1);
+            var conflict = evr.Consumers.Values.GroupBy(ecr => ecr.ConsumerName).FirstOrDefault(kvp => kvp.Count() > 1);
             if (conflict != null)
             {
                 var names = conflict.Select(r => r.ConsumerType.FullName);

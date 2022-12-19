@@ -70,7 +70,7 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
-            foreach (var ecr in reg.Consumers)
+            foreach (var ecr in reg.Consumers.Values)
             {
                 var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken).ConfigureAwait(false);
 

@@ -7,18 +7,26 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="KafkaTransportOptions"/>.
 /// </summary>
-internal class KafkaConfigureOptions : IPostConfigureOptions<KafkaTransportOptions>
+internal class KafkaConfigureOptions : EventBusTransportConfigureOptions<KafkaTransportOptions>
 {
     private readonly EventBusOptions busOptions;
 
-    public KafkaConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    /// <summary>
+    /// Initializes a new <see cref="KafkaConfigureOptions"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+    public KafkaConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
+        : base(configurationProvider)
     {
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
-    public void PostConfigure(string? name, KafkaTransportOptions options)
+    /// <inheritdoc/>
+    public override void PostConfigure(string? name, KafkaTransportOptions options)
     {
-        if (name is null) throw new ArgumentNullException(nameof(name));
+        base.PostConfigure(name, options);
 
         if (options.BootstrapServers == null && options.AdminConfig == null)
         {
@@ -45,7 +53,7 @@ internal class KafkaConfigureOptions : IPostConfigureOptions<KafkaTransportOptio
         options.CheckpointInterval = Math.Max(options.CheckpointInterval, 1);
 
         // ensure there's only one consumer per event
-        var registrations = busOptions.GetRegistrations(name);
+        var registrations = busOptions.GetRegistrations(name!);
         var multiple = registrations.FirstOrDefault(r => r.Consumers.Count > 1);
         if (multiple is not null)
         {

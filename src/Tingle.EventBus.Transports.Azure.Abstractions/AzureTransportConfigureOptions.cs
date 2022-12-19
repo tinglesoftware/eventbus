@@ -1,23 +1,28 @@
 ﻿using Microsoft.Extensions.Options;
+using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AzureTransportOptions{TCredential}"/> derivatives.
 /// </summary>
-public abstract class AzureTransportConfigureOptions<TCredential, TOptions> : IPostConfigureOptions<TOptions>, IValidateOptions<TOptions>
+public abstract class AzureTransportConfigureOptions<TCredential, TOptions> : EventBusTransportConfigureOptions<TOptions>
     where TCredential : AzureTransportCredentials
     where TOptions : AzureTransportOptions<TCredential>
 {
-    /// <inheritdoc/>
-    public virtual void PostConfigure(string? name, TOptions options)
-    {
-        // intentionally left bank for future use
-    }
+    /// <summary>
+    /// Initializes a new <see cref="AzureTransportConfigureOptions{TCredential, TOptions}"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+    public AzureTransportConfigureOptions(IEventBusConfigurationProvider configurationProvider) : base(configurationProvider) { }
 
     /// <inheritdoc/>
-    public virtual ValidateOptionsResult Validate(string? name, TOptions options)
+    public override ValidateOptionsResult Validate(string? name, TOptions options)
     {
+        var result = base.Validate(name, options);
+        if (!result.Succeeded) return result;
+
         // We should either have a token credential or a connection string
         if (options.Credentials == default || options.Credentials.CurrentValue is null)
         {

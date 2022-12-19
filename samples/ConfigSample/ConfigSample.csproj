@@ -1,11 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
+  <PropertyGroup>
+    <UserSecretsId>fdb14b87-4a29-455c-9912-67a1e0c64081</UserSecretsId>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.8.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Tingle.EventBus.Transports.Azure.ServiceBus\Tingle.EventBus.Transports.Azure.ServiceBus.csproj" />
+    <ProjectReference Include="..\..\src\Tingle.EventBus.Transports.InMemory\Tingle.EventBus.Transports.InMemory.csproj" />
   </ItemGroup>
 
 </Project>

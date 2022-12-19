@@ -20,10 +20,5 @@ public static class RabbitMqEventBusBuilderExtensions
     /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
     public static EventBusBuilder AddRabbitMqTransport(this EventBusBuilder builder, string name, Action<RabbitMqTransportOptions>? configure = null)
-    {
-        if (builder == null) throw new ArgumentNullException(nameof(builder));
-
-        builder.Services.ConfigureOptions<RabbitMqConfigureOptions>();
-        return builder.AddTransport<RabbitMqTransportOptions, RabbitMqTransport>(name, configure);
-    }
+        => builder.AddTransport<RabbitMqTransport, RabbitMqTransportOptions, RabbitMqConfigureOptions>(name, configure);
 }

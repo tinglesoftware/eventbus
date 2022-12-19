@@ -20,10 +20,5 @@ public static class AmazonKinesisEventBusBuilderExtensions
     /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
     public static EventBusBuilder AddAmazonKinesisTransport(this EventBusBuilder builder, string name, Action<AmazonKinesisTransportOptions>? configure = null)
-    {
-        if (builder == null) throw new ArgumentNullException(nameof(builder));
-
-        builder.Services.ConfigureOptions<AmazonKinesisConfigureOptions>();
-        return builder.AddTransport<AmazonKinesisTransportOptions, AmazonKinesisTransport>(name, configure);
-    }
+        => builder.AddTransport<AmazonKinesisTransport, AmazonKinesisTransportOptions, AmazonKinesisConfigureOptions>(name, configure);
 }

@@ -29,6 +29,7 @@ public class EventBusBuilder
 
         // Register necessary services
         Services.AddSingleton<EventBusTransportProvider>();
+        Services.AddSingleton<IEventBusConfigurationProvider, DefaultEventBusConfigurationProvider>();
         Services.AddSingleton<IEventConfigurator, DefaultEventConfigurator>();
         Services.AddSingleton<IEventIdGenerator, DefaultEventIdGenerator>();
         Services.AddTransient<IEventPublisher, EventPublisher>();
@@ -63,34 +64,40 @@ public class EventBusBuilder
     }
 
     /// <summary>Adds a <see cref="EventBusTransportRegistration"/> which can be used by the event bus.</summary>
-    /// <typeparam name="TOptions">The <see cref="EventBusTransportOptions"/> type to configure the transport."/>.</typeparam>
     /// <typeparam name="THandler">The <see cref="EventBusTransport{TOptions}"/> used to handle this transport.</typeparam>
+    /// <typeparam name="TOptions">The <see cref="EventBusTransportOptions"/> type to configure the transport."/>.</typeparam>
+    /// <typeparam name="TConfigurator">The <see cref="EventBusTransportConfigureOptions{TOptions}"/> type to configure the <typeparamref name="TOptions"/>."/>.</typeparam>
     /// <param name="name">The name of this transport.</param>
     /// <param name="configureOptions">Used to configure the transport options.</param>
-    public EventBusBuilder AddTransport<TOptions, THandler>(string name, Action<TOptions>? configureOptions)
-        where TOptions : EventBusTransportOptions, new()
+    public EventBusBuilder AddTransport<THandler, TOptions, TConfigurator>(string name, Action<TOptions>? configureOptions)
         where THandler : EventBusTransport<TOptions>
-        => AddTransport<TOptions, THandler>(name, displayName: null, configureOptions: configureOptions);
+        where TOptions : EventBusTransportOptions, new()
+        where TConfigurator : EventBusTransportConfigureOptions<TOptions>
+        => AddTransport<THandler, TOptions, TConfigurator>(name, displayName: null, configureOptions: configureOptions);
 
     /// <summary>Adds a <see cref="EventBusTransportRegistration"/> which can be used by the event bus.</summary>
-    /// <typeparam name="TOptions">The <see cref="EventBusTransportOptions"/> type to configure the transport."/>.</typeparam>
     /// <typeparam name="THandler">The <see cref="EventBusTransport{TOptions}"/> used to handle this transport.</typeparam>
+    /// <typeparam name="TOptions">The <see cref="EventBusTransportOptions"/> type to configure the transport."/>.</typeparam>
+    /// <typeparam name="TConfigurator">The <see cref="EventBusTransportConfigureOptions{TOptions}"/> type to configure the <typeparamref name="TOptions"/>."/>.</typeparam>
     /// <param name="name">The name of this transport.</param>
     /// <param name="displayName">The display name of this transport.</param>
     /// <param name="configureOptions">Used to configure the transport options.</param>
-    public EventBusBuilder AddTransport<TOptions, THandler>(string name, string? displayName, Action<TOptions>? configureOptions)
-        where TOptions : EventBusTransportOptions, new()
+    public EventBusBuilder AddTransport<THandler, TOptions, TConfigurator>(string name, string? displayName, Action<TOptions>? configureOptions)
         where THandler : EventBusTransport<TOptions>
-        => AddTransportHelper<TOptions, THandler>(name, displayName, configureOptions);
-
-    private EventBusBuilder AddTransportHelper<TOptions, TTransport>(string name, string? displayName, Action<TOptions>? configureOptions)
         where TOptions : EventBusTransportOptions, new()
+        where TConfigurator : EventBusTransportConfigureOptions<TOptions>
+        => AddTransportHelper<THandler, TOptions, TConfigurator>(name, displayName, configureOptions);
+
+    private EventBusBuilder AddTransportHelper<TTransport, TOptions, TConfigurator>(string name, string? displayName, Action<TOptions>? configureOptions)
         where TTransport : class, IEventBusTransport
+        where TOptions : EventBusTransportOptions, new()
+        where TConfigurator : EventBusTransportConfigureOptions<TOptions>
     {
         Services.Configure<EventBusOptions>(o => o.AddTransport<TTransport>(name, displayName));
+        Services.ConfigureOptions<TConfigurator>();
+
         if (configureOptions is not null) Services.Configure(name, configureOptions);
 
-        Services.ConfigureOptions<TransportOptionsConfigureOptions<TOptions>>();
         // //  transport is not registered because multiple separate instances are required per name
         // Services.AddSingleton<TTransport>();
         return this;

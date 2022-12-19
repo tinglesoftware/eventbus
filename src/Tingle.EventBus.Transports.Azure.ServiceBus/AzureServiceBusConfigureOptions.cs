@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -6,20 +7,47 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AzureServiceBusTransportOptions"/>.
 /// </summary>
-internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<AzureServiceBusTransportCredentials, AzureServiceBusTransportOptions>
+internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<AzureServiceBusTransportCredentials, AzureServiceBusTransportOptions>,
+                                                 IConfigureNamedOptions<AzureServiceBusTransportOptions>
 {
     private readonly EventBusOptions busOptions;
 
-    public AzureServiceBusConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    /// <summary>
+    /// Initializes a new <see cref="AzureServiceBusConfigureOptions"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+    public AzureServiceBusConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
+        : base(configurationProvider)
     {
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
     /// <inheritdoc/>
+    protected override void Configure(IConfiguration configuration, AzureServiceBusTransportOptions options)
+    {
+        base.Configure(configuration, options);
+
+        if (options.Credentials == default || options.Credentials.CurrentValue is null)
+        {
+            var fullyQualifiedNamespace = configuration.GetValue<string>(nameof(AzureServiceBusTransportCredentials.FullyQualifiedNamespace))
+                                       ?? configuration.GetValue<string>("Namespace");
+            if (fullyQualifiedNamespace is not null)
+            {
+                options.Credentials = new AzureServiceBusTransportCredentials { FullyQualifiedNamespace = fullyQualifiedNamespace };
+            }
+            else
+            {
+                var connectionString = configuration.GetValue<string>("ConnectionString");
+                if (connectionString is not null) options.Credentials = connectionString;
+            }
+        }
+    }
+
+    /// <inheritdoc/>
     public override void PostConfigure(string? name, AzureServiceBusTransportOptions options)
     {
-        if (name is null) throw new ArgumentNullException(nameof(name));
-
         base.PostConfigure(name, options);
 
         // ensure we have a FullyQualifiedNamespace when using AzureServiceBusTransportCredentials
@@ -30,7 +58,7 @@ internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<
 
         // Ensure the entity names are not longer than the limits
         // See https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas#messaging-quotas
-        var registrations = busOptions.GetRegistrations(name);
+        var registrations = busOptions.GetRegistrations(name!);
         foreach (var reg in registrations)
         {
             // Set the IdFormat

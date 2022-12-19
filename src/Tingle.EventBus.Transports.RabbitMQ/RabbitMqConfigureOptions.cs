@@ -7,21 +7,29 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="RabbitMqTransportOptions"/>.
 /// </summary>
-internal class RabbitMqConfigureOptions : IPostConfigureOptions<RabbitMqTransportOptions>
+internal class RabbitMqConfigureOptions : EventBusTransportConfigureOptions<RabbitMqTransportOptions>
 {
     private readonly EventBusOptions busOptions;
 
-    public RabbitMqConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    /// <summary>
+    /// Initializes a new <see cref="RabbitMqConfigureOptions"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+    public RabbitMqConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
+        : base(configurationProvider)
     {
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
-    public void PostConfigure(string? name, RabbitMqTransportOptions options)
+    /// <inheritdoc/>
+    public override void PostConfigure(string? name, RabbitMqTransportOptions options)
     {
-        if (name is null) throw new ArgumentNullException(nameof(name));
+        base.PostConfigure(name, options);
 
         // If there are consumers for this transport, confirm the right Bus options
-        var registrations = busOptions.GetRegistrations(name);
+        var registrations = busOptions.GetRegistrations(name!);
         if (registrations.Any(r => r.Consumers.Count > 0))
         {
             // we need full type names

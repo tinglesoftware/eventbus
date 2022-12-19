@@ -1,17 +1,26 @@
 ﻿using Amazon;
 using Amazon.Runtime;
-using Microsoft.Extensions.Options;
+using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AmazonTransportOptions"/> derivatives.
 /// </summary>
-public abstract class AmazonTransportConfigureOptions<TOptions> : IPostConfigureOptions<TOptions> where TOptions : AmazonTransportOptions
+public abstract class AmazonTransportConfigureOptions<TOptions> : EventBusTransportConfigureOptions<TOptions> where TOptions : AmazonTransportOptions
 {
+    /// <summary>
+    /// Initializes a new <see cref="AmazonTransportConfigureOptions{TOptions}"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+    public AmazonTransportConfigureOptions(IEventBusConfigurationProvider configurationProvider) : base(configurationProvider) { }
+
     /// <inheritdoc/>
-    public virtual void PostConfigure(string? name, TOptions options)
+    public override void PostConfigure(string? name, TOptions options)
     {
+        base.PostConfigure(name, options);
+
         // Ensure the region is provided
         if (string.IsNullOrWhiteSpace(options.RegionName) && options.Region == null)
         {

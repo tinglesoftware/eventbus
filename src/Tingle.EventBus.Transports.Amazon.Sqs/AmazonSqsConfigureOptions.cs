@@ -12,15 +12,21 @@ internal class AmazonSqsConfigureOptions : AmazonTransportConfigureOptions<Amazo
 {
     private readonly EventBusOptions busOptions;
 
-    public AmazonSqsConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    /// <summary>
+    /// Initializes a new <see cref="AmazonSqsConfigureOptions"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+    public AmazonSqsConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
+        : base(configurationProvider)
     {
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
+    /// <inheritdoc/>
     public override void PostConfigure(string? name, AmazonSqsTransportOptions options)
     {
-        if (name is null) throw new ArgumentNullException(nameof(name));
-
         base.PostConfigure(name, options);
 
         // Ensure we have options for SQS and SNS and their regions are set
@@ -30,7 +36,7 @@ internal class AmazonSqsConfigureOptions : AmazonTransportConfigureOptions<Amazo
         options.SnsConfig.RegionEndpoint ??= options.Region;
 
         // Ensure the entity names are not longer than the limits
-        var registrations = busOptions.GetRegistrations(name);
+        var registrations = busOptions.GetRegistrations(name!);
         foreach (var reg in registrations)
         {
             // Set the IdFormat

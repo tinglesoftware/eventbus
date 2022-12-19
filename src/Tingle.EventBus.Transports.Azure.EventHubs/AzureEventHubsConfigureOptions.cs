@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Azure.Messaging.EventHubs;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -6,20 +8,62 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AzureEventHubsTransportOptions"/>.
 /// </summary>
-internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<AzureEventHubsTransportCredentials, AzureEventHubsTransportOptions>
+internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<AzureEventHubsTransportCredentials, AzureEventHubsTransportOptions>,
+                                                IConfigureNamedOptions<AzureEventHubsTransportOptions>
 {
     private readonly EventBusOptions busOptions;
 
-    public AzureEventHubsConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    /// <summary>
+    /// Initializes a new <see cref="AzureEventHubsConfigureOptions"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+    public AzureEventHubsConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
+        : base(configurationProvider)
     {
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
     /// <inheritdoc/>
+    protected override void Configure(IConfiguration configuration, AzureEventHubsTransportOptions options)
+    {
+        base.Configure(configuration, options);
+
+        if (options.Credentials == default || options.Credentials.CurrentValue is null)
+        {
+            var fullyQualifiedNamespace = configuration.GetValue<string>(nameof(AzureEventHubsTransportCredentials.FullyQualifiedNamespace))
+                                       ?? configuration.GetValue<string>("Namespace");
+            if (fullyQualifiedNamespace is not null)
+            {
+                options.Credentials = new AzureEventHubsTransportCredentials { FullyQualifiedNamespace = fullyQualifiedNamespace, };
+            }
+            else
+            {
+                var connectionString = configuration.GetValue<string>("ConnectionString");
+                if (connectionString is not null) options.Credentials = connectionString;
+            }
+        }
+
+        if (options.BlobStorageCredentials == default || options.BlobStorageCredentials.CurrentValue is null)
+        {
+            var serviceUrl = configuration.GetValue<Uri>("BlobStorageServiceUrl")
+                          ?? configuration.GetValue<Uri>("BlobStorageEndpoint");
+            if (serviceUrl is not null)
+            {
+                options.BlobStorageCredentials = new AzureBlobStorageCredentials { ServiceUrl = serviceUrl, };
+            }
+            else
+            {
+                var connectionString = configuration.GetValue<string>("BlobStorageConnectionString");
+                if (connectionString is not null) options.BlobStorageCredentials = connectionString;
+            }
+        }
+    }
+
+    /// <inheritdoc/>
     public override void PostConfigure(string? name, AzureEventHubsTransportOptions options)
     {
-        if (name is null) throw new ArgumentNullException(nameof(name));
-
         base.PostConfigure(name, options);
 
         // ensure we have a FullyQualifiedNamespace when using AzureEventHubsTransportCredentials
@@ -32,7 +76,7 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
         options.CheckpointInterval = Math.Max(options.CheckpointInterval, 1);
 
         // If there are consumers for this transport, we must check azure blob storage
-        var registrations = busOptions.GetRegistrations(name);
+        var registrations = busOptions.GetRegistrations(name!);
         if (registrations.Any(r => r.Consumers.Count > 0))
         {
             // ensure the connection string for blob storage or token credential is provided
@@ -42,9 +86,9 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
             }
 
             // ensure we have a BlobServiceUrl when using AzureBlobStorageCredential
-            if (options.BlobStorageCredentials.CurrentValue is AzureBlobStorageCredentials absc && absc.BlobServiceUrl is null)
+            if (options.BlobStorageCredentials.CurrentValue is AzureBlobStorageCredentials absc && absc.ServiceUrl is null)
             {
-                throw new InvalidOperationException($"'{nameof(AzureBlobStorageCredentials.BlobServiceUrl)}' must be provided when using '{nameof(AzureBlobStorageCredentials)}'.");
+                throw new InvalidOperationException($"'{nameof(AzureBlobStorageCredentials.ServiceUrl)}' must be provided when using '{nameof(AzureBlobStorageCredentials)}'.");
             }
 
             // ensure the blob container name is provided

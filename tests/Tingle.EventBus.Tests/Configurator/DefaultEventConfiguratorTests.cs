@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Serialization;
 
@@ -9,35 +10,41 @@ public class DefaultEventConfiguratorTests
     [Fact]
     public void ConfigureSerializer_UsesDefault()
     {
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
+        var configuration = new ConfigurationBuilder().Build();
+        var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
+        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
 
         // when not set, use default
         var registration = new EventRegistration(typeof(TestEvent1));
         Assert.Null(registration.EventSerializerType);
-        DefaultEventConfigurator.ConfigureSerializer(registration);
+        configurator.ConfigureSerializer(registration);
         Assert.Equal(typeof(IEventSerializer), registration.EventSerializerType);
     }
 
     [Fact]
     public void ConfigureSerializer_RespectsAttribute()
     {
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
+        var configuration = new ConfigurationBuilder().Build();
+        var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
+        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
 
         // attribute is respected
         var registration = new EventRegistration(typeof(TestEvent2));
         Assert.Null(registration.EventSerializerType);
-        DefaultEventConfigurator.ConfigureSerializer(registration);
+        configurator.ConfigureSerializer(registration);
         Assert.Equal(typeof(FakeEventSerializer1), registration.EventSerializerType);
     }
 
     [Fact]
     public void ConfigureSerializer_Throws_InvalidOperationException()
     {
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
+        var configuration = new ConfigurationBuilder().Build();
+        var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
+        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
 
         // attribute is respected
         var registration = new EventRegistration(typeof(TestEvent3));
-        var ex = Assert.Throws<InvalidOperationException>(() => DefaultEventConfigurator.ConfigureSerializer(registration));
+        var ex = Assert.Throws<InvalidOperationException>(() => configurator.ConfigureSerializer(registration));
         Assert.Equal("The type 'Tingle.EventBus.Tests.Configurator.FakeEventSerializer2' is used"
                    + " as a serializer but does not implement 'Tingle.EventBus.Serialization.IEventSerializer'",
             ex.Message);
@@ -56,14 +63,16 @@ public class DefaultEventConfiguratorTests
     [InlineData(typeof(TestEvent2), true, "dev", NamingConvention.DotCase, "sample-event")]
     public void ConfigureEventName_Works(Type eventType, bool useFullTypeNames, string scope, NamingConvention namingConvention, string expected)
     {
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
+        var configuration = new ConfigurationBuilder().Build();
+        var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
+        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
 
         var options = new EventBusOptions { };
         options.Naming.Scope = scope;
         options.Naming.Convention = namingConvention;
         options.Naming.UseFullTypeNames = useFullTypeNames;
         var registration = new EventRegistration(eventType);
-        DefaultEventConfigurator.ConfigureEventName(registration, options.Naming);
+        configurator.ConfigureEventName(registration, options.Naming);
         Assert.Equal(expected, registration.EventName);
     }
 
@@ -140,7 +149,9 @@ public class DefaultEventConfiguratorTests
                                       NamingConvention namingConvention,
                                       string expected)
     {
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
+        var configuration = new ConfigurationBuilder().Build();
+        var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
+        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
 
         var options = new EventBusOptions { };
         options.Naming.Convention = namingConvention;
@@ -153,7 +164,7 @@ public class DefaultEventConfiguratorTests
         registration.Consumers.Add(new EventConsumerRegistration(consumerType));
 
         var creg = Assert.Single(registration.Consumers);
-        DefaultEventConfigurator.ConfigureEventName(registration, options.Naming);
+        configurator.ConfigureEventName(registration, options.Naming);
         configurator.ConfigureConsumerNames(registration, options.Naming);
         Assert.Equal(expected, creg.ConsumerName);
     }
@@ -164,10 +175,12 @@ public class DefaultEventConfiguratorTests
     [InlineData(typeof(TestEvent3), EntityKind.Broadcast)]
     public void ConfigureEntityKind_Works(Type eventType, EntityKind? expected)
     {
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"));
+        var configuration = new ConfigurationBuilder().Build();
+        var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
+        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
 
         var registration = new EventRegistration(eventType);
-        DefaultEventConfigurator.ConfigureEntityKind(registration);
+        configurator.ConfigureEntityKind(registration);
         Assert.Equal(expected, registration.EntityKind);
     }
 }

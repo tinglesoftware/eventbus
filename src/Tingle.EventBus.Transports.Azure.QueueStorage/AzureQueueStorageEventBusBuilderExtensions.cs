@@ -20,10 +20,5 @@ public static class AzureQueueStorageEventBusBuilderExtensions
     /// <param name="configure">An <see cref="Action{T}"/> to configure the transport options.</param>
     /// <returns></returns>
     public static EventBusBuilder AddAzureQueueStorageTransport(this EventBusBuilder builder, string name, Action<AzureQueueStorageTransportOptions>? configure = null)
-    {
-        if (builder == null) throw new ArgumentNullException(nameof(builder));
-
-        builder.Services.ConfigureOptions<AzureQueueStorageConfigureOptions>();
-        return builder.AddTransport<AzureQueueStorageTransportOptions, AzureQueueStorageTransport>(name, configure);
-    }
+        => builder.AddTransport<AzureQueueStorageTransport, AzureQueueStorageTransportOptions, AzureQueueStorageConfigureOptions>(name, configure);
 }

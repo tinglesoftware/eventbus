@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
@@ -16,17 +17,23 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
                                           IValidateOptions<EventBusSerializationOptions>
 {
     private readonly IHostEnvironment environment;
+    private readonly IEventBusConfigurationProvider configurationProvider;
     private readonly IEnumerable<IEventConfigurator> configurators;
 
-    public EventBusConfigureOptions(IHostEnvironment environment, IEnumerable<IEventConfigurator> configurators)
+    public EventBusConfigureOptions(IHostEnvironment environment,
+                                    IEventBusConfigurationProvider configurationProvider,
+                                    IEnumerable<IEventConfigurator> configurators)
     {
         this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
+        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
         this.configurators = configurators ?? throw new ArgumentNullException(nameof(configurators));
     }
 
     /// <inheritdoc/>
     public void Configure(EventBusOptions options)
     {
+        configurationProvider.Configuration.Bind(options);
+
         // Set the default ConsumerNamePrefix
         options.Naming.ConsumerNamePrefix ??= environment.ApplicationName;
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -6,20 +7,47 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AzureQueueStorageTransportOptions"/>.
 /// </summary>
-internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOptions<AzureQueueStorageTransportCredentials, AzureQueueStorageTransportOptions>
+internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOptions<AzureQueueStorageTransportCredentials, AzureQueueStorageTransportOptions>,
+                                                   IConfigureNamedOptions<AzureQueueStorageTransportOptions>
 {
     private readonly EventBusOptions busOptions;
 
-    public AzureQueueStorageConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    /// <summary>
+    /// Initializes a new <see cref="AzureQueueStorageConfigureOptions"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+    public AzureQueueStorageConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
+        : base(configurationProvider)
     {
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
     /// <inheritdoc/>
+    protected override void Configure(IConfiguration configuration, AzureQueueStorageTransportOptions options)
+    {
+        base.Configure(configuration, options);
+
+        if (options.Credentials == default || options.Credentials.CurrentValue is null)
+        {
+            var serviceUrl = configuration.GetValue<Uri>(nameof(AzureQueueStorageTransportCredentials.ServiceUrl))
+                          ?? configuration.GetValue<Uri>("Endpoint");
+            if (serviceUrl is not null)
+            {
+                options.Credentials = new AzureQueueStorageTransportCredentials { ServiceUrl = serviceUrl };
+            }
+            else
+            {
+                var connectionString = configuration.GetValue<string>("ConnectionString");
+                if (connectionString is not null) options.Credentials = connectionString;
+            }
+        }
+    }
+
+    /// <inheritdoc/>
     public override void PostConfigure(string? name, AzureQueueStorageTransportOptions options)
     {
-        if (name is null) throw new ArgumentNullException(nameof(name));
-
         base.PostConfigure(name, options);
 
         // ensure we have a ServiceUrl when using AzureQueueStorageTransportCredentials
@@ -29,7 +57,7 @@ internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOption
         }
 
         // Ensure there's only one consumer per event
-        var registrations = busOptions.GetRegistrations(name);
+        var registrations = busOptions.GetRegistrations(name!);
         var multiple = registrations.FirstOrDefault(r => r.Consumers.Count > 1);
         if (multiple is not null)
         {

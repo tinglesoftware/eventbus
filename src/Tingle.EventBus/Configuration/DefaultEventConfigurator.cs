@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Tingle.EventBus.Serialization;
 
@@ -10,10 +11,12 @@ namespace Tingle.EventBus.Configuration;
 internal class DefaultEventConfigurator : IEventConfigurator
 {
     private readonly IHostEnvironment environment;
+    private readonly IEventBusConfigurationProvider configurationProvider;
 
-    public DefaultEventConfigurator(IHostEnvironment environment)
+    public DefaultEventConfigurator(IHostEnvironment environment, IEventBusConfigurationProvider configurationProvider)
     {
         this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
+        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
     }
 
     /// <inheritdoc/>
@@ -21,6 +24,14 @@ internal class DefaultEventConfigurator : IEventConfigurator
     {
         if (registration is null) throw new ArgumentNullException(nameof(registration));
         if (options is null) throw new ArgumentNullException(nameof(options));
+
+        // bind from IConfiguration
+        var configuration = configurationProvider.Configuration.GetSection($"Events:{registration.EventType.FullName}");
+        configuration.Bind(registration);
+        foreach (var ecr in registration.Consumers)
+        {
+            configuration.GetSection($"Consumers:{ecr.ConsumerType.FullName}").Bind(ecr);
+        }
 
         // set transport name
         ConfigureTransportName(registration, options);
@@ -36,7 +47,7 @@ internal class DefaultEventConfigurator : IEventConfigurator
         ConfigureSerializer(registration);
     }
 
-    internal static void ConfigureTransportName(EventRegistration reg, EventBusOptions options)
+    internal void ConfigureTransportName(EventRegistration reg, EventBusOptions options)
     {
         // If the event transport name has not been specified, attempt to get from the attribute
         var type = reg.EventType;
@@ -60,7 +71,7 @@ internal class DefaultEventConfigurator : IEventConfigurator
         }
     }
 
-    internal static void ConfigureEventName(EventRegistration reg, EventBusNamingOptions options)
+    internal void ConfigureEventName(EventRegistration reg, EventBusNamingOptions options)
     {
         // set the event name, if not set
         if (string.IsNullOrWhiteSpace(reg.EventName))
@@ -81,7 +92,7 @@ internal class DefaultEventConfigurator : IEventConfigurator
         }
     }
 
-    internal static void ConfigureEntityKind(EventRegistration reg)
+    internal void ConfigureEntityKind(EventRegistration reg)
     {
         // set the entity kind, if not set and there is an attribute
         if (reg.EntityKind == null)
@@ -135,7 +146,7 @@ internal class DefaultEventConfigurator : IEventConfigurator
         }
     }
 
-    internal static void ConfigureSerializer(EventRegistration reg)
+    internal void ConfigureSerializer(EventRegistration reg)
     {
         // If the event serializer has not been specified, attempt to get from the attribute
         var attrs = reg.EventType.GetCustomAttributes(false);

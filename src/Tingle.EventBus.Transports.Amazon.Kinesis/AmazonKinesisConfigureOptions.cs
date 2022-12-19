@@ -11,15 +11,21 @@ internal class AmazonKinesisConfigureOptions : AmazonTransportConfigureOptions<A
 {
     private readonly EventBusOptions busOptions;
 
-    public AmazonKinesisConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    /// <summary>
+    /// Initializes a new <see cref="AmazonKinesisConfigureOptions"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+    public AmazonKinesisConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
+        : base(configurationProvider)
     {
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
+    /// <inheritdoc/>
     public override void PostConfigure(string? name, AmazonKinesisTransportOptions options)
     {
-        if (name is null) throw new ArgumentNullException(nameof(name));
-
         base.PostConfigure(name, options);
 
         // Ensure we have options for Kinesis and the region is set
@@ -33,7 +39,7 @@ internal class AmazonKinesisConfigureOptions : AmazonTransportConfigureOptions<A
         }
 
         // Ensure the entity names are not longer than the limits
-        var registrations = busOptions.GetRegistrations(name);
+        var registrations = busOptions.GetRegistrations(name!);
         foreach (var reg in registrations)
         {
             // Set the IdFormat

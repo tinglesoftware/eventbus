@@ -284,8 +284,8 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         // Create the context
         var publisher = provider.GetRequiredService<IEventPublisher>();
         return deadletter
-            ? new DeadLetteredEventContext<TEvent>(publisher: publisher, envelope: envelope, contentType: contentType, transportIdentifier: ctx.Identifier)
-            : new EventContext<TEvent>(publisher: publisher, envelope: envelope, contentType: contentType, transportIdentifier: ctx.Identifier);
+            ? new DeadLetteredEventContext<TEvent>(publisher: publisher, envelope: envelope, deserializationContext: ctx)
+            : new EventContext<TEvent>(publisher: publisher, envelope: envelope, deserializationContext: ctx);
     }
 
     /// <summary>

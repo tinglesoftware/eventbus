@@ -192,8 +192,8 @@ public class EventContext<T> : EventContext where T : class
         Event = @event;
     }
 
-    internal EventContext(IEventPublisher publisher, IEventEnvelope<T> envelope, ContentType? contentType, string? transportIdentifier)
-        : base(publisher, envelope, contentType, transportIdentifier)
+    internal EventContext(IEventPublisher publisher, IEventEnvelope<T> envelope, DeserializationContext deserializationContext)
+        : base(publisher, envelope, deserializationContext.ContentType, deserializationContext.Identifier)
     {
         Event = envelope.Event!;
     }
@@ -208,8 +208,8 @@ public class EventContext<T> : EventContext where T : class
 /// <typeparam name="T">The type of event carried.</typeparam>
 public class DeadLetteredEventContext<T> : EventContext where T : class
 {
-    internal DeadLetteredEventContext(IEventPublisher publisher, IEventEnvelope<T> envelope, ContentType? contentType, string? transportIdentifier)
-        : base(publisher, envelope, contentType, transportIdentifier)
+    internal DeadLetteredEventContext(IEventPublisher publisher, IEventEnvelope<T> envelope, DeserializationContext deserializationContext)
+        : base(publisher, envelope, deserializationContext.ContentType, deserializationContext.Identifier)
     {
         Event = envelope.Event!;
     }

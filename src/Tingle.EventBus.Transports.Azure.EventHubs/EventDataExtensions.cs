@@ -24,18 +24,33 @@ public static class EventDataExtensions
     /// has the specified key in <see cref="EventData.SystemProperties"/> or <see cref="EventData.Properties"/>;
     /// otherwise, <see langword="false"/>.
     /// </returns>
-    /// <exception cref="ArgumentNullException"><paramref name="data"/> is null.</exception>
-    /// <exception cref="ArgumentException"><paramref name="key"/> is null, empty or whitespace.</exception>
-    public static bool TryGetPropertyValue(this EventData data, string key, [NotNullWhen(true)] out object? value)
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+    public static bool TryGetPropertyValue<T>(this EventData data, string key, [NotNullWhen(true)] out T? value) where T : IConvertible
     {
         if (data is null) throw new ArgumentNullException(nameof(data));
-        if (string.IsNullOrWhiteSpace(key))
+
+        value = default;
+        if (data.SystemProperties.TryGetValue(key, out var raw_value) || data.Properties.TryGetValue(key, out raw_value))
         {
-            throw new ArgumentException($"'{nameof(key)}' cannot be null or whitespace.", nameof(key));
+            if (raw_value.GetType() == typeof(T))
+            {
+                value = (T)raw_value;
+                return true;
+            }
+
+            // Handle nullable differently
+            var t = typeof(T);
+            if (t.IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+            {
+                if (raw_value is null) return default;
+                t = Nullable.GetUnderlyingType(t);
+            }
+
+            value = (T)Convert.ChangeType(raw_value, t!);
+            return true;
         }
 
-        return data.SystemProperties.TryGetValue(key, out value)
-            || data.Properties.TryGetValue(key, out value);
+        return false;
     }
 
     /// <summary>
@@ -46,8 +61,8 @@ public static class EventDataExtensions
     /// <param name="data">The <see cref="EventData"/> instance to use.</param>
     /// <param name="key">The key to locate.</param>
     /// <returns></returns>
-    public static T? GetPropertyValue<T>(this EventData data, string key)
+    public static T? GetPropertyValue<T>(this EventData data, string key) where T : IConvertible
     {
-        return data.TryGetPropertyValue(key, out var value) && value is not null ? (T?)value : default;
+        return data.TryGetPropertyValue<T>(key, out var value) ? value : default;
     }
 }

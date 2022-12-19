@@ -351,9 +351,9 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
         var cancellationToken = args.CancellationToken;
         var messageId = data.MessageId;
 
-        data.TryGetPropertyValue(MetadataNames.EventName, out var eventName);
-        data.TryGetPropertyValue(MetadataNames.EventType, out var eventType);
-        data.TryGetPropertyValue(MetadataNames.ActivityId, out var parentActivityId);
+        data.TryGetPropertyValue<string>(MetadataNames.EventName, out var eventName);
+        data.TryGetPropertyValue<string>(MetadataNames.EventType, out var eventType);
+        data.TryGetPropertyValue<string>(MetadataNames.ActivityId, out var parentActivityId);
 
         using var log_scope = BeginLoggingScopeForConsume(id: messageId,
                                                           correlationId: data.CorrelationId,

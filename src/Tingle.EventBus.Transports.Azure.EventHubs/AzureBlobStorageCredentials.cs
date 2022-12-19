@@ -11,5 +11,5 @@ public class AzureBlobStorageCredentials : AzureTransportCredentials
     /// A <see cref="Uri"/> referencing the blob service.
     /// This is likely to be similar to "https://{account_name}.blob.core.windows.net".
     /// </summary>
-    public Uri? BlobServiceUrl { get; set; }
+    public Uri? ServiceUrl { get; set; }
 }

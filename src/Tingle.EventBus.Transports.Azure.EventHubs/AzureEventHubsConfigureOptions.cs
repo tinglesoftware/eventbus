@@ -43,11 +43,11 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
         configSection = configSection.GetSection("BlobStorage");
         if (configSection is not null && configSection.GetChildren().Any())
         {
-            var serviceUrl = configSection.GetValue<Uri?>(nameof(AzureBlobStorageCredentials.BlobServiceUrl))
-                          ?? configSection.GetValue<Uri?>("ServiceUrl")
+            var serviceUrl = configSection.GetValue<Uri?>(nameof(AzureBlobStorageCredentials.ServiceUrl))
+                          ?? configSection.GetValue<Uri?>("BlobServiceUrl")
                           ?? configSection.GetValue<Uri?>("Endpoint");
             options.BlobStorageCredentials = serviceUrl is not null
-                ? new AzureBlobStorageCredentials { BlobServiceUrl = serviceUrl, }
+                ? new AzureBlobStorageCredentials { ServiceUrl = serviceUrl, }
                 : (configSection.GetValue<string?>("ConnectionString") ?? options.Credentials);
 
             options.BlobContainerName = configSection.GetValue<string?>("ContainerName") ?? options.BlobContainerName;
@@ -84,9 +84,9 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
             }
 
             // ensure we have a BlobServiceUrl when using AzureBlobStorageCredential
-            if (options.BlobStorageCredentials.CurrentValue is AzureBlobStorageCredentials absc && absc.BlobServiceUrl is null)
+            if (options.BlobStorageCredentials.CurrentValue is AzureBlobStorageCredentials absc && absc.ServiceUrl is null)
             {
-                throw new InvalidOperationException($"'{nameof(AzureBlobStorageCredentials.BlobServiceUrl)}' must be provided when using '{nameof(AzureBlobStorageCredentials)}'.");
+                throw new InvalidOperationException($"'{nameof(AzureBlobStorageCredentials.ServiceUrl)}' must be provided when using '{nameof(AzureBlobStorageCredentials)}'.");
             }
 
             // ensure the blob container name is provided

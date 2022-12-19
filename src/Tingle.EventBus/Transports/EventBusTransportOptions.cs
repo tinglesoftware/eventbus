@@ -107,7 +107,7 @@ public abstract class EventBusTransportOptions
     /// </summary>
     /// <param name="reg"></param>
     /// <param name="busOptions"></param>
-    public void SetEventIdFormat(EventRegistration reg, EventBusOptions busOptions)
+    public void SetValuesUsingDefaults(EventRegistration reg, EventBusOptions busOptions)
     {
         // prioritize the transport
         reg.IdFormat ??= DefaultEventIdFormat;

@@ -56,8 +56,8 @@ internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<
         var registrations = BusOptions.GetRegistrations(name!);
         foreach (var reg in registrations)
         {
-            // Set the IdFormat
-            options.SetEventIdFormat(reg, BusOptions);
+            // Set the values using defaults
+            options.SetValuesUsingDefaults(reg, BusOptions);
 
             // Ensure the entity type is allowed
             options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast, EntityKind.Queue);

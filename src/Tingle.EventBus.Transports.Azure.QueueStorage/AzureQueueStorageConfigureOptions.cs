@@ -64,8 +64,8 @@ internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOption
         // See https://docs.microsoft.com/en-us/rest/api/storageservices/naming-queues-and-metadata#queue-names
         foreach (var reg in registrations)
         {
-            // Set the IdFormat
-            options.SetEventIdFormat(reg, BusOptions);
+            // Set the values using defaults
+            options.SetValuesUsingDefaults(reg, BusOptions);
 
             // Ensure the entity type is allowed
             options.EnsureAllowedEntityKind(reg, EntityKind.Queue);

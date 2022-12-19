@@ -387,6 +387,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
                                                      registration: reg,
                                                      identifier: data.SequenceNumber.ToString(),
                                                      raw: data,
+                                                     deadletter: ecr.Deadletter,
                                                      cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.ReceivedEvent(eventBusId: context.Id,
                              eventHubName: processor.EventHubName,

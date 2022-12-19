@@ -324,6 +324,7 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
                                                      registration: reg,
                                                      identifier: (AzureQueueStorageSchedulingId)message,
                                                      raw: message,
+                                                     deadletter: ecr.Deadletter,
                                                      cancellationToken: cancellationToken).ConfigureAwait(false);
 
         Logger.ReceivedMessage(messageId: messageId, eventBusId: context.Id, queueName: queueClient.Name);

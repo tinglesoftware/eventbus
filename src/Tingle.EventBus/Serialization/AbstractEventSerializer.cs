@@ -76,7 +76,9 @@ public abstract class AbstractEventSerializer : IEventSerializer
 
         // Create the context
         var publisher = context.ServiceProvider.GetRequiredService<IEventPublisher>();
-        return new EventContext<T>(publisher: publisher, envelope: envelope, contentType: contentType, transportIdentifier: context.Identifier);
+        return context.Deadletter
+            ? new DeadLetteredEventContext<T>(publisher: publisher, envelope: envelope, contentType: contentType, transportIdentifier: context.Identifier)
+            : new EventContext<T>(publisher: publisher, envelope: envelope, contentType: contentType, transportIdentifier: context.Identifier);
     }
 
     /// <inheritdoc/>

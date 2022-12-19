@@ -318,6 +318,7 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
                                                      registration: reg,
                                                      identifier: messageId,
                                                      raw: args,
+                                                     deadletter: ecr.Deadletter,
                                                      cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
                               messageId,

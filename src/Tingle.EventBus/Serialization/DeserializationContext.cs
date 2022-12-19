@@ -55,4 +55,9 @@ public sealed class DeserializationContext
     /// whereas for Service Bus this is of type Azure.Messaging.ServiceBus.ServiceBusMessage.
     /// </summary>
     public object? RawTransportData { get; init; }
+
+    /// <summary>
+    /// Indicates if the deserialization is being done on a deadletter entity.
+    /// </summary>
+    public bool Deadletter { get; init; }
 }

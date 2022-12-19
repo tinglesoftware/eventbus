@@ -277,6 +277,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     /// <param name="registration">The bus registration for this event.</param>
     /// <param name="identifier">Identifier given by the transport for the event to be deserialized.</param>
     /// <param name="raw">The raw data provided by the transport without any manipulation.</param>
+    /// <param name="deadletter">Whether the event is from a dead-letter entity.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     protected async Task<EventContext> DeserializeAsync<TEvent>(IServiceScope scope,
@@ -285,6 +286,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                                                                 EventRegistration registration,
                                                                 string? identifier,
                                                                 object? raw,
+                                                                bool deadletter,
                                                                 CancellationToken cancellationToken = default)
         where TEvent : class
     {
@@ -292,6 +294,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         {
             ContentType = contentType,
             RawTransportData = raw,
+            Deadletter = deadletter,
         };
         return await DeserializeAsync<TEvent>(ctx, cancellationToken).ConfigureAwait(false);
     }

@@ -361,6 +361,7 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
                                                      registration: reg,
                                                      identifier: message.SequenceNumber.ToString(),
                                                      raw: message,
+                                                     deadletter: ecr.Deadletter,
                                                      cancellationToken: cancellationToken).ConfigureAwait(false);
 
         Logger.ReceivedMessage(sequenceNumber: message.SequenceNumber, eventBusId: context.Id, entityPath: entityPath);

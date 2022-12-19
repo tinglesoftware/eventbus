@@ -435,6 +435,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
                                                      registration: reg,
                                                      identifier: messageId,
                                                      raw: message,
+                                                     deadletter: ecr.Deadletter,
                                                      cancellationToken: cancellationToken).ConfigureAwait(false);
 
         Logger.ReceivedMessage(messageId: messageId, eventBusId: context.Id, queueUrl: queueUrl);

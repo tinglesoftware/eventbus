@@ -26,11 +26,11 @@ internal static partial class ILoggerExtensions
 
     #region Transports (200 series)
 
-    [LoggerMessage(201, LogLevel.Debug, "Starting transport. Consumers: {ConsumersCount}, EmptyResultsDelay: '{EmptyResultsDelay}'")]
-    public static partial void StartingTransport(this ILogger logger, int consumersCount, TimeSpan emptyResultsDelay);
+    [LoggerMessage(201, LogLevel.Debug, "Starting transport '{Name}'. Consumers: {ConsumersCount}, EmptyResultsDelay: '{EmptyResultsDelay}'")]
+    public static partial void StartingTransport(this ILogger logger, string name, int consumersCount, TimeSpan emptyResultsDelay);
 
-    [LoggerMessage(202, LogLevel.Debug, "Stopping transport.")]
-    public static partial void StoppingTransport(this ILogger logger);
+    [LoggerMessage(202, LogLevel.Debug, "Stopping transport '{Name}'.")]
+    public static partial void StoppingTransport(this ILogger logger, string name);
 
     #endregion
 
@@ -88,10 +88,10 @@ internal static partial class ILoggerExtensions
     public static partial void CancelingEvents(this ILogger logger, int eventsCount, IList<string> eventBusIds, string transportName);
     public static void CancelingEvents(this ILogger logger, IList<string> eventBusIds, string transportName) => logger.CancelingEvents(eventBusIds.Count, eventBusIds, transportName);
 
-    [LoggerMessage(307, LogLevel.Error, "Event processing failed. {Action} (EventId: {EventBusId})")]
-    public static partial void ConsumeFailed(this ILogger logger, string action, string? eventBusId, Exception ex);
+    [LoggerMessage(307, LogLevel.Error, "Event processing failed on '{TransportName}'. {Action} (EventId: {EventBusId})")]
+    public static partial void ConsumeFailed(this ILogger logger, string transportName, string action, string? eventBusId, Exception ex);
 
-    public static void ConsumeFailed(this ILogger logger, UnhandledConsumerErrorBehaviour? behaviour, string? eventBusId, Exception ex)
+    public static void ConsumeFailed(this ILogger logger, string transportName, UnhandledConsumerErrorBehaviour? behaviour, string? eventBusId, Exception ex)
     {
         var action = behaviour switch
         {
@@ -100,7 +100,7 @@ internal static partial class ILoggerExtensions
             _ => "Transport specific handling in play.",
         };
 
-        logger.ConsumeFailed(action, eventBusId, ex);
+        logger.ConsumeFailed(transportName, action, eventBusId, ex);
     }
 
     #endregion

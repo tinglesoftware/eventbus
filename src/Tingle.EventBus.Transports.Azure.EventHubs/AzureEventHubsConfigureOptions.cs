@@ -99,8 +99,8 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
         // See https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-quotas#common-limits-for-all-tiers
         foreach (var reg in registrations)
         {
-            // Set the IdFormat
-            options.SetEventIdFormat(reg, BusOptions);
+            // Set the values using defaults
+            options.SetValuesUsingDefaults(reg, BusOptions);
 
             // Ensure the entity type is allowed
             options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast);

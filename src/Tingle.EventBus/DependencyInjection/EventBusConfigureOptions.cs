@@ -60,15 +60,6 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
     /// <inheritdoc/>
     public void PostConfigure(string? name, EventBusOptions options)
     {
-        // Check bounds for duplicate detection duration, if duplicate detection is enabled
-        if (options.EnableDeduplication)
-        {
-            var ticks = options.DuplicateDetectionDuration.Ticks;
-            ticks = Math.Max(ticks, TimeSpan.FromSeconds(20).Ticks); // must be more than 20 seconds
-            ticks = Math.Min(ticks, TimeSpan.FromDays(7).Ticks); // must be less than 7 days
-            options.DuplicateDetectionDuration = TimeSpan.FromTicks(ticks);
-        }
-
         // Ensure there is at least one registered transport
         if (options.TransportMap.Count == 0)
         {

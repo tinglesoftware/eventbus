@@ -52,6 +52,18 @@ public class EventRegistration : IEquatable<EventRegistration?>
     public Type? EventSerializerType { get; set; }
 
     /// <summary>
+    /// The duration of duplicate detection history that is maintained by the transport for the event.
+    /// When not null, duplicate messages having the same <see cref="EventContext.Id"/>
+    /// within the given duration will be discarded.
+    /// Defaults to <see langword="null"/>.
+    /// </summary>
+    /// <remarks>
+    /// Duplicate detection can only be done on the transport layer because it requires persistent storage.
+    /// This feature only works if the transport for the event supports duplicate detection.
+    /// </remarks>
+    public TimeSpan? DuplicateDetectionDuration { get; set; }
+
+    /// <summary>
     /// The retry policy to apply specifically for this event.
     /// This is in addition to what may be provided by the SDKs for each transport.
     /// When provided alongside policies on the transport and the bus, it is used as the inner most policy.

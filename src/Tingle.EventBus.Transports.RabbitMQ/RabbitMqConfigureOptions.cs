@@ -71,8 +71,8 @@ internal class RabbitMqConfigureOptions : EventBusTransportConfigureOptions<Rabb
         // See https://www.rabbitmq.com/queues.html#:~:text=Names,bytes%20of%20UTF%2D8%20characters.
         foreach (var reg in registrations)
         {
-            // Set the IdFormat
-            options.SetEventIdFormat(reg, BusOptions);
+            // Set the values using defaults
+            options.SetValuesUsingDefaults(reg, BusOptions);
 
             // Ensure the entity type is allowed
             options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast, EntityKind.Queue);

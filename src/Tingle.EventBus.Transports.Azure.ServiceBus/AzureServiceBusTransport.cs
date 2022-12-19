@@ -406,9 +406,15 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
             if (!await IsBasicTierAsync(cancellationToken).ConfigureAwait(false))
             {
                 options.DefaultMessageTimeToLive = Options.DefaultMessageTimeToLive; // defaults to 14days in basic tier
-                options.RequiresDuplicateDetection = BusOptions.EnableDeduplication;
-                options.DuplicateDetectionHistoryTimeWindow = BusOptions.DuplicateDetectionDuration;
                 options.AutoDeleteOnIdle = Options.DefaultAutoDeleteOnIdle;
+
+                // set duplication detection
+                var dedup_dur = reg.DuplicateDetectionDuration;
+                if (dedup_dur is not null)
+                {
+                    options.RequiresDuplicateDetection = true;
+                    options.DuplicateDetectionHistoryTimeWindow = SafeDuplicateDetectionHistoryTimeWindow(dedup_dur.Value);
+                }
             }
 
             // Allow for the defaults to be overridden
@@ -436,12 +442,18 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
             {
                 Status = EntityStatus.Active,
                 EnablePartitioning = false,
-                RequiresDuplicateDetection = BusOptions.EnableDeduplication,
-                DuplicateDetectionHistoryTimeWindow = BusOptions.DuplicateDetectionDuration,
                 AutoDeleteOnIdle = Options.DefaultAutoDeleteOnIdle,
                 DefaultMessageTimeToLive = Options.DefaultMessageTimeToLive,
                 EnableBatchedOperations = true,
             };
+
+            // set duplication detection
+            var dedup_dur = reg.DuplicateDetectionDuration;
+            if (dedup_dur is not null)
+            {
+                options.RequiresDuplicateDetection = true;
+                options.DuplicateDetectionHistoryTimeWindow = SafeDuplicateDetectionHistoryTimeWindow(dedup_dur.Value);
+            }
 
             // Allow for the defaults to be overridden
             Options.SetupTopicOptions?.Invoke(reg, options);
@@ -480,6 +492,14 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
             Logger.CreatingSubscription(subscriptionName: subscriptionName, topicName: topicName);
             await managementClient.Value.CreateSubscriptionAsync(options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    private TimeSpan SafeDuplicateDetectionHistoryTimeWindow(TimeSpan value)
+    {
+        var ticks = value.Ticks;
+        ticks = Math.Max(ticks, TimeSpan.FromSeconds(20).Ticks); // must be more than 20 seconds
+        ticks = Math.Min(ticks, TimeSpan.FromDays(7).Ticks); // must be less than 7 days
+        return TimeSpan.FromTicks(ticks);
     }
 
     private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,

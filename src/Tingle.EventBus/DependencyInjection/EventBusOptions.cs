@@ -43,33 +43,26 @@ public class EventBusOptions
     public AsyncRetryPolicy? RetryPolicy { get; set; }
 
     /// <summary>
-    /// Indicates if the messages/events produced require guard against duplicate messages.
-    /// If <see langword="true"/>, duplicate messages having the same <see cref="EventContext.Id"/>
-    /// sent to the same destination within a duration of <see cref="DuplicateDetectionDuration"/> will be discarded.
-    /// Defaults to <see langword="false"/>.
-    /// </summary>
-    /// <remarks>
-    /// Duplicate detection can only be done on the transport layer because it requires persistent storage.
-    /// This feature only works if the transport a message is sent on supports duplicate detection.
-    /// </remarks>
-    public bool EnableDeduplication { get; set; } = false;
-
-    /// <summary>
-    /// The <see cref="TimeSpan"/> duration of duplicate detection history that is maintained by a transport.
-    /// </summary>
-    /// <remarks>
-    /// The default value is 1 minute. Max value is 7 days and minimum is 20 seconds.
-    /// This value is only relevant if <see cref="EnableDeduplication"/> is set to <see langword="true"/>.
-    /// </remarks>
-    public TimeSpan DuplicateDetectionDuration { get; set; } = TimeSpan.FromMinutes(1);
-
-    /// <summary>
     /// Optional default format to use for generated event identifiers when for events where it is not specified.
     /// To specify a value per consumer, use the <see cref="EventRegistration.IdFormat"/> option.
     /// To specify a value per transport, use the <see cref="EventBusTransportOptions.DefaultEventIdFormat"/> option on the specific transport.
     /// Defaults to <see cref="EventIdFormat.Guid"/>.
     /// </summary>
     public EventIdFormat DefaultEventIdFormat { get; set; } = EventIdFormat.Guid;
+
+    /// <summary>
+    /// Gets or sets the default setting for the duration of duplicate detection history that is maintained by a transport.
+    /// When not null, duplicate messages having the same <see cref="EventContext.Id"/> sent to the same destination within
+    /// the given duration will be discarded.
+    /// Defaults to <see langword="null"/>.
+    /// To specify a value per consumer, use the <see cref="EventRegistration.DuplicateDetectionDuration"/> option.
+    /// To specify a value per transport, use the <see cref="EventBusTransportOptions.DefaultDuplicateDetectionDuration"/> option on the specific transport.
+    /// </summary>
+    /// <remarks>
+    /// Duplicate detection can only be done on the transport layer because it requires persistent storage.
+    /// This feature only works if the transport an event is sent on supports duplicate detection.
+    /// </remarks>
+    public TimeSpan? DefaultDuplicateDetectionDuration { get; set; }
 
     /// <summary>
     /// Optional default behaviour for errors encountered in a consumer but are not handled.

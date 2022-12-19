@@ -72,6 +72,19 @@ public abstract class EventBusTransportOptions
     public EventIdFormat? DefaultEventIdFormat { get; set; }
 
     /// <summary>
+    /// Gets or sets the default setting for the duration of duplicate detection history that is maintained by a transport.
+    /// When not null, duplicate messages having the same <see cref="EventContext.Id"/> sent to the same destination within
+    /// the given duration will be discarded.
+    /// This value overrides the default value set on the bus via <see cref="EventBusOptions.DefaultDuplicateDetectionDuration"/>.
+    /// To specify a value per consumer, use the <see cref="EventRegistration.DuplicateDetectionDuration"/> option.
+    /// </summary>
+    /// <remarks>
+    /// Duplicate detection can only be done on the transport layer because it requires persistent storage.
+    /// This feature only works if the transport supports duplicate detection.
+    /// </remarks>
+    public TimeSpan? DefaultDuplicateDetectionDuration { get; set; }
+
+    /// <summary>
     /// Optional default behaviour for errors encountered in a consumer but are not handled.
     /// This value overrides the default value set on the bus via <see cref="EventBusOptions.DefaultUnhandledConsumerErrorBehaviour"/>.
     /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.UnhandledErrorBehaviour"/> option.
@@ -103,7 +116,8 @@ public abstract class EventBusTransportOptions
     }
 
     /// <summary>
-    /// Set value for <see cref="EventRegistration.IdFormat"/> while prioritizing the transport default over the bus default.
+    /// Set values for <see cref="EventRegistration.IdFormat"/>, and <see cref="EventRegistration.DuplicateDetectionDuration"/>
+    /// while prioritizing the transport default over the bus default.
     /// </summary>
     /// <param name="reg"></param>
     /// <param name="busOptions"></param>
@@ -112,5 +126,9 @@ public abstract class EventBusTransportOptions
         // prioritize the transport
         reg.IdFormat ??= DefaultEventIdFormat;
         reg.IdFormat ??= busOptions.DefaultEventIdFormat;
+
+        // prioritize the transport
+        reg.DuplicateDetectionDuration ??= DefaultDuplicateDetectionDuration;
+        reg.DuplicateDetectionDuration ??= busOptions.DefaultDuplicateDetectionDuration;
     }
 }

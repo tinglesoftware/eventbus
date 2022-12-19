@@ -29,6 +29,7 @@ public class EventBusBuilder
 
         // Register necessary services
         Services.AddSingleton<EventBusTransportProvider>();
+        Services.AddSingleton<IEventBusConfigurationProvider, DefaultEventBusConfigurationProvider>();
         Services.AddSingleton<IEventConfigurator, DefaultEventConfigurator>();
         Services.AddSingleton<IEventIdGenerator, DefaultEventIdGenerator>();
         Services.AddTransient<IEventPublisher, EventPublisher>();

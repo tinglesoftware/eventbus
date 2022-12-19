@@ -10,13 +10,13 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// for shared settings in <see cref="EventBusTransportOptions"/>.
 /// </summary>
 /// <typeparam name="TOptions"></typeparam>
-public class EventBusTransportConfigureOptions<TOptions> : IConfigureNamedOptions<TOptions>, IPostConfigureOptions<TOptions>, IValidateOptions<TOptions>
+public abstract class EventBusTransportConfigureOptions<TOptions> : IConfigureNamedOptions<TOptions>, IPostConfigureOptions<TOptions>, IValidateOptions<TOptions>
     where TOptions : EventBusTransportOptions
 {
     private readonly IEventBusConfigurationProvider configurationProvider;
 
     /// <summary>
-    /// Initializes a new <see cref="EventBusTransportConfigureOptions{T}"/> given the configuration
+    /// Initializes a new <see cref="EventBusTransportConfigureOptions{TOptions}"/> given the configuration
     /// provided by the <paramref name="configurationProvider"/>.
     /// </summary>
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\

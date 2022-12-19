@@ -15,5 +15,6 @@ internal class DefaultEventBusConfigurationProvider : IEventBusConfigurationProv
         this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
-    public IConfiguration EventBusConfiguration => configuration.GetSection(EventBusKey);
+    /// <inheritdoc/>
+    public IConfiguration Configuration => configuration.GetSection(EventBusKey);
 }

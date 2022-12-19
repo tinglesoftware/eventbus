@@ -11,5 +11,5 @@ public interface IEventBusConfigurationProvider
     /// <summary>
     /// Gets the <see cref="IConfigurationSection"/> where EventBus options are stored.
     /// </summary>
-    IConfiguration EventBusConfiguration { get; }
+    IConfiguration Configuration { get; }
 }

@@ -32,7 +32,7 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
     /// <inheritdoc/>
     public void Configure(EventBusOptions options)
     {
-        var configSection = configurationProvider.EventBusConfiguration;
+        var configSection = configurationProvider.Configuration;
         if (configSection is null || !configSection.GetChildren().Any()) return;
 
         options.WaitTransportStarted = configSection.GetValue<bool?>(nameof(options.WaitTransportStarted)) ?? options.WaitTransportStarted;

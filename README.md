@@ -42,6 +42,7 @@ A number fo the documents below are still a work in progress and would be added 
 
 #### How to ...
 
+* [Use configuration](docs/work-configuration.md)
 * [Work with Azure IoT Hub](docs/work-with-azure-iot-hub.md)
 * [Work with Azure Managed Identities](docs/work-with-azure-managed-identities.md)
 * [Advanced Service Bus options](docs/advanced-service-bus-options.md)

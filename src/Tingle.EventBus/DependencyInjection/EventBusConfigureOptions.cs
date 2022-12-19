@@ -32,29 +32,9 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
     /// <inheritdoc/>
     public void Configure(EventBusOptions options)
     {
-        var configSection = configurationProvider.Configuration;
-        if (configSection is null || !configSection.GetChildren().Any()) return;
+        var configuration = configurationProvider.Configuration;
 
-        options.WaitTransportStarted = configSection.GetValue<bool?>(nameof(options.WaitTransportStarted)) ?? options.WaitTransportStarted;
-        options.EnableDeduplication = configSection.GetValue<bool?>(nameof(options.EnableDeduplication)) ?? options.EnableDeduplication;
-        options.DuplicateDetectionDuration = configSection.GetValue<TimeSpan?>(nameof(options.DuplicateDetectionDuration)) ?? options.DuplicateDetectionDuration;
-        options.DefaultEventIdFormat = configSection.GetValue<EventIdFormat?>(nameof(options.DefaultEventIdFormat)) ?? options.DefaultEventIdFormat;
-        options.DefaultUnhandledConsumerErrorBehaviour = configSection.GetValue<UnhandledConsumerErrorBehaviour?>(nameof(options.DefaultUnhandledConsumerErrorBehaviour)) ?? options.DefaultUnhandledConsumerErrorBehaviour;
-        options.DefaultTransportName = configSection.GetValue<string?>(nameof(options.DefaultTransportName)) ?? options.DefaultTransportName;
-
-        // pull configuration for Naming (nested)
-        configSection = configSection.GetSection(nameof(options.Naming));
-        if (configSection is not null && configSection.GetChildren().Any())
-        {
-            var naming = options.Naming;
-            naming.Scope = configSection.GetValue<string?>(nameof(naming.Scope)) ?? naming.Scope;
-            naming.Convention = configSection.GetValue<NamingConvention?>(nameof(naming.Convention)) ?? naming.Convention;
-            naming.TrimTypeNames = configSection.GetValue<bool?>(nameof(naming.TrimTypeNames)) ?? naming.TrimTypeNames;
-            naming.UseFullTypeNames = configSection.GetValue<bool?>(nameof(naming.UseFullTypeNames)) ?? naming.UseFullTypeNames;
-            naming.ConsumerNameSource = configSection.GetValue<ConsumerNameSource?>(nameof(naming.ConsumerNameSource)) ?? naming.ConsumerNameSource;
-            naming.ConsumerNamePrefix = configSection.GetValue<string?>(nameof(naming.ConsumerNamePrefix)) ?? naming.ConsumerNamePrefix;
-            naming.SuffixConsumerName = configSection.GetValue<bool?>(nameof(naming.SuffixConsumerName)) ?? naming.SuffixConsumerName;
-        }
+        configuration?.Bind(options);
 
         // TODO: consider configuring the Events and Consumers based on the TypeName once the builder supports GetOrAdd mechanism for EventRegistration and EventConsumerRegistration
 

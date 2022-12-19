@@ -1,5 +1,4 @@
 ﻿using Confluent.Kafka;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Tingle.EventBus.Configuration;
 
@@ -22,19 +21,6 @@ internal class KafkaConfigureOptions : EventBusTransportConfigureOptions<KafkaTr
         : base(configurationProvider)
     {
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
-    }
-
-    /// <inheritdoc/>
-    protected override void Configure(IConfiguration configuration, KafkaTransportOptions options)
-    {
-        base.Configure(configuration, options);
-
-        options.CheckpointInterval = configuration.GetValue<int?>(nameof(options.CheckpointInterval)) ?? options.CheckpointInterval;
-        var section = configuration.GetSection(nameof(options.BootstrapServers));
-        if (section is not null && section.GetChildren().Any())
-        {
-            section.Bind(options.BootstrapServers);
-        }
     }
 
     /// <inheritdoc/>

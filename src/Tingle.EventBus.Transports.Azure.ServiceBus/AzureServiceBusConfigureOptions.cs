@@ -1,5 +1,4 @@
-﻿using Azure.Messaging.ServiceBus;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Tingle.EventBus.Configuration;
 
@@ -29,14 +28,6 @@ internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<
     protected override void Configure(IConfiguration configuration, AzureServiceBusTransportOptions options)
     {
         base.Configure(configuration, options);
-
-        options.TransportType = configuration.GetValue<ServiceBusTransportType?>(nameof(options.TransportType)) ?? options.TransportType;
-        options.DefaultLockDuration = configuration.GetValue<TimeSpan?>(nameof(options.DefaultLockDuration)) ?? options.DefaultLockDuration;
-        options.DefaultMessageTimeToLive = configuration.GetValue<TimeSpan?>(nameof(options.DefaultMessageTimeToLive)) ?? options.DefaultMessageTimeToLive;
-        options.DefaultMaxDeliveryCount = configuration.GetValue<int?>(nameof(options.DefaultMaxDeliveryCount)) ?? options.DefaultMaxDeliveryCount;
-        options.DefaultAutoDeleteOnIdle = configuration.GetValue<TimeSpan?>(nameof(options.DefaultAutoDeleteOnIdle)) ?? options.DefaultAutoDeleteOnIdle;
-        options.DefaultMaxAutoLockRenewDuration = configuration.GetValue<TimeSpan?>(nameof(options.DefaultMaxAutoLockRenewDuration)) ?? options.DefaultMaxAutoLockRenewDuration;
-        options.DefaultPrefetchCount = configuration.GetValue<int?>(nameof(options.DefaultPrefetchCount)) ?? options.DefaultPrefetchCount;
 
         var fullyQualifiedNamespace = configuration.GetValue<string?>(nameof(AzureServiceBusTransportCredentials.FullyQualifiedNamespace))
                                    ?? configuration.GetValue<string?>("Namespace");

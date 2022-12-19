@@ -44,13 +44,7 @@ public abstract class EventBusTransportConfigureOptions<TOptions> : IConfigureNa
     /// <param name="options"></param>
     protected virtual void Configure(IConfiguration configuration, TOptions options)
     {
-        options.EmptyResultsDelay = configuration.GetValue<TimeSpan?>(nameof(options.EmptyResultsDelay)) ?? options.EmptyResultsDelay;
-        options.EnableEntityCreation = configuration.GetValue<bool?>(nameof(options.EnableEntityCreation)) ?? options.EnableEntityCreation;
-        options.DeadLetterSuffix = configuration.GetValue<string?>(nameof(options.DeadLetterSuffix)) ?? options.DeadLetterSuffix;
-        options.DefaultEntityKind = configuration.GetValue<EntityKind?>(nameof(options.DefaultEntityKind)) ?? options.DefaultEntityKind;
-        options.DefaultEventIdFormat = configuration.GetValue<EventIdFormat?>(nameof(options.DefaultEventIdFormat)) ?? options.DefaultEventIdFormat;
-        options.DefaultUnhandledConsumerErrorBehaviour = configuration.GetValue<UnhandledConsumerErrorBehaviour?>(nameof(options.DefaultUnhandledConsumerErrorBehaviour))
-                                                      ?? options.DefaultUnhandledConsumerErrorBehaviour;
+        configuration.Bind(options);
     }
 
     /// <inheritdoc/>

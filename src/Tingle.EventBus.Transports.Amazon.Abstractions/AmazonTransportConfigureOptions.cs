@@ -1,6 +1,5 @@
 ﻿using Amazon;
 using Amazon.Runtime;
-using Microsoft.Extensions.Configuration;
 using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -16,16 +15,6 @@ public abstract class AmazonTransportConfigureOptions<TOptions> : EventBusTransp
     /// </summary>
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
     public AmazonTransportConfigureOptions(IEventBusConfigurationProvider configurationProvider) : base(configurationProvider) { }
-
-    /// <inheritdoc/>
-    protected override void Configure(IConfiguration configuration, TOptions options)
-    {
-        base.Configure(configuration, options);
-
-        options.RegionName = configuration.GetValue<string?>(nameof(options.RegionName)) ?? options.RegionName;
-        options.AccessKey = configuration.GetValue<string?>(nameof(options.AccessKey)) ?? options.AccessKey;
-        options.SecretKey = configuration.GetValue<string?>(nameof(options.SecretKey)) ?? options.SecretKey;
-    }
 
     /// <inheritdoc/>
     public override void PostConfigure(string? name, TOptions options)

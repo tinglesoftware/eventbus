@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using Tingle.EventBus.Configuration;
 
@@ -22,17 +21,6 @@ internal class RabbitMqConfigureOptions : EventBusTransportConfigureOptions<Rabb
         : base(configurationProvider)
     {
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
-    }
-
-    /// <inheritdoc/>
-    protected override void Configure(IConfiguration configuration, RabbitMqTransportOptions options)
-    {
-        base.Configure(configuration, options);
-
-        options.RetryCount = configuration.GetValue<int?>(nameof(options.RetryCount)) ?? options.RetryCount;
-        options.Hostname = configuration.GetValue<string?>(nameof(options.Hostname)) ?? options.Hostname;
-        options.Username = configuration.GetValue<string?>(nameof(options.Username)) ?? options.Username;
-        options.Password = configuration.GetValue<string?>(nameof(options.Password)) ?? options.Password;
     }
 
     /// <inheritdoc/>

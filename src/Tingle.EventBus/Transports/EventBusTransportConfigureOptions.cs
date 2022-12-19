@@ -61,6 +61,12 @@ public abstract class EventBusTransportConfigureOptions<TOptions> : IConfigureNa
     /// <inheritdoc/>
     public virtual ValidateOptionsResult Validate(string? name, TOptions options)
     {
+        // Ensure we have WaitTransportStarted set
+        if (options.WaitTransportStarted is null)
+        {
+            return ValidateOptionsResult.Fail($"'{nameof(options.WaitTransportStarted)}' must be provided.");
+        }
+
         // ensure the dead-letter suffix name has been set
         if (string.IsNullOrWhiteSpace(options.DeadLetterSuffix))
         {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Polly.Retry;
 using Tingle.EventBus.Configuration;
 
@@ -9,6 +10,16 @@ namespace Tingle.EventBus.Transports;
 /// </summary>
 public abstract class EventBusTransportOptions
 {
+    /// <summary>
+    /// Gets or sets value indicating if the transport should wait to be ready before publishing/cancelling events.
+    /// Set this to false when not using or starting an <see cref="IHost"/> because the bus and its transports
+    /// are started in an <see cref="IHostedService"/>.
+    /// </summary>
+    /// <remarks>
+    /// To specify a value on the bus, use <see cref="EventBusOptions.DefaultTransportWaitStarted"/>.
+    /// </remarks>
+    public bool? WaitTransportStarted { get; set; }
+
     /// <summary>
     /// Optional retry policy to apply specifically for this transport.
     /// This is in addition to what may be provided by the transport SDKs.

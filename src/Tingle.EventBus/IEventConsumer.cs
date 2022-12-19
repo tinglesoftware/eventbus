@@ -21,3 +21,17 @@ public interface IEventConsumer<T> : IEventConsumer where T : class
     /// <returns></returns>
     Task ConsumeAsync(EventContext<T> context, CancellationToken cancellationToken);
 }
+
+/// <summary>
+/// Contract describing a consumer of a dead-lettered event.
+/// </summary>
+public interface IDeadLetteredEventConsumer<T> : IEventConsumer where T : class
+{
+    /// <summary>
+    /// Consume a dead-lettered event of the provided type.
+    /// </summary>
+    /// <param name="context">The context of the event</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task ConsumeAsync(DeadLetteredEventContext<T> context, CancellationToken cancellationToken);
+}

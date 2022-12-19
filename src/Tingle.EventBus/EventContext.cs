@@ -11,14 +11,31 @@ public abstract class EventContext : WrappedEventPublisher
 {
     private readonly HostInfo? hostInfo;
 
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <summary>Creates an instance of <see cref="EventContext"/>.</summary>
     /// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
     /// <param name="hostInfo">The <see cref="HostInfo"/> of the event sender.</param>
     protected EventContext(IEventPublisher publisher, HostInfo? hostInfo = null) : base(publisher)
     {
         this.hostInfo = hostInfo;
+    }
+
+    /// <summary>Creates an instance of <see cref="EventContext"/>.</summary>
+    /// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
+    /// <param name="envelope">The <see cref="IEventEnvelope"/> from serialization.</param>
+    /// <param name="contentType">The type of content received.</param>
+    /// <param name="transportIdentifier">The unique identifier offered by the transport</param>
+    protected EventContext(IEventPublisher publisher, IEventEnvelope envelope, ContentType? contentType, string? transportIdentifier)
+        : this(publisher, envelope.Host)
+    {
+        Id = envelope.Id;
+        RequestId = envelope.RequestId;
+        CorrelationId = envelope.CorrelationId;
+        InitiatorId = envelope.InitiatorId;
+        Expires = envelope.Expires;
+        Sent = envelope.Sent;
+        Headers = envelope.Headers;
+        ContentType = contentType;
+        TransportIdentifier = transportIdentifier;
     }
 
     /// <summary>
@@ -179,24 +196,32 @@ public class EventContext<T> : EventContext where T : class
         Event = @event;
     }
 
-    // marked internal because of the forced null forgiving operator
     internal EventContext(IEventPublisher publisher, IEventEnvelope<T> envelope, ContentType? contentType, string? transportIdentifier)
-        : base(publisher, envelope.Host)
+        : base(publisher, envelope, contentType, transportIdentifier)
     {
         Event = envelope.Event!;
-        Id = envelope.Id;
-        RequestId = envelope.RequestId;
-        CorrelationId = envelope.CorrelationId;
-        InitiatorId = envelope.InitiatorId;
-        Expires = envelope.Expires;
-        Sent = envelope.Sent;
-        Headers = envelope.Headers;
-        ContentType = contentType;
-        TransportIdentifier = transportIdentifier;
     }
 
     /// <summary>
     /// The event published or to be published.
+    /// </summary>
+    public T Event { get; set; }
+}
+
+/// <summary>
+/// The context for a specific dead-lettered event.
+/// </summary>
+/// <typeparam name="T">The type of event carried.</typeparam>
+public class DeadLetteredEventContext<T> : EventContext where T : class
+{
+    internal DeadLetteredEventContext(IEventPublisher publisher, IEventEnvelope<T> envelope, ContentType? contentType, string? transportIdentifier)
+        : base(publisher, envelope, contentType, transportIdentifier)
+    {
+        Event = envelope.Event!;
+    }
+
+    /// <summary>
+    /// The dead-lettered event.
     /// </summary>
     public T Event { get; set; }
 }

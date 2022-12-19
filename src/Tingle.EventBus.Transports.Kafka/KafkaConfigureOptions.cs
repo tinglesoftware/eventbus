@@ -8,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="KafkaTransportOptions"/>.
 /// </summary>
-internal class KafkaConfigureOptions : TransportOptionsConfigureOptions<KafkaTransportOptions>
+internal class KafkaConfigureOptions : EventBusTransportConfigureOptions<KafkaTransportOptions>
 {
     private readonly EventBusOptions busOptions;
 

@@ -8,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AmazonTransportOptions"/> derivatives.
 /// </summary>
-public abstract class AmazonTransportConfigureOptions<TOptions> : TransportOptionsConfigureOptions<TOptions> where TOptions : AmazonTransportOptions
+public abstract class AmazonTransportConfigureOptions<TOptions> : EventBusTransportConfigureOptions<TOptions> where TOptions : AmazonTransportOptions
 {
     /// <summary>
     /// Initializes a new <see cref="AmazonTransportConfigureOptions{TOptions}"/> given the configuration

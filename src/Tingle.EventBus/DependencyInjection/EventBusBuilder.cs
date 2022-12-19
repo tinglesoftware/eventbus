@@ -66,32 +66,32 @@ public class EventBusBuilder
     /// <summary>Adds a <see cref="EventBusTransportRegistration"/> which can be used by the event bus.</summary>
     /// <typeparam name="THandler">The <see cref="EventBusTransport{TOptions}"/> used to handle this transport.</typeparam>
     /// <typeparam name="TOptions">The <see cref="EventBusTransportOptions"/> type to configure the transport."/>.</typeparam>
-    /// <typeparam name="TConfigurator">The <see cref="TransportOptionsConfigureOptions{TOptions}"/> type to configure the <typeparamref name="TOptions"/>."/>.</typeparam>
+    /// <typeparam name="TConfigurator">The <see cref="EventBusTransportConfigureOptions{TOptions}"/> type to configure the <typeparamref name="TOptions"/>."/>.</typeparam>
     /// <param name="name">The name of this transport.</param>
     /// <param name="configureOptions">Used to configure the transport options.</param>
     public EventBusBuilder AddTransport<THandler, TOptions, TConfigurator>(string name, Action<TOptions>? configureOptions)
         where THandler : EventBusTransport<TOptions>
         where TOptions : EventBusTransportOptions, new()
-        where TConfigurator : TransportOptionsConfigureOptions<TOptions>
+        where TConfigurator : EventBusTransportConfigureOptions<TOptions>
         => AddTransport<THandler, TOptions, TConfigurator>(name, displayName: null, configureOptions: configureOptions);
 
     /// <summary>Adds a <see cref="EventBusTransportRegistration"/> which can be used by the event bus.</summary>
     /// <typeparam name="THandler">The <see cref="EventBusTransport{TOptions}"/> used to handle this transport.</typeparam>
     /// <typeparam name="TOptions">The <see cref="EventBusTransportOptions"/> type to configure the transport."/>.</typeparam>
-    /// <typeparam name="TConfigurator">The <see cref="TransportOptionsConfigureOptions{TOptions}"/> type to configure the <typeparamref name="TOptions"/>."/>.</typeparam>
+    /// <typeparam name="TConfigurator">The <see cref="EventBusTransportConfigureOptions{TOptions}"/> type to configure the <typeparamref name="TOptions"/>."/>.</typeparam>
     /// <param name="name">The name of this transport.</param>
     /// <param name="displayName">The display name of this transport.</param>
     /// <param name="configureOptions">Used to configure the transport options.</param>
     public EventBusBuilder AddTransport<THandler, TOptions, TConfigurator>(string name, string? displayName, Action<TOptions>? configureOptions)
         where THandler : EventBusTransport<TOptions>
         where TOptions : EventBusTransportOptions, new()
-        where TConfigurator : TransportOptionsConfigureOptions<TOptions>
+        where TConfigurator : EventBusTransportConfigureOptions<TOptions>
         => AddTransportHelper<THandler, TOptions, TConfigurator>(name, displayName, configureOptions);
 
     private EventBusBuilder AddTransportHelper<TTransport, TOptions, TConfigurator>(string name, string? displayName, Action<TOptions>? configureOptions)
         where TTransport : class, IEventBusTransport
         where TOptions : EventBusTransportOptions, new()
-        where TConfigurator : TransportOptionsConfigureOptions<TOptions>
+        where TConfigurator : EventBusTransportConfigureOptions<TOptions>
     {
         Services.Configure<EventBusOptions>(o => o.AddTransport<TTransport>(name, displayName));
         Services.ConfigureOptions<TConfigurator>();

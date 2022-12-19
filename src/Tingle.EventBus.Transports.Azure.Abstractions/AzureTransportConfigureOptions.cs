@@ -6,7 +6,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AzureTransportOptions{TCredential}"/> derivatives.
 /// </summary>
-public abstract class AzureTransportConfigureOptions<TCredential, TOptions> : TransportOptionsConfigureOptions<TOptions>
+public abstract class AzureTransportConfigureOptions<TCredential, TOptions> : EventBusTransportConfigureOptions<TOptions>
     where TCredential : AzureTransportCredentials
     where TOptions : AzureTransportOptions<TCredential>
 {

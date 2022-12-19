@@ -45,7 +45,7 @@ public abstract class AbstractEventSerializer : IEventSerializer
     protected ILogger Logger { get; }
 
     /// <inheritdoc/>
-    public async Task<EventContext<T>?> DeserializeAsync<T>(DeserializationContext context, CancellationToken cancellationToken = default)
+    public async Task<EventContext?> DeserializeAsync<T>(DeserializationContext context, CancellationToken cancellationToken = default)
         where T : class
     {
         // Assume first media type if none is specified

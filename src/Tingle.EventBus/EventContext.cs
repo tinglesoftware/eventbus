@@ -4,9 +4,7 @@ using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus;
 
-/// <summary>
-/// Generic context for an event.
-/// </summary>
+/// <summary>Generic context for an event.</summary>
 public abstract class EventContext : WrappedEventPublisher
 {
     private readonly HostInfo? hostInfo;
@@ -180,9 +178,7 @@ public abstract class EventContext : WrappedEventPublisher
     #endregion
 }
 
-/// <summary>
-/// The context for a specific event.
-/// </summary>
+/// <summary>The context for a specific event.</summary>
 /// <typeparam name="T">The type of event carried.</typeparam>
 public class EventContext<T> : EventContext where T : class
 {
@@ -208,9 +204,7 @@ public class EventContext<T> : EventContext where T : class
     public T Event { get; set; }
 }
 
-/// <summary>
-/// The context for a specific dead-lettered event.
-/// </summary>
+/// <summary>The context for a specific dead-lettered event.</summary>
 /// <typeparam name="T">The type of event carried.</typeparam>
 public class DeadLetteredEventContext<T> : EventContext where T : class
 {

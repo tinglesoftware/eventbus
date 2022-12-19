@@ -30,7 +30,7 @@ internal class RabbitMqConfigureOptions : IConfigureNamedOptions<RabbitMqTranspo
     {
         if (string.IsNullOrEmpty(name)) return;
 
-        var configSection = configurationProvider.GetTransportConfiguration(name, "RabbitMq");
+        var configSection = configurationProvider.GetTransportConfiguration(name);
         if (configSection is null || !configSection.GetChildren().Any()) return;
 
         options.RetryCount = configSection.GetValue<int?>(nameof(options.RetryCount)) ?? options.RetryCount;

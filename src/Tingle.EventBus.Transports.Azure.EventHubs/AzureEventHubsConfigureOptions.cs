@@ -14,6 +14,12 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
     private readonly IEventBusConfigurationProvider configurationProvider;
     private readonly EventBusOptions busOptions;
 
+    /// <summary>
+    /// Initializes a new <see cref="AzureEventHubsConfigureOptions"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
     public AzureEventHubsConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
     {
         this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
@@ -25,7 +31,7 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
     {
         if (string.IsNullOrEmpty(name)) return;
 
-        var configSection = configurationProvider.GetTransportConfiguration(name, "AzureEventHubs");
+        var configSection = configurationProvider.GetTransportConfiguration(name);
         if (configSection is null || !configSection.GetChildren().Any()) return;
 
         options.BlobContainerName = configSection.GetValue<string?>(nameof(options.BlobContainerName)) ?? options.BlobContainerName;
@@ -39,18 +45,13 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
             ? new AzureEventHubsTransportCredentials { FullyQualifiedNamespace = fullyQualifiedNamespace, }
             : (configSection.GetValue<string?>("ConnectionString") ?? options.Credentials);
 
-        // pull configuration for Naming (nested)
-        configSection = configSection.GetSection("BlobStorage");
-        if (configSection is not null && configSection.GetChildren().Any())
-        {
-            var serviceUrl = configSection.GetValue<Uri?>(nameof(AzureBlobStorageCredentials.ServiceUrl))
-                          ?? configSection.GetValue<Uri?>("Endpoint");
-            options.BlobStorageCredentials = serviceUrl is not null
-                ? new AzureBlobStorageCredentials { ServiceUrl = serviceUrl, }
-                : (configSection.GetValue<string?>("ConnectionString") ?? options.Credentials);
+        var serviceUrl = configSection.GetValue<Uri?>("BlobStorage" + nameof(AzureBlobStorageCredentials.ServiceUrl))
+                      ?? configSection.GetValue<Uri?>("BlobStorageEndpoint");
+        options.BlobStorageCredentials = serviceUrl is not null
+            ? new AzureBlobStorageCredentials { ServiceUrl = serviceUrl, }
+            : (configSection.GetValue<string?>("BlobStorageConnectionString") ?? options.Credentials);
 
-            options.BlobContainerName = configSection.GetValue<string?>("ContainerName") ?? options.BlobContainerName;
-        }
+        options.BlobContainerName = configSection.GetValue<string?>("BlobStorageContainerName") ?? options.BlobContainerName;
     }
 
     /// <inheritdoc/>

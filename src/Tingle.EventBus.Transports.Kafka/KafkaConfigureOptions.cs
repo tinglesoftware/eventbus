@@ -30,7 +30,7 @@ internal class KafkaConfigureOptions : IConfigureNamedOptions<KafkaTransportOpti
     {
         if (string.IsNullOrEmpty(name)) return;
 
-        var configSection = configurationProvider.GetTransportConfiguration(name, "Kafka");
+        var configSection = configurationProvider.GetTransportConfiguration(name);
         if (configSection is null || !configSection.GetChildren().Any()) return;
 
         options.CheckpointInterval = configSection.GetValue<int?>(nameof(options.CheckpointInterval)) ?? options.CheckpointInterval;

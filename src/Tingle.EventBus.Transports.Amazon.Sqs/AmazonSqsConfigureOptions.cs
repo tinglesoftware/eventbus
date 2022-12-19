@@ -1,6 +1,5 @@
 ﻿using Amazon.SimpleNotificationService;
 using Amazon.SQS;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Tingle.EventBus.Configuration;
 
@@ -9,9 +8,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AmazonSqsTransportOptions"/>.
 /// </summary>
-internal class AmazonSqsConfigureOptions : AmazonTransportConfigureOptions<AmazonSqsTransportOptions>, IConfigureNamedOptions<AmazonSqsTransportOptions>
+internal class AmazonSqsConfigureOptions : AmazonTransportConfigureOptions<AmazonSqsTransportOptions>
 {
-    private readonly IEventBusConfigurationProvider configurationProvider;
     private readonly EventBusOptions busOptions;
 
     /// <summary>
@@ -21,26 +19,10 @@ internal class AmazonSqsConfigureOptions : AmazonTransportConfigureOptions<Amazo
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
     /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
     public AmazonSqsConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
+        : base(configurationProvider)
     {
-        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
-
-    /// <inheritdoc/>
-    public void Configure(string? name, AmazonSqsTransportOptions options)
-    {
-        if (string.IsNullOrEmpty(name)) return;
-
-        var configSection = configurationProvider.GetTransportConfiguration(name, "AmazonSqs");
-        if (configSection is null || !configSection.GetChildren().Any()) return;
-
-        options.RegionName = configSection.GetValue<string?>(nameof(options.RegionName)) ?? options.RegionName;
-        options.AccessKey = configSection.GetValue<string?>(nameof(options.AccessKey)) ?? options.AccessKey;
-        options.SecretKey = configSection.GetValue<string?>(nameof(options.SecretKey)) ?? options.SecretKey;
-    }
-
-    /// <inheritdoc/>
-    public void Configure(AmazonSqsTransportOptions options) => Configure(Options.Options.DefaultName, options);
 
     /// <inheritdoc/>
     public override void PostConfigure(string? name, AmazonSqsTransportOptions options)

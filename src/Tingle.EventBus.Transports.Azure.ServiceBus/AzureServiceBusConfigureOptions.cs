@@ -14,6 +14,12 @@ internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<
     private readonly IEventBusConfigurationProvider configurationProvider;
     private readonly EventBusOptions busOptions;
 
+    /// <summary>
+    /// Initializes a new <see cref="AzureServiceBusConfigureOptions"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
     public AzureServiceBusConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
     {
         this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
@@ -25,7 +31,7 @@ internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<
     {
         if (string.IsNullOrEmpty(name)) return;
 
-        var configSection = configurationProvider.GetTransportConfiguration(name, "AzureServiceBus");
+        var configSection = configurationProvider.GetTransportConfiguration(name);
         if (configSection is null || !configSection.GetChildren().Any()) return;
 
         options.TransportType = configSection.GetValue<ServiceBusTransportType?>(nameof(options.TransportType)) ?? options.TransportType;

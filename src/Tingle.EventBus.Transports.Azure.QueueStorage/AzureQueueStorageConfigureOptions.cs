@@ -13,6 +13,12 @@ internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOption
     private readonly IEventBusConfigurationProvider configurationProvider;
     private readonly EventBusOptions busOptions;
 
+    /// <summary>
+    /// Initializes a new <see cref="AzureQueueStorageConfigureOptions"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
     public AzureQueueStorageConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
     {
         this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
@@ -24,7 +30,7 @@ internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOption
     {
         if (string.IsNullOrEmpty(name)) return;
 
-        var configSection = configurationProvider.GetTransportConfiguration(name, "AzureQueueStorage");
+        var configSection = configurationProvider.GetTransportConfiguration(name);
         if (configSection is null || !configSection.GetChildren().Any()) return;
 
         var serviceUrl = configSection.GetValue<Uri?>(nameof(AzureQueueStorageTransportCredentials.ServiceUrl))

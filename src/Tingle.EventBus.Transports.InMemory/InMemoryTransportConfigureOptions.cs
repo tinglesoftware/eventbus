@@ -15,6 +15,7 @@ internal class InMemoryTransportConfigureOptions : IPostConfigureOptions<InMemor
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
+    /// <inheritdoc/>
     public void PostConfigure(string? name, InMemoryTransportOptions options)
     {
         if (name is null) throw new ArgumentNullException(nameof(name));

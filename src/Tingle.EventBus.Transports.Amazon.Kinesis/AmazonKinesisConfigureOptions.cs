@@ -1,4 +1,5 @@
 ﻿using Amazon.Kinesis;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Tingle.EventBus.Configuration;
 
@@ -7,15 +8,40 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AmazonKinesisTransportOptions"/>.
 /// </summary>
-internal class AmazonKinesisConfigureOptions : AmazonTransportConfigureOptions<AmazonKinesisTransportOptions>
+internal class AmazonKinesisConfigureOptions : AmazonTransportConfigureOptions<AmazonKinesisTransportOptions>, IConfigureNamedOptions<AmazonKinesisTransportOptions>
 {
+    private readonly IEventBusConfigurationProvider configurationProvider;
     private readonly EventBusOptions busOptions;
 
-    public AmazonKinesisConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    /// <summary>
+    /// Initializes a new <see cref="AmazonKinesisConfigureOptions"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+    public AmazonKinesisConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
     {
+        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
+    /// <inheritdoc/>
+    public void Configure(string? name, AmazonKinesisTransportOptions options)
+    {
+        if (string.IsNullOrEmpty(name)) return;
+
+        var configSection = configurationProvider.GetTransportConfiguration(name, "AmazonKinesis");
+        if (configSection is null || !configSection.GetChildren().Any()) return;
+
+        options.RegionName = configSection.GetValue<string?>(nameof(options.RegionName)) ?? options.RegionName;
+        options.AccessKey = configSection.GetValue<string?>(nameof(options.AccessKey)) ?? options.AccessKey;
+        options.SecretKey = configSection.GetValue<string?>(nameof(options.SecretKey)) ?? options.SecretKey;
+    }
+
+    /// <inheritdoc/>
+    public void Configure(AmazonKinesisTransportOptions options) => Configure(Options.Options.DefaultName, options);
+
+    /// <inheritdoc/>
     public override void PostConfigure(string? name, AmazonKinesisTransportOptions options)
     {
         if (name is null) throw new ArgumentNullException(nameof(name));

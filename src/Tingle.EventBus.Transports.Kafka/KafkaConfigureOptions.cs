@@ -1,4 +1,5 @@
 ﻿using Confluent.Kafka;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Tingle.EventBus.Configuration;
 
@@ -7,15 +8,43 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="KafkaTransportOptions"/>.
 /// </summary>
-internal class KafkaConfigureOptions : IPostConfigureOptions<KafkaTransportOptions>
+internal class KafkaConfigureOptions : IConfigureNamedOptions<KafkaTransportOptions>, IPostConfigureOptions<KafkaTransportOptions>
 {
+    private readonly IEventBusConfigurationProvider configurationProvider;
     private readonly EventBusOptions busOptions;
 
-    public KafkaConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    /// <summary>
+    /// Initializes a new <see cref="KafkaConfigureOptions"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+    public KafkaConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
     {
+        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
+    /// <inheritdoc/>
+    public void Configure(string? name, KafkaTransportOptions options)
+    {
+        if (string.IsNullOrEmpty(name)) return;
+
+        var configSection = configurationProvider.GetTransportConfiguration(name, "Kafka");
+        if (configSection is null || !configSection.GetChildren().Any()) return;
+
+        options.CheckpointInterval = configSection.GetValue<int?>(nameof(options.CheckpointInterval)) ?? options.CheckpointInterval;
+        var configSectionBootstrapServers = configSection.GetSection(nameof(options.BootstrapServers));
+        if (configSectionBootstrapServers is not null && configSectionBootstrapServers.GetChildren().Any())
+        {
+            configSectionBootstrapServers.Bind(options.BootstrapServers);
+        }
+    }
+
+    /// <inheritdoc/>
+    public void Configure(KafkaTransportOptions options) => Configure(Options.Options.DefaultName, options);
+
+    /// <inheritdoc/>
     public void PostConfigure(string? name, KafkaTransportOptions options)
     {
         if (name is null) throw new ArgumentNullException(nameof(name));

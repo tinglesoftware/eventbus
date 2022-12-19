@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Azure.Messaging.EventHubs;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -6,14 +8,54 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AzureEventHubsTransportOptions"/>.
 /// </summary>
-internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<AzureEventHubsTransportCredentials, AzureEventHubsTransportOptions>
+internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<AzureEventHubsTransportCredentials, AzureEventHubsTransportOptions>,
+                                                IConfigureNamedOptions<AzureEventHubsTransportOptions>
 {
+    private readonly IEventBusConfigurationProvider configurationProvider;
     private readonly EventBusOptions busOptions;
 
-    public AzureEventHubsConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    public AzureEventHubsConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
     {
+        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
+
+    /// <inheritdoc/>
+    public void Configure(string? name, AzureEventHubsTransportOptions options)
+    {
+        if (string.IsNullOrEmpty(name)) return;
+
+        var configSection = configurationProvider.GetTransportConfiguration(name, "AzureEventHubs");
+        if (configSection is null || !configSection.GetChildren().Any()) return;
+
+        options.BlobContainerName = configSection.GetValue<string?>(nameof(options.BlobContainerName)) ?? options.BlobContainerName;
+        options.TransportType = configSection.GetValue<EventHubsTransportType?>(nameof(options.TransportType)) ?? options.TransportType;
+        options.UseBasicTier = configSection.GetValue<bool?>(nameof(options.UseBasicTier)) ?? options.UseBasicTier;
+        options.CheckpointInterval = configSection.GetValue<int?>(nameof(options.CheckpointInterval)) ?? options.CheckpointInterval;
+
+        var fullyQualifiedNamespace = configSection.GetValue<string?>(nameof(AzureEventHubsTransportCredentials.FullyQualifiedNamespace))
+                                   ?? configSection.GetValue<string?>("Namespace");
+        options.Credentials = fullyQualifiedNamespace is not null
+            ? new AzureEventHubsTransportCredentials { FullyQualifiedNamespace = fullyQualifiedNamespace, }
+            : (configSection.GetValue<string?>("ConnectionString") ?? options.Credentials);
+
+        // pull configuration for Naming (nested)
+        configSection = configSection.GetSection("BlobStorage");
+        if (configSection is not null && configSection.GetChildren().Any())
+        {
+            var serviceUrl = configSection.GetValue<Uri?>(nameof(AzureBlobStorageCredentials.BlobServiceUrl))
+                          ?? configSection.GetValue<Uri?>("ServiceUrl")
+                          ?? configSection.GetValue<Uri?>("Endpoint");
+            options.BlobStorageCredentials = serviceUrl is not null
+                ? new AzureBlobStorageCredentials { BlobServiceUrl = serviceUrl, }
+                : (configSection.GetValue<string?>("ConnectionString") ?? options.Credentials);
+
+            options.BlobContainerName = configSection.GetValue<string?>("ContainerName") ?? options.BlobContainerName;
+        }
+    }
+
+    /// <inheritdoc/>
+    public void Configure(AzureEventHubsTransportOptions options) => Configure(Options.Options.DefaultName, options);
 
     /// <inheritdoc/>
     public override void PostConfigure(string? name, AzureEventHubsTransportOptions options)

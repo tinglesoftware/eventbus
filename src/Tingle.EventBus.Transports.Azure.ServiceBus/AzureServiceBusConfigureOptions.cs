@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Azure.Messaging.ServiceBus;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -6,14 +8,43 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AzureServiceBusTransportOptions"/>.
 /// </summary>
-internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<AzureServiceBusTransportCredentials, AzureServiceBusTransportOptions>
+internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<AzureServiceBusTransportCredentials, AzureServiceBusTransportOptions>,
+                                                 IConfigureNamedOptions<AzureServiceBusTransportOptions>
 {
+    private readonly IEventBusConfigurationProvider configurationProvider;
     private readonly EventBusOptions busOptions;
 
-    public AzureServiceBusConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    public AzureServiceBusConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
     {
+        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
+
+    /// <inheritdoc/>
+    public void Configure(string? name, AzureServiceBusTransportOptions options)
+    {
+        if (string.IsNullOrEmpty(name)) return;
+
+        var configSection = configurationProvider.GetTransportConfiguration(name, "AzureServiceBus");
+        if (configSection is null || !configSection.GetChildren().Any()) return;
+
+        options.TransportType = configSection.GetValue<ServiceBusTransportType?>(nameof(options.TransportType)) ?? options.TransportType;
+        options.DefaultLockDuration = configSection.GetValue<TimeSpan?>(nameof(options.DefaultLockDuration)) ?? options.DefaultLockDuration;
+        options.DefaultMessageTimeToLive = configSection.GetValue<TimeSpan?>(nameof(options.DefaultMessageTimeToLive)) ?? options.DefaultMessageTimeToLive;
+        options.DefaultMaxDeliveryCount = configSection.GetValue<int?>(nameof(options.DefaultMaxDeliveryCount)) ?? options.DefaultMaxDeliveryCount;
+        options.DefaultAutoDeleteOnIdle = configSection.GetValue<TimeSpan?>(nameof(options.DefaultAutoDeleteOnIdle)) ?? options.DefaultAutoDeleteOnIdle;
+        options.DefaultMaxAutoLockRenewDuration = configSection.GetValue<TimeSpan?>(nameof(options.DefaultMaxAutoLockRenewDuration)) ?? options.DefaultMaxAutoLockRenewDuration;
+        options.DefaultPrefetchCount = configSection.GetValue<int?>(nameof(options.DefaultPrefetchCount)) ?? options.DefaultPrefetchCount;
+
+        var fullyQualifiedNamespace = configSection.GetValue<string?>(nameof(AzureServiceBusTransportCredentials.FullyQualifiedNamespace))
+                                   ?? configSection.GetValue<string?>("Namespace");
+        options.Credentials = fullyQualifiedNamespace is not null
+            ? new AzureServiceBusTransportCredentials { FullyQualifiedNamespace = fullyQualifiedNamespace }
+            : (configSection.GetValue<string?>("ConnectionString") ?? options.Credentials);
+    }
+
+    /// <inheritdoc/>
+    public void Configure(AzureServiceBusTransportOptions options) => Configure(Options.Options.DefaultName, options);
 
     /// <inheritdoc/>
     public override void PostConfigure(string? name, AzureServiceBusTransportOptions options)

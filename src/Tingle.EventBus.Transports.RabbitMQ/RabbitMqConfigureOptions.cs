@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using Tingle.EventBus.Configuration;
 
@@ -7,15 +8,41 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="RabbitMqTransportOptions"/>.
 /// </summary>
-internal class RabbitMqConfigureOptions : IPostConfigureOptions<RabbitMqTransportOptions>
+internal class RabbitMqConfigureOptions : IConfigureNamedOptions<RabbitMqTransportOptions>, IPostConfigureOptions<RabbitMqTransportOptions>
 {
+    private readonly IEventBusConfigurationProvider configurationProvider;
     private readonly EventBusOptions busOptions;
 
-    public RabbitMqConfigureOptions(IOptions<EventBusOptions> busOptionsAccessor)
+    /// <summary>
+    /// Initializes a new <see cref="RabbitMqConfigureOptions"/> given the configuration
+    /// provided by the <paramref name="configurationProvider"/>.
+    /// </summary>
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+    public RabbitMqConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
     {
+        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
         busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
+    /// <inheritdoc/>
+    public void Configure(string? name, RabbitMqTransportOptions options)
+    {
+        if (string.IsNullOrEmpty(name)) return;
+
+        var configSection = configurationProvider.GetTransportConfiguration(name, "RabbitMq");
+        if (configSection is null || !configSection.GetChildren().Any()) return;
+
+        options.RetryCount = configSection.GetValue<int?>(nameof(options.RetryCount)) ?? options.RetryCount;
+        options.Hostname = configSection.GetValue<string?>(nameof(options.Hostname)) ?? options.Hostname;
+        options.Username = configSection.GetValue<string?>(nameof(options.Username)) ?? options.Username;
+        options.Password = configSection.GetValue<string?>(nameof(options.Password)) ?? options.Password;
+    }
+
+    /// <inheritdoc/>
+    public void Configure(RabbitMqTransportOptions options) => Configure(Options.Options.DefaultName, options);
+
+    /// <inheritdoc/>
     public void PostConfigure(string? name, RabbitMqTransportOptions options)
     {
         if (name is null) throw new ArgumentNullException(nameof(name));

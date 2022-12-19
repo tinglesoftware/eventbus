@@ -51,6 +51,7 @@ A number fo the documents below are still a work in progress and would be added 
 
 ## Samples
 
+* [Using IConfiguration to configure the EventBus](./samples/ConfigSample)
 * [Simple Consumer](./samples/SimpleConsumer)
 * [Simple Publisher](./samples/SimplePublisher)
 * [Build a custom event serializer](./samples/CustomEventSerializer)

@@ -9,8 +9,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 internal class KafkaConfigureOptions : EventBusTransportConfigureOptions<KafkaTransportOptions>
 {
-    private readonly EventBusOptions busOptions;
-
     /// <summary>
     /// Initializes a new <see cref="KafkaConfigureOptions"/> given the configuration
     /// provided by the <paramref name="configurationProvider"/>.
@@ -18,10 +16,7 @@ internal class KafkaConfigureOptions : EventBusTransportConfigureOptions<KafkaTr
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>
     /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
     public KafkaConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
-        : base(configurationProvider)
-    {
-        busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
-    }
+        : base(configurationProvider, busOptionsAccessor) { }
 
     /// <inheritdoc/>
     public override void PostConfigure(string? name, KafkaTransportOptions options)
@@ -53,7 +48,7 @@ internal class KafkaConfigureOptions : EventBusTransportConfigureOptions<KafkaTr
         options.CheckpointInterval = Math.Max(options.CheckpointInterval, 1);
 
         // ensure there's only one consumer per event
-        var registrations = busOptions.GetRegistrations(name!);
+        var registrations = BusOptions.GetRegistrations(name!);
         var multiple = registrations.FirstOrDefault(r => r.Consumers.Count > 1);
         if (multiple is not null)
         {
@@ -66,7 +61,7 @@ internal class KafkaConfigureOptions : EventBusTransportConfigureOptions<KafkaTr
         foreach (var reg in registrations)
         {
             // Set the IdFormat
-            options.SetEventIdFormat(reg, busOptions);
+            options.SetEventIdFormat(reg, BusOptions);
 
             // Ensure the entity type is allowed
             options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast);

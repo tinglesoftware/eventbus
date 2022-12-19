@@ -10,8 +10,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOptions<AzureQueueStorageTransportCredentials, AzureQueueStorageTransportOptions>,
                                                    IConfigureNamedOptions<AzureQueueStorageTransportOptions>
 {
-    private readonly EventBusOptions busOptions;
-
     /// <summary>
     /// Initializes a new <see cref="AzureQueueStorageConfigureOptions"/> given the configuration
     /// provided by the <paramref name="configurationProvider"/>.
@@ -19,10 +17,7 @@ internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOption
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
     /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
     public AzureQueueStorageConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
-        : base(configurationProvider)
-    {
-        busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
-    }
+        : base(configurationProvider, busOptionsAccessor) { }
 
     /// <inheritdoc/>
     protected override void Configure(IConfiguration configuration, AzureQueueStorageTransportOptions options)
@@ -57,7 +52,7 @@ internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOption
         }
 
         // Ensure there's only one consumer per event
-        var registrations = busOptions.GetRegistrations(name!);
+        var registrations = BusOptions.GetRegistrations(name!);
         var multiple = registrations.FirstOrDefault(r => r.Consumers.Count > 1);
         if (multiple is not null)
         {
@@ -70,7 +65,7 @@ internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOption
         foreach (var reg in registrations)
         {
             // Set the IdFormat
-            options.SetEventIdFormat(reg, busOptions);
+            options.SetEventIdFormat(reg, BusOptions);
 
             // Ensure the entity type is allowed
             options.EnsureAllowedEntityKind(reg, EntityKind.Queue);

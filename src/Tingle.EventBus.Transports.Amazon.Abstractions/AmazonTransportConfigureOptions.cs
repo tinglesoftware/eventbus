@@ -1,5 +1,6 @@
 ﻿using Amazon;
 using Amazon.Runtime;
+using Microsoft.Extensions.Options;
 using Tingle.EventBus.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -14,7 +15,9 @@ public abstract class AmazonTransportConfigureOptions<TOptions> : EventBusTransp
     /// provided by the <paramref name="configurationProvider"/>.
     /// </summary>
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
-    public AmazonTransportConfigureOptions(IEventBusConfigurationProvider configurationProvider) : base(configurationProvider) { }
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+    public AmazonTransportConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
+        : base(configurationProvider, busOptionsAccessor) { }
 
     /// <inheritdoc/>
     public override void PostConfigure(string? name, TOptions options)

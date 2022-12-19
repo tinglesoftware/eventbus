@@ -10,8 +10,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<AzureServiceBusTransportCredentials, AzureServiceBusTransportOptions>,
                                                  IConfigureNamedOptions<AzureServiceBusTransportOptions>
 {
-    private readonly EventBusOptions busOptions;
-
     /// <summary>
     /// Initializes a new <see cref="AzureServiceBusConfigureOptions"/> given the configuration
     /// provided by the <paramref name="configurationProvider"/>.
@@ -19,10 +17,7 @@ internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
     /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
     public AzureServiceBusConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
-        : base(configurationProvider)
-    {
-        busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
-    }
+        : base(configurationProvider, busOptionsAccessor) { }
 
     /// <inheritdoc/>
     protected override void Configure(IConfiguration configuration, AzureServiceBusTransportOptions options)
@@ -58,11 +53,11 @@ internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<
 
         // Ensure the entity names are not longer than the limits
         // See https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas#messaging-quotas
-        var registrations = busOptions.GetRegistrations(name!);
+        var registrations = BusOptions.GetRegistrations(name!);
         foreach (var reg in registrations)
         {
             // Set the IdFormat
-            options.SetEventIdFormat(reg, busOptions);
+            options.SetEventIdFormat(reg, BusOptions);
 
             // Ensure the entity type is allowed
             options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast, EntityKind.Queue);

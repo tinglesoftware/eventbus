@@ -16,17 +16,20 @@ public class EventBusOptions
     private readonly IList<EventBusTransportRegistrationBuilder> transports = new List<EventBusTransportRegistrationBuilder>();
 
     /// <summary>
-    /// Whether to wait for the transport to be ready before publishing/cancelling events.
+    /// Gets the <see cref="EventBusNamingOptions"/> for the Event Bus.
+    /// </summary>
+    public EventBusNamingOptions Naming { get; } = new EventBusNamingOptions();
+
+    /// <summary>
+    /// Gets or sets the default setting whether transports should wait to be ready before publishing/cancelling events.
     /// Set this to false when not using or starting an <see cref="IHost"/> because the bus and its transports
     /// are started in an <see cref="IHostedService"/>.
     /// Defaults to <see langword="true"/>.
     /// </summary>
-    public bool WaitTransportStarted { get; set; } = true;
-
-    /// <summary>
-    /// Gets the <see cref="EventBusNamingOptions"/> for the Event Bus.
-    /// </summary>
-    public EventBusNamingOptions Naming { get; } = new EventBusNamingOptions();
+    /// <remarks>
+    /// To specify a value on a transport, use <see cref="EventBusTransportOptions.WaitTransportStarted"/> for the specific transport.
+    /// </remarks>
+    public bool DefaultTransportWaitStarted { get; set; } = true;
 
     /// <summary>
     /// Optional retry policy to apply to the bus.

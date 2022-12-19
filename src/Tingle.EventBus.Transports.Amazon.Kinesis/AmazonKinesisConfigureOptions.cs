@@ -9,8 +9,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 internal class AmazonKinesisConfigureOptions : AmazonTransportConfigureOptions<AmazonKinesisTransportOptions>
 {
-    private readonly EventBusOptions busOptions;
-
     /// <summary>
     /// Initializes a new <see cref="AmazonKinesisConfigureOptions"/> given the configuration
     /// provided by the <paramref name="configurationProvider"/>.
@@ -18,10 +16,7 @@ internal class AmazonKinesisConfigureOptions : AmazonTransportConfigureOptions<A
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
     /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
     public AmazonKinesisConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
-        : base(configurationProvider)
-    {
-        busOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
-    }
+        : base(configurationProvider, busOptionsAccessor) { }
 
     /// <inheritdoc/>
     public override void PostConfigure(string? name, AmazonKinesisTransportOptions options)
@@ -39,11 +34,11 @@ internal class AmazonKinesisConfigureOptions : AmazonTransportConfigureOptions<A
         }
 
         // Ensure the entity names are not longer than the limits
-        var registrations = busOptions.GetRegistrations(name!);
+        var registrations = BusOptions.GetRegistrations(name!);
         foreach (var reg in registrations)
         {
             // Set the IdFormat
-            options.SetEventIdFormat(reg, busOptions);
+            options.SetEventIdFormat(reg, BusOptions);
 
             // Ensure the entity type is allowed
             options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast);

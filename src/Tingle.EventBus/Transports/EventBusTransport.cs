@@ -119,7 +119,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
 
     private Task WaitStartedAsync(CancellationToken cancellationToken)
     {
-        if (!BusOptions.WaitTransportStarted) return Task.CompletedTask;
+        if (!Options.WaitTransportStarted!.Value) return Task.CompletedTask;
 
         var tsk = startedTcs.Task;
         if (tsk.Status is TaskStatus.RanToCompletion) return tsk;

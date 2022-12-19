@@ -31,9 +31,7 @@ public abstract class EventBusTransportConfigureOptions<TOptions> : IConfigureNa
         if (string.IsNullOrEmpty(name)) return;
 
         var configuration = configurationProvider.Configuration.GetSection($"Transports:{name}");
-        if (!configuration.GetChildren().Any()) return;
-
-        Configure(configuration, options);
+        if (configuration.GetChildren().Any()) Configure(configuration, options);
     }
 
     /// <summary>

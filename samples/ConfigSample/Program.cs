@@ -1,7 +1,6 @@
 ﻿using Azure.Identity;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Transports.Azure.ServiceBus;
 
 var host = Host.CreateDefaultBuilder(args)
@@ -11,8 +10,8 @@ var host = Host.CreateDefaultBuilder(args)
 
                    services.AddEventBus(builder =>
                    {
-                       builder.AddConsumer<VisualsUploadedConsumer>();
                        builder.AddConsumer<VehicleTelemetryEventsConsumer>();
+                       builder.AddConsumer<VisualsUploadedConsumer>();
 
                        // Add transports
                        builder.AddAzureServiceBusTransport();
@@ -103,7 +102,6 @@ class VisualsUploadedConsumer : IEventConsumer<ImageUploaded>, IEventConsumer<Vi
     }
 }
 
-[EventTransportName("in-memory-images")] // can also be configured in the builder
 class ImageUploaded
 {
     public string? ImageId { get; set; }
@@ -111,7 +109,6 @@ class ImageUploaded
     public long SizeBytes { get; set; }
 }
 
-[EventTransportName("in-memory-videos")] // can also be configured in the builder
 class VideoUploaded
 {
     public string? VideoId { get; set; }

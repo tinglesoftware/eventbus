@@ -32,11 +32,7 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
     /// <inheritdoc/>
     public void Configure(EventBusOptions options)
     {
-        var configuration = configurationProvider.Configuration;
-
-        configuration?.Bind(options);
-
-        // TODO: consider configuring the Events and Consumers based on the TypeName once the builder supports GetOrAdd mechanism for EventRegistration and EventConsumerRegistration
+        configurationProvider.Configuration.Bind(options);
 
         // Set the default ConsumerNamePrefix
         options.Naming.ConsumerNamePrefix ??= environment.ApplicationName;

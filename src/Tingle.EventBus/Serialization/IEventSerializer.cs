@@ -21,5 +21,5 @@ public interface IEventSerializer
     /// <param name="context">The <see cref="DeserializationContext"/> to use.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<EventContext?> DeserializeAsync<T>(DeserializationContext context, CancellationToken cancellationToken = default) where T : class;
+    Task<IEventEnvelope<T>?> DeserializeAsync<T>(DeserializationContext context, CancellationToken cancellationToken = default) where T : class;
 }

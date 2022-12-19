@@ -244,33 +244,6 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     /// Deserialize an event from a stream of bytes.
     /// </summary>
     /// <typeparam name="TEvent">The event type to be deserialized.</typeparam>
-    /// <param name="ctx">The <see cref="DeserializationContext"/> to use.</param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    protected async Task<EventContext> DeserializeAsync<TEvent>(DeserializationContext ctx,
-                                                                CancellationToken cancellationToken = default)
-        where TEvent : class
-    {
-        // Resolve the serializer
-        var registration = ctx.Registration;
-        var serializer = (IEventSerializer)ActivatorUtilities.GetServiceOrCreateInstance(ctx.ServiceProvider, registration.EventSerializerType!);
-
-        // Deserialize the content into a context
-        var context = await serializer.DeserializeAsync<TEvent>(ctx, cancellationToken).ConfigureAwait(false);
-
-        // Ensure we are not null (throwing helps track the error)
-        if (context is null)
-        {
-            throw new InvalidOperationException($"Deserialization from '{typeof(TEvent).Name}' resulted in null which is not allowed.");
-        }
-
-        return context;
-    }
-
-    /// <summary>
-    /// Deserialize an event from a stream of bytes.
-    /// </summary>
-    /// <typeparam name="TEvent">The event type to be deserialized.</typeparam>
     /// <param name="scope">The scope in which to resolve required services.</param>
     /// <param name="body">The <see cref="BinaryData"/> containing the raw data.</param>
     /// <param name="contentType">The type of content contained in the <paramref name="body"/>.</param>
@@ -290,32 +263,29 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                                                                 CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        var ctx = new DeserializationContext(scope.ServiceProvider, body, registration, identifier)
+        // Resolve the serializer
+        var provider = scope.ServiceProvider;
+        var serializer = (IEventSerializer)ActivatorUtilities.GetServiceOrCreateInstance(provider, registration.EventSerializerType!);
+
+        // Deserialize the content into an envelope
+        var ctx = new DeserializationContext(body, registration, identifier)
         {
             ContentType = contentType,
             RawTransportData = raw,
-            Deadletter = deadletter,
         };
-        return await DeserializeAsync<TEvent>(ctx, cancellationToken).ConfigureAwait(false);
-    }
+        var envelope = await serializer.DeserializeAsync<TEvent>(ctx, cancellationToken).ConfigureAwait(false);
 
-    /// <summary>
-    /// Serialize an event into a stream of bytes.
-    /// </summary>
-    /// <typeparam name="TEvent">The event type to be serialized.</typeparam>
-    /// <param name="ctx">The <see cref="SerializationContext{T}"/> to use.</param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    protected async Task SerializeAsync<TEvent>(SerializationContext<TEvent> ctx,
-                                                CancellationToken cancellationToken = default)
-        where TEvent : class
-    {
-        // Resolve the serializer
-        var registration = ctx.Registration;
-        var serializer = (IEventSerializer)ActivatorUtilities.GetServiceOrCreateInstance(ctx.ServiceProvider, registration.EventSerializerType!);
+        // Ensure we are not null (throwing helps track the error)
+        if (envelope is null)
+        {
+            throw new InvalidOperationException($"Deserialization from '{typeof(TEvent).Name}' resulted in null which is not allowed.");
+        }
 
-        // Serialize
-        await serializer.SerializeAsync(ctx, cancellationToken).ConfigureAwait(false);
+        // Create the context
+        var publisher = provider.GetRequiredService<IEventPublisher>();
+        return deadletter
+            ? new DeadLetteredEventContext<TEvent>(publisher: publisher, envelope: envelope, contentType: contentType, transportIdentifier: ctx.Identifier)
+            : new EventContext<TEvent>(publisher: publisher, envelope: envelope, contentType: contentType, transportIdentifier: ctx.Identifier);
     }
 
     /// <summary>
@@ -333,8 +303,13 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                                                             CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        var ctx = new SerializationContext<TEvent>(scope.ServiceProvider, @event, registration);
-        await SerializeAsync(ctx, cancellationToken).ConfigureAwait(false);
+        // Resolve the serializer
+        var provider = scope.ServiceProvider;
+        var serializer = (IEventSerializer)ActivatorUtilities.GetServiceOrCreateInstance(provider, registration.EventSerializerType!);
+
+        // Serialize
+        var ctx = new SerializationContext<TEvent>(@event, registration);
+        await serializer.SerializeAsync(ctx, cancellationToken).ConfigureAwait(false);
 
         return ctx.Body!;
     }

@@ -141,10 +141,7 @@ public abstract class EventContext : WrappedEventPublisher
     /// <exception cref="InvalidCastException">This conversion is not supported.</exception>
     /// <exception cref="FormatException">The value is not in a format recognized by <typeparamref name="T"/>.</exception>
     /// <exception cref="OverflowException">The value represents a number that is out of the range of <typeparamref name="T"/>.</exception>
-    public T? GetHeaderValue<T>(string key) where T : IConvertible
-    {
-        return TryGetHeaderValue<T>(key, out var value) ? value : default;
-    }
+    public T? GetHeaderValue<T>(string key) where T : IConvertible => TryGetHeaderValue<T>(key, out var value) ? value : default;
 
     /// <summary>
     /// Gets the header value associated with the specified header key
@@ -161,14 +158,9 @@ public abstract class EventContext : WrappedEventPublisher
     /// <exception cref="FormatException">The value is not in a format recognized by <typeparamref name="T"/>.</exception>
     /// <exception cref="OverflowException">The value represents a number that is out of the range of <typeparamref name="T"/>.</exception>
     /// <exception cref="KeyNotFoundException">The <paramref name="key"/> was not found in the headers.</exception>
-    public T? GetRequiredHeaderValue<T>(string key) where T : IConvertible
-    {
-        if (TryGetHeaderValue<T>(key, out var value)) return value;
-        throw new KeyNotFoundException(key);
-    }
+    public T? GetRequiredHeaderValue<T>(string key) where T : IConvertible => GetHeaderValue<T>(key) ?? throw new KeyNotFoundException(key);
 
     #endregion
-
 }
 
 /// <summary>

@@ -343,35 +343,21 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             var consumer = ActivatorUtilities.GetServiceOrCreateInstance<TConsumer>(scope.ServiceProvider);
 
             // Consume the event with the consumer appropriately
-            if (consumer is IEventConsumer<TEvent> consumer_normal)
+            if (consumer is IEventConsumer<TEvent> consumer_normal && @event is EventContext<TEvent> evt_normal)
             {
-                if (@event is EventContext<TEvent> evt_normal)
-                {
-                    // Invoke handler method, with resilience policies
-                    await registration.ExecutionPolicy.ExecuteAsync(
-                        ct => consumer_normal.ConsumeAsync(evt_normal, ct), cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Consumer '{typeof(TConsumer).FullName}' can only be used for normal events. Check you configuration.");
-                }
+                // Invoke handler method, with resilience policies
+                await registration.ExecutionPolicy.ExecuteAsync(
+                    ct => consumer_normal.ConsumeAsync(evt_normal, ct), cancellationToken).ConfigureAwait(false);
             }
-            else if (consumer is IDeadLetteredEventConsumer<TEvent> consumer_deadletter)
+            else if (consumer is IDeadLetteredEventConsumer<TEvent> consumer_deadletter && @event is DeadLetteredEventContext<TEvent> evt_deadletter)
             {
-                if (@event is DeadLetteredEventContext<TEvent> evt_deadletter)
-                {
-                    // Invoke handler method, with resilience policies
-                    await registration.ExecutionPolicy.ExecuteAsync(
-                        ct => consumer_deadletter.ConsumeAsync(evt_deadletter, ct), cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Consumer '{typeof(TConsumer).FullName}' can only be used for dead-letter events. Check you configuration.");
-                }
+                // Invoke handler method, with resilience policies
+                await registration.ExecutionPolicy.ExecuteAsync(
+                    ct => consumer_deadletter.ConsumeAsync(evt_deadletter, ct), cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                throw new InvalidOperationException($"Consumer '{typeof(TConsumer).FullName}' can't consume events. This shouldn't happen. Please file an issue.");
+                throw new InvalidOperationException($"Consumer '{typeof(TConsumer).FullName}' can't consume '{@event.GetType().FullName}' events. This shouldn't happen. Please file an issue.");
             }
 
             return new EventConsumeResult(successful: true, exception: null);

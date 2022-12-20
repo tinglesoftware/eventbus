@@ -25,6 +25,14 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     public string? ConsumerName { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating if the consumer should be connected to the dead-letter sub-queue.
+    /// For transports that do not support dead-letter sub-queues, a separate queue is created.
+    /// When set to <see langword="true"/>, you must use <see cref="IDeadLetteredEventConsumer{T}"/>
+    /// to consume events.
+    /// </summary>
+    public bool Deadletter { get; internal set; }
+
+    /// <summary>
     /// The behaviour for unhandled errors when consuming events via the
     /// <see cref="IEventConsumer{T}.ConsumeAsync(EventContext{T}, CancellationToken)"/>
     /// method.

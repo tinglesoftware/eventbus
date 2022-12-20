@@ -263,7 +263,7 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
         foreach (var reg in registrations)
         {
             var exchangeName = reg.EventName!;
-            foreach (var ecr in reg.Consumers)
+            foreach (var ecr in reg.Consumers.Values)
             {
                 var queueName = ecr.ConsumerName!;
 
@@ -287,7 +287,7 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
                                                                  BasicDeliverEventArgs args,
                                                                  CancellationToken cancellationToken)
         where TEvent : class
-        where TConsumer : IEventConsumer<TEvent>
+        where TConsumer : IEventConsumer
     {
         var messageId = args.BasicProperties?.MessageId;
         using var log_scope = BeginLoggingScopeForConsume(id: messageId,
@@ -318,6 +318,7 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
                                                      registration: reg,
                                                      identifier: messageId,
                                                      raw: args,
+                                                     deadletter: ecr.Deadletter,
                                                      cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
                               messageId,

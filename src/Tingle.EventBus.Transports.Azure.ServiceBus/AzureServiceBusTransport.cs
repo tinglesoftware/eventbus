@@ -76,7 +76,7 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
-            foreach (var ecr in reg.Consumers)
+            foreach (var ecr in reg.Consumers.Values)
             {
                 var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -341,6 +341,9 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
 
                 // Set the number of items to be cached locally
                 PrefetchCount = Options.DefaultPrefetchCount,
+
+                // Set the sub-queue to be used
+                SubQueue = ecr.Deadletter ? SubQueue.DeadLetter : SubQueue.None,
             };
 
             // Allow for the defaults to be overridden
@@ -507,7 +510,7 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
                                                                  ServiceBusProcessor processor,
                                                                  ProcessMessageEventArgs args)
         where TEvent : class
-        where TConsumer : IEventConsumer<TEvent>
+        where TConsumer : IEventConsumer
     {
         var entityPath = args.EntityPath;
         var message = args.Message;
@@ -543,12 +546,18 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
                                                      registration: reg,
                                                      identifier: message.SequenceNumber.ToString(),
                                                      raw: message,
+                                                     deadletter: ecr.Deadletter,
                                                      cancellationToken: cancellationToken).ConfigureAwait(false);
 
         Logger.ReceivedMessage(sequenceNumber: message.SequenceNumber, eventBusId: context.Id, entityPath: entityPath);
 
         // set the extras
         context.SetServiceBusReceivedMessage(message);
+        if (ecr.Deadletter && context is DeadLetteredEventContext<TEvent> dlec)
+        {
+            dlec.DeadLetterReason = message.DeadLetterReason;
+            dlec.DeadLetterErrorDescription = message.DeadLetterErrorDescription;
+        }
 
         var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
                                                                      ecr: ecr,

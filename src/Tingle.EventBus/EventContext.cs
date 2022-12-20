@@ -4,21 +4,36 @@ using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus;
 
-/// <summary>
-/// Generic context for an event.
-/// </summary>
+/// <summary>Generic context for an event.</summary>
 public abstract class EventContext : WrappedEventPublisher
 {
     private readonly HostInfo? hostInfo;
 
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <summary>Creates an instance of <see cref="EventContext"/>.</summary>
     /// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
     /// <param name="hostInfo">The <see cref="HostInfo"/> of the event sender.</param>
     protected EventContext(IEventPublisher publisher, HostInfo? hostInfo = null) : base(publisher)
     {
         this.hostInfo = hostInfo;
+    }
+
+    /// <summary>Creates an instance of <see cref="EventContext"/>.</summary>
+    /// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
+    /// <param name="envelope">The <see cref="IEventEnvelope"/> from serialization.</param>
+    /// <param name="contentType">The type of content received.</param>
+    /// <param name="transportIdentifier">The unique identifier offered by the transport</param>
+    protected EventContext(IEventPublisher publisher, IEventEnvelope envelope, ContentType? contentType, string? transportIdentifier)
+        : this(publisher, envelope.Host)
+    {
+        Id = envelope.Id;
+        RequestId = envelope.RequestId;
+        CorrelationId = envelope.CorrelationId;
+        InitiatorId = envelope.InitiatorId;
+        Expires = envelope.Expires;
+        Sent = envelope.Sent;
+        Headers = envelope.Headers;
+        ContentType = contentType;
+        TransportIdentifier = transportIdentifier;
     }
 
     /// <summary>
@@ -141,10 +156,7 @@ public abstract class EventContext : WrappedEventPublisher
     /// <exception cref="InvalidCastException">This conversion is not supported.</exception>
     /// <exception cref="FormatException">The value is not in a format recognized by <typeparamref name="T"/>.</exception>
     /// <exception cref="OverflowException">The value represents a number that is out of the range of <typeparamref name="T"/>.</exception>
-    public T? GetHeaderValue<T>(string key) where T : IConvertible
-    {
-        return TryGetHeaderValue<T>(key, out var value) ? value : default;
-    }
+    public T? GetHeaderValue<T>(string key) where T : IConvertible => TryGetHeaderValue<T>(key, out var value) ? value : default;
 
     /// <summary>
     /// Gets the header value associated with the specified header key
@@ -161,19 +173,12 @@ public abstract class EventContext : WrappedEventPublisher
     /// <exception cref="FormatException">The value is not in a format recognized by <typeparamref name="T"/>.</exception>
     /// <exception cref="OverflowException">The value represents a number that is out of the range of <typeparamref name="T"/>.</exception>
     /// <exception cref="KeyNotFoundException">The <paramref name="key"/> was not found in the headers.</exception>
-    public T? GetRequiredHeaderValue<T>(string key) where T : IConvertible
-    {
-        if (TryGetHeaderValue<T>(key, out var value)) return value;
-        throw new KeyNotFoundException(key);
-    }
+    public T? GetRequiredHeaderValue<T>(string key) where T : IConvertible => GetHeaderValue<T>(key) ?? throw new KeyNotFoundException(key);
 
     #endregion
-
 }
 
-/// <summary>
-/// The context for a specific event.
-/// </summary>
+/// <summary>The context for a specific event.</summary>
 /// <typeparam name="T">The type of event carried.</typeparam>
 public class EventContext<T> : EventContext where T : class
 {
@@ -187,45 +192,40 @@ public class EventContext<T> : EventContext where T : class
         Event = @event;
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
-    /// <param name="event">Value for <see cref="Event"/>.</param>
-    /// <param name="hostInfo">The <see cref="HostInfo"/> of the event sender.</param>
-    protected EventContext(IEventPublisher publisher, T @event, HostInfo? hostInfo) : base(publisher, hostInfo)
+    internal EventContext(IEventPublisher publisher, IEventEnvelope<T> envelope, DeserializationContext deserializationContext)
+        : base(publisher, envelope, deserializationContext.ContentType, deserializationContext.Identifier)
     {
-        Event = @event;
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
-    /// <param name="event">Value for <see cref="Event"/>.</param>
-    /// <param name="envelope">Envelope containing details for the event.</param>
-    /// <param name="contentType">Value for <see cref="EventContext.ContentType"/></param>
-    public EventContext(IEventPublisher publisher, T @event, IEventEnvelope envelope, ContentType? contentType) : this(publisher, @event, envelope.Host)
-    {
-        Id = envelope.Id;
-        RequestId = envelope.RequestId;
-        CorrelationId = envelope.CorrelationId;
-        InitiatorId = envelope.InitiatorId;
-        Expires = envelope.Expires;
-        Sent = envelope.Sent;
-        Headers = envelope.Headers;
-        ContentType = contentType;
-    }
-
-    // marked internal because of the forced null forgiving operator
-    internal EventContext(IEventPublisher publisher, IEventEnvelope<T> envelope, ContentType? contentType, string? transportIdentifier)
-        : this(publisher, envelope.Event!, envelope, contentType)
-    {
-        TransportIdentifier = transportIdentifier;
+        Event = envelope.Event!;
     }
 
     /// <summary>
     /// The event published or to be published.
     /// </summary>
     public T Event { get; set; }
+}
+
+/// <summary>The context for a specific dead-lettered event.</summary>
+/// <typeparam name="T">The type of event carried.</typeparam>
+public class DeadLetteredEventContext<T> : EventContext where T : class
+{
+    internal DeadLetteredEventContext(IEventPublisher publisher, IEventEnvelope<T> envelope, DeserializationContext deserializationContext)
+        : base(publisher, envelope, deserializationContext.ContentType, deserializationContext.Identifier)
+    {
+        Event = envelope.Event!;
+    }
+
+    /// <summary>
+    /// The dead-lettered event.
+    /// </summary>
+    public T Event { get; set; }
+
+    /// <summary>
+    /// Gets the dead letter reason for the event.
+    /// </summary>
+    public string? DeadLetterReason { get; set; }
+
+    /// <summary>
+    /// Gets the dead letter error description for the event.
+    /// </summary>
+    public string? DeadLetterErrorDescription { get; set; }
 }

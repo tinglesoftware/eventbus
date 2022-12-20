@@ -45,7 +45,7 @@ public abstract class AbstractEventSerializer : IEventSerializer
     protected ILogger Logger { get; }
 
     /// <inheritdoc/>
-    public async Task<EventContext<T>?> DeserializeAsync<T>(DeserializationContext context, CancellationToken cancellationToken = default)
+    public async Task<IEventEnvelope<T>?> DeserializeAsync<T>(DeserializationContext context, CancellationToken cancellationToken = default)
         where T : class
     {
         // Assume first media type if none is specified
@@ -74,9 +74,7 @@ public abstract class AbstractEventSerializer : IEventSerializer
             return null;
         }
 
-        // Create the context
-        var publisher = context.ServiceProvider.GetRequiredService<IEventPublisher>();
-        return new EventContext<T>(publisher: publisher, envelope: envelope, contentType: contentType, transportIdentifier: context.Identifier);
+        return envelope;
     }
 
     /// <inheritdoc/>

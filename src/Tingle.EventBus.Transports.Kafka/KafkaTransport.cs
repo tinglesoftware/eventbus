@@ -234,7 +234,7 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                 var reg = GetRegistrations().Single(r => r.EventName == topic);
 
                 // form the generic method
-                var ecr = reg.Consumers.Single(); // only one consumer per event
+                var ecr = reg.Consumers.Values.Single(); // only one consumer per event
                 var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
                 await ((Task)method.Invoke(this, new object[] { reg, ecr, result, cancellationToken, })!).ConfigureAwait(false);
 
@@ -269,7 +269,7 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                                                                ConsumeResult<string, byte[]> result,
                                                                CancellationToken cancellationToken)
         where TEvent : class
-        where TConsumer : IEventConsumer<TEvent>
+        where TConsumer : IEventConsumer
     {
         var message = result.Message;
         var messageKey = message.Key;
@@ -294,6 +294,7 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                                                      registration: reg,
                                                      identifier: result.Offset.ToString(),
                                                      raw: message,
+                                                     deadletter: ecr.Deadletter,
                                                      cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.ReceivedEvent(messageKey, context.Id);
         var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,

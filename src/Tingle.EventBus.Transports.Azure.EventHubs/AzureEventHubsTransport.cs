@@ -41,7 +41,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
-            foreach (var ecr in reg.Consumers)
+            foreach (var ecr in reg.Consumers.Values)
             {
                 var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -262,11 +262,14 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
 
     private Task<EventProcessorClient> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
     {
+        var name = reg.EventName;
+        if (ecr.Deadletter) name += Options.DeadLetterSuffix;
+
         // For events configured as sourced from IoT Hub,
         // 1. The event hub name is in the metadata
         // 2. The ConsumerGroup is set to $Default (this may be changed to support more)
         var isIotHub = reg.IsConfiguredAsIotHub();
-        var eventHubName = isIotHub ? reg.GetIotHubEventHubName() : reg.EventName;
+        var eventHubName = isIotHub ? reg.GetIotHubEventHubName() : name;
         var consumerGroup = isIotHub || Options.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
 
         async Task<EventProcessorClient> creator(string key, CancellationToken ct)
@@ -341,7 +344,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
                                                                EventProcessorClient processor,
                                                                ProcessEventArgs args)
         where TEvent : class
-        where TConsumer : IEventConsumer<TEvent>
+        where TConsumer : IEventConsumer
     {
         Logger.ProcessorReceivedEvent(eventHubName: processor.EventHubName,
                                       consumerGroup: processor.ConsumerGroup,
@@ -387,6 +390,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
                                                      registration: reg,
                                                      identifier: data.SequenceNumber.ToString(),
                                                      raw: data,
+                                                     deadletter: ecr.Deadletter,
                                                      cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.ReceivedEvent(eventBusId: context.Id,
                              eventHubName: processor.EventHubName,
@@ -404,6 +408,9 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
                                                                     @event: context,
                                                                     scope: scope,
                                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        // dead-letter cannot be dead-lettered again, what else can we do?
+        if (ecr.Deadletter) return; // TODO: figure out what to do when dead-letter fails
 
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {

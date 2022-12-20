@@ -70,7 +70,7 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
-            foreach (var ecr in reg.Consumers)
+            foreach (var ecr in reg.Consumers.Values)
             {
                 var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -326,7 +326,7 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
                                                                  InMemoryProcessor processor,
                                                                  ProcessMessageEventArgs args)
         where TEvent : class
-        where TConsumer : IEventConsumer<TEvent>
+        where TConsumer : IEventConsumer
     {
         var entityPath = processor.EntityPath;
         var message = args.Message;
@@ -361,6 +361,7 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
                                                      registration: reg,
                                                      identifier: message.SequenceNumber.ToString(),
                                                      raw: message,
+                                                     deadletter: ecr.Deadletter,
                                                      cancellationToken: cancellationToken).ConfigureAwait(false);
 
         Logger.ReceivedMessage(sequenceNumber: message.SequenceNumber, eventBusId: context.Id, entityPath: entityPath);

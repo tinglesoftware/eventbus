@@ -161,9 +161,9 @@ public class DefaultEventConfiguratorTests
         options.Naming.SuffixConsumerName = suffixEventName;
 
         var registration = new EventRegistration(eventType);
-        registration.Consumers.Add(new EventConsumerRegistration(consumerType));
+        registration.Consumers.Add(consumerType, new EventConsumerRegistration(consumerType));
 
-        var creg = Assert.Single(registration.Consumers);
+        var creg = Assert.Single(registration.Consumers.Values);
         configurator.ConfigureEventName(registration, options.Naming);
         configurator.ConfigureConsumerNames(registration, options.Naming);
         Assert.Equal(expected, creg.ConsumerName);

@@ -99,10 +99,10 @@ public class EventBusBuilder
         // Calling ConfigureOptions results in more than one call to the configuration implementations so we have to implement our own logic
         // TODO: remove after https://github.com/dotnet/runtime/issues/42358 is addressed
 
-        static Type[] GetInterfacesOnType(Type t) => t.GetInterfaces();
         static IEnumerable<Type> FindConfigurationServices(Type type)
         {
-            foreach (var t in GetInterfacesOnType(type))
+            var interfaces = type.GetInterfaces();
+            foreach (var t in interfaces)
             {
                 if (t.IsGenericType)
                 {
@@ -151,23 +151,18 @@ public class EventBusBuilder
             throw new InvalidOperationException($"Abstract consumer types are not allowed.");
         }
 
-        var genericConsumerType = typeof(IEventConsumer<>);
-        var eventTypes = new List<Type>();
+        var eventTypes = new List<(Type type, bool deadletter)>();
 
-        // get events from each implementation of IEventConsumer<TEvent>
+        // get events from each implementation of IEventConsumer<TEvent> or IDeadLetteredEventConsumer<TEvent>
         var interfaces = consumerType.GetInterfaces();
-        foreach (var ifType in interfaces)
+        foreach (var type in interfaces)
         {
-            if (ifType.IsGenericType && ifType.GetGenericTypeDefinition() == genericConsumerType)
-            {
-                var et = ifType.GenericTypeArguments[0];
-                if (et.IsAbstract)
-                {
-                    throw new InvalidOperationException($"Invalid event type '{et.FullName}'. Abstract types are not allowed.");
-                }
+            if (!type.IsGenericType) continue;
 
-                eventTypes.Add(et);
-            }
+            var gtd = type.GetGenericTypeDefinition();
+            if (gtd != typeof(IEventConsumer<>) && gtd != typeof(IDeadLetteredEventConsumer<>)) continue;
+
+            eventTypes.Add((type.GenericTypeArguments[0], gtd == typeof(IDeadLetteredEventConsumer<>)));
         }
 
         // we must have at least one implemented event
@@ -176,22 +171,31 @@ public class EventBusBuilder
             throw new InvalidOperationException($"{consumerType.FullName} must implement '{nameof(IEventConsumer)}<TEvent>' at least once.");
         }
 
+        foreach (var (et, _) in eventTypes)
+        {
+            if (et.IsAbstract)
+            {
+                throw new InvalidOperationException($"Invalid event type '{et.FullName}'. Abstract types are not allowed.");
+            }
+        }
+
         // add the event types to the registrations
         return Configure(options =>
         {
-            foreach (var et in eventTypes)
+            foreach (var (et, deadletter) in eventTypes)
             {
                 // get or create a simple EventRegistration
                 var reg = options.Registrations.GetOrAdd(et, t => new EventRegistration(t));
 
-                // create a ConsumerRegistration
-                var ecr = new EventConsumerRegistration(consumerType: consumerType);
+                // get or create a simple ConsumerRegistration
+                if (!reg.Consumers.TryGetValue(consumerType, out var ecr))
+                {
+                    ecr = new EventConsumerRegistration(consumerType) { Deadletter = deadletter, };
+                    reg.Consumers.Add(consumerType, ecr);
+                }
 
                 // call the configuration function
                 configure?.Invoke(reg, ecr);
-
-                // add the consumer to the registration
-                reg.Consumers.Add(ecr);
             }
         });
     }
@@ -220,11 +224,7 @@ public class EventBusBuilder
             var ct = typeof(TConsumer);
             foreach (var registration in options.Registrations.Values)
             {
-                var target = registration.Consumers.SingleOrDefault(c => c.ConsumerType == ct);
-                if (target is not null)
-                {
-                    registration.Consumers.Remove(target);
-                }
+                registration.Consumers.Remove(ct);
             }
         });
     }

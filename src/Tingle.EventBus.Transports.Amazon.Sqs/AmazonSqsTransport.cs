@@ -54,11 +54,11 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
-            foreach (var ecr in reg.Consumers)
+            foreach (var ecr in reg.Consumers.Values)
             {
                 var queueUrl = await GetQueueUrlAsync(reg: reg,
                                                       ecr: ecr,
-                                                      deadletter: false,
+                                                      deadletter: ecr.Deadletter,
                                                       cancellationToken: cancellationToken).ConfigureAwait(false);
                 var t = ReceiveAsync(reg: reg,
                                      ecr: ecr,
@@ -397,7 +397,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
                                                                  Message message,
                                                                  CancellationToken cancellationToken)
         where TEvent : class
-        where TConsumer : IEventConsumer<TEvent>
+        where TConsumer : IEventConsumer
     {
         var messageId = message.MessageId;
         message.TryGetAttribute(MetadataNames.CorrelationId, out var correlationId);
@@ -435,6 +435,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
                                                      registration: reg,
                                                      identifier: messageId,
                                                      raw: message,
+                                                     deadletter: ecr.Deadletter,
                                                      cancellationToken: cancellationToken).ConfigureAwait(false);
 
         Logger.ReceivedMessage(messageId: messageId, eventBusId: context.Id, queueUrl: queueUrl);
@@ -444,6 +445,9 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
                                                                     @event: context,
                                                                     scope: scope,
                                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        // dead-letter cannot be dead-lettered again, what else can we do?
+        if (ecr.Deadletter) return; // TODO: figure out what to do when dead-letter fails
 
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {

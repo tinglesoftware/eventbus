@@ -153,12 +153,7 @@ public class EventBusOptions
                                                                 [NotNullWhen(true)] out EventConsumerRegistration? ecr)
     {
         ecr = default;
-        if (Registrations.TryGetValue(typeof(TEvent), out reg))
-        {
-            ecr = reg.Consumers.SingleOrDefault(cr => cr.ConsumerType == typeof(TConsumer));
-            if (ecr is not null) return true;
-        }
-        return false;
+        return Registrations.TryGetValue(typeof(TEvent), out reg) && reg.Consumers.TryGetValue(typeof(TConsumer), out ecr);
     }
 
     /// <summary>

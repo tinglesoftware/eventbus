@@ -86,7 +86,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             // Combine the retry policies
             PollyHelper.CombineIfNeeded(BusOptions, Options, reg);
 
-            foreach (var ecr in reg.Consumers)
+            foreach (var ecr in reg.Consumers.Values)
             {
                 // Set unhandled error behaviour
                 ecr.UnhandledErrorBehaviour ??= Options.DefaultUnhandledConsumerErrorBehaviour;
@@ -244,75 +244,48 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     /// Deserialize an event from a stream of bytes.
     /// </summary>
     /// <typeparam name="TEvent">The event type to be deserialized.</typeparam>
-    /// <param name="ctx">The <see cref="DeserializationContext"/> to use.</param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(DeserializationContext ctx,
-                                                                        CancellationToken cancellationToken = default)
-        where TEvent : class
-    {
-        // Resolve the serializer
-        var registration = ctx.Registration;
-        var serializer = (IEventSerializer)ActivatorUtilities.GetServiceOrCreateInstance(ctx.ServiceProvider, registration.EventSerializerType!);
-
-        // Deserialize the content into a context
-        var context = await serializer.DeserializeAsync<TEvent>(ctx, cancellationToken).ConfigureAwait(false);
-
-        // Ensure we are not null (throwing helps track the error)
-        if (context is null)
-        {
-            throw new InvalidOperationException($"Deserialization from '{typeof(TEvent).Name}' resulted in null which is not allowed.");
-        }
-
-        return context;
-    }
-
-    /// <summary>
-    /// Deserialize an event from a stream of bytes.
-    /// </summary>
-    /// <typeparam name="TEvent">The event type to be deserialized.</typeparam>
     /// <param name="scope">The scope in which to resolve required services.</param>
     /// <param name="body">The <see cref="BinaryData"/> containing the raw data.</param>
     /// <param name="contentType">The type of content contained in the <paramref name="body"/>.</param>
     /// <param name="registration">The bus registration for this event.</param>
     /// <param name="identifier">Identifier given by the transport for the event to be deserialized.</param>
     /// <param name="raw">The raw data provided by the transport without any manipulation.</param>
+    /// <param name="deadletter">Whether the event is from a dead-letter entity.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    protected async Task<EventContext<TEvent>> DeserializeAsync<TEvent>(IServiceScope scope,
-                                                                        BinaryData body,
-                                                                        ContentType? contentType,
-                                                                        EventRegistration registration,
-                                                                        string? identifier,
-                                                                        object? raw,
-                                                                        CancellationToken cancellationToken = default)
+    protected async Task<EventContext> DeserializeAsync<TEvent>(IServiceScope scope,
+                                                                BinaryData body,
+                                                                ContentType? contentType,
+                                                                EventRegistration registration,
+                                                                string? identifier,
+                                                                object? raw,
+                                                                bool deadletter,
+                                                                CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        var ctx = new DeserializationContext(scope.ServiceProvider, body, registration, identifier)
+        // Resolve the serializer
+        var provider = scope.ServiceProvider;
+        var serializer = (IEventSerializer)ActivatorUtilities.GetServiceOrCreateInstance(provider, registration.EventSerializerType!);
+
+        // Deserialize the content into an envelope
+        var ctx = new DeserializationContext(body, registration, identifier)
         {
             ContentType = contentType,
             RawTransportData = raw,
         };
-        return await DeserializeAsync<TEvent>(ctx, cancellationToken).ConfigureAwait(false);
-    }
+        var envelope = await serializer.DeserializeAsync<TEvent>(ctx, cancellationToken).ConfigureAwait(false);
 
-    /// <summary>
-    /// Serialize an event into a stream of bytes.
-    /// </summary>
-    /// <typeparam name="TEvent">The event type to be serialized.</typeparam>
-    /// <param name="ctx">The <see cref="SerializationContext{T}"/> to use.</param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    protected async Task SerializeAsync<TEvent>(SerializationContext<TEvent> ctx,
-                                                CancellationToken cancellationToken = default)
-        where TEvent : class
-    {
-        // Resolve the serializer
-        var registration = ctx.Registration;
-        var serializer = (IEventSerializer)ActivatorUtilities.GetServiceOrCreateInstance(ctx.ServiceProvider, registration.EventSerializerType!);
+        // Ensure we are not null (throwing helps track the error)
+        if (envelope is null)
+        {
+            throw new InvalidOperationException($"Deserialization from '{typeof(TEvent).Name}' resulted in null which is not allowed.");
+        }
 
-        // Serialize
-        await serializer.SerializeAsync(ctx, cancellationToken).ConfigureAwait(false);
+        // Create the context
+        var publisher = provider.GetRequiredService<IEventPublisher>();
+        return deadletter
+            ? new DeadLetteredEventContext<TEvent>(publisher: publisher, envelope: envelope, deserializationContext: ctx)
+            : new EventContext<TEvent>(publisher: publisher, envelope: envelope, deserializationContext: ctx);
     }
 
     /// <summary>
@@ -330,8 +303,13 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                                                             CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        var ctx = new SerializationContext<TEvent>(scope.ServiceProvider, @event, registration);
-        await SerializeAsync(ctx, cancellationToken).ConfigureAwait(false);
+        // Resolve the serializer
+        var provider = scope.ServiceProvider;
+        var serializer = (IEventSerializer)ActivatorUtilities.GetServiceOrCreateInstance(provider, registration.EventSerializerType!);
+
+        // Serialize
+        var ctx = new SerializationContext<TEvent>(@event, registration);
+        await serializer.SerializeAsync(ctx, cancellationToken).ConfigureAwait(false);
 
         return ctx.Body!;
     }
@@ -353,10 +331,10 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     /// <param name="cancellationToken"></param>
     protected async Task<EventConsumeResult> ConsumeAsync<TEvent, TConsumer>(EventRegistration registration,
                                                                              EventConsumerRegistration ecr,
-                                                                             EventContext<TEvent> @event,
+                                                                             EventContext @event,
                                                                              IServiceScope scope,
                                                                              CancellationToken cancellationToken)
-        where TConsumer : IEventConsumer<TEvent>
+        where TConsumer : IEventConsumer
         where TEvent : class
     {
         try
@@ -364,9 +342,23 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             // Resolve the consumer
             var consumer = ActivatorUtilities.GetServiceOrCreateInstance<TConsumer>(scope.ServiceProvider);
 
-            // Invoke handler method, with resilience policies
-            await registration.ExecutionPolicy.ExecuteAsync(
-                ct => consumer.ConsumeAsync(@event, ct), cancellationToken).ConfigureAwait(false);
+            // Consume the event with the consumer appropriately
+            if (consumer is IEventConsumer<TEvent> consumer_normal && @event is EventContext<TEvent> evt_normal)
+            {
+                // Invoke handler method, with resilience policies
+                await registration.ExecutionPolicy.ExecuteAsync(
+                    ct => consumer_normal.ConsumeAsync(evt_normal, ct), cancellationToken).ConfigureAwait(false);
+            }
+            else if (consumer is IDeadLetteredEventConsumer<TEvent> consumer_deadletter && @event is DeadLetteredEventContext<TEvent> evt_deadletter)
+            {
+                // Invoke handler method, with resilience policies
+                await registration.ExecutionPolicy.ExecuteAsync(
+                    ct => consumer_deadletter.ConsumeAsync(evt_deadletter, ct), cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Consumer '{typeof(TConsumer).FullName}' can't consume '{@event.GetType().FullName}' events. This shouldn't happen. Please file an issue.");
+            }
 
             return new EventConsumeResult(successful: true, exception: null);
         }

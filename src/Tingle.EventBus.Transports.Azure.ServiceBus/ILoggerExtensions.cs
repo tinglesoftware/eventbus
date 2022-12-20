@@ -9,16 +9,16 @@ namespace Microsoft.Extensions.Logging;
 /// </summary>
 internal static partial class ILoggerExtensions
 {
-    [LoggerMessage(100, LogLevel.Information, "Starting processing on {EntityPath}.")]
+    [LoggerMessage(100, LogLevel.Information, "Starting processing on '{EntityPath}'.")]
     public static partial void StartingProcessing(this ILogger logger, string entityPath);
 
-    [LoggerMessage(101, LogLevel.Debug, "Stopping client: {Processor}.")]
+    [LoggerMessage(101, LogLevel.Debug, "Stopping processor for '{Processor}'.")]
     public static partial void StoppingProcessor(this ILogger logger, string processor);
 
-    [LoggerMessage(102, LogLevel.Debug, "Stopped processor for {Processor}.")]
+    [LoggerMessage(102, LogLevel.Debug, "Stopped processor for '{Processor}'.")]
     public static partial void StoppedProcessor(this ILogger logger, string processor);
 
-    [LoggerMessage(103, LogLevel.Warning, "Stop processor faulted for {Processor}.")]
+    [LoggerMessage(103, LogLevel.Warning, "Stop processor faulted for '{Processor}'.")]
     public static partial void StopProcessorFaulted(this ILogger logger, string processor, Exception ex);
 
     [LoggerMessage(104, LogLevel.Debug, "Creating processor for queue '{QueueName}'.")]
@@ -93,10 +93,10 @@ internal static partial class ILoggerExtensions
         logger.SendingMessages(events.Select(e => e.Id).ToList(), entityPath, scheduled);
     }
 
-    [LoggerMessage(203, LogLevel.Information, "Canceling scheduled message: {SequenceNumber} on {EntityPath}")]
+    [LoggerMessage(203, LogLevel.Information, "Canceling scheduled message: '{SequenceNumber}' on '{EntityPath}'.")]
     public static partial void CancelingMessage(this ILogger logger, long sequenceNumber, string entityPath);
 
-    [LoggerMessage(204, LogLevel.Information, "Canceling {messagesCount} scheduled messages on {EntityPath}:\r\n- {SequenceNumbers}")]
+    [LoggerMessage(204, LogLevel.Information, "Canceling {MessagesCount} scheduled messages on '{EntityPath}':\r\n- {SequenceNumbers}")]
     private static partial void CancelingMessages(this ILogger logger, int messagesCount, string entityPath, string sequenceNumbers);
 
     public static void CancelingMessages(this ILogger logger, IList<long> sequenceNumbers, string entityPath)
@@ -108,15 +108,15 @@ internal static partial class ILoggerExtensions
     }
 
 
-    [LoggerMessage(300, LogLevel.Information, "Received message: '{SequenceNumber}' containing Event '{EventBusId}' from '{EntityPath}'")]
+    [LoggerMessage(300, LogLevel.Information, "Received message: '{SequenceNumber}' containing Event '{EventBusId}' from '{EntityPath}'.")]
     public static partial void ReceivedMessage(this ILogger logger, long sequenceNumber, string? eventBusId, string entityPath);
 
-    [LoggerMessage(301, LogLevel.Debug, "Processing '{MessageId}' from '{EntityPath}'")]
+    [LoggerMessage(301, LogLevel.Debug, "Processing '{MessageId}' from '{EntityPath}'.")]
     public static partial void ProcessingMessage(this ILogger logger, string? messageId, string entityPath);
 
-    [LoggerMessage(302, LogLevel.Debug, "Post Consume action: {Action} for message: {MessageId} from '{EntityPath}' containing Event: '{EventBusId}'.")]
+    [LoggerMessage(302, LogLevel.Debug, "Post Consume action: '{Action}' for message: '{MessageId}' from '{EntityPath}' containing Event: '{EventBusId}'.")]
     public static partial void PostConsumeAction(this ILogger logger, PostConsumeAction? action, string? messageId, string entityPath, string? eventBusId);
 
-    [LoggerMessage(303, LogLevel.Debug, "Message receiving faulted. Namespace: {FullyQualifiedNamespace}, Entity Path: {EntityPath}, Source: {ErrorSource}")]
+    [LoggerMessage(303, LogLevel.Debug, "Message receiving faulted. Namespace: '{FullyQualifiedNamespace}', Entity Path: '{EntityPath}', Source: '{ErrorSource}'.")]
     public static partial void MessageReceivingFaulted(this ILogger logger, string fullyQualifiedNamespace, string entityPath, ServiceBusErrorSource errorSource, Exception ex);
 }

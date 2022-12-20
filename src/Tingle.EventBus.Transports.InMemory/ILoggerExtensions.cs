@@ -8,22 +8,22 @@ namespace Microsoft.Extensions.Logging;
 /// </summary>
 internal static partial class ILoggerExtensions
 {
-    [LoggerMessage(100, LogLevel.Information, "Starting processing on {EntityPath}")]
+    [LoggerMessage(100, LogLevel.Information, "Starting processing on '{EntityPath}'.")]
     public static partial void StartingProcessing(this ILogger logger, string entityPath);
 
-    [LoggerMessage(101, LogLevel.Debug, "Stopping client: {Processor}")]
+    [LoggerMessage(101, LogLevel.Debug, "Stopping processor for '{Processor}'.")]
     public static partial void StoppingProcessor(this ILogger logger, string processor);
 
-    [LoggerMessage(102, LogLevel.Debug, "Stopped processor for {Processor}")]
+    [LoggerMessage(102, LogLevel.Debug, "Stopped processor for '{Processor}'.")]
     public static partial void StoppedProcessor(this ILogger logger, string processor);
 
-    [LoggerMessage(103, LogLevel.Warning, "Stop processor faulted for {Processor}")]
+    [LoggerMessage(103, LogLevel.Warning, "Stop processor faulted for '{Processor}'.")]
     public static partial void StopProcessorFaulted(this ILogger logger, string processor, Exception ex);
 
-    [LoggerMessage(104, LogLevel.Debug, "Creating processor for queue '{QueueName}'")]
+    [LoggerMessage(104, LogLevel.Debug, "Creating processor for queue '{QueueName}'.")]
     public static partial void CreatingQueueProcessor(this ILogger logger, string queueName);
 
-    [LoggerMessage(105, LogLevel.Debug, "Creating processor for topic '{TopicName}' and subscription '{SubscriptionName}'")]
+    [LoggerMessage(105, LogLevel.Debug, "Creating processor for topic '{TopicName}' and subscription '{SubscriptionName}'.")]
     public static partial void CreatingSubscriptionProcessor(this ILogger logger, string topicName, string subscriptionName);
 
     [LoggerMessage(200, LogLevel.Warning, "InMemory EventBus uses a short-lived timer that is not persisted for scheduled publish.")]
@@ -51,10 +51,10 @@ internal static partial class ILoggerExtensions
         logger.SendingMessages(events.Select(e => e.Id).ToList(), entityPath, scheduled);
     }
 
-    [LoggerMessage(203, LogLevel.Information, "Canceling scheduled message: {SequenceNumber} on {EntityPath}")]
+    [LoggerMessage(203, LogLevel.Information, "Canceling scheduled message: '{SequenceNumber}' on '{EntityPath}'")]
     public static partial void CancelingMessage(this ILogger logger, long sequenceNumber, string entityPath);
 
-    [LoggerMessage(204, LogLevel.Information, "Canceling {messagesCount} scheduled messages on {EntityPath}:\r\n- {SequenceNumbers}")]
+    [LoggerMessage(204, LogLevel.Information, "Canceling {MessagesCount} scheduled messages on '{EntityPath}':\r\n- {SequenceNumbers}")]
     private static partial void CancelingMessages(this ILogger logger, int messagesCount, string entityPath, string sequenceNumbers);
 
     public static void CancelingMessages(this ILogger logger, IList<long> sequenceNumbers, string entityPath)
@@ -66,12 +66,12 @@ internal static partial class ILoggerExtensions
     }
 
 
-    [LoggerMessage(300, LogLevel.Information, "Received message: '{SequenceNumber}' containing Event '{EventBusId}' from '{EntityPath}'")]
+    [LoggerMessage(300, LogLevel.Information, "Received message: '{SequenceNumber}' containing Event '{EventBusId}' from '{EntityPath}'.")]
     public static partial void ReceivedMessage(this ILogger logger, long sequenceNumber, string? eventBusId, string entityPath);
 
-    [LoggerMessage(301, LogLevel.Debug, "Processing '{MessageId}' from '{EntityPath}'")]
+    [LoggerMessage(301, LogLevel.Debug, "Processing '{MessageId}' from '{EntityPath}'.")]
     public static partial void ProcessingMessage(this ILogger logger, string? messageId, string entityPath);
 
-    [LoggerMessage(303, LogLevel.Debug, "Message receiving faulted. Entity Path: {EntityPath}, Source: {ErrorSource}")]
+    [LoggerMessage(303, LogLevel.Debug, "Message receiving faulted. Entity Path: '{EntityPath}', Source: '{ErrorSource}'.")]
     public static partial void MessageReceivingFaulted(this ILogger logger, string entityPath, InMemoryErrorSource errorSource, Exception ex);
 }

@@ -43,7 +43,7 @@ internal class InMemoryClient
     public virtual InMemoryProcessor CreateProcessor(string topicName, string subscriptionName, InMemoryProcessorOptions options)
     {
         var parent = GetChannel(entityPath: topicName, broadcast: true);
-        var entityPath = $"{topicName}/{subscriptionName}";
+        var entityPath = $"{topicName}/Subscriptions/{subscriptionName}";
         var channel = GetChannel(entityPath: entityPath);
         ((BroadcastChannelWriter<InMemoryMessage>)parent.Writer).Children.Add(channel.Writer);
         return new InMemoryProcessor(entityPath: entityPath, reader: channel.Reader);

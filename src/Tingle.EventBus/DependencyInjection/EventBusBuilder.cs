@@ -25,15 +25,15 @@ public class EventBusBuilder
         Services.ConfigureOptions<EventBusConfigureOptions>();
 
         // Register the bus and its host
-        Services.AddSingleton<EventBus>();
+        Services.TryAddSingleton<EventBus>();
         Services.AddHostedService<EventBusHost>();
 
         // Register necessary services
-        Services.AddSingleton<EventBusTransportProvider>();
-        Services.AddSingleton<IEventBusConfigurationProvider, DefaultEventBusConfigurationProvider>();
-        Services.AddSingleton<IEventConfigurator, DefaultEventConfigurator>();
-        Services.AddSingleton<IEventIdGenerator, DefaultEventIdGenerator>();
-        Services.AddTransient<IEventPublisher, EventPublisher>();
+        Services.AddSingleton<IEventConfigurator, DefaultEventConfigurator>(); // can be multiple do not use TryAdd*(...)
+        Services.TryAddSingleton<EventBusTransportProvider>();
+        Services.TryAddSingleton<IEventBusConfigurationProvider, DefaultEventBusConfigurationProvider>();
+        Services.TryAddSingleton<IEventIdGenerator, DefaultEventIdGenerator>();
+        Services.TryAddTransient<IEventPublisher, EventPublisher>();
         UseDefaultSerializer<DefaultJsonEventSerializer>();
     }
 
@@ -122,7 +122,7 @@ public class EventBusBuilder
         if (configureOptions is not null) Services.Configure(name, configureOptions);
 
         // //  transport is not registered because multiple separate instances are required per name
-        // Services.AddSingleton<TTransport>();
+        // Services.TryAddSingleton<TTransport>();
         return this;
     }
 

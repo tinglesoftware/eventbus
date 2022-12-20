@@ -1,4 +1,5 @@
-﻿using Tingle.EventBus.Transports.InMemory;
+﻿using Microsoft.Extensions.DependencyInjection.Extensions;
+using Tingle.EventBus.Transports.InMemory;
 using Tingle.EventBus.Transports.InMemory.Client;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -24,7 +25,7 @@ public static class InMemoryEventBusBuilderExtensions
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
-        builder.Services.AddSingleton<SequenceNumberGenerator>();
+        builder.Services.TryAddSingleton<SequenceNumberGenerator>();
         return builder.AddTransport<InMemoryTransport, InMemoryTransportOptions, InMemoryTransportConfigureOptions>(name, configure);
     }
 
@@ -49,7 +50,7 @@ public static class InMemoryEventBusBuilderExtensions
         services.ConfigureOptions<InMemoryTestHarnessConfigureOptions>();
 
         // Register the harness
-        services.AddSingleton<InMemoryTestHarness>();
+        services.TryAddSingleton<InMemoryTestHarness>();
 
         return builder;
     }

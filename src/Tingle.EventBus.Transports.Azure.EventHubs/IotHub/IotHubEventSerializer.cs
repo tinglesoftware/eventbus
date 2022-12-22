@@ -116,6 +116,12 @@ internal class IotHubEventSerializer : AbstractEventSerializer
         {
             if (baseType.IsGenericType && baseType.GetGenericTypeDefinition() == BaseType)
             {
+                var abstractOne = baseType.GenericTypeArguments.FirstOrDefault(t => t.IsAbstract);
+                if (abstractOne is not null)
+                {
+                    throw new InvalidOperationException($"Abstract type '{abstractOne.FullName}' on '{givenType.FullName}' is not supported for IotHub events.");
+                }
+
                 return new(telemetryType: baseType.GenericTypeArguments[0],
                            twinChangeEventType: baseType.GenericTypeArguments[1],
                            lifecycleEventType: baseType.GenericTypeArguments[2]);

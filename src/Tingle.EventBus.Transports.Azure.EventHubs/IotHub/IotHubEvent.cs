@@ -2,7 +2,7 @@
 
 /// <summary>Represents an event from Azure IoT Hub.</summary>
 public record IotHubEvent<TDeviceTelemetry> : IotHubEvent<TDeviceTelemetry, IotHubDeviceTwinChangeEvent, IotHubDeviceLifecycleEvent>
-    where TDeviceTelemetry : class, new()
+    where TDeviceTelemetry : class
 {
     /// <summary>
     /// Creates an instance of <see cref="IotHubEvent{TDeviceTelemetry}"/>.
@@ -24,9 +24,9 @@ public record IotHubEvent<TDeviceTelemetry> : IotHubEvent<TDeviceTelemetry, IotH
 /// Represents the event from Azure IoT Hub
 /// </summary>
 public record IotHubEvent<TDeviceTelemetry, TDeviceTwinChange, TDeviceLifecycle>
-    where TDeviceTelemetry : class, new()
-    where TDeviceTwinChange : IotHubDeviceTwinChangeEvent, new()
-    where TDeviceLifecycle : IotHubDeviceLifecycleEvent, new()
+    where TDeviceTelemetry : class
+    where TDeviceTwinChange : IotHubDeviceTwinChangeEvent
+    where TDeviceLifecycle : IotHubDeviceLifecycleEvent
 {
     /// <summary>
     /// Creates an instance of <see cref="IotHubEvent{TDeviceTelemetry, TDeviceTwinChange, TDeviceLifecycle}"/>.

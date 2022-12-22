@@ -4,7 +4,7 @@ using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
 namespace AzureIotHub;
 
-internal record MyIotHubEvent : IotHubEvent<MyIotHubTelemetry>
+public record MyIotHubEvent : IotHubEvent<MyIotHubTelemetry>
 {
     public MyIotHubEvent(IotHubEventMessageSource source,
                          MyIotHubTelemetry? telemetry,
@@ -14,7 +14,7 @@ internal record MyIotHubEvent : IotHubEvent<MyIotHubTelemetry>
         : base(source, telemetry, twinEvent, lifecycleEvent, connectionStateEvent) { }
 }
 
-internal class MyIotHubTelemetry
+public class MyIotHubTelemetry
 {
     public DateTimeOffset Timestamp { get; set; }
 

@@ -1,0 +1,15 @@
+{
+  "deviceId": "1234567890",
+  "etag": "AAAAAAAAAAE=",
+  "version": 2,
+  "properties": {
+    "desired": {
+      "$metadata": { "$lastUpdated": "2022-01-16T16:16:24.0465798Z" },
+      "$version": 1
+    },
+    "reported": {
+      "$metadata": { "$lastUpdated": "2022-01-16T16:16:24.0465798Z" },
+      "$version": 1
+    }
+  }
+}

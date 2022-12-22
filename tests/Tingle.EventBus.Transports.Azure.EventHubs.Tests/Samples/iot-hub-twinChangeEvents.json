@@ -1,0 +1,18 @@
+{
+  "version": 3,
+  "tags": { "tagValue": 5 },
+  "properties": {
+    "desired": {
+      "desiredValue": 55,
+      "$metadata": {
+        "$lastUpdated": "2022-01-16T16:36:53.8146535Z",
+        "$lastUpdatedVersion": 2,
+        "desiredValue": {
+          "$lastUpdated": "2022-01-16T16:36:53.8146535Z",
+          "$lastUpdatedVersion": 2
+        }
+      },
+      "$version": 2
+    }
+  }
+}

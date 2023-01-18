@@ -3,6 +3,7 @@
 ![Nuget](https://img.shields.io/nuget/dt/Tingle.EventBus)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/tinglesoftware/eventbus/release.yml?branch=main&style=flat-square)
 [![Dependabot](https://badgen.net/badge/Dependabot/enabled/green?icon=dependabot)](https://dependabot.com/)
+[![license](https://img.shields.io/github/license/tinglesoftware/dependabot-azure-devops.svg?style=flat-square)](LICENSE)
 
 This repository contains the code for the `Tingle.EventBus` libraries. This project exists so as to simplify the amount of work required to add events to .NET projects. The existing libraries seem to have numerous complexities in setup especially when it comes to the use of framework concepts like dependency inject and options configuration. At [Tingle Software](https://tingle.software), we use this for all our event-driven architecture that is based on .NET
 
@@ -68,7 +69,3 @@ A number fo the documents below are still a work in progress and would be added 
 ## Issues &amp; Comments
 
 Please leave all comments, bugs, requests, and issues on the Issues page. We'll respond to your request ASAP!
-
-## License
-
-The code is licensed under the [MIT](http://www.opensource.org/licenses/mit-license.php "Read more about the MIT license form") license. Refer to the [LICENSE](./LICENSE) file for more information.

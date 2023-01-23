@@ -24,7 +24,7 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
     {
         base.Configure(configuration, options);
 
-        if (options.Credentials == default || options.Credentials.CurrentValue is null)
+        if (options.Credentials.CurrentValue is null)
         {
             var fullyQualifiedNamespace = configuration.GetValue<string>(nameof(AzureEventHubsTransportCredentials.FullyQualifiedNamespace))
                                        ?? configuration.GetValue<string>("Namespace");
@@ -39,7 +39,7 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
             }
         }
 
-        if (options.BlobStorageCredentials == default || options.BlobStorageCredentials.CurrentValue is null)
+        if (options.BlobStorageCredentials.CurrentValue is null)
         {
             var serviceUrl = configuration.GetValue<Uri>("BlobStorageServiceUrl")
                           ?? configuration.GetValue<Uri>("BlobStorageEndpoint");
@@ -74,7 +74,7 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
         if (registrations.Any(r => r.Consumers.Count > 0))
         {
             // ensure the connection string for blob storage or token credential is provided
-            if (options.BlobStorageCredentials == default || options.BlobStorageCredentials.CurrentValue is null)
+            if (options.BlobStorageCredentials.CurrentValue is null)
             {
                 throw new InvalidOperationException($"'{nameof(options.BlobStorageCredentials)}' must be provided in form a connection string or an instance of '{nameof(AzureBlobStorageCredentials)}'.");
             }

@@ -24,7 +24,7 @@ internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOption
     {
         base.Configure(configuration, options);
 
-        if (options.Credentials == default || options.Credentials.CurrentValue is null)
+        if (options.Credentials.CurrentValue is null)
         {
             var serviceUrl = configuration.GetValue<Uri>(nameof(AzureQueueStorageTransportCredentials.ServiceUrl))
                           ?? configuration.GetValue<Uri>("Endpoint");

@@ -24,7 +24,7 @@ internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<
     {
         base.Configure(configuration, options);
 
-        if (options.Credentials == default || options.Credentials.CurrentValue is null)
+        if (options.Credentials.CurrentValue is null)
         {
             var fullyQualifiedNamespace = configuration.GetValue<string>(nameof(AzureServiceBusTransportCredentials.FullyQualifiedNamespace))
                                        ?? configuration.GetValue<string>("Namespace");

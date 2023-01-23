@@ -26,7 +26,7 @@ public abstract class AzureTransportConfigureOptions<TCredential, TOptions> : Ev
         if (!result.Succeeded) return result;
 
         // We should either have a token credential or a connection string
-        if (options.Credentials == default || options.Credentials.CurrentValue is null)
+        if (options.Credentials.CurrentValue is null)
         {
             return ValidateOptionsResult.Fail($"'{nameof(options.Credentials)}' must be provided in form a connection string or an instance of '{typeof(TCredential).Name}'.");
         }

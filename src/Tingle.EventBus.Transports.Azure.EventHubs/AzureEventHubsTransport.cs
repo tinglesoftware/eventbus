@@ -289,11 +289,10 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
 
             // blobContainerUri has the format "https://{account_name}.blob.core.windows.net/{container_name}" which can be made using "{BlobServiceUri}/{container_name}".
             var cred_bs = Options.BlobStorageCredentials.CurrentValue;
-            var blobContainerClient = cred_bs is AzureBlobStorageCredentials abstc
-                ? new BlobContainerClient(blobContainerUri: new Uri($"{abstc.ServiceUrl}/{Options.BlobContainerName}"),
-                                          credential: abstc.TokenCredential)
-                : new BlobContainerClient(connectionString: (string)cred_bs,
-                                          blobContainerName: Options.BlobContainerName);
+            var blobServiceClient = cred_bs is AzureBlobStorageCredentials abstc
+                ? new BlobServiceClient(serviceUri: abstc.ServiceUrl, credential: abstc.TokenCredential)
+                : new BlobServiceClient(connectionString: (string)cred_bs);
+            var blobContainerClient = blobServiceClient.GetBlobContainerClient(Options.BlobContainerName);
 
             // Create the blob container if it does not exist
             if (Options.EnableEntityCreation)

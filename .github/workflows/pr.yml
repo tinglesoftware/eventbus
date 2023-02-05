@@ -3,12 +3,12 @@ name: Validate PR
 on:
   pull_request:
     branches:
-      - main
+    - main
     paths-ignore:
-      - README.md
-      - LICENSE
-      - CHANGELOG.md
-      - docs/**
+    - README.md
+    - LICENSE
+    - CHANGELOG.md
+    - docs/**
 
 jobs:
   Build:

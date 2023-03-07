@@ -65,15 +65,6 @@ public class EventBusNamingOptions
     public string? ConsumerNamePrefix { get; set; }
 
     /// <summary>
-    /// Indicates if the consumer name generated should be suffixed with the event name.
-    /// Some transports require this value to be <see langword="true"/>.
-    /// Setting to false can reduce the length of the consumer name hence being useful in scenarios
-    /// where the transport allow same name for two consumers so long as they are for different events.
-    /// Defaults to <see langword="true"/>
-    /// </summary>
-    public bool SuffixConsumerName { get; set; } = true;
-
-    /// <summary>
     /// Gets the application name from <see cref="IHostEnvironment.ApplicationName"/>
     /// and applies the naming settings in this options.
     /// </summary>

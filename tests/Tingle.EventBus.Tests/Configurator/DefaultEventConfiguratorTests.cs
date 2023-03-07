@@ -78,75 +78,65 @@ public class DefaultEventConfiguratorTests
 
     [Theory]
     // Full type names
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", true, ConsumerNameSource.TypeName, NamingConvention.KebabCase, "test-consumer1-test-event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", true, ConsumerNameSource.TypeName, NamingConvention.SnakeCase, "test_consumer1_test_event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", true, ConsumerNameSource.TypeName, NamingConvention.DotCase, "test.consumer1.test.event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, null, true, ConsumerNameSource.Prefix, NamingConvention.KebabCase, "app1-test-event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, null, true, ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "app1_test_event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, null, true, ConsumerNameSource.Prefix, NamingConvention.DotCase, "app1.test.event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, null, true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase, "app1-test-consumer1-test-event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, null, true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase, "app1_test_consumer1_test_event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, null, true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase, "app1.test.consumer1.test.event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", true, ConsumerNameSource.Prefix, NamingConvention.KebabCase, "service1-test-event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", true, ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "service1_test_event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", true, ConsumerNameSource.Prefix, NamingConvention.DotCase, "service1.test.event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase, "service1-test-consumer1-test-event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase, "service1_test_consumer1_test_event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase, "service1.test.consumer1.test.event1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", ConsumerNameSource.TypeName, NamingConvention.KebabCase, "test-consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", ConsumerNameSource.TypeName, NamingConvention.SnakeCase, "test_consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", ConsumerNameSource.TypeName, NamingConvention.DotCase, "test.consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, null, ConsumerNameSource.Prefix, NamingConvention.KebabCase, "app1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, null, ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "app1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, null, ConsumerNameSource.Prefix, NamingConvention.DotCase, "app1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, null, ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase, "app1-test-consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, null, ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase, "app1_test_consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, null, ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase, "app1.test.consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", ConsumerNameSource.Prefix, NamingConvention.KebabCase, "service1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "service1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", ConsumerNameSource.Prefix, NamingConvention.DotCase, "service1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase, "service1-test-consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase, "service1_test_consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase, "service1.test.consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", ConsumerNameSource.TypeName, NamingConvention.KebabCase,
+        "tingle-event-bus-tests-configurator-test-consumer1")]
 
     // Short type names
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.TypeName, NamingConvention.KebabCase,
-        "tingle-event-bus-tests-configurator-test-consumer1-tingle-event-bus-tests-configurator-test-event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.TypeName, NamingConvention.SnakeCase,
-        "tingle_event_bus_tests_configurator_test_consumer1_tingle_event_bus_tests_configurator_test_event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.TypeName, NamingConvention.DotCase,
-        "tingle.event.bus.tests.configurator.test.consumer1.tingle.event.bus.tests.configurator.test.event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.Prefix, NamingConvention.KebabCase, "app1-tingle-event-bus-tests-configurator-test-event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "app1_tingle_event_bus_tests_configurator_test_event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.Prefix, NamingConvention.DotCase, "app1.tingle.event.bus.tests.configurator.test.event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase,
-        "app1-tingle-event-bus-tests-configurator-test-consumer1-tingle-event-bus-tests-configurator-test-event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase,
-        "app1_tingle_event_bus_tests_configurator_test_consumer1_tingle_event_bus_tests_configurator_test_event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase,
-        "app1.tingle.event.bus.tests.configurator.test.consumer1.tingle.event.bus.tests.configurator.test.event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.Prefix, NamingConvention.KebabCase, "service1-tingle-event-bus-tests-configurator-test-event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "service1_tingle_event_bus_tests_configurator_test_event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.Prefix, NamingConvention.DotCase, "service1.tingle.event.bus.tests.configurator.test.event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase,
-        "service1-tingle-event-bus-tests-configurator-test-consumer1-tingle-event-bus-tests-configurator-test-event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase,
-        "service1_tingle_event_bus_tests_configurator_test_consumer1_tingle_event_bus_tests_configurator_test_event1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase,
-        "service1.tingle.event.bus.tests.configurator.test.consumer1.tingle.event.bus.tests.configurator.test.event1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, ConsumerNameSource.TypeName, NamingConvention.KebabCase,
+        "tingle-event-bus-tests-configurator-test-consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, ConsumerNameSource.TypeName, NamingConvention.SnakeCase,
+        "tingle_event_bus_tests_configurator_test_consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, ConsumerNameSource.TypeName, NamingConvention.DotCase,
+        "tingle.event.bus.tests.configurator.test.consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, ConsumerNameSource.Prefix, NamingConvention.KebabCase, "app1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "app1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, ConsumerNameSource.Prefix, NamingConvention.DotCase, "app1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase,
+        "app1-tingle-event-bus-tests-configurator-test-consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase,
+        "app1_tingle_event_bus_tests_configurator_test_consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase,
+        "app1.tingle.event.bus.tests.configurator.test.consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", ConsumerNameSource.Prefix, NamingConvention.KebabCase, "service1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "service1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", ConsumerNameSource.Prefix, NamingConvention.DotCase, "service1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase,
+        "service1-tingle-event-bus-tests-configurator-test-consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase,
+        "service1_tingle_event_bus_tests_configurator_test_consumer1")]
+    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase,
+        "service1.tingle.event.bus.tests.configurator.test.consumer1")]
 
     // Overriden by attribute
-    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), false, null, true, ConsumerNameSource.TypeName, NamingConvention.SnakeCase, "sample-consumer")]
-    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), false, null, true, ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "sample-consumer")]
-    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), false, "service1", true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase, "sample-consumer")]
-    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), false, "service1", true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase, "sample-consumer")]
-    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, "service1", true, ConsumerNameSource.TypeName, NamingConvention.KebabCase, "sample-consumer")]
-    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, "service1", true, ConsumerNameSource.Prefix, NamingConvention.KebabCase, "sample-consumer")]
-    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, "service1", true, ConsumerNameSource.Prefix, NamingConvention.DotCase, "sample-consumer")]
-    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, null, true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase, "sample-consumer")]
-    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, null, true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase, "sample-consumer")]
-    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, null, true, ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase, "sample-consumer")]
-
-    // Appending
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, "service1", false, ConsumerNameSource.TypeName, NamingConvention.KebabCase, "test-consumer1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), false, null, false, ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase, "app1-test-consumer1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, false, ConsumerNameSource.TypeName, NamingConvention.KebabCase, "tingle-event-bus-tests-configurator-test-consumer1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, false, ConsumerNameSource.TypeName, NamingConvention.SnakeCase, "tingle_event_bus_tests_configurator_test_consumer1")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, null, false, ConsumerNameSource.TypeName, NamingConvention.DotCase, "tingle.event.bus.tests.configurator.test.consumer1")]
-    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, null, false, ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase, "sample-consumer")]
-    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, null, false, ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase, "sample-consumer")]
-    [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", true, ConsumerNameSource.TypeName, NamingConvention.KebabCase,
-        "tingle-event-bus-tests-configurator-test-consumer1-tingle-event-bus-tests-configurator-test-event1")]
+    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), false, null, ConsumerNameSource.TypeName, NamingConvention.SnakeCase, "sample-consumer")]
+    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), false, null, ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "sample-consumer")]
+    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), false, "service1", ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase, "sample-consumer")]
+    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), false, "service1", ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase, "sample-consumer")]
+    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, "service1", ConsumerNameSource.TypeName, NamingConvention.KebabCase, "sample-consumer")]
+    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, "service1", ConsumerNameSource.Prefix, NamingConvention.KebabCase, "sample-consumer")]
+    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, "service1", ConsumerNameSource.Prefix, NamingConvention.DotCase, "sample-consumer")]
+    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, null, ConsumerNameSource.PrefixAndTypeName, NamingConvention.KebabCase, "sample-consumer")]
+    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, null, ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase, "sample-consumer")]
+    [InlineData(typeof(TestEvent2), typeof(TestConsumer2), true, null, ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase, "sample-consumer")]
     public void SetConsumerName_Works(Type eventType,
                                       Type consumerType,
                                       bool useFullTypeNames,
                                       string prefix,
-                                      bool suffixEventName,
                                       ConsumerNameSource consumerNameSource,
                                       NamingConvention namingConvention,
                                       string expected)
@@ -160,7 +150,6 @@ public class DefaultEventConfiguratorTests
         options.Naming.UseFullTypeNames = useFullTypeNames;
         options.Naming.ConsumerNameSource = consumerNameSource;
         options.Naming.ConsumerNamePrefix = prefix;
-        options.Naming.SuffixConsumerName = suffixEventName;
 
         var registration = new EventRegistration(eventType);
         registration.Consumers.Add(consumerType, new EventConsumerRegistration(consumerType));

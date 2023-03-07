@@ -1,7 +1,9 @@
-﻿using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
+﻿using Tingle.EventBus.Configuration;
+using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
 namespace MultipleDifferentTransports;
 
+[ConsumerName("$Default")] // or [ConsumerName(EventHubConsumerClient.DefaultConsumerGroupName)]
 internal class VehicleTelemetryEventsConsumer : IEventConsumer<VehicleTelemetryEvent>
 {
     private readonly ILogger logger;

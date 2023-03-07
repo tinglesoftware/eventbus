@@ -1,8 +1,10 @@
 ﻿using System.Text.Json;
+using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
 namespace AzureIotHub;
 
+[ConsumerName("$Default")] // or [ConsumerName(EventHubConsumerClient.DefaultConsumerGroupName)]
 internal class AzureIotEventsConsumer : IEventConsumer<MyIotHubEvent>
 {
     private static readonly JsonSerializerOptions serializerOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true, };

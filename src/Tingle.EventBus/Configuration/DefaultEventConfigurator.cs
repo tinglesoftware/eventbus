@@ -137,11 +137,11 @@ internal class DefaultEventConfigurator : IEventConfigurator
                         _ => throw new InvalidOperationException($"'{nameof(options.ConsumerNameSource)}.{options.ConsumerNameSource}' is not supported"),
                     };
                     name = options.ApplyNamingConvention(name);
+                    name = options.SuffixConsumerName ? options.Join(name, reg.EventName) : name; // Append the EventName to ensure it is unique
                     name = options.AppendScope(name);
                     name = options.ReplaceInvalidCharacters(name);
                 }
-                // Appending the EventName to the consumer name can ensure it is unique
-                ecr.ConsumerName = options.SuffixConsumerName ? options.Join(name, reg.EventName) : name;
+                ecr.ConsumerName = name;
             }
         }
     }

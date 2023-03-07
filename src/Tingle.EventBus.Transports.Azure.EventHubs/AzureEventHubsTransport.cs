@@ -270,7 +270,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
         // 2. The ConsumerGroup is set to $Default (this may be changed to support more)
         var isIotHub = reg.IsConfiguredAsIotHub();
         var eventHubName = isIotHub ? reg.GetIotHubEventHubName() : name;
-        var consumerGroup = isIotHub || Options.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
+        var consumerGroup = Options.UseBasicTier ? EventHubConsumerClient.DefaultConsumerGroupName : ecr.ConsumerName;
 
         async Task<EventProcessorClient> creator(string key, CancellationToken ct)
         {

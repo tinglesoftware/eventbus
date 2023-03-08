@@ -93,6 +93,12 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
 
             // ensure the prefix is always lower case.
             options.BlobContainerName = options.BlobContainerName.ToLower();
+
+            // ensure the options creator is provided
+            if (options.SetupBlobClientOptions is null)
+            {
+                throw new InvalidOperationException($"'{nameof(options.SetupBlobClientOptions)}' must be provided.");
+            }
         }
 
         // Ensure the entity names are not longer than the limits

@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
@@ -53,7 +52,7 @@ public record IotHubDeviceLifecycleEvent: AbstractIotHubEvent
 {
     ///
     [JsonExtensionData]
-    public JsonObject? Extras { get; set; }
+    public Dictionary<string, object>? Extras { get; set; }
 }
 
 /// <summary>
@@ -63,7 +62,7 @@ public record IotHubDeviceTwinChangeEvent : AbstractIotHubEvent
 {
     ///
     [JsonExtensionData]
-    public JsonObject? Extras { get; set; }
+    public Dictionary<string, object>? Extras { get; set; }
 }
 
 /// <summary>
@@ -121,5 +120,5 @@ public record IotHubTwinProperties
 
     ///
     [JsonExtensionData]
-    public JsonObject? Extras { get; set; }
+    public Dictionary<string, object>? Extras { get; set; }
 }

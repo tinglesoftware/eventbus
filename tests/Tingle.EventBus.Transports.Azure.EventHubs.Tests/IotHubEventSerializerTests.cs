@@ -58,7 +58,7 @@ public class IotHubEventSerializerTests
             Assert.Null(envelope.Event.ConnectionStateEvent);
             var telemetry = Assert.IsType<MyIotHubTelemetry>(envelope.Event.Telemetry);
             Assert.Equal(DateTimeOffset.Parse("2022-12-22T12:10:51Z"), telemetry.Timestamp);
-            Assert.Equal(JsonSerializer.SerializeToNode(new { door = "frontLeft" })!.ToJsonString(), telemetry.Extras?.ToJsonString());
+            Assert.Equal(JsonSerializer.SerializeToNode(new { door = "frontLeft" })!.ToJsonString(), JsonSerializer.Serialize(telemetry.Extras));
         });
     }
 

@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
 namespace AzureIotHub;
@@ -19,5 +18,5 @@ public class MyIotHubTelemetry
     public DateTimeOffset Timestamp { get; set; }
 
     [JsonExtensionData]
-    public JsonObject? Extras { get; set; }
+    public Dictionary<string, object>? Extras { get; set; }
 }

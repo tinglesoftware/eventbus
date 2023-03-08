@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
 namespace MultipleDifferentTransports;
@@ -24,7 +23,7 @@ internal class VehicleTelemetry
     public VehicleDoorStatus? VehicleDoorStatus { get; set; }
 
     [JsonExtensionData]
-    public JsonObject? Extras { get; set; }
+    public Dictionary<string, object>? Extras { get; set; }
 }
 
 public enum VehicleDoorStatus

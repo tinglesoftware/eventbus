@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace ConfigSample;
 
@@ -19,7 +18,7 @@ internal class VehicleTelemetryEvent
     public VehicleDoorKind? VehicleDoorKind { get; set; }
     public VehicleDoorStatus? VehicleDoorStatus { get; set; }
     [JsonExtensionData]
-    public JsonObject? Extras { get; set; }
+    public Dictionary<string, object>? Extras { get; set; }
 }
 
 internal enum VehicleDoorStatus { Unknown, Open, Closed, }

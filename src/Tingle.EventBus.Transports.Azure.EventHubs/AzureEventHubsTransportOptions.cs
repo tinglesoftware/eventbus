@@ -2,6 +2,7 @@
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Producer;
+using Azure.Storage.Blobs;
 using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
 
@@ -65,6 +66,12 @@ public class AzureEventHubsTransportOptions : AzureTransportOptions<AzureEventHu
     /// </remarks>
     /// <value>Defaults to 1</value>
     public int CheckpointInterval { get; set; } = 1;
+
+    /// <summary>
+    /// A function to create <see cref="BlobClientOptions"/> used for the checkpoint store.
+    /// Only specify if you need to change defaults.
+    /// </summary>
+    public Func<BlobClientOptions> SetupBlobClientOptions { get; set; } = () => new();
 
     /// <summary>
     /// A function for setting up options for a producer.

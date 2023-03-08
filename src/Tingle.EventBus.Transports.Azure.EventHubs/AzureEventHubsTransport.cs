@@ -21,6 +21,8 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
 {
     private readonly EventBusConcurrentDictionary<(Type, bool), EventHubProducerClient> producersCache = new();
     private readonly EventBusConcurrentDictionary<string, EventProcessorClient> processorsCache = new();
+    private readonly SemaphoreSlim blobContainerClientLock = new(1, 1); // only one at a time.
+    private BlobContainerClient? blobContainerClient;
 
     /// <summary>
     /// 
@@ -220,6 +222,36 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
         throw new NotSupportedException("Azure EventHubs does not support canceling published events.");
     }
 
+    private async Task<BlobContainerClient> GetBlobContainerClientAsync(CancellationToken cancellationToken)
+    {
+        await blobContainerClientLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            if (blobContainerClient is null)
+            {
+                // blobContainerUri has the format "https://{account_name}.blob.core.windows.net/{container_name}" which can be made using "{BlobServiceUri}/{container_name}".
+                var cred_bs = Options.BlobStorageCredentials.CurrentValue;
+                var blobServiceClient = cred_bs is AzureBlobStorageCredentials abstc
+                    ? new BlobServiceClient(serviceUri: abstc.ServiceUrl, credential: abstc.TokenCredential)
+                    : new BlobServiceClient(connectionString: (string)cred_bs);
+                blobContainerClient = blobServiceClient.GetBlobContainerClient(Options.BlobContainerName);
+
+                // Create the blob container if it does not exist
+                if (Options.EnableEntityCreation)
+                {
+                    await blobContainerClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+        finally
+        {
+            blobContainerClientLock.Release();
+        }
+
+        return blobContainerClient;
+    }
+
     private Task<EventHubProducerClient> GetProducerAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
     {
         Task<EventHubProducerClient> creator((Type, bool) _, CancellationToken ct)
@@ -287,18 +319,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
              * which needs different credentials.
              */
 
-            // blobContainerUri has the format "https://{account_name}.blob.core.windows.net/{container_name}" which can be made using "{BlobServiceUri}/{container_name}".
-            var cred_bs = Options.BlobStorageCredentials.CurrentValue;
-            var blobServiceClient = cred_bs is AzureBlobStorageCredentials abstc
-                ? new BlobServiceClient(serviceUri: abstc.ServiceUrl, credential: abstc.TokenCredential)
-                : new BlobServiceClient(connectionString: (string)cred_bs);
-            var blobContainerClient = blobServiceClient.GetBlobContainerClient(Options.BlobContainerName);
-
-            // Create the blob container if it does not exist
-            if (Options.EnableEntityCreation)
-            {
-                await blobContainerClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-            }
+            var blobContainerClient = await GetBlobContainerClientAsync(cancellationToken).ConfigureAwait(false);
 
             // Create the processor client options
             var epco = new EventProcessorClientOptions

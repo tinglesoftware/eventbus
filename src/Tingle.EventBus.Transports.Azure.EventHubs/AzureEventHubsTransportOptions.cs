@@ -67,14 +67,14 @@ public class AzureEventHubsTransportOptions : AzureTransportOptions<AzureEventHu
     public int CheckpointInterval { get; set; } = 1;
 
     /// <summary>
-    /// A function to create the producer options instead of using the default options.
-    /// Some options set may still be overriding for proper operation of the transport and the bus.
+    /// A function for setting up options for a producer.
+    /// This is only called before creation.
     /// </summary>
     public Action<EventRegistration, EventHubProducerClientOptions>? SetupProducerClientOptions { get; set; }
 
     /// <summary>
-    /// A function to create the processor options instead of using the default options.
-    /// Some options set may still be overriding for proper operation of the transport and the bus.
+    /// A function for setting up options for a processor.
+    /// This is only called before creation.
     /// </summary>
     public Action<EventRegistration, EventConsumerRegistration, EventProcessorClientOptions>? SetupProcessorClientOptions { get; set; }
 }

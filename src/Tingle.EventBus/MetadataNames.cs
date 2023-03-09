@@ -9,6 +9,7 @@ public static class MetadataNames
     public const string Id = "Id";
     public const string ContentType = "Content-Type";
     public const string SequenceNumber = "SequenceNumber";
+    public const string Offset = "Offset";
     public const string CorrelationId = "CorrelationId";
     public const string RequestId = "RequestId";
     public const string InitiatorId = "InitiatorId";

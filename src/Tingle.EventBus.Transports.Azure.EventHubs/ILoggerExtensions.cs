@@ -59,9 +59,6 @@ internal static partial class ILoggerExtensions
         logger.SendingEvents(events.Select(e => e.Id).ToList(), eventHubName, scheduled);
     }
 
-    [LoggerMessage(204, LogLevel.Debug, "Checkpointing '{EventHubName}/{ConsumerGroup}', PartitionId: '{PartitionId}' at '{SequenceNumber}'")]
-    public static partial void Checkpointing(this ILogger logger, string eventHubName, string consumerGroup, string partitionId, long sequenceNumber);
-
 
     [LoggerMessage(300, LogLevel.Debug, "Processor received event from '{EventHubName}/{ConsumerGroup}', PartitionId: '{PartitionId}'")]
     public static partial void ProcessorReceivedEvent(this ILogger logger, string eventHubName, string consumerGroup, string partitionId);
@@ -71,4 +68,7 @@ internal static partial class ILoggerExtensions
 
     [LoggerMessage(302, LogLevel.Information, "Received event: '{EventBusId}' from '{EventHubName}/{ConsumerGroup}', PartitionId: '{PartitionId}'. PartitionKey: '{PartitionKey}' SequenceNumber: '{SequenceNumber}'")]
     public static partial void ReceivedEvent(this ILogger logger, string? eventBusId, string eventHubName, string consumerGroup, string partitionId, string? partitionKey, long sequenceNumber);
+
+    [LoggerMessage(304, LogLevel.Debug, "Checkpointing '{EventHubName}/{ConsumerGroup}', PartitionId: '{PartitionId}' at '{SequenceNumber}'")]
+    public static partial void Checkpointing(this ILogger logger, string eventHubName, string consumerGroup, string partitionId, long sequenceNumber);
 }

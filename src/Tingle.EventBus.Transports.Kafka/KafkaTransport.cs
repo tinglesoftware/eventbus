@@ -23,6 +23,7 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
     private readonly CancellationTokenSource stoppingCts = new();
     private readonly List<Task> receiverTasks = new();
     private readonly Lazy<IAdminClient> adminClient;
+    private int checkpointingCounter = 0;
     private bool disposedValue;
 
     /// <summary>
@@ -238,9 +239,12 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                 var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
                 await ((Task)method.Invoke(this, new object[] { reg, ecr, result, cancellationToken, })!).ConfigureAwait(false);
 
-
-                // if configured to checkpoint at intervals, respect it
-                if ((result.Offset % Options.CheckpointInterval) == 0)
+                /* 
+                 * Update the checkpoint store if needed so that the app receives
+                 * only newer events the next time it's run.
+                */
+                var countSinceLast = Interlocked.Increment(ref checkpointingCounter);
+                if (countSinceLast >= Options.CheckpointInterval)
                 {
                     // The Commit method sends a "commit offsets" request to the Kafka
                     // cluster and synchronously waits for the response. This is very

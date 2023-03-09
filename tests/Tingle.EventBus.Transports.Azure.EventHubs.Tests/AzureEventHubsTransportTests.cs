@@ -11,9 +11,9 @@ public class AzureEventHubsTransportTests
     [InlineData(false, null, false)]
     [InlineData(false, UnhandledConsumerErrorBehaviour.Deadletter, true)]
     [InlineData(false, UnhandledConsumerErrorBehaviour.Discard, true)]
-    public void ShouldCheckpoint_Works(bool successful, UnhandledConsumerErrorBehaviour? behaviour, bool expected)
+    public void CanCheckpoint_Works(bool successful, UnhandledConsumerErrorBehaviour? behaviour, bool expected)
     {
-        var actual = AzureEventHubsTransport.ShouldCheckpoint(successful, behaviour);
+        var actual = AzureEventHubsTransport.CanCheckpoint(successful, behaviour);
         Assert.Equal(expected, actual);
     }
 }

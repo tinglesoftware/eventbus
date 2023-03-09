@@ -323,6 +323,9 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                                                                     scope: scope,
                                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
+        // dead-letter cannot be dead-lettered again, what else can we do?
+        if (ecr.Deadletter) return; // TODO: figure out what to do when dead-letter fails
+
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {
             // produce message on dead-letter topic

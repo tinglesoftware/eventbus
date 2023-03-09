@@ -254,22 +254,6 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                 var ecr = reg.Consumers.Values.Single(); // only one consumer per event
                 var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
                 await ((Task)method.Invoke(this, new object[] { reg, ecr, result, cancellationToken, })!).ConfigureAwait(false);
-
-                /* 
-                 * Update the checkpoint store if needed so that the app receives
-                 * only newer events the next time it's run.
-                */
-                var countSinceLast = Interlocked.Increment(ref checkpointingCounter);
-                if (countSinceLast >= Options.CheckpointInterval)
-                {
-                    // The Commit method sends a "commit offsets" request to the Kafka
-                    // cluster and synchronously waits for the response. This is very
-                    // slow compared to the rate at which the consumer is capable of
-                    // consuming messages. A high performance application will typically
-                    // commit offsets relatively infrequently and be designed handle
-                    // duplicate messages in the event of failure.
-                    consumer.Value.Commit(result);
-                }
             }
             catch (TaskCanceledException)
             {
@@ -352,7 +336,35 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
             await producer.Value.ProduceAsync(topic: dlt, message: message, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        // TODO: find a better way to handle the checkpointing when there is an error
+        /* 
+         * Update the checkpoint store if needed so that the app receives
+         * only newer events the next time it's run.
+        */
+        if (CanCheckpoint(successful, ecr.UnhandledErrorBehaviour))
+        {
+            var countSinceLast = Interlocked.Increment(ref checkpointingCounter);
+            if (countSinceLast >= Options.CheckpointInterval)
+            {
+                // The Commit method sends a "commit offsets" request to the Kafka
+                // cluster and synchronously waits for the response. This is very
+                // slow compared to the rate at which the consumer is capable of
+                // consuming messages. A high performance application will typically
+                // commit offsets relatively infrequently and be designed handle
+                // duplicate messages in the event of failure.
+                consumer.Value.Commit(result);
+            }
+        }
+    }
+
+    internal static bool CanCheckpoint(bool successful, UnhandledConsumerErrorBehaviour? behaviour)
+    {
+        /*
+         * We should only checkpoint if successful or we are discarding or dead-lettering.
+         * Otherwise the consumer should be allowed to handle the event again.
+         * */
+        return successful
+               || behaviour == UnhandledConsumerErrorBehaviour.Deadletter
+               || behaviour == UnhandledConsumerErrorBehaviour.Discard;
     }
 
     ///

@@ -6,6 +6,7 @@ using Azure.Storage.Blobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.Mime;
 using Tingle.EventBus.Configuration;
@@ -22,6 +23,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
     private readonly EventBusConcurrentDictionary<(Type, bool), EventHubProducerClient> producersCache = new();
     private readonly EventBusConcurrentDictionary<string, EventProcessorClient> processorsCache = new();
     private readonly SemaphoreSlim blobContainerClientLock = new(1, 1); // only one at a time.
+    private readonly ConcurrentDictionary<string, int> checkpointingCounter = new();
     private BlobContainerClient? blobContainerClient;
 
     /// <summary>
@@ -445,14 +447,21 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
          * Update the checkpoint store if needed so that the app receives
          * only newer events the next time it's run.
         */
-        if ((data.SequenceNumber % Options.CheckpointInterval) == 0
-            && ShouldCheckpoint(successful, ecr.UnhandledErrorBehaviour))
+        if (CanCheckpoint(successful, ecr.UnhandledErrorBehaviour))
         {
-            Logger.Checkpointing(partition: args.Partition,
-                                 eventHubName: processor.EventHubName,
-                                 consumerGroup: processor.ConsumerGroup,
-                                 sequenceNumber: data.SequenceNumber);
-            await args.UpdateCheckpointAsync(args.CancellationToken).ConfigureAwait(false);
+            var counterKey = string.Join("|", processor.EventHubName, processor.ConsumerGroup, args.Partition.PartitionId);
+            var countSinceLast = checkpointingCounter.AddOrUpdate(key: counterKey,
+                                                                  addValue: 1,
+                                                                  updateValueFactory: (_, current) => current + 1);
+            if (countSinceLast >= Options.CheckpointInterval)
+            {
+                Logger.Checkpointing(partition: args.Partition,
+                                     eventHubName: processor.EventHubName,
+                                     consumerGroup: processor.ConsumerGroup,
+                                     sequenceNumber: data.SequenceNumber);
+                await args.UpdateCheckpointAsync(args.CancellationToken).ConfigureAwait(false);
+                checkpointingCounter[counterKey] = 0;
+            }
         }
     }
 
@@ -485,7 +494,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
         return Task.CompletedTask;
     }
 
-    internal static bool ShouldCheckpoint(bool successful, UnhandledConsumerErrorBehaviour? behaviour)
+    internal static bool CanCheckpoint(bool successful, UnhandledConsumerErrorBehaviour? behaviour)
     {
         /*
          * We should only checkpoint if successful or we are discarding or dead-lettering.

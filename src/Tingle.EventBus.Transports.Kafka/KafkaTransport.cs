@@ -134,6 +134,8 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                        .AddIfNotNull(MetadataNames.ContentType, @event.ContentType?.ToString())
                        .AddIfNotNull(MetadataNames.RequestId, @event.RequestId)
                        .AddIfNotNull(MetadataNames.InitiatorId, @event.InitiatorId)
+                       .AddIfNotNull(MetadataNames.EventName, registration.EventName)
+                       .AddIfNotNull(MetadataNames.EventType, registration.EventType.FullName)
                        .AddIfNotNull(MetadataNames.ActivityId, Activity.Current?.Id);
         message.Key = @event.Id!;
         message.Value = body.ToArray();
@@ -179,6 +181,8 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                            .AddIfNotNull(MetadataNames.ContentType, @event.ContentType?.ToString())
                            .AddIfNotNull(MetadataNames.RequestId, @event.RequestId)
                            .AddIfNotNull(MetadataNames.InitiatorId, @event.InitiatorId)
+                           .AddIfNotNull(MetadataNames.EventName, registration.EventName)
+                           .AddIfNotNull(MetadataNames.EventType, registration.EventType.FullName)
                            .AddIfNotNull(MetadataNames.ActivityId, Activity.Current?.Id);
             message.Key = @event.Id!;
             message.Value = body.ToArray();
@@ -279,6 +283,8 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
         var messageKey = message.Key;
         message.Headers.TryGetValue(MetadataNames.CorrelationId, out var correlationId);
         message.Headers.TryGetValue(MetadataNames.ContentType, out var contentType_str);
+        message.Headers.TryGetValue(MetadataNames.EventName, out var eventName);
+        message.Headers.TryGetValue(MetadataNames.EventType, out var eventType);
         message.Headers.TryGetValue(MetadataNames.ActivityId, out var parentActivityId);
 
         using var log_scope = BeginLoggingScopeForConsume(id: messageKey, correlationId: correlationId);

@@ -305,7 +305,10 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
         activity?.AddTag(ActivityTagNames.MessagingDestination, result.Topic);
 
-        Logger.ProcessingMessage(messageKey);
+        Logger.ProcessingMessage(messageKey: messageKey,
+                                 topic: result.Topic,
+                                 partition: result.Partition,
+                                 offset: result.Offset);
         using var scope = CreateScope();
         var contentType = contentType_str == null ? null : new ContentType(contentType_str);
         var context = await DeserializeAsync<TEvent>(scope: scope,
@@ -316,7 +319,11 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                                                      raw: message,
                                                      deadletter: ecr.Deadletter,
                                                      cancellationToken: cancellationToken).ConfigureAwait(false);
-        Logger.ReceivedEvent(messageKey, context.Id);
+        Logger.ReceivedEvent(eventBusId: context.Id,
+                             topic: result.Topic,
+                             partition: result.Partition,
+                             offset: result.Offset);
+
         var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
                                                                     ecr: ecr,
                                                                     @event: context,

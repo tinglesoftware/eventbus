@@ -122,6 +122,12 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
             Logger.SchedulingNotSupported();
         }
 
+        // log warning when trying to publish expiring event
+        if (@event.Expires != null)
+        {
+            Logger.ExpiryNotSupported();
+        }
+
         using var scope = CreateScope();
         var body = await SerializeAsync(scope: scope,
                                         @event: @event,
@@ -162,6 +168,12 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
         if (scheduled != null)
         {
             Logger.SchedulingNotSupported();
+        }
+
+        // log warning when trying to publish expiring events
+        if (events.Any(e => e.Expires != null))
+        {
+            Logger.ExpiryNotSupported();
         }
 
         using var scope = CreateScope();

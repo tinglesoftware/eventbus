@@ -7,10 +7,14 @@ namespace Microsoft.Extensions.Logging;
 /// </summary>
 internal static partial class ILoggerExtensions
 {
-    [LoggerMessage(100, LogLevel.Warning, "Kafka does not support delay or scheduled publish.")]
+
+    [LoggerMessage(200, LogLevel.Warning, "Kafka does not support delay or scheduled publish.")]
     public static partial void SchedulingNotSupported(this ILogger logger);
 
-    [LoggerMessage(101, LogLevel.Warning, "Kafka does not support batching. The events will be looped through one by one.")]
+    [LoggerMessage(201, LogLevel.Warning, "Kafka does not support expiring events.")]
+    public static partial void ExpiryNotSupported(this ILogger logger);
+
+    [LoggerMessage(202, LogLevel.Warning, "Kafka does not support batching. The events will be looped through one by one.")]
     public static partial void BatchingNotSupported(this ILogger logger);
 
 

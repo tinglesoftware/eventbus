@@ -29,4 +29,7 @@ internal static partial class ILoggerExtensions
 
     [LoggerMessage(303, LogLevel.Information, "Received event: '{EventBusId}' from '{Topic}', Partition: '{Partition}'. Offset: '{Offset}'")]
     public static partial void ReceivedEvent(this ILogger logger, string? eventBusId, string topic, int partition, long offset);
+
+    [LoggerMessage(304, LogLevel.Debug, "Checkpointing '{Topic}', Partition: '{Partition}'. Offset: '{Offset}'")]
+    public static partial void Checkpointing(this ILogger logger, string topic, int partition, long offset);
 }

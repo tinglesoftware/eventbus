@@ -345,6 +345,10 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
             var countSinceLast = Interlocked.Increment(ref checkpointingCounter);
             if (countSinceLast >= Options.CheckpointInterval)
             {
+                Logger.Checkpointing(topic: result.Topic,
+                                     partition: result.Partition,
+                                     offset: result.Offset);
+
                 // The Commit method sends a "commit offsets" request to the Kafka
                 // cluster and synchronously waits for the response. This is very
                 // slow compared to the rate at which the consumer is capable of

@@ -240,6 +240,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
                     ? new BlobServiceClient(serviceUri: abstc.ServiceUrl, credential: abstc.TokenCredential, options: options)
                     : new BlobServiceClient(connectionString: (string)cred_bs, options: options);
                 blobContainerClient = blobServiceClient.GetBlobContainerClient(Options.BlobContainerName);
+                Logger.CheckpointStore(blobContainerClient.Uri);
 
                 // Create the blob container if it does not exist
                 if (Options.EnableEntityCreation)
@@ -374,8 +375,9 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
                                       consumerGroup: processor.ConsumerGroup,
                                       partitionId: args.Partition.PartitionId);
 
-        var data = args.Data;
         var cancellationToken = args.CancellationToken;
+        var partitionId = args.Partition.PartitionId;
+        var data = args.Data;
         var messageId = data.MessageId;
 
         data.TryGetPropertyValue<string>(MetadataNames.EventName, out var eventName);
@@ -389,9 +391,10 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
                                                           {
                                                               [MetadataNames.EventName] = eventName?.ToString(),
                                                               [MetadataNames.EventType] = eventType?.ToString(),
-                                                              ["PartitionKey"] = data.PartitionKey,
+                                                              ["PartitionId"] = partitionId,
                                                               ["EventHubName"] = processor.EventHubName,
                                                               ["ConsumerGroup"] = processor.ConsumerGroup,
+                                                              ["PartitionKey"] = data.PartitionKey,
                                                           });
 
         // Instrumentation
@@ -404,6 +407,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
         Logger.ProcessingEvent(messageId: messageId,
                                eventHubName: processor.EventHubName,
                                consumerGroup: processor.ConsumerGroup,
+                               partitionId: partitionId,
                                partitionKey: data.PartitionKey,
                                sequenceNumber: data.SequenceNumber);
         using var scope = CreateScope();
@@ -419,6 +423,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
         Logger.ReceivedEvent(eventBusId: context.Id,
                              eventHubName: processor.EventHubName,
                              consumerGroup: processor.ConsumerGroup,
+                             partitionId: partitionId,
                              partitionKey: data.PartitionKey,
                              sequenceNumber: data.SequenceNumber);
 
@@ -449,17 +454,17 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
         */
         if (CanCheckpoint(successful, ecr.UnhandledErrorBehaviour))
         {
-            var counterKey = string.Join("|", processor.EventHubName, processor.ConsumerGroup, args.Partition.PartitionId);
+            var counterKey = string.Join("|", processor.EventHubName, processor.ConsumerGroup, partitionId);
             var countSinceLast = checkpointingCounter.AddOrUpdate(key: counterKey,
                                                                   addValue: 1,
                                                                   updateValueFactory: (_, current) => current + 1);
             if (countSinceLast >= Options.CheckpointInterval)
             {
-                Logger.Checkpointing(partition: args.Partition,
+                Logger.Checkpointing(partitionId: partitionId,
                                      eventHubName: processor.EventHubName,
                                      consumerGroup: processor.ConsumerGroup,
                                      sequenceNumber: data.SequenceNumber);
-                await args.UpdateCheckpointAsync(args.CancellationToken).ConfigureAwait(false);
+                await args.UpdateCheckpointAsync(cancellationToken).ConfigureAwait(false);
                 checkpointingCounter[counterKey] = 0;
             }
         }
@@ -486,10 +491,10 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
     private Task OnProcessErrorAsync(EventProcessorClient processor, ProcessErrorEventArgs args)
     {
         // TODO: decide on whether to restart (Stop() then Start()) or terminate (recreate processor) processing
-        Logger.ProcessingError(operation: args.Operation,
-                               eventHubName: processor.EventHubName,
+        Logger.ProcessingError(eventHubName: processor.EventHubName,
                                consumerGroup: processor.ConsumerGroup,
                                partitionId: args.PartitionId,
+                               operation: args.Operation,
                                ex: args.Exception);
         return Task.CompletedTask;
     }

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Tingle.EventBus.Transports.Kafka\Tingle.EventBus.Transports.Kafka.csproj" />
+  </ItemGroup>
+
+</Project>

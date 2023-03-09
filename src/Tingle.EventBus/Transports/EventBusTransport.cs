@@ -400,18 +400,21 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     /// <param name="id"></param>
     /// <param name="correlationId"></param>
     /// <param name="sequenceNumber"></param>
+    /// <param name="offset"></param>
     /// <param name="extras">The extras to put in the scope. (Optional)</param>
     /// <returns>A disposable object that ends the logical operation scope on dispose.</returns>
     protected IDisposable? BeginLoggingScopeForConsume(string? id,
                                                        string? correlationId,
                                                        string? sequenceNumber = null,
+                                                       string? offset = null,
                                                        IDictionary<string, string?>? extras = null)
     {
         var state = new Dictionary<string, string>();
         state.ToEventBusWrapper()
              .AddIfNotDefault(MetadataNames.Id, id)
              .AddIfNotDefault(MetadataNames.CorrelationId, correlationId)
-             .AddIfNotDefault(MetadataNames.SequenceNumber, sequenceNumber);
+             .AddIfNotDefault(MetadataNames.SequenceNumber, sequenceNumber)
+             .AddIfNotDefault(MetadataNames.Offset, offset);
 
         // if there are extras, add them
         if (extras != null)

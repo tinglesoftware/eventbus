@@ -122,6 +122,12 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
             Logger.SchedulingNotSupported();
         }
 
+        // log warning when trying to publish expiring event
+        if (@event.Expires != null)
+        {
+            Logger.ExpiryNotSupported();
+        }
+
         using var scope = CreateScope();
         var body = await SerializeAsync(scope: scope,
                                         @event: @event,
@@ -134,6 +140,8 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                        .AddIfNotNull(MetadataNames.ContentType, @event.ContentType?.ToString())
                        .AddIfNotNull(MetadataNames.RequestId, @event.RequestId)
                        .AddIfNotNull(MetadataNames.InitiatorId, @event.InitiatorId)
+                       .AddIfNotNull(MetadataNames.EventName, registration.EventName)
+                       .AddIfNotNull(MetadataNames.EventType, registration.EventType.FullName)
                        .AddIfNotNull(MetadataNames.ActivityId, Activity.Current?.Id);
         message.Key = @event.Id!;
         message.Value = body.ToArray();
@@ -162,6 +170,12 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
             Logger.SchedulingNotSupported();
         }
 
+        // log warning when trying to publish expiring events
+        if (events.Any(e => e.Expires != null))
+        {
+            Logger.ExpiryNotSupported();
+        }
+
         using var scope = CreateScope();
         var sequenceNumbers = new List<long>();
 
@@ -179,6 +193,8 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                            .AddIfNotNull(MetadataNames.ContentType, @event.ContentType?.ToString())
                            .AddIfNotNull(MetadataNames.RequestId, @event.RequestId)
                            .AddIfNotNull(MetadataNames.InitiatorId, @event.InitiatorId)
+                           .AddIfNotNull(MetadataNames.EventName, registration.EventName)
+                           .AddIfNotNull(MetadataNames.EventType, registration.EventType.FullName)
                            .AddIfNotNull(MetadataNames.ActivityId, Activity.Current?.Id);
             message.Key = @event.Id!;
             message.Value = body.ToArray();
@@ -238,22 +254,6 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                 var ecr = reg.Consumers.Values.Single(); // only one consumer per event
                 var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
                 await ((Task)method.Invoke(this, new object[] { reg, ecr, result, cancellationToken, })!).ConfigureAwait(false);
-
-                /* 
-                 * Update the checkpoint store if needed so that the app receives
-                 * only newer events the next time it's run.
-                */
-                var countSinceLast = Interlocked.Increment(ref checkpointingCounter);
-                if (countSinceLast >= Options.CheckpointInterval)
-                {
-                    // The Commit method sends a "commit offsets" request to the Kafka
-                    // cluster and synchronously waits for the response. This is very
-                    // slow compared to the rate at which the consumer is capable of
-                    // consuming messages. A high performance application will typically
-                    // commit offsets relatively infrequently and be designed handle
-                    // duplicate messages in the event of failure.
-                    consumer.Value.Commit(result);
-                }
             }
             catch (TaskCanceledException)
             {
@@ -279,17 +279,32 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
         var messageKey = message.Key;
         message.Headers.TryGetValue(MetadataNames.CorrelationId, out var correlationId);
         message.Headers.TryGetValue(MetadataNames.ContentType, out var contentType_str);
+        message.Headers.TryGetValue(MetadataNames.EventName, out var eventName);
+        message.Headers.TryGetValue(MetadataNames.EventType, out var eventType);
         message.Headers.TryGetValue(MetadataNames.ActivityId, out var parentActivityId);
 
-        using var log_scope = BeginLoggingScopeForConsume(id: messageKey, correlationId: correlationId);
+        using var log_scope = BeginLoggingScopeForConsume(id: messageKey,
+                                                          correlationId: correlationId,
+                                                          offset: result.Offset.ToString(),
+                                                          extras: new Dictionary<string, string?>
+                                                          {
+                                                              [MetadataNames.EventName] = eventName?.ToString(),
+                                                              [MetadataNames.EventType] = eventType?.ToString(),
+                                                              ["Partition"] = result.Partition.ToString(),
+                                                              ["Topic"] = result.Topic,
+                                                          });
 
         // Instrumentation
         using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId);
         activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
         activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
+        activity?.AddTag(ActivityTagNames.MessagingDestination, result.Topic);
 
-        Logger.ProcessingMessage(messageKey);
+        Logger.ProcessingMessage(messageKey: messageKey,
+                                 topic: result.Topic,
+                                 partition: result.Partition,
+                                 offset: result.Offset);
         using var scope = CreateScope();
         var contentType = contentType_str == null ? null : new ContentType(contentType_str);
         var context = await DeserializeAsync<TEvent>(scope: scope,
@@ -300,12 +315,19 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                                                      raw: message,
                                                      deadletter: ecr.Deadletter,
                                                      cancellationToken: cancellationToken).ConfigureAwait(false);
-        Logger.ReceivedEvent(messageKey, context.Id);
+        Logger.ReceivedEvent(eventBusId: context.Id,
+                             topic: result.Topic,
+                             partition: result.Partition,
+                             offset: result.Offset);
+
         var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
                                                                     ecr: ecr,
                                                                     @event: context,
                                                                     scope: scope,
                                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        // dead-letter cannot be dead-lettered again, what else can we do?
+        if (ecr.Deadletter) return; // TODO: figure out what to do when dead-letter fails
 
         if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {
@@ -314,7 +336,40 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
             await producer.Value.ProduceAsync(topic: dlt, message: message, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        // TODO: find a better way to handle the checkpointing when there is an error
+        /* 
+         * Update the checkpoint store if needed so that the app receives
+         * only newer events the next time it's run.
+        */
+        if (CanCheckpoint(successful, ecr.UnhandledErrorBehaviour))
+        {
+            var countSinceLast = Interlocked.Increment(ref checkpointingCounter);
+            if (countSinceLast >= Options.CheckpointInterval)
+            {
+                Logger.Checkpointing(topic: result.Topic,
+                                     partition: result.Partition,
+                                     offset: result.Offset);
+
+                // The Commit method sends a "commit offsets" request to the Kafka
+                // cluster and synchronously waits for the response. This is very
+                // slow compared to the rate at which the consumer is capable of
+                // consuming messages. A high performance application will typically
+                // commit offsets relatively infrequently and be designed handle
+                // duplicate messages in the event of failure.
+                consumer.Value.Commit(result);
+                Interlocked.Exchange(ref checkpointingCounter, 0);
+            }
+        }
+    }
+
+    internal static bool CanCheckpoint(bool successful, UnhandledConsumerErrorBehaviour? behaviour)
+    {
+        /*
+         * We should only checkpoint if successful or we are discarding or dead-lettering.
+         * Otherwise the consumer should be allowed to handle the event again.
+         * */
+        return successful
+               || behaviour == UnhandledConsumerErrorBehaviour.Deadletter
+               || behaviour == UnhandledConsumerErrorBehaviour.Discard;
     }
 
     ///

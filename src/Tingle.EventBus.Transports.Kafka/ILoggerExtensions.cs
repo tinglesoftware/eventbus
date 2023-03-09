@@ -7,21 +7,29 @@ namespace Microsoft.Extensions.Logging;
 /// </summary>
 internal static partial class ILoggerExtensions
 {
-    [LoggerMessage(100, LogLevel.Warning, "Kafka does not support delay or scheduled publish.")]
+
+    [LoggerMessage(200, LogLevel.Warning, "Kafka does not support delay or scheduled publish.")]
     public static partial void SchedulingNotSupported(this ILogger logger);
 
-    [LoggerMessage(101, LogLevel.Warning, "Kafka does not support batching. The events will be looped through one by one.")]
+    [LoggerMessage(201, LogLevel.Warning, "Kafka does not support expiring events.")]
+    public static partial void ExpiryNotSupported(this ILogger logger);
+
+    [LoggerMessage(202, LogLevel.Warning, "Kafka does not support batching. The events will be looped through one by one.")]
     public static partial void BatchingNotSupported(this ILogger logger);
 
-    [LoggerMessage(102, LogLevel.Information, "Consumer received data at {Offset}")]
+
+    [LoggerMessage(300, LogLevel.Information, "Consumer received data at {Offset}")]
     public static partial void ConsumerReceivedData(this ILogger logger, TopicPartitionOffset offset);
 
-    [LoggerMessage(103, LogLevel.Trace, "Reached end of topic {Topic}, Partition: {Partition}, Offset: {Offset}.")]
+    [LoggerMessage(301, LogLevel.Trace, "Reached end of topic {Topic}, Partition: {Partition}, Offset: {Offset}.")]
     public static partial void EndOfTopic(this ILogger logger, string topic, Partition partition, Offset offset);
 
-    [LoggerMessage(104, LogLevel.Debug, "Processing '{MessageKey}")]
-    public static partial void ProcessingMessage(this ILogger logger, string messageKey);
+    [LoggerMessage(302, LogLevel.Debug, "Processing '{MessageKey}' from '{Topic}', Partition: '{Partition}'. Offset: '{Offset}'")]
+    public static partial void ProcessingMessage(this ILogger logger, string messageKey, string topic, int partition, long offset);
 
-    [LoggerMessage(105, LogLevel.Information, "Received event: '{MessageKey}' containing Event '{EventBusId}'")]
-    public static partial void ReceivedEvent(this ILogger logger, string messageKey, string? eventBusId);
+    [LoggerMessage(303, LogLevel.Information, "Received event: '{EventBusId}' from '{Topic}', Partition: '{Partition}'. Offset: '{Offset}'")]
+    public static partial void ReceivedEvent(this ILogger logger, string? eventBusId, string topic, int partition, long offset);
+
+    [LoggerMessage(304, LogLevel.Debug, "Checkpointing '{Topic}', Partition: '{Partition}'. Offset: '{Offset}'")]
+    public static partial void Checkpointing(this ILogger logger, string topic, int partition, long offset);
 }

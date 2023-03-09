@@ -303,6 +303,7 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
         activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
         activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
+        activity?.AddTag(ActivityTagNames.MessagingDestination, result.Topic);
 
         Logger.ProcessingMessage(messageKey);
         using var scope = CreateScope();

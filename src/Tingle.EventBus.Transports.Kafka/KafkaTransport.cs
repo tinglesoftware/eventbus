@@ -287,7 +287,16 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
         message.Headers.TryGetValue(MetadataNames.EventType, out var eventType);
         message.Headers.TryGetValue(MetadataNames.ActivityId, out var parentActivityId);
 
-        using var log_scope = BeginLoggingScopeForConsume(id: messageKey, correlationId: correlationId);
+        using var log_scope = BeginLoggingScopeForConsume(id: messageKey,
+                                                          correlationId: correlationId,
+                                                          offset: result.Offset.ToString(),
+                                                          extras: new Dictionary<string, string?>
+                                                          {
+                                                              [MetadataNames.EventName] = eventName?.ToString(),
+                                                              [MetadataNames.EventType] = eventType?.ToString(),
+                                                              ["Partition"] = result.Partition.ToString(),
+                                                              ["Topic"] = result.Topic,
+                                                          });
 
         // Instrumentation
         using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId);

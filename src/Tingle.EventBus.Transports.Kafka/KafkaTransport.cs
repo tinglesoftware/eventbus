@@ -356,6 +356,7 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                 // commit offsets relatively infrequently and be designed handle
                 // duplicate messages in the event of failure.
                 consumer.Value.Commit(result);
+                Interlocked.Exchange(ref checkpointingCounter, 0);
             }
         }
     }

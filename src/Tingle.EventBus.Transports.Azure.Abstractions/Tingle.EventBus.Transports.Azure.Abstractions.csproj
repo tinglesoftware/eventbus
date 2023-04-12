@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="AnyOf" Version="0.3.0" />
-    <PackageReference Include="Azure.Core" Version="1.30.0" />
+    <PackageReference Include="Azure.Core" Version="1.31.0" />
   </ItemGroup>
 
   <ItemGroup>

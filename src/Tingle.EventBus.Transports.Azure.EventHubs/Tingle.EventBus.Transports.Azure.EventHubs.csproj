@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Azure Event Hubs transport implementation for Tingle.EventBus.</Description>
@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Messaging.EventHubs.Processor" Version="5.8.0" />
+    <PackageReference Include="Azure.Messaging.EventHubs.Processor" Version="5.9.0" />
   </ItemGroup>
 
   <ItemGroup>

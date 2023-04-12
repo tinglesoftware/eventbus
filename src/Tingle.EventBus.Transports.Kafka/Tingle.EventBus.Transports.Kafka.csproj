@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Kafka transport implementation for Tingle.EventBus.</Description>
@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Confluent.Kafka" Version="2.0.2" />
+    <PackageReference Include="Confluent.Kafka" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>

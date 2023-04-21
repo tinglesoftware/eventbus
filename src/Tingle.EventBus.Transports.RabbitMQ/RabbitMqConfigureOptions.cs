@@ -32,12 +32,6 @@ internal class RabbitMqConfigureOptions : EventBusTransportConfigureOptions<Rabb
             {
                 throw new NotSupportedException($"When using RabbitMQ transport '{nameof(BusOptions.Naming.UseFullTypeNames)}' must be 'true'");
             }
-
-            // consumer names must be suffixed
-            if (!BusOptions.Naming.SuffixConsumerName)
-            {
-                throw new NotSupportedException($"When using RabbitMQ transport '{nameof(BusOptions.Naming.SuffixConsumerName)}' must be 'true'");
-            }
         }
 
         // if we do not have a connection factory, attempt to create one

@@ -265,7 +265,8 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
             var exchangeName = reg.EventName!;
             foreach (var ecr in reg.Consumers.Values)
             {
-                var queueName = ecr.ConsumerName!;
+                // queue names must be unique so add the exchange name so that we can tell to whom the queue belongs
+                var queueName = BusOptions.Naming.Join(ecr.ConsumerName!, exchangeName);
 
                 var channel = await GetSubscriptionChannelAsync(exchangeName: exchangeName, queueName: queueName, cancellationToken).ConfigureAwait(false);
                 var consumer = new AsyncEventingBasicConsumer(channel);

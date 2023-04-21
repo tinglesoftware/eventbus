@@ -65,15 +65,6 @@ public class EventBusNamingOptions
     public string? ConsumerNamePrefix { get; set; }
 
     /// <summary>
-    /// Indicates if the consumer name generated should be suffixed with the event name.
-    /// Some transports require this value to be <see langword="true"/>.
-    /// Setting to false can reduce the length of the consumer name hence being useful in scenarios
-    /// where the transport allow same name for two consumers so long as they are for different events.
-    /// Defaults to <see langword="true"/>
-    /// </summary>
-    public bool SuffixConsumerName { get; set; } = true;
-
-    /// <summary>
     /// Gets the application name from <see cref="IHostEnvironment.ApplicationName"/>
     /// and applies the naming settings in this options.
     /// </summary>
@@ -116,19 +107,33 @@ public class EventBusNamingOptions
 
     internal string AppendScope(string unscoped) => string.IsNullOrWhiteSpace(Scope) ? unscoped : Join(Scope, unscoped);
 
-    internal string Join(params string[] args)
+    /// <summary>
+    /// Concatenates all the elements of a string array,
+    /// using a separator defined by <see cref="Convention"/> between each element in lowercase.
+    /// </summary>
+    /// <param name="values">An array that contains the elements to concatenate.</param>
+    /// <returns>
+    /// A lowercase string that consists of the elements in <paramref name="values"/> delimited by a separator string
+    /// defined by <see cref="Convention"/>.
+    /// -or- <see cref="string.Empty"/> if <paramref name="values"/> has zero elements.
+    /// </returns>
+    /// <exception cref="ArgumentNullException"><paramref name="values"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// The length of the resulting string overflows the maximum allowed length (<see cref="int.MaxValue"/>).
+    /// </exception>
+    public string Join(params string[] values)
     {
-        if (args is null) throw new ArgumentNullException(nameof(args));
+        if (values is null) throw new ArgumentNullException(nameof(values));
 
         // remove nulls
-        args = args.Where(a => !string.IsNullOrWhiteSpace(a)).ToArray();
+        values = values.Where(a => !string.IsNullOrWhiteSpace(a)).ToArray();
 
-        return Convention switch
+        return (Convention switch
         {
-            NamingConvention.KebabCase => string.Join("-", args).ToLowerInvariant(),
-            NamingConvention.SnakeCase => string.Join("_", args).ToLowerInvariant(),
-            NamingConvention.DotCase => string.Join(".", args).ToLowerInvariant(),
+            NamingConvention.KebabCase => string.Join("-", values),
+            NamingConvention.SnakeCase => string.Join("_", values),
+            NamingConvention.DotCase => string.Join(".", values),
             _ => throw new InvalidOperationException($"'{nameof(NamingConvention)}.{Convention}' does not support joining"),
-        };
+        }).ToLowerInvariant();
     }
 }

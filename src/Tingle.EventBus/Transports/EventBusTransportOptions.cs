@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Polly.Retry;
+using Polly;
 using Tingle.EventBus.Configuration;
 
 namespace Tingle.EventBus.Transports;
@@ -30,7 +30,7 @@ public abstract class EventBusTransportOptions
     /// To specify a value on an event registration, use <see cref="EventRegistration.RetryPolicy"/>.
     /// To specify a value on the bus, use <see cref="EventBusOptions.RetryPolicy"/>.
     /// </remarks>
-    public AsyncRetryPolicy? RetryPolicy { get; set; }
+    public AsyncPolicy? RetryPolicy { get; set; }
 
     /// <summary>
     /// The delay to introduce every time zero messages are received.
@@ -88,7 +88,7 @@ public abstract class EventBusTransportOptions
     /// Optional default behaviour for errors encountered in a consumer but are not handled.
     /// This value overrides the default value set on the bus via <see cref="EventBusOptions.DefaultUnhandledConsumerErrorBehaviour"/>.
     /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.UnhandledErrorBehaviour"/> option.
-    /// When an <see cref="AsyncRetryPolicy"/> is in force, only errors that are not handled by it will be subject to the value set here.
+    /// When an <see cref="AsyncPolicy"/> is in force, only errors that are not handled by it will be subject to the value set here.
     /// Defaults to <see langword="null"/>.
     /// </summary>
     public UnhandledConsumerErrorBehaviour? DefaultUnhandledConsumerErrorBehaviour { get; set; }

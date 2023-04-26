@@ -1,5 +1,4 @@
 ﻿using Polly;
-using Polly.Retry;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Configuration;
@@ -74,7 +73,7 @@ public class EventRegistration : IEquatable<EventRegistration?>
     /// In such a case, ensure the execution timeout (sometimes called the visibility timeout
     /// or lock duration) is set to accommodate the longest possible duration of the retry policy.
     /// </remarks>
-    public AsyncRetryPolicy? RetryPolicy { get; set; }
+    public AsyncPolicy? RetryPolicy { get; set; }
 
     /// <summary>
     /// The list of consumers registered for this event.

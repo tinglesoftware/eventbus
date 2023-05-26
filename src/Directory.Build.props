@@ -36,11 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!--
-      This packages is necessary to use Use C# 9's init and record features in in older target frameworks.
-      https://github.com/manuelroemer/IsExternalInit
-    -->
-    <PackageReference Include="IsExternalInit" Version="1.0.3" PrivateAssets="All" />
+    <PackageReference Include="Polyfill " Version="1.23.0" PrivateAssets="All"/>
   </ItemGroup>
 
 </Project>

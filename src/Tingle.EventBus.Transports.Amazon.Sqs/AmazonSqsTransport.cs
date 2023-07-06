@@ -54,7 +54,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
-            foreach (var ecr in reg.Consumers.Values)
+            foreach (var ecr in reg.Consumers)
             {
                 var queueUrl = await GetQueueUrlAsync(reg: reg,
                                                       ecr: ecr,

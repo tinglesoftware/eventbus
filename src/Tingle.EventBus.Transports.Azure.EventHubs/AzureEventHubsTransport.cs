@@ -45,7 +45,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
-            foreach (var ecr in reg.Consumers.Values)
+            foreach (var ecr in reg.Consumers)
             {
                 var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken).ConfigureAwait(false);
 

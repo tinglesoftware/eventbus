@@ -28,7 +28,7 @@ internal class DefaultEventConfigurator : IEventConfigurator
         // bind from IConfiguration
         var configuration = configurationProvider.Configuration.GetSection($"Events:{registration.EventType.FullName}");
         configuration.Bind(registration);
-        foreach (var ecr in registration.Consumers.Values)
+        foreach (var ecr in registration.Consumers)
         {
             configuration.GetSection($"Consumers:{ecr.ConsumerType.FullName}").Bind(ecr);
         }
@@ -117,7 +117,7 @@ internal class DefaultEventConfigurator : IEventConfigurator
         // prefix is either the one provided or the application name
         var prefix = options.ConsumerNamePrefix ?? environment.ApplicationName;
 
-        foreach (var ecr in reg.Consumers.Values)
+        foreach (var ecr in reg.Consumers)
         {
             // set the consumer name, if not set
             if (string.IsNullOrWhiteSpace(ecr.ConsumerName))

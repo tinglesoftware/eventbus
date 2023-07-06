@@ -81,7 +81,7 @@ public class EventRegistration : IEquatable<EventRegistration?>
     /// <remarks>
     /// This is backed by a <see cref="HashSet{T}"/> to ensure no duplicates.
     /// </remarks>
-    public Dictionary<Type, EventConsumerRegistration> Consumers { get; } = new();
+    public HashSet<EventConsumerRegistration> Consumers { get; } = new();
 
     /// <summary>
     /// Gets a key/value collection that can be used to organize and share data across components
@@ -103,20 +103,21 @@ public class EventRegistration : IEquatable<EventRegistration?>
     /// <inheritdoc/>
     public bool Equals(EventRegistration? other)
     {
-        return other is not null && EqualityComparer<Type>.Default.Equals(EventType, other.EventType);
+        return other is not null &&
+               EqualityComparer<Type>.Default.Equals(EventType, other.EventType);
     }
 
     /// <inheritdoc/>
-    public override int GetHashCode() => EventType.GetHashCode();
+    public override int GetHashCode() => HashCode.Combine(EventType);
 
     ///
-    public static bool operator ==(EventRegistration left, EventRegistration right)
+    public static bool operator ==(EventRegistration? left, EventRegistration? right)
     {
-        return EqualityComparer<EventRegistration>.Default.Equals(left, right);
+        return EqualityComparer<EventRegistration?>.Default.Equals(left, right);
     }
 
     ///
-    public static bool operator !=(EventRegistration left, EventRegistration right) => !(left == right);
+    public static bool operator !=(EventRegistration? left, EventRegistration? right) => !(left == right);
 
     #endregion
 }

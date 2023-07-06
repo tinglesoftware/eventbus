@@ -3,15 +3,17 @@
 /// <summary>
 /// Represents a registration for a consumer of an event.
 /// </summary>
-public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
+public class EventConsumerRegistration : IEquatable<EventConsumerRegistration?>
 {
     /// <summary>
     /// Creates an instance of <see cref="EventConsumerRegistration"/>.
     /// </summary>
     /// <param name="consumerType">The type of consumer handling the event.</param>
-    public EventConsumerRegistration(Type consumerType)
+    /// <param name="deadletter">Whether the consumer should be connected to the dead-letter entity.</param>
+    public EventConsumerRegistration(Type consumerType, bool deadletter)
     {
         ConsumerType = consumerType ?? throw new ArgumentNullException(nameof(consumerType));
+        Deadletter = deadletter;
     }
 
     /// <summary>
@@ -20,17 +22,17 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     public Type ConsumerType { get; }
 
     /// <summary>
-    /// The name generated for the consumer.
-    /// </summary>
-    public string? ConsumerName { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating if the consumer should be connected to the dead-letter sub-queue.
-    /// For transports that do not support dead-letter sub-queues, a separate queue is created.
+    /// Gets or sets a value indicating if the consumer should be connected to the dead-letter entity.
+    /// For transports that do not support dead-letter entities, a separate queue is created.
     /// When set to <see langword="true"/>, you must use <see cref="IDeadLetteredEventConsumer{T}"/>
     /// to consume events.
     /// </summary>
-    public bool Deadletter { get; internal set; }
+    public bool Deadletter { get; }
+
+    /// <summary>
+    /// The name generated for the consumer.
+    /// </summary>
+    public string? ConsumerName { get; set; }
 
     /// <summary>
     /// The behaviour for unhandled errors when consuming events via the
@@ -83,21 +85,22 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     /// <inheritdoc/>
     public bool Equals(EventConsumerRegistration? other)
     {
-        return other is not null && EqualityComparer<Type>.Default.Equals(ConsumerType, other.ConsumerType);
+        return other is not null &&
+               EqualityComparer<Type>.Default.Equals(ConsumerType, other.ConsumerType) &&
+               Deadletter == other.Deadletter;
     }
 
     /// <inheritdoc/>
-    public override int GetHashCode() => ConsumerType.GetHashCode();
+    public override int GetHashCode() => HashCode.Combine(ConsumerType, Deadletter);
 
     ///
-    public static bool operator ==(EventConsumerRegistration left, EventConsumerRegistration right)
+    public static bool operator ==(EventConsumerRegistration? left, EventConsumerRegistration? right)
     {
-        return EqualityComparer<EventConsumerRegistration>.Default.Equals(left, right);
+        return EqualityComparer<EventConsumerRegistration?>.Default.Equals(left, right);
     }
 
     ///
-    public static bool operator !=(EventConsumerRegistration left, EventConsumerRegistration right) => !(left == right);
+    public static bool operator !=(EventConsumerRegistration? left, EventConsumerRegistration? right) => !(left == right);
 
     #endregion
-
 }

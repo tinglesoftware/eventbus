@@ -113,11 +113,13 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
         // Ensure there are no consumers with the same name per event
         foreach (var evr in registrations)
         {
-            var conflict = evr.Consumers.Values.GroupBy(ecr => ecr.ConsumerName).FirstOrDefault(kvp => kvp.Count() > 1);
+            var conflict = evr.Consumers.GroupBy(ecr => (ecr.ConsumerName, ecr.Deadletter)).FirstOrDefault(kvp => kvp.Count() > 1);
             if (conflict != null)
             {
                 var names = conflict.Select(r => r.ConsumerType.FullName);
-                return ValidateOptionsResult.Fail($"The consumer name '{conflict.Key}' cannot be used more than once on '{evr.EventType.Name}'."
+                var id = conflict.Key.ConsumerName;
+                if (conflict.Key.Deadletter) id += " [dead-letter]";
+                return ValidateOptionsResult.Fail($"The consumer name '({id})' cannot be used more than once on '{evr.EventType.Name}'."
                                                 + $" Types:\r\n- {string.Join("\r\n- ", names)}");
             }
         }

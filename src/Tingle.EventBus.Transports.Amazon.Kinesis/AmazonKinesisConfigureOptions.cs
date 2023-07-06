@@ -53,7 +53,7 @@ internal class AmazonKinesisConfigureOptions : AmazonTransportConfigureOptions<A
 
             // Consumer names become Queue names and they should not be longer than 128 characters
             // See https://docs.aws.amazon.com/kinesis/latest/APIReference/API_RegisterStreamConsumer.html
-            foreach (var ecr in reg.Consumers.Values)
+            foreach (var ecr in reg.Consumers)
             {
                 if (ecr.ConsumerName!.Length > 128)
                 {

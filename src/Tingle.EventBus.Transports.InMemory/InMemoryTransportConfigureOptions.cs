@@ -33,7 +33,7 @@ internal class InMemoryTransportConfigureOptions : EventBusTransportConfigureOpt
             options.EnsureAllowedEntityKind(reg, EntityKind.Broadcast, EntityKind.Queue);
 
             // This does not support dead-letter yet
-            foreach (var ecr in reg.Consumers.Values)
+            foreach (var ecr in reg.Consumers)
             {
                 if (ecr.Deadletter)
                 {

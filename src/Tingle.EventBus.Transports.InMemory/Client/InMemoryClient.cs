@@ -26,7 +26,13 @@ internal class InMemoryClient
     public virtual InMemoryProcessor CreateProcessor(string queueName, InMemoryProcessorOptions options)
     {
         var channel = GetChannel(queueName);
-        return new InMemoryProcessor(entityPath: queueName, reader: channel.Reader);
+        var entityPath = queueName;
+        entityPath += options.SubQueue switch
+        {
+            InMemoryProcessorSubQueue.DeadLetter => "/$DeadLetter",
+            _ => "",
+        };
+        return new InMemoryProcessor(entityPath: entityPath, reader: channel.Reader);
     }
 
     /// <summary>
@@ -44,6 +50,11 @@ internal class InMemoryClient
     {
         var parent = GetChannel(entityPath: topicName, broadcast: true);
         var entityPath = $"{topicName}/Subscriptions/{subscriptionName}";
+        entityPath += options.SubQueue switch
+        {
+            InMemoryProcessorSubQueue.DeadLetter => "/$DeadLetter",
+            _ => "",
+        };
         var channel = GetChannel(entityPath: entityPath);
         ((BroadcastChannelWriter<InMemoryMessage>)parent.Writer).Children.Add(channel.Writer);
         return new InMemoryProcessor(entityPath: entityPath, reader: channel.Reader);

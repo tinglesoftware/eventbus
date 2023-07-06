@@ -17,9 +17,9 @@ namespace Tingle.EventBus.Transports.InMemory;
 /// </summary>
 public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
 {
-    private readonly EventBusConcurrentDictionary<Type, InMemorySender> sendersCache = new();
+    private readonly EventBusConcurrentDictionary<(Type, bool), InMemorySender> sendersCache = new();
     private readonly EventBusConcurrentDictionary<string, InMemoryProcessor> processorsCache = new();
-    private readonly InMemoryClient inMemoryClient;
+    private readonly InMemoryClient client;
 
     private readonly ConcurrentBag<EventContext> published = new();
     private readonly ConcurrentBag<long> cancelled = new();
@@ -41,7 +41,7 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
                              SequenceNumberGenerator sng)
         : base(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory)
     {
-        inMemoryClient = new InMemoryClient(sng);
+        client = new InMemoryClient(sng);
     }
 
     /// <summary>
@@ -155,7 +155,7 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
         published.Add(@event);
 
         // Get the queue and send the message accordingly
-        var sender = await GetSenderAsync(registration, cancellationToken).ConfigureAwait(false);
+        var sender = await GetSenderAsync(registration, deadletter: false, cancellationToken).ConfigureAwait(false);
         Logger.SendingMessage(eventBusId: @event.Id, entityPath: sender.EntityPath, scheduled: scheduled);
         if (scheduled != null)
         {
@@ -217,7 +217,7 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
         AddBatch(published, events);
 
         // Get the queue and send the message accordingly
-        var sender = await GetSenderAsync(registration, cancellationToken).ConfigureAwait(false);
+        var sender = await GetSenderAsync(registration, deadletter: false, cancellationToken).ConfigureAwait(false);
         Logger.SendingMessages(events: events, entityPath: sender.EntityPath, scheduled: scheduled);
         if (scheduled != null)
         {
@@ -247,7 +247,7 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
         }
 
         // get the entity and cancel the message accordingly
-        var sender = await GetSenderAsync(registration, cancellationToken).ConfigureAwait(false);
+        var sender = await GetSenderAsync(registration, deadletter: false, cancellationToken).ConfigureAwait(false);
         Logger.CancelingMessage(sequenceNumber: seqNum, entityPath: sender.EntityPath);
         await sender.CancelScheduledMessageAsync(sequenceNumber: seqNum, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -272,7 +272,7 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
         }).ToList();
 
         // get the entity and cancel the message accordingly
-        var sender = await GetSenderAsync(registration, cancellationToken).ConfigureAwait(false);
+        var sender = await GetSenderAsync(registration, deadletter: false, cancellationToken).ConfigureAwait(false);
         Logger.CancelingMessages(sequenceNumbers: seqNums, entityPath: sender.EntityPath);
         await sender.CancelScheduledMessagesAsync(sequenceNumbers: seqNums, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -280,14 +280,14 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
         AddBatch(cancelled, seqNums);
     }
 
-    private Task<InMemorySender> GetSenderAsync(EventRegistration reg, CancellationToken cancellationToken)
+    private Task<InMemorySender> GetSenderAsync(EventRegistration reg, bool deadletter, CancellationToken cancellationToken)
     {
-        Task<InMemorySender> creator(Type _, CancellationToken ct)
+        Task<InMemorySender> creator((Type, bool) _, CancellationToken ct)
         {
-            var sender = inMemoryClient.CreateSender(name: reg.EventName!, broadcast: reg.EntityKind == EntityKind.Broadcast);
+            var sender = client.CreateSender(name: reg.EventName!, broadcast: reg.EntityKind == EntityKind.Broadcast);
             return Task.FromResult(sender);
         }
-        return sendersCache.GetOrAddAsync(reg.EventType, creator, cancellationToken);
+        return sendersCache.GetOrAddAsync((reg.EventType, deadletter), creator, cancellationToken);
     }
 
     private Task<InMemoryProcessor> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
@@ -308,13 +308,13 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
             {
                 // Create the processor for the Queue
                 Logger.CreatingQueueProcessor(queueName: topicName);
-                processor = inMemoryClient.CreateProcessor(queueName: topicName, options: inpo); // TODO: support deadletter
+                processor = client.CreateProcessor(queueName: topicName, options: inpo);
             }
             else
             {
                 // Create the processor for the Subscription
                 Logger.CreatingSubscriptionProcessor(topicName: topicName, subscriptionName: subscriptionName);
-                processor = inMemoryClient.CreateProcessor(topicName: topicName, subscriptionName: subscriptionName, options: inpo); // TODO: support deadletter
+                processor = client.CreateProcessor(topicName: topicName, subscriptionName: subscriptionName, options: inpo);
             }
 
             return Task.FromResult(processor);
@@ -376,15 +376,18 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
                                                                     scope: scope,
                                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
-        if (successful)
+        // Add to Consumed/Failed list
+        if (successful) consumed.Add(context);
+        else failed.Add(context);
+
+        // dead-letter cannot be dead-lettered again, what else can we do?
+        if (ecr.Deadletter) return; // TODO: figure out what to do when dead-letter fails
+
+        if (!successful && ecr.UnhandledErrorBehaviour == UnhandledConsumerErrorBehaviour.Deadletter)
         {
-            // Add to Consumed list
-            consumed.Add(context);
-        }
-        else
-        {
-            // Add to failed list
-            failed.Add(context);
+            // get the client for the dead letter queue and send the message there
+            var sender = await GetSenderAsync(reg, deadletter: true, cancellationToken).ConfigureAwait(false);
+            await sender.SendMessageAsync(new(message), cancellationToken).ConfigureAwait(false);
         }
     }
 

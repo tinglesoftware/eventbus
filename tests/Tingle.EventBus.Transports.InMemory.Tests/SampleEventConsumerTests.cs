@@ -1,17 +1,27 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using SimpleConsumer;
 using Tingle.EventBus.Transports.InMemory;
+using Xunit.Abstractions;
 
 namespace Tingle.EventBus.Tests.InMemory;
 
 public class SampleEventConsumerTests
 {
+    private readonly ITestOutputHelper outputHelper;
+
+    public SampleEventConsumerTests(ITestOutputHelper outputHelper)
+    {
+        this.outputHelper = outputHelper ?? throw new ArgumentNullException(nameof(outputHelper));
+    }
+
     [Fact]
     public async Task ConsumerWorksAsync()
     {
         var counter = new EventCounter();
         var host = Host.CreateDefaultBuilder()
+                       .ConfigureLogging((context, builder) => builder.AddXUnit(outputHelper))
                        .ConfigureServices((context, services) =>
                        {
                            services.AddSingleton(counter);

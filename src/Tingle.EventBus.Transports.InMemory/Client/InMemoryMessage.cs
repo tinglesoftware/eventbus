@@ -27,6 +27,16 @@ public class InMemoryMessage
         Body = body ?? throw new ArgumentNullException(nameof(body));
     }
 
+    internal InMemoryMessage(InMemoryReceivedMessage message) : this(message?.Body ?? throw new ArgumentNullException(nameof(message)))
+    {
+        ContentType = message.ContentType;
+        CorrelationId = message.CorrelationId;
+        MessageId = message.MessageId;
+        SequenceNumber = message.SequenceNumber;
+        Properties = message.Properties;
+        Scheduled = message.Scheduled;
+    }
+
     /// <summary>
     /// Gets or sets the content type descriptor.
     /// </summary>

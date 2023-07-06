@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents a registration for a consumer of an event.
 /// </summary>
-public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
+public record EventConsumerRegistration
 {
     /// <summary>
     /// Creates an instance of <see cref="EventConsumerRegistration"/>.
@@ -74,30 +74,4 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration>
     /// </summary>
     /// <returns>The <see cref="EventConsumerRegistration"/> for further configuration.</returns>
     public EventConsumerRegistration OnErrorDiscard() => OnError(UnhandledConsumerErrorBehaviour.Discard);
-
-    #region Equality Overrides
-
-    /// <inheritdoc/>
-    public override bool Equals(object? obj) => Equals(obj as EventConsumerRegistration);
-
-    /// <inheritdoc/>
-    public bool Equals(EventConsumerRegistration? other)
-    {
-        return other is not null && EqualityComparer<Type>.Default.Equals(ConsumerType, other.ConsumerType);
-    }
-
-    /// <inheritdoc/>
-    public override int GetHashCode() => ConsumerType.GetHashCode();
-
-    ///
-    public static bool operator ==(EventConsumerRegistration left, EventConsumerRegistration right)
-    {
-        return EqualityComparer<EventConsumerRegistration>.Default.Equals(left, right);
-    }
-
-    ///
-    public static bool operator !=(EventConsumerRegistration left, EventConsumerRegistration right) => !(left == right);
-
-    #endregion
-
 }

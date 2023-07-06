@@ -6,7 +6,7 @@ namespace Tingle.EventBus.Configuration;
 /// <summary>
 /// Represents a registration for an event.
 /// </summary>
-public class EventRegistration : IEquatable<EventRegistration?>
+public record EventRegistration
 {
     /// <summary>
     /// Creates an instance of <see cref="EventRegistration"/>.
@@ -94,29 +94,4 @@ public class EventRegistration : IEquatable<EventRegistration?>
 
     /// <summary>The final policy used in executions for the event and it's consumers.</summary>
     internal IAsyncPolicy ExecutionPolicy { get; set; } = Policy.NoOpAsync();
-
-    #region Equality Overrides
-
-    /// <inheritdoc/>
-    public override bool Equals(object? obj) => Equals(obj as EventRegistration);
-
-    /// <inheritdoc/>
-    public bool Equals(EventRegistration? other)
-    {
-        return other is not null && EqualityComparer<Type>.Default.Equals(EventType, other.EventType);
-    }
-
-    /// <inheritdoc/>
-    public override int GetHashCode() => EventType.GetHashCode();
-
-    ///
-    public static bool operator ==(EventRegistration left, EventRegistration right)
-    {
-        return EqualityComparer<EventRegistration>.Default.Equals(left, right);
-    }
-
-    ///
-    public static bool operator !=(EventRegistration left, EventRegistration right) => !(left == right);
-
-    #endregion
 }

@@ -294,8 +294,9 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
     {
         var topicName = reg.EventName!;
         var subscriptionName = ecr.ConsumerName!;
+        var deadletter = ecr.Deadletter;
 
-        var key = $"{topicName}/{subscriptionName}";
+        var key = $"{topicName}/{subscriptionName}/{deadletter}";
         Task<InMemoryProcessor> creator(string _, CancellationToken ct)
         {
             // Create the processor options
@@ -307,13 +308,13 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
             {
                 // Create the processor for the Queue
                 Logger.CreatingQueueProcessor(queueName: topicName);
-                processor = inMemoryClient.CreateProcessor(queueName: topicName, options: inpo);
+                processor = inMemoryClient.CreateProcessor(queueName: topicName, options: inpo); // TODO: support deadletter
             }
             else
             {
                 // Create the processor for the Subscription
                 Logger.CreatingSubscriptionProcessor(topicName: topicName, subscriptionName: subscriptionName);
-                processor = inMemoryClient.CreateProcessor(topicName: topicName, subscriptionName: subscriptionName, options: inpo);
+                processor = inMemoryClient.CreateProcessor(topicName: topicName, subscriptionName: subscriptionName, options: inpo); // TODO: support deadletter
             }
 
             return Task.FromResult(processor);

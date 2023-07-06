@@ -322,6 +322,7 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
     {
         var topicName = reg.EventName!;
         var subscriptionName = ecr.ConsumerName!;
+        var deadletter = ecr.Deadletter;
 
         async Task<ServiceBusProcessor> creator(string key, CancellationToken ct)
         {
@@ -343,7 +344,7 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
                 PrefetchCount = Options.DefaultPrefetchCount,
 
                 // Set the sub-queue to be used
-                SubQueue = ecr.Deadletter ? SubQueue.DeadLetter : SubQueue.None,
+                SubQueue = deadletter ? SubQueue.DeadLetter : SubQueue.None,
             };
 
             // Allow for the defaults to be overridden
@@ -376,7 +377,7 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
             }
         }
 
-        var key = $"{topicName}/{subscriptionName}";
+        var key = $"{topicName}/{subscriptionName}/{deadletter}";
         return processorsCache.GetOrAddAsync(key, creator, cancellationToken);
     }
 

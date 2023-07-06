@@ -300,7 +300,8 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
     private Task<EventProcessorClient> GetProcessorAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
     {
         var name = reg.EventName;
-        if (ecr.Deadletter) name += Options.DeadLetterSuffix;
+        var deadletter = ecr.Deadletter;
+        if (deadletter) name += Options.DeadLetterSuffix;
 
         // For events configured as sourced from IoT Hub,
         // 1. The event hub name is in the metadata
@@ -360,7 +361,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
             return processor;
         }
 
-        var key = $"{eventHubName}/{consumerGroup}";
+        var key = $"{eventHubName}/{consumerGroup}/{deadletter}";
         return processorsCache.GetOrAddAsync(key, creator, cancellationToken);
     }
 

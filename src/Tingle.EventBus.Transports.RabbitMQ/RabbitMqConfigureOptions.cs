@@ -78,7 +78,7 @@ internal class RabbitMqConfigureOptions : EventBusTransportConfigureOptions<Rabb
                                                    + "RabbitMQ does not allow more than 255 characters for Exchange names.");
             }
 
-            foreach (var ecr in reg.Consumers.Values)
+            foreach (var ecr in reg.Consumers)
             {
                 // Consumer names become Queue names and they should not be longer than 255 characters
                 if (ecr.ConsumerName!.Length > 255)

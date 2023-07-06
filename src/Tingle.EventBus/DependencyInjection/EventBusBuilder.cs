@@ -187,12 +187,9 @@ public class EventBusBuilder
                 // get or create a simple EventRegistration
                 var reg = options.Registrations.GetOrAdd(et, t => new EventRegistration(t));
 
-                // get or create a simple ConsumerRegistration
-                if (!reg.Consumers.TryGetValue(consumerType, out var ecr))
-                {
-                    ecr = new EventConsumerRegistration(consumerType) { Deadletter = deadletter, };
-                    reg.Consumers.Add(consumerType, ecr);
-                }
+                // create a simple ConsumerRegistration (HashSet removes duplicates)
+                var ecr = new EventConsumerRegistration(consumerType) { Deadletter = deadletter, };
+                reg.Consumers.Add(ecr);
 
                 // call the configuration function
                 configure?.Invoke(reg, ecr);
@@ -224,7 +221,7 @@ public class EventBusBuilder
             var ct = typeof(TConsumer);
             foreach (var registration in options.Registrations.Values)
             {
-                registration.Consumers.Remove(ct);
+                registration.Consumers.RemoveWhere(creg => creg.ConsumerType == ct);
             }
         });
     }

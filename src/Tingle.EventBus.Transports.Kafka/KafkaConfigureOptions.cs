@@ -74,7 +74,7 @@ internal class KafkaConfigureOptions : EventBusTransportConfigureOptions<KafkaTr
                                                    + "Kafka does not allow more than 255 characters for Topic names.");
             }
 
-            foreach (var ecr in reg.Consumers.Values)
+            foreach (var ecr in reg.Consumers)
             {
                 // Consumer names become Consumer Group IDs and they should not be longer than 255 characters
                 if (ecr.ConsumerName!.Length > 255)

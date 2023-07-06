@@ -134,42 +134,47 @@ public class EventBusOptions
     }
 
     /// <summary>
-    /// Get the consumer registration in a given event type.
+    /// Get the consumer registrations in a given event type.
     /// </summary>
     /// <typeparam name="TEvent">The event type from which to retrieve a <see cref="EventConsumerRegistration"/> for.</typeparam>
     /// <typeparam name="TConsumer">The consumer to configure.</typeparam>
     /// <param name="reg">
-    /// When this method returns, contains the event registration associated with the specified event type,
+    /// When this method returns, contains the event registrations associated with the specified event type,
     /// if the event type is found; otherwise, <see langword="null"/> is returned.
     /// This parameter is passed uninitialized.
     /// </param>
-    /// <param name="ecr">
-    /// When this method returns, contains the consumer registration associated with the specified event type,
+    /// <param name="ecrs">
+    /// When this method returns, contains the consumer registrations associated with the specified event type,
     /// if the event type is found; otherwise, <see langword="null"/> is returned.
     /// This parameter is passed uninitialized.
     /// </param>
     /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
-    internal bool TryGetConsumerRegistration<TEvent, TConsumer>([NotNullWhen(true)] out EventRegistration? reg,
-                                                                [NotNullWhen(true)] out EventConsumerRegistration? ecr)
+    internal bool TryGetConsumerRegistrations<TEvent, TConsumer>([NotNullWhen(true)] out EventRegistration? reg,
+                                                                 [NotNullWhen(true)] out List<EventConsumerRegistration>? ecrs)
     {
-        ecr = default;
-        return Registrations.TryGetValue(typeof(TEvent), out reg) && reg.Consumers.TryGetValue(typeof(TConsumer), out ecr);
+        ecrs = default;
+        if (Registrations.TryGetValue(typeof(TEvent), out reg))
+        {
+            ecrs = reg.Consumers.Where(r => r.ConsumerType == typeof(TConsumer)).ToList();
+            return false;
+        }
+        return false;
     }
 
     /// <summary>
-    /// Get the consumer registration in a given event type.
+    /// Get the consumer registrations in a given event type.
     /// </summary>
     /// <typeparam name="TEvent">The event type from which to retrieve a <see cref="EventConsumerRegistration"/> for.</typeparam>
     /// <typeparam name="TConsumer">The consumer to configure.</typeparam>
-    /// <param name="registration">
-    /// When this method returns, contains the consumer registration associated with the specified event type,
+    /// <param name="registrations">
+    /// When this method returns, contains the consumer registrations associated with the specified event type,
     /// if the event type is found; otherwise, <see langword="null"/> is returned.
     /// This parameter is passed uninitialized.
     /// </param>
     /// <returns><see langword="true" /> if there's a consumer registered for the given event type; otherwise, false.</returns>
-    public bool TryGetConsumerRegistration<TEvent, TConsumer>([NotNullWhen(true)] out EventConsumerRegistration? registration)
+    public bool TryGetConsumerRegistrations<TEvent, TConsumer>([NotNullWhen(true)] out List<EventConsumerRegistration>? registrations)
     {
-        return TryGetConsumerRegistration<TEvent, TConsumer>(out _, out registration);
+        return TryGetConsumerRegistrations<TEvent, TConsumer>(out _, out registrations);
     }
 
     /// <summary>
@@ -202,9 +207,9 @@ public class EventBusOptions
     {
         if (configure is null) throw new ArgumentNullException(nameof(configure));
 
-        if (TryGetConsumerRegistration<TEvent, TConsumer>(out var reg, out var ecr) && ecr is not null)
+        if (TryGetConsumerRegistrations<TEvent, TConsumer>(out var reg, out var ecrs) && ecrs is not null)
         {
-            configure(reg, ecr);
+            foreach (var ecr in ecrs) configure(reg, ecr);
         }
 
         return this;

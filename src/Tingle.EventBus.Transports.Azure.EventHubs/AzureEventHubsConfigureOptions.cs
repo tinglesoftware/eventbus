@@ -119,7 +119,7 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
             }
 
             // Consumer names become Consumer Group names and they should not be longer than 256 characters
-            foreach (var ecr in reg.Consumers.Values)
+            foreach (var ecr in reg.Consumers)
             {
                 if (ecr.ConsumerName!.Length > 256)
                 {

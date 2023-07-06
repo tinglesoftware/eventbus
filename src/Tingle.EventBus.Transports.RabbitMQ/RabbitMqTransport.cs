@@ -263,7 +263,7 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
         foreach (var reg in registrations)
         {
             var exchangeName = reg.EventName!;
-            foreach (var ecr in reg.Consumers.Values)
+            foreach (var ecr in reg.Consumers)
             {
                 // queue names must be unique so add the exchange name so that we can tell to whom the queue belongs
                 var queueName = BusOptions.Naming.Join(ecr.ConsumerName!, exchangeName);

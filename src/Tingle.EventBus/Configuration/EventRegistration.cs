@@ -81,7 +81,7 @@ public record EventRegistration
     /// <remarks>
     /// This is backed by a <see cref="HashSet{T}"/> to ensure no duplicates.
     /// </remarks>
-    public Dictionary<Type, EventConsumerRegistration> Consumers { get; } = new();
+    public HashSet<EventConsumerRegistration> Consumers { get; } = new();
 
     /// <summary>
     /// Gets a key/value collection that can be used to organize and share data across components

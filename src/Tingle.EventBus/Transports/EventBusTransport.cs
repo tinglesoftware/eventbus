@@ -86,7 +86,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             // Combine the retry policies
             PollyHelper.CombineIfNeeded(BusOptions, Options, reg);
 
-            foreach (var ecr in reg.Consumers.Values)
+            foreach (var ecr in reg.Consumers)
             {
                 // Set unhandled error behaviour
                 ecr.UnhandledErrorBehaviour ??= Options.DefaultUnhandledConsumerErrorBehaviour;

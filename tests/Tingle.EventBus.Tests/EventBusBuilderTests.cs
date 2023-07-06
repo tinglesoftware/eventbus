@@ -58,6 +58,28 @@ public class EventBusBuilderTests
         Assert.True(reg.Consumers.ElementAt(1).Deadletter);
     }
 
+    [Fact]
+    public void DuplicateConsumersFails()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IHostEnvironment>(new FakeHostEnvironment("app1"));
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+        services.AddEventBus(builder =>
+        {
+            builder.AddConsumer<DummyConsumer1>();
+            builder.AddConsumer<DummyConsumer2>();
+            builder.Configure(o =>
+            {
+                o.Naming.ConsumerNameSource = ConsumerNameSource.Prefix;
+                o.AddTransport<DummyTransport>("Dummy", null);
+            });
+        });
+
+        var provider = services.BuildServiceProvider();
+        var ex = Assert.Throws<OptionsValidationException>(() => provider.GetRequiredService<IOptions<EventBusOptions>>().Value);
+        Assert.Equal("The consumer name '(app1 [dead-letter])' cannot be used more than once on 'TestEvent2'. Types:\r\n- Tingle.EventBus.Tests.EventBusBuilderTests+DummyConsumer1\r\n- Tingle.EventBus.Tests.EventBusBuilderTests+DummyConsumer2", ex.Message);
+    }
+
     internal class DummyConsumer1 : IEventConsumer<TestEvent1>, IDeadLetteredEventConsumer<TestEvent2>
     {
         public Task ConsumeAsync(EventContext<TestEvent1> context, CancellationToken cancellationToken = default)

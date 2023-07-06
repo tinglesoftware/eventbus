@@ -188,7 +188,7 @@ public class EventBusBuilder
                 var reg = options.Registrations.GetOrAdd(et, t => new EventRegistration(t));
 
                 // create a simple ConsumerRegistration (HashSet removes duplicates)
-                var ecr = new EventConsumerRegistration(consumerType) { Deadletter = deadletter, };
+                var ecr = new EventConsumerRegistration(consumerType, deadletter);
                 reg.Consumers.Add(ecr);
 
                 // call the configuration function

@@ -152,7 +152,7 @@ public class DefaultEventConfiguratorTests
         options.Naming.ConsumerNamePrefix = prefix;
 
         var registration = new EventRegistration(eventType);
-        registration.Consumers.Add(new EventConsumerRegistration(consumerType));
+        registration.Consumers.Add(new EventConsumerRegistration(consumerType, false));
 
         var creg = Assert.Single(registration.Consumers);
         configurator.ConfigureEventName(registration, options.Naming);

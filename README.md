@@ -3,9 +3,9 @@
 ![Nuget](https://img.shields.io/nuget/dt/Tingle.EventBus)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/tinglesoftware/eventbus/release.yml?branch=main&style=flat-square)
 [![Dependabot](https://badgen.net/badge/Dependabot/enabled/green?icon=dependabot)](https://dependabot.com/)
-[![license](https://img.shields.io/github/license/tinglesoftware/dependabot-azure-devops.svg?style=flat-square)](LICENSE)
+[![license](https://img.shields.io/github/license/tinglesoftware/eventbus.svg?style=flat-square)](LICENSE)
 
-This repository contains the code for the `Tingle.EventBus` libraries. This project exists so as to simplify the amount of work required to add events to .NET projects. The existing libraries seem to have numerous complexities in setup especially when it comes to the use of framework concepts like dependency inject and options configuration. At [Tingle Software](https://tingle.software), we use this for all our event-driven architecture that is based on .NET
+This repository contains the code for the `Tingle.EventBus` libraries. This project exists so as to simplify the amount of work required to add events to .NET projects. The existing libraries seem to have numerous complexities in setup especially when it comes to the use of framework concepts like dependency injection and options configuration. At [Tingle Software](https://tingle.software), we use this for all our event-driven architecture that is based on .NET
 
 ## Packages
 
@@ -26,7 +26,7 @@ This repository contains the code for the `Tingle.EventBus` libraries. This proj
 
 ## Documentation
 
-A number fo the documents below are still a work in progress and would be added as they get ready.
+A number of the documents below are still a work in progress and will be added as they get ready.
 
 ### Getting started
 
@@ -34,21 +34,21 @@ A number fo the documents below are still a work in progress and would be added 
 
 #### Features
 
-* [Choosing a transport](docs/transport-selection.md)
-* [Multiple transports in one bus](docs/multi-transport-one-bus.md)
-* [Retries](docs/retries.md)
-* [Event and Consumers](docs/events-and-consumers.md)
-* [Observability](docs/observability.md)
-* [Your first app](docs/your-first-app.md)
+- [Choosing a transport](docs/transport-selection.md)
+- [Multiple transports in one bus](docs/multi-transport-one-bus.md)
+- [Retries](docs/retries.md)
+- [Event and Consumers](docs/events-and-consumers.md)
+- [Observability](docs/observability.md)
+- [Your first app](docs/your-first-app.md)
 
 #### How to ...
 
-* [Use configuration](docs/work-configuration.md)
-* [Work with Azure IoT Hub](docs/work-with-azure-iot-hub.md)
-* [Work with Azure Managed Identities](docs/work-with-azure-managed-identities.md)
-* [Advanced Service Bus options](docs/advanced-service-bus-options.md)
-* [Work with Feature Management](docs/work-with-feature-management.md)
-* [Extend event configuration](docs/extend-event-configuration.md)
+- [Use configuration](docs/work-configuration.md)
+- [Work with Azure IoT Hub](docs/work-with-azure-iot-hub.md)
+- [Work with Azure Managed Identities](docs/work-with-azure-managed-identities.md)
+- [Advanced Service Bus options](docs/advanced-service-bus-options.md)
+- [Work with Feature Management](docs/work-with-feature-management.md)
+- [Extend event configuration](docs/extend-event-configuration.md)
 
 ## Samples
 
@@ -69,3 +69,7 @@ A number fo the documents below are still a work in progress and would be added 
 ## Issues &amp; Comments
 
 Please leave all comments, bugs, requests, and issues on the Issues page. We'll respond to your request ASAP!
+
+### License
+
+The Library is licensed under the [MIT](http://www.opensource.org/licenses/mit-license.php "Read more about the MIT license form") license. Refer to the [LICENSE](./LICENSE) file for more information.

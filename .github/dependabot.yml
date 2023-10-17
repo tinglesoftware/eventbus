@@ -12,6 +12,9 @@ updates:
     time: "02:00"
     day: "wednesday"
   open-pull-requests-limit: 10
+  groups:
+    xuint:
+      patterns: ["Xunit*"]
   ignore:
   # Ignore patch updates for some packages
   - dependency-name: "AWSSDK.*"

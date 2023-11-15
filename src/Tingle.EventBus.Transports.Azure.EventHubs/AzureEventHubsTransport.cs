@@ -70,7 +70,7 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
                     return (Task)method.Invoke(this, new object[] { reg, ecr, processor, args, })!;
                 };
 
-                // start processing 
+                // start processing
                 await processor.StartProcessingAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }

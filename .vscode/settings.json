@@ -1,9 +1,11 @@
 {
     "cSpell.words": [
         "Behaviour",
+        "checkpointing",
         "Configurator",
+        "configurators",
+        "Deadletter",
         "Deduplication",
-        "Serializers",
-        "configurators"
+        "Serializers"
     ]
 }

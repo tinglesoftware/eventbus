@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace Tingle.EventBus.Transports.Amazon;
+﻿namespace Tingle.EventBus.Transports.Amazon;
 
 ///
 [Serializable]
@@ -14,7 +12,4 @@ public class AmazonSqsTransportException : Exception
 
     ///
     public AmazonSqsTransportException(string message, Exception innerException) : base(message, innerException) { }
-
-    ///
-    protected AmazonSqsTransportException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 }

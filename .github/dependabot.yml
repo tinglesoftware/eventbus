@@ -17,6 +17,10 @@ updates:
       patterns: ["Azure*"]
     aws-sdk:
       patterns: ["AWSSDK*"]
+    microsoft:
+      patterns: ["Microsoft*"]
+    system:
+      patterns: ["System*"]
     xuint:
       patterns: ["Xunit*"]
   ignore:

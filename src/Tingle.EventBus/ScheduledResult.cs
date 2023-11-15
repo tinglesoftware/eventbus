@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents the result from scheduling a delayed event.
 /// </summary>
-public struct ScheduledResult
+public readonly struct ScheduledResult
 {
     /// <summary>
     /// Creates and instance of <see cref="ScheduledResult"/>.
@@ -26,12 +26,12 @@ public struct ScheduledResult
     /// <summary>
     /// Scheduling identifier returned by transport.
     /// </summary>
-    public string Id { get; set; }
+    public string Id { get; }
 
     /// <summary>
     /// Time at which the event will be availed by the transport.
     /// </summary>
-    public DateTimeOffset Scheduled { get; set; }
+    public DateTimeOffset Scheduled { get; }
 
     /// <inheritdoc/>
     public override bool Equals(object? obj) => obj is ScheduledResult result && Equals(result);

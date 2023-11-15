@@ -13,6 +13,8 @@ updates:
     day: "wednesday"
   open-pull-requests-limit: 10
   groups:
+    aws-sdk:
+      patterns: ["AWSSDK*"]
     xuint:
       patterns: ["Xunit*"]
   ignore:

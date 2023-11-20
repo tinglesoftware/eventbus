@@ -1,7 +1,7 @@
 # Simple Multi-Transport Event Bus for .NET
 
 ![Nuget](https://img.shields.io/nuget/dt/Tingle.EventBus)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/tinglesoftware/eventbus/release.yml?branch=main&style=flat-square)
+[![GitHub Workflow Status](https://github.com/tinglesoftware/eventbus/actions/workflows/release.yml/badge.svg)](https://github.com/tinglesoftware/eventbus/actions/workflows/release.yml)
 [![Dependabot](https://badgen.net/badge/Dependabot/enabled/green?icon=dependabot)](https://dependabot.com/)
 [![license](https://img.shields.io/github/license/tinglesoftware/eventbus.svg?style=flat-square)](LICENSE)
 

@@ -1,6 +1,6 @@
 # Simple Multi-Transport Event Bus for .NET
 
-![Nuget](https://img.shields.io/nuget/dt/Tingle.EventBus)
+[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.svg)](https://www.nuget.org/packages/Tingle.EventBus/)
 [![GitHub Workflow Status](https://github.com/tinglesoftware/eventbus/actions/workflows/release.yml/badge.svg)](https://github.com/tinglesoftware/eventbus/actions/workflows/release.yml)
 [![Dependabot](https://badgen.net/badge/Dependabot/enabled/green?icon=dependabot)](https://dependabot.com/)
 [![license](https://img.shields.io/github/license/tinglesoftware/eventbus.svg?style=flat-square)](LICENSE)
@@ -9,20 +9,20 @@ This repository contains the code for the `Tingle.EventBus` libraries. This proj
 
 ## Packages
 
-|Package|Version|Description|
-|--|--|--|
-|`Tingle.EventBus`|[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.svg)](https://www.nuget.org/packages/Tingle.EventBus/)|Base of the event bus library to allow you publish and consume events from different transports.|
-|`Tingle.EventBus.Serializers.NewtonsoftJson`|[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.Serializers.NewtonsoftJson.svg)](https://www.nuget.org/packages/Tingle.EventBus.Serializers.NewtonsoftJson/)|Support for serializing events using [Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json/).|
-|`Tingle.EventBus.Transports.Amazon.Abstractions`|[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.Transports.Amazon.Abstractions.svg)](https://www.nuget.org/packages/Tingle.EventBus.Transports.Amazon.Abstractions/)|Abstractions for working with Amazon (AWS) based transports.|
-|`Tingle.EventBus.Transports.Amazon.Kinesis`|[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.Transports.Amazon.Kinesis.svg)](https://www.nuget.org/packages/Tingle.EventBus.Transports.Amazon.Kinesis/)|Event bus transport based on [Amazon Kinesis](https://aws.amazon.com/kinesis/).|
-|`Tingle.EventBus.Transports.Amazon.Sqs`|[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.Transports.Amazon.Sqs.svg)](https://www.nuget.org/packages/Tingle.EventBus.Transports.Amazon.Sqs/)|Event bus transport based on [Amazon Simple Queue Service](https://aws.amazon.com/sqs/).|
-|`Tingle.EventBus.Transports.Azure.Abstractions`|[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.Transports.Azure.Abstractions.svg)](https://www.nuget.org/packages/Tingle.EventBus.Transports.Azure.Abstractions/)|Abstractions for working with Azure based transports.|
-|`Tingle.EventBus.Transports.Azure.EventHubs`|[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.Transports.Azure.EventHubs.svg)](https://www.nuget.org/packages/Tingle.EventBus.Transports.Azure.EventHubs/)|Event bus transport based on [Azure Event Hubs](https://azure.microsoft.com/en-us/services/event-hubs/).|
-|`Tingle.EventBus.Transports.Azure.QueueStorage`|[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.Transports.Azure.QueueStorage.svg)](https://www.nuget.org/packages/Tingle.EventBus.Transports.Azure.QueueStorage/)|Event bus transport based on [Azure Storage Queues](https://azure.microsoft.com/en-us/services/storage/queues/).|
-|`Tingle.EventBus.Transports.Azure.ServiceBus`|[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.Transports.Azure.ServiceBus.svg)](https://www.nuget.org/packages/Tingle.EventBus.Transports.Azure.ServiceBus/)|Event bus transport based on [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/).|
-|`Tingle.EventBus.Transports.InMemory`|[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.Transports.InMemory.svg)](https://www.nuget.org/packages/Tingle.EventBus.Transports.InMemory/)|Event bus transport that works only in memory and in process, useful for testing.|
-|`Tingle.EventBus.Transports.Kafka`|[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.Transports.Kafka.svg)](https://www.nuget.org/packages/Tingle.EventBus.Transports.Kafka/)|Event bus transport based on the open source [Apache Kafka](https://kafka.apache.org/) platform.|
-|`Tingle.EventBus.Transports.RabbitMQ`|[![NuGet](https://img.shields.io/nuget/v/Tingle.EventBus.Transports.RabbitMQ.svg)](https://www.nuget.org/packages/Tingle.EventBus.Transports.RabbitMQ/)|Event bus transport based on the open source [Rabbit MQ](https://www.rabbitmq.com/) broker.|
+|Package|Description|
+|--|--|
+|[`Tingle.EventBus`](https://www.nuget.org/packages/Tingle.EventBus/)|Base of the event bus library to allow you publish and consume events from different transports.|
+|[`Tingle.EventBus.Serializers.NewtonsoftJson`](https://www.nuget.org/packages/Tingle.EventBus.Serializers.NewtonsoftJson/)|Support for serializing events using [Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json/).|
+|[`Tingle.EventBus.Transports.Amazon.Abstractions`](https://www.nuget.org/packages/Tingle.EventBus.Transports.Amazon.Abstractions/)|Abstractions for working with Amazon (AWS) based transports.|
+|[`Tingle.EventBus.Transports.Amazon.Kinesis`](https://www.nuget.org/packages/Tingle.EventBus.Transports.Amazon.Kinesis/)|Transport based on [Amazon Kinesis](https://aws.amazon.com/kinesis/).|
+|[`Tingle.EventBus.Transports.Amazon.Sqs`](https://www.nuget.org/packages/Tingle.EventBus.Transports.Amazon.Sqs/)|Transport based on [Amazon Simple Queue Service](https://aws.amazon.com/sqs/).|
+|[`Tingle.EventBus.Transports.Azure.Abstractions`](https://www.nuget.org/packages/Tingle.EventBus.Transports.Azure.Abstractions/)|Abstractions for working with Azure based transports.|
+|[`Tingle.EventBus.Transports.Azure.EventHubs`](https://www.nuget.org/packages/Tingle.EventBus.Transports.Azure.EventHubs/)|Transport based on [Azure Event Hubs](https://azure.microsoft.com/en-us/services/event-hubs/).|
+|[`Tingle.EventBus.Transports.Azure.QueueStorage`](https://www.nuget.org/packages/Tingle.EventBus.Transports.Azure.QueueStorage/)|Transport based on [Azure Storage Queues](https://azure.microsoft.com/en-us/services/storage/queues/).|
+|[`Tingle.EventBus.Transports.Azure.ServiceBus`](https://www.nuget.org/packages/Tingle.EventBus.Transports.Azure.ServiceBus/)|Transport based on [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/).|
+|[`Tingle.EventBus.Transports.InMemory`](https://www.nuget.org/packages/Tingle.EventBus.Transports.InMemory/)|Transport that works only in memory and in process, useful for testing.|
+|[`Tingle.EventBus.Transports.Kafka`](https://www.nuget.org/packages/Tingle.EventBus.Transports.Kafka/)|Transport based on the open source [Apache Kafka](https://kafka.apache.org/) platform.|
+|[`Tingle.EventBus.Transports.RabbitMQ`](https://www.nuget.org/packages/Tingle.EventBus.Transports.RabbitMQ/)|Transport based on the open source [Rabbit MQ](https://www.rabbitmq.com/) broker.|
 
 ## Documentation
 

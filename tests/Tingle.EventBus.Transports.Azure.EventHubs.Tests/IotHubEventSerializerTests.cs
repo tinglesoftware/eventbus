@@ -15,6 +15,8 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs.Tests;
 
 public class IotHubEventSerializerTests
 {
+    private static readonly JsonSerializerOptions serializerOptions = new(JsonSerializerDefaults.Web);
+
     private const string DeviceId = "1234567890";
     private const string HubName = "iothub-route-test-weu-ih";
 
@@ -53,10 +55,8 @@ public class IotHubEventSerializerTests
             var envelope = await serializer.DeserializeAsync<MyIotHubEvent>(ctx);
             Assert.NotNull(envelope);
             Assert.NotNull(envelope.Event);
-            Assert.Null(envelope.Event.TwinEvent);
-            Assert.Null(envelope.Event.LifecycleEvent);
-            Assert.Null(envelope.Event.ConnectionStateEvent);
-            var telemetry = Assert.IsType<MyIotHubTelemetry>(envelope.Event.Telemetry);
+            Assert.Null(envelope.Event.Event);
+            var telemetry = envelope.Event.GetTelemetry<MyIotHubTelemetry>(serializerOptions);
             Assert.Equal(DateTimeOffset.Parse("2022-12-22T12:10:51Z"), telemetry.Timestamp);
             Assert.Equal(JsonSerializer.SerializeToNode(new { door = "frontLeft" })!.ToJsonString(), JsonSerializer.Serialize(telemetry.Extras));
         });
@@ -81,19 +81,18 @@ public class IotHubEventSerializerTests
             Assert.NotNull(envelope);
             Assert.NotNull(envelope.Event);
             Assert.Null(envelope.Event.Telemetry);
-            Assert.Null(envelope.Event.LifecycleEvent);
-            Assert.Null(envelope.Event.ConnectionStateEvent);
-            var twinEvent = Assert.IsType<IotHubOperationalEvent<IotHubDeviceTwinChangeEvent>>(envelope.Event.TwinEvent);
-            Assert.Equal(HubName, twinEvent.HubName);
-            Assert.Equal(DeviceId, twinEvent.DeviceId);
-            Assert.Null(twinEvent.ModuleId);
-            Assert.Equal(IotHubOperationalEventType.UpdateTwin, twinEvent.Type);
-            Assert.Equal("2022-01-16T16:36:53.8146535Z", twinEvent.OperationTimestamp);
-            Assert.Null(twinEvent.Event.DeviceId);
-            Assert.Null(twinEvent.Event.ModuleId);
-            Assert.Null(twinEvent.Event.Etag);
-            Assert.Equal(3, twinEvent.Event.Version);
-            Assert.Equal(2, twinEvent.Event.Properties?.Desired?.Version);
+            var opevent = envelope.Event.Event;
+            Assert.NotNull(opevent);
+            Assert.Equal(HubName, opevent.HubName);
+            Assert.Equal(DeviceId, opevent.DeviceId);
+            Assert.Null(opevent.ModuleId);
+            Assert.Equal(IotHubOperationalEventType.UpdateTwin, opevent.Type);
+            Assert.Equal("2022-01-16T16:36:53.8146535Z", opevent.OperationTimestamp);
+            Assert.Null(opevent.Payload.DeviceId);
+            Assert.Null(opevent.Payload.ModuleId);
+            Assert.Null(opevent.Payload.Etag);
+            Assert.Equal(3, opevent.Payload.Version);
+            Assert.Equal(2, opevent.Payload.Properties?.Desired?.Version);
         });
     }
 
@@ -116,18 +115,17 @@ public class IotHubEventSerializerTests
             Assert.NotNull(envelope);
             Assert.NotNull(envelope.Event);
             Assert.Null(envelope.Event.Telemetry);
-            Assert.Null(envelope.Event.TwinEvent);
-            Assert.Null(envelope.Event.ConnectionStateEvent);
-            var lifecycleEvent = Assert.IsType<IotHubOperationalEvent<IotHubDeviceLifecycleEvent>>(envelope.Event.LifecycleEvent);
-            Assert.Equal(HubName, lifecycleEvent.HubName);
-            Assert.Equal(DeviceId, lifecycleEvent.DeviceId);
-            Assert.Null(lifecycleEvent.ModuleId);
-            Assert.Equal(IotHubOperationalEventType.CreateDeviceIdentity, lifecycleEvent.Type);
-            Assert.Equal("2022-01-16T16:36:53.8146535Z", lifecycleEvent.OperationTimestamp);
-            Assert.Equal(DeviceId, lifecycleEvent.Event.DeviceId);
-            Assert.Null(lifecycleEvent.Event.ModuleId);
-            Assert.Equal("AAAAAAAAAAE=", lifecycleEvent.Event.Etag);
-            Assert.Equal(2, lifecycleEvent.Event.Version);
+            var opevent = envelope.Event.Event;
+            Assert.NotNull(opevent);
+            Assert.Equal(HubName, opevent.HubName);
+            Assert.Equal(DeviceId, opevent.DeviceId);
+            Assert.Null(opevent.ModuleId);
+            Assert.Equal(IotHubOperationalEventType.CreateDeviceIdentity, opevent.Type);
+            Assert.Equal("2022-01-16T16:36:53.8146535Z", opevent.OperationTimestamp);
+            Assert.Equal(DeviceId, opevent.Payload.DeviceId);
+            Assert.Null(opevent.Payload.ModuleId);
+            Assert.Equal("AAAAAAAAAAE=", opevent.Payload.Etag);
+            Assert.Equal(2, opevent.Payload.Version);
         });
     }
 
@@ -150,15 +148,14 @@ public class IotHubEventSerializerTests
             Assert.NotNull(envelope);
             Assert.NotNull(envelope.Event);
             Assert.Null(envelope.Event.Telemetry);
-            Assert.Null(envelope.Event.TwinEvent);
-            Assert.Null(envelope.Event.LifecycleEvent);
-            var connectionStateEvent = Assert.IsType<IotHubOperationalEvent<IotHubDeviceConnectionStateEvent>>(envelope.Event.ConnectionStateEvent);
-            Assert.Equal(HubName, connectionStateEvent.HubName);
-            Assert.Equal(DeviceId, connectionStateEvent.DeviceId);
-            Assert.Null(connectionStateEvent.ModuleId);
-            Assert.Equal(IotHubOperationalEventType.DeviceConnected, connectionStateEvent.Type);
-            Assert.Equal("2022-01-16T16:36:53.8146535Z", connectionStateEvent.OperationTimestamp);
-            Assert.Equal("000000000000000001D7F744182052190000000C000000000000000000000001", connectionStateEvent.Event.SequenceNumber);
+            var opevent = envelope.Event.Event;
+            Assert.NotNull(opevent);
+            Assert.Equal(HubName, opevent.HubName);
+            Assert.Equal(DeviceId, opevent.DeviceId);
+            Assert.Null(opevent.ModuleId);
+            Assert.Equal(IotHubOperationalEventType.DeviceConnected, opevent.Type);
+            Assert.Equal("2022-01-16T16:36:53.8146535Z", opevent.OperationTimestamp);
+            Assert.Equal("000000000000000001D7F744182052190000000C000000000000000000000001", opevent.Payload.SequenceNumber);
         });
     }
 
@@ -170,19 +167,7 @@ public class IotHubEventSerializerTests
             var ereg = new EventRegistration(typeof(DummyEvent1));
             var ctx = new DeserializationContext(BinaryData.FromString(""), ereg);
             var ex = await Assert.ThrowsAsync<NotSupportedException>(() => serializer.DeserializeAsync<DummyEvent1>(ctx));
-            Assert.Equal("Only events that inherit from 'Tingle.EventBus.Transports.Azure.EventHubs.IotHub.IotHubEvent`3' are supported for deserialization.", ex.Message);
-        });
-    }
-
-    [Fact]
-    public async Task DeserializeAsync_Throws_NotSupportedException_For_AbstractTypes()
-    {
-        await TestSerializerAsync(async (provider, _, serializer) =>
-        {
-            var ereg = new EventRegistration(typeof(DummyEvent2));
-            var ctx = new DeserializationContext(BinaryData.FromString(""), ereg);
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => serializer.DeserializeAsync<DummyEvent2>(ctx));
-            Assert.Equal($"Abstract type '{typeof(DummyTelemetry1).FullName}' on '{typeof(DummyEvent2).FullName}' is not supported for IotHub events.", ex.Message);
+            Assert.Equal("Only events that inherit from 'Tingle.EventBus.Transports.Azure.EventHubs.IotHub.IotHubEvent' are supported for deserialization.", ex.Message);
         });
     }
 
@@ -192,7 +177,7 @@ public class IotHubEventSerializerTests
         await TestSerializerAsync(async (provider, publisher, serializer) =>
         {
             var ereg = new EventRegistration(typeof(MyIotHubEvent));
-            var context = new EventContext<MyIotHubEvent>(publisher, new MyIotHubEvent(IotHubEventMessageSource.Telemetry, null, null, null, null));
+            var context = new EventContext<MyIotHubEvent>(publisher, new());
             var ctx = new SerializationContext<MyIotHubEvent>(context, ereg);
             var ex = await Assert.ThrowsAsync<NotSupportedException>(() => serializer.SerializeAsync(ctx));
             Assert.Equal("Serialization of IotHub events is not allowed.", ex.Message);
@@ -231,13 +216,5 @@ public class IotHubEventSerializerTests
     class DummyEvent1 { }
 
     abstract class DummyTelemetry1 { }
-    record DummyEvent2 : IotHubEvent<DummyTelemetry1>
-    {
-        public DummyEvent2(IotHubEventMessageSource source,
-                           DummyTelemetry1? telemetry,
-                           IotHubOperationalEvent<IotHubDeviceTwinChangeEvent>? twinEvent,
-                           IotHubOperationalEvent<IotHubDeviceLifecycleEvent>? lifecycleEvent,
-                           IotHubOperationalEvent<IotHubDeviceConnectionStateEvent>? connectionStateEvent)
-            : base(source, telemetry, twinEvent, lifecycleEvent, connectionStateEvent) { }
-    }
+    record DummyEvent2 : IotHubEvent { }
 }

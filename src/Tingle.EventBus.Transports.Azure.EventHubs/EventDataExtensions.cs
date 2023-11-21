@@ -65,4 +65,17 @@ public static class EventDataExtensions
     {
         return data.TryGetPropertyValue<T>(key, out var value) ? value : default;
     }
+
+    /// <summary>
+    /// Gets the required property value that is associated with the specified key from
+    /// <see cref="EventData.SystemProperties"/> or <see cref="EventData.Properties"/>.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="data">The <see cref="EventData"/> instance to use.</param>
+    /// <param name="key">The key to locate.</param>
+    /// <returns></returns>
+    public static T GetRequiredPropertyValue<T>(this EventData data, string key) where T : IConvertible
+    {
+        return data.GetPropertyValue<T>(key) ?? throw new InvalidOperationException($"The property '{key}' could not be found.");
+    }
 }

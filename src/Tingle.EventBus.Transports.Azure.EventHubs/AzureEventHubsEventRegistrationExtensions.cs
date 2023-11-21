@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Tingle.EventBus.Transports.Azure.EventHubs;
 using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
 namespace Tingle.EventBus.Configuration;

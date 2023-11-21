@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics.CodeAnalysis;
 using Tingle.EventBus.Serialization;
+using Tingle.EventBus.Transports;
 
 namespace Tingle.EventBus.Configuration;
 
@@ -162,5 +163,30 @@ internal class DefaultEventConfigurator : IEventConfigurator
             throw new InvalidOperationException($"The type '{reg.EventSerializerType.FullName}' is used as a serializer "
                                               + $"but does not implement '{typeof(IEventSerializer).FullName}'");
         }
+    }
+}
+
+/// <summary>
+/// Default implementation of <see cref="IEventBusConfigurator"/>.
+/// </summary>
+[RequiresDynamicCode(MessageStrings.BindingDynamicCodeMessage)]
+[RequiresUnreferencedCode(MessageStrings.BindingUnreferencedCodeMessage)]
+internal class DefaultEventBusConfigurator : IEventBusConfigurator
+{
+    private readonly IEventBusConfigurationProvider configurationProvider;
+
+    public DefaultEventBusConfigurator(IEventBusConfigurationProvider configurationProvider)
+    {
+        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
+    }
+
+    public void Configure(EventBusOptions options)
+    {
+        configurationProvider.Configuration.Bind(options);
+    }
+
+    public void Configure<TOptions>(IConfiguration configuration, TOptions options) where TOptions : EventBusTransportOptions
+    {
+        configuration.Bind(options);
     }
 }

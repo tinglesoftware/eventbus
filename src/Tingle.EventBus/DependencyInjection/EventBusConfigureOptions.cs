@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
@@ -17,22 +16,25 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
                                           IValidateOptions<EventBusSerializationOptions>
 {
     private readonly IHostEnvironment environment;
-    private readonly IEventBusConfigurationProvider configurationProvider;
-    private readonly IEnumerable<IEventConfigurator> configurators;
+    private readonly IEnumerable<IEventBusConfigurator> busConfigurators;
+    private readonly IEnumerable<IEventConfigurator> eventConfigurators;
 
     public EventBusConfigureOptions(IHostEnvironment environment,
-                                    IEventBusConfigurationProvider configurationProvider,
-                                    IEnumerable<IEventConfigurator> configurators)
+                                    IEnumerable<IEventBusConfigurator> busConfigurators,
+                                    IEnumerable<IEventConfigurator> eventConfigurators)
     {
         this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
-        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
-        this.configurators = configurators ?? throw new ArgumentNullException(nameof(configurators));
+        this.busConfigurators = busConfigurators ?? throw new ArgumentNullException(nameof(busConfigurators));
+        this.eventConfigurators = eventConfigurators ?? throw new ArgumentNullException(nameof(eventConfigurators));
     }
 
     /// <inheritdoc/>
     public void Configure(EventBusOptions options)
     {
-        configurationProvider.Configuration.Bind(options);
+        foreach(var cfg in busConfigurators)
+        {
+            cfg.Configure(options);
+        }
 
         // Set the default ConsumerNamePrefix
         options.Naming.ConsumerNamePrefix ??= environment.ApplicationName;
@@ -90,7 +92,7 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
         var registrations = options.Registrations.Values.ToList();
         foreach (var evr in registrations)
         {
-            foreach (var cfg in configurators)
+            foreach (var cfg in eventConfigurators)
             {
                 cfg.Configure(evr, options);
             }

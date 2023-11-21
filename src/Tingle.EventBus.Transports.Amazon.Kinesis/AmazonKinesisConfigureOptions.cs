@@ -14,9 +14,10 @@ internal class AmazonKinesisConfigureOptions : AmazonTransportConfigureOptions<A
     /// provided by the <paramref name="configurationProvider"/>.
     /// </summary>
     /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+    /// <param name="configurators">A list of <see cref="IEventBusConfigurator"/> to use when configuring options.</param>
     /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
-    public AmazonKinesisConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
-        : base(configurationProvider, busOptionsAccessor) { }
+    public AmazonKinesisConfigureOptions(IEventBusConfigurationProvider configurationProvider, IEnumerable<IEventBusConfigurator> configurators, IOptions<EventBusOptions> busOptionsAccessor)
+        : base(configurationProvider, configurators, busOptionsAccessor) { }
 
     /// <inheritdoc/>
     public override void PostConfigure(string? name, AmazonKinesisTransportOptions options)

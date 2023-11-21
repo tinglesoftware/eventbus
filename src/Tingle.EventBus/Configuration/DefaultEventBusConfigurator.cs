@@ -12,11 +12,14 @@ namespace Tingle.EventBus.Configuration;
 /// </summary>
 [RequiresDynamicCode(MessageStrings.BindingDynamicCodeMessage)]
 [RequiresUnreferencedCode(MessageStrings.BindingUnreferencedCodeMessage)]
-internal class DefaultEventBusConfigurator : IEventBusConfigurator
+public class DefaultEventBusConfigurator : IEventBusConfigurator
 {
     private readonly IHostEnvironment environment;
     private readonly IEventBusConfigurationProvider configurationProvider;
 
+    /// <summary>Creates an instance of <see cref="DefaultEventBusConfigurator"/>.</summary>
+    /// <param name="environment">The <see cref="IHostEnvironment"/> instance.</param>
+    /// <param name="configurationProvider">The <see cref="IEventBusConfigurationProvider"/> instance.</param>
     public DefaultEventBusConfigurator(IHostEnvironment environment, IEventBusConfigurationProvider configurationProvider)
     {
         this.environment = environment ?? throw new ArgumentNullException(nameof(environment));

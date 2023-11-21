@@ -2,19 +2,16 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Tingle.EventBus.Serialization;
+using SC = Tingle.EventBus.Transports.Azure.EventHubs.IotHub.IotHubJsonSerializerContext;
 
 namespace Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
-[RequiresDynamicCode(MessageStrings.JsonSerializationRequiresDynamicCodeMessage)]
-[RequiresUnreferencedCode(MessageStrings.JsonSerializationUnreferencedCodeMessage)]
 internal class IotHubEventSerializer : AbstractEventSerializer
 {
-    private static readonly Type BaseType = typeof(IotHubEvent<,,>);
-    private static readonly ConcurrentDictionary<Type, MappedTypes> typeMaps = new();
+    private static readonly Type BaseType = typeof(IotHubEvent);
 
     public IotHubEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
                                  ILoggerFactory loggerFactory)
@@ -29,75 +26,56 @@ internal class IotHubEventSerializer : AbstractEventSerializer
                                                                                     CancellationToken cancellationToken = default)
     {
         var targetType = typeof(T);
-        if (!BaseType.IsAssignableFromGeneric(targetType))
+        if (!BaseType.IsAssignableFrom(targetType))
         {
             throw new NotSupportedException($"Only events that inherit from '{BaseType.FullName}' are supported for deserialization.");
         }
 
-        var mapped = typeMaps.GetOrAdd(targetType, GetTargetTypes(targetType));
+        var data = context.RawTransportData as EventData ?? throw new InvalidOperationException($"{nameof(context.RawTransportData)} cannot be null and must be an {nameof(EventData)}");
 
-        var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;
-        var data = (EventData)context.RawTransportData!;
-        object? telemetry = null, twinChange = null, lifecycle = null, connectionState = null;
+        JsonNode? telemetry = null;
+        IotHubOperationalEvent? opevent = null;
 
         var source = Enum.Parse<IotHubEventMessageSource>(data.GetIotHubMessageSource()!, ignoreCase: true);
         if (source == IotHubEventMessageSource.Telemetry)
         {
-            telemetry = await JsonSerializer.DeserializeAsync(utf8Json: stream,
-                                                              returnType: mapped.TelemetryType,
-                                                              options: serializerOptions,
-                                                              cancellationToken: cancellationToken).ConfigureAwait(false);
+            telemetry = await JsonNode.ParseAsync(utf8Json: stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            //var @event = new IotHubEvent { Source = source, Telemetry = telemetry, };
+            //return new EventEnvelope<T> { Event = @event, };
         }
         else if (source is IotHubEventMessageSource.TwinChangeEvents
                         or IotHubEventMessageSource.DeviceLifecycleEvents
                         or IotHubEventMessageSource.DeviceConnectionStateEvents)
         {
-            var hubName = data.GetPropertyValue<string>("hubName");
-            var deviceId = data.GetPropertyValue<string>("deviceId");
+            var hubName = data.GetRequiredPropertyValue<string>("hubName");
+            var deviceId = data.GetRequiredPropertyValue<string>("deviceId");
             var moduleId = data.GetPropertyValue<string>("moduleId");
             var operationType = data.GetPropertyValue<string>("opType")!;
             var type = Enum.Parse<IotHubOperationalEventType>(operationType, ignoreCase: true);
             var operationTimestamp = data.GetPropertyValue<string>("operationTimestamp");
 
-            if (source == IotHubEventMessageSource.TwinChangeEvents)
-            {
-                var twinChangeEvent = await JsonSerializer.DeserializeAsync(utf8Json: stream,
-                                                                            returnType: mapped.TwinChangeEventType,
-                                                                            options: serializerOptions,
-                                                                            cancellationToken: cancellationToken).ConfigureAwait(false);
+            var payload = await JsonSerializer.DeserializeAsync(stream, SC.Default.IotHubOperationalEventPayload, cancellationToken).ConfigureAwait(false)
+                       ?? throw new InvalidOperationException($"The payload of the event could not be deserialized to '{nameof(IotHubOperationalEventPayload)}'.");
 
-                var twinChangeOpEventType = typeof(IotHubOperationalEvent<>).MakeGenericType(mapped.TwinChangeEventType);
-                twinChange = Activator.CreateInstance(twinChangeOpEventType, new[] { hubName, deviceId, moduleId, type, operationTimestamp, twinChangeEvent, });
-            }
-            else if (source == IotHubEventMessageSource.DeviceLifecycleEvents)
+            opevent = new IotHubOperationalEvent
             {
-                var lifecycleEvent = await JsonSerializer.DeserializeAsync(utf8Json: stream,
-                                                                           returnType: mapped.LifecycleEventType,
-                                                                           options: serializerOptions,
-                                                                           cancellationToken: cancellationToken).ConfigureAwait(false);
+                HubName = hubName,
+                DeviceId = deviceId,
+                ModuleId = moduleId,
+                Type = type,
+                OperationTimestamp = operationTimestamp,
+                Payload = payload,
+            };
 
-                var lifecycleOpEventType = typeof(IotHubOperationalEvent<>).MakeGenericType(mapped.LifecycleEventType);
-                lifecycle = Activator.CreateInstance(lifecycleOpEventType, new[] { hubName, deviceId, moduleId, type, operationTimestamp, lifecycleEvent, });
-            }
-            else if (source == IotHubEventMessageSource.DeviceConnectionStateEvents)
-            {
-                var connectionStateEvent = await JsonSerializer.DeserializeAsync<IotHubDeviceConnectionStateEvent>(
-                    utf8Json: stream,
-                    options: serializerOptions,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                connectionState = new IotHubOperationalEvent<IotHubDeviceConnectionStateEvent>(
-                    hubName: hubName,
-                    deviceId: deviceId,
-                    moduleId: moduleId,
-                    type: type,
-                    operationTimestamp: operationTimestamp,
-                    @event: connectionStateEvent!);
-            }
+            //var @event = new IotHubEvent { Source = source, Event = opevent, };
         }
 
-        var args = new object?[] { source, telemetry, twinChange, lifecycle, connectionState, };
-        var @event = (T?)Activator.CreateInstance(targetType, args);
+        var @event = (T?)Activator.CreateInstance(targetType);
+        var ihe = @event as IotHubEvent ?? throw new InvalidOperationException($"The event of type '{targetType.FullName}' could not be cast to '{BaseType.FullName}'.");
+        ihe.Source = source;
+        ihe.Telemetry = telemetry;
+        ihe.Event = opevent;
         return new EventEnvelope<T> { Event = @event, };
     }
 
@@ -107,45 +85,5 @@ internal class IotHubEventSerializer : AbstractEventSerializer
                                                       CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException("Serialization of IotHub events is not allowed.");
-    }
-
-    private static MappedTypes GetTargetTypes([NotNull] Type givenType)
-    {
-        if (givenType is null) throw new ArgumentNullException(nameof(givenType));
-
-        var baseType = givenType.BaseType;
-        while (baseType is not null)
-        {
-            if (baseType.IsGenericType && baseType.GetGenericTypeDefinition() == BaseType)
-            {
-                var abstractOne = baseType.GenericTypeArguments.FirstOrDefault(t => t.IsAbstract);
-                if (abstractOne is not null)
-                {
-                    throw new InvalidOperationException($"Abstract type '{abstractOne.FullName}' on '{givenType.FullName}' is not supported for IotHub events.");
-                }
-
-                return new(telemetryType: baseType.GenericTypeArguments[0],
-                           twinChangeEventType: baseType.GenericTypeArguments[1],
-                           lifecycleEventType: baseType.GenericTypeArguments[2]);
-            }
-
-            baseType = baseType.BaseType;
-        }
-
-        throw new InvalidOperationException("Reached the end but could not get the inner types. This should not happen. Report it.");
-    }
-
-    private record MappedTypes
-    {
-        public MappedTypes(Type telemetryType, Type twinChangeEventType, Type lifecycleEventType)
-        {
-            TelemetryType = telemetryType ?? throw new ArgumentNullException(nameof(telemetryType));
-            TwinChangeEventType = twinChangeEventType ?? throw new ArgumentNullException(nameof(twinChangeEventType));
-            LifecycleEventType = lifecycleEventType ?? throw new ArgumentNullException(nameof(lifecycleEventType));
-        }
-
-        public Type TelemetryType { get; }
-        public Type TwinChangeEventType { get; }
-        public Type LifecycleEventType { get; }
     }
 }

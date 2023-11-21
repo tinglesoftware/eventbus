@@ -3,15 +3,7 @@ using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
 namespace MultipleDifferentTransports;
 
-internal record VehicleTelemetryEvent : IotHubEvent<VehicleTelemetry>
-{
-    public VehicleTelemetryEvent(IotHubEventMessageSource source,
-                                 VehicleTelemetry? telemetry,
-                                 IotHubOperationalEvent<IotHubDeviceTwinChangeEvent>? twinEvent,
-                                 IotHubOperationalEvent<IotHubDeviceLifecycleEvent>? lifecycleEvent,
-                                 IotHubOperationalEvent<IotHubDeviceConnectionStateEvent>? connectionStateEvent)
-        : base(source, telemetry, twinEvent, lifecycleEvent, connectionStateEvent) { }
-}
+internal record VehicleTelemetryEvent : IotHubEvent { }
 
 internal class VehicleTelemetry
 {

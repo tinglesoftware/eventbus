@@ -32,13 +32,11 @@ public static class AzureEventHubsEventRegistrationExtensions
     }
 
     /// <summary>
-    /// Use the serializer that supports <see cref="IotHubEvent{TDeviceTelemetry, TDeviceTwinChange, TDeviceLifecycle}"/>.
+    /// Use the serializer that supports <see cref="IotHubEvent"/>.
     /// </summary>
     /// <param name="registration">The <see cref="EventRegistration"/> to configure.</param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    [RequiresDynamicCode(MessageStrings.JsonSerializationRequiresDynamicCodeMessage)]
-    [RequiresUnreferencedCode(MessageStrings.JsonSerializationUnreferencedCodeMessage)]
     public static EventRegistration UseIotHubEventSerializer(this EventRegistration registration)
     {
         if (registration is null) throw new ArgumentNullException(nameof(registration));

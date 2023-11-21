@@ -16,10 +16,9 @@ internal class VehicleTelemetryEventsConsumer : IEventConsumer<VehicleTelemetryE
     public async Task ConsumeAsync(EventContext<VehicleTelemetryEvent> context, CancellationToken cancellationToken)
     {
         var evt = context.Event;
-        var source = evt.Source;
-        if (source != IotHubEventMessageSource.Telemetry) return;
+        if (!evt.IsTelemetry) return;
 
-        var telemetry = evt.Telemetry!;
+        var telemetry = evt.GetTelemetry<VehicleTelemetry>();
         var action = telemetry.Action;
         if (action is not "door-status-changed")
         {

@@ -40,9 +40,6 @@ internal class IotHubEventSerializer : AbstractEventSerializer
         if (source == IotHubEventMessageSource.Telemetry)
         {
             telemetry = await JsonNode.ParseAsync(utf8Json: stream, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            //var @event = new IotHubEvent { Source = source, Telemetry = telemetry, };
-            //return new EventEnvelope<T> { Event = @event, };
         }
         else if (source is IotHubEventMessageSource.TwinChangeEvents
                         or IotHubEventMessageSource.DeviceLifecycleEvents
@@ -67,11 +64,11 @@ internal class IotHubEventSerializer : AbstractEventSerializer
                 OperationTimestamp = operationTimestamp,
                 Payload = payload,
             };
-
-            //var @event = new IotHubEvent { Source = source, Event = opevent, };
         }
 
+#pragma warning disable IL2087
         var @event = (T?)Activator.CreateInstance(targetType);
+#pragma warning restore IL2087
         var ihe = @event as IotHubEvent ?? throw new InvalidOperationException($"The event of type '{targetType.FullName}' could not be cast to '{BaseType.FullName}'.");
         ihe.Source = source;
         ihe.Telemetry = telemetry;

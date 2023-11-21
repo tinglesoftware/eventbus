@@ -1,18 +1,15 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Tests.Configurator;
 
-public class DefaultEventBusConfiguratorTests
+public class MandatoryEventBusConfiguratorTests
 {
     [Fact]
     public void ConfigureSerializer_UsesDefault()
     {
-        var configuration = new ConfigurationBuilder().Build();
-        var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
-        var configurator = new DefaultEventBusConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
+        var configurator = new MandatoryEventBusConfigurator(new FakeHostEnvironment("app1"));
 
         // when not set, use default
         var registration = new EventRegistration(typeof(TestEvent1));
@@ -24,9 +21,7 @@ public class DefaultEventBusConfiguratorTests
     [Fact]
     public void ConfigureSerializer_RespectsAttribute()
     {
-        var configuration = new ConfigurationBuilder().Build();
-        var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
-        var configurator = new DefaultEventBusConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
+        var configurator = new MandatoryEventBusConfigurator(new FakeHostEnvironment("app1"));
 
         // attribute is respected
         var registration = new EventRegistration(typeof(TestEvent2));
@@ -38,9 +33,7 @@ public class DefaultEventBusConfiguratorTests
     [Fact]
     public void ConfigureSerializer_Throws_InvalidOperationException()
     {
-        var configuration = new ConfigurationBuilder().Build();
-        var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
-        var configurator = new DefaultEventBusConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
+        var configurator = new MandatoryEventBusConfigurator(new FakeHostEnvironment("app1"));
 
         // attribute is respected
         var registration = new EventRegistration(typeof(TestEvent3));
@@ -63,9 +56,7 @@ public class DefaultEventBusConfiguratorTests
     [InlineData(typeof(TestEvent2), true, "dev", NamingConvention.DotCase, "sample-event")]
     public void ConfigureEventName_Works(Type eventType, bool useFullTypeNames, string scope, NamingConvention namingConvention, string expected)
     {
-        var configuration = new ConfigurationBuilder().Build();
-        var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
-        var configurator = new DefaultEventBusConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
+        var configurator = new MandatoryEventBusConfigurator(new FakeHostEnvironment("app1"));
 
         var options = new EventBusOptions { };
         options.Naming.Scope = scope;
@@ -141,9 +132,7 @@ public class DefaultEventBusConfiguratorTests
                                       NamingConvention namingConvention,
                                       string expected)
     {
-        var configuration = new ConfigurationBuilder().Build();
-        var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
-        var configurator = new DefaultEventBusConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
+        var configurator = new MandatoryEventBusConfigurator(new FakeHostEnvironment("app1"));
 
         var options = new EventBusOptions { };
         options.Naming.Convention = namingConvention;
@@ -166,9 +155,7 @@ public class DefaultEventBusConfiguratorTests
     [InlineData(typeof(TestEvent3), EntityKind.Broadcast)]
     public void ConfigureEntityKind_Works(Type eventType, EntityKind? expected)
     {
-        var configuration = new ConfigurationBuilder().Build();
-        var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
-        var configurator = new DefaultEventBusConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
+        var configurator = new MandatoryEventBusConfigurator(new FakeHostEnvironment("app1"));
 
         var registration = new EventRegistration(eventType);
         configurator.ConfigureEntityKind(registration);

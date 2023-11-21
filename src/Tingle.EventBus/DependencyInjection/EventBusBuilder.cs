@@ -34,6 +34,7 @@ public class EventBusBuilder
         Services.TryAddSingleton<IEventBusConfigurationProvider, DefaultEventBusConfigurationProvider>();
         Services.TryAddSingleton<IEventIdGenerator, DefaultEventIdGenerator>();
         Services.TryAddTransient<IEventPublisher, EventPublisher>();
+        Services.AddSingleton<IEventBusConfigurator, MandatoryEventBusConfigurator>(); // can be multiple do not use TryAdd*(...)
     }
 
     /// <summary>

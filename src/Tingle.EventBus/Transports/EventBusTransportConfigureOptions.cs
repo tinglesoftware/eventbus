@@ -56,7 +56,7 @@ public abstract class EventBusTransportConfigureOptions<TOptions> : IConfigureNa
     /// <param name="options"></param>
     protected virtual void Configure(IConfiguration configuration, TOptions options)
     {
-        foreach (var cfg in configurators)
+        foreach (var cfg in configurators.Reverse())
         {
             cfg.Configure(configuration, options);
         }

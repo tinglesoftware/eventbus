@@ -27,7 +27,7 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
     /// <inheritdoc/>
     public void Configure(EventBusOptions options)
     {
-        foreach (var cfg in configurators)
+        foreach (var cfg in configurators.Reverse())
         {
             cfg.Configure(options);
         }
@@ -88,7 +88,7 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
         var registrations = options.Registrations.Values.ToList();
         foreach (var evr in registrations)
         {
-            foreach (var cfg in configurators)
+            foreach (var cfg in configurators.Reverse())
             {
                 cfg.Configure(evr, options);
             }

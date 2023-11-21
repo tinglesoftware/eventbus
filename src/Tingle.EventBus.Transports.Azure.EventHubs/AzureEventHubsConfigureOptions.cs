@@ -27,30 +27,30 @@ internal class AzureEventHubsConfigureOptions : AzureTransportConfigureOptions<A
 
         if (options.Credentials.CurrentValue is null)
         {
-            var fullyQualifiedNamespace = configuration.GetValue<string>(nameof(AzureEventHubsTransportCredentials.FullyQualifiedNamespace))
-                                       ?? configuration.GetValue<string>("Namespace");
+            var fullyQualifiedNamespace = configuration[nameof(AzureEventHubsTransportCredentials.FullyQualifiedNamespace)]
+                                       ?? configuration["Namespace"];
             if (fullyQualifiedNamespace is not null)
             {
                 options.Credentials = new AzureEventHubsTransportCredentials { FullyQualifiedNamespace = fullyQualifiedNamespace, };
             }
             else
             {
-                var connectionString = configuration.GetValue<string>("ConnectionString");
+                var connectionString = configuration["ConnectionString"];
                 if (connectionString is not null) options.Credentials = connectionString;
             }
         }
 
         if (options.BlobStorageCredentials.CurrentValue is null)
         {
-            var serviceUrl = configuration.GetValue<Uri>("BlobStorageServiceUrl")
-                          ?? configuration.GetValue<Uri>("BlobStorageEndpoint");
+            var serviceUrl = configuration["BlobStorageServiceUrl"]
+                          ?? configuration["BlobStorageEndpoint"];
             if (serviceUrl is not null)
             {
-                options.BlobStorageCredentials = new AzureBlobStorageCredentials { ServiceUrl = serviceUrl, };
+                options.BlobStorageCredentials = new AzureBlobStorageCredentials { ServiceUrl = new Uri(serviceUrl), };
             }
             else
             {
-                var connectionString = configuration.GetValue<string>("BlobStorageConnectionString");
+                var connectionString = configuration["BlobStorageConnectionString"];
                 if (connectionString is not null) options.BlobStorageCredentials = connectionString;
             }
         }

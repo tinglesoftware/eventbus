@@ -1,4 +1,5 @@
 ﻿using Azure.Messaging.EventHubs;
+using SC = Tingle.EventBus.Transports.Azure.EventHubs.IotHub.IotHubJsonSerializerContext;
 
 namespace Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
@@ -61,7 +62,7 @@ public static class IotHubEventDataExtensions
     {
         var json = data.GetIotHubConnectionAuthMethodRaw();
         if (string.IsNullOrEmpty(json)) return null;
-        return System.Text.Json.JsonSerializer.Deserialize<IotHubConnectionAuthMethod>(json);
+        return System.Text.Json.JsonSerializer.Deserialize(json, SC.Default.IotHubConnectionAuthMethod);
     }
 
     /// <summary>Gets the source for the IoT Hub message.</summary>

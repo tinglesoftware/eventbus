@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus.Transports.Azure.EventHubs;
 using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
 namespace Tingle.EventBus.Configuration;
@@ -36,6 +37,8 @@ public static class AzureEventHubsEventRegistrationExtensions
     /// <param name="registration">The <see cref="EventRegistration"/> to configure.</param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
+    [RequiresDynamicCode(MessageStrings.JsonSerializationRequiresDynamicCodeMessage)]
+    [RequiresUnreferencedCode(MessageStrings.JsonSerializationUnreferencedCodeMessage)]
     public static EventRegistration UseIotHubEventSerializer(this EventRegistration registration)
     {
         if (registration is null) throw new ArgumentNullException(nameof(registration));

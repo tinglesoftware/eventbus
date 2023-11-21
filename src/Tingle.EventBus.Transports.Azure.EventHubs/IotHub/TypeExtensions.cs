@@ -1,8 +1,10 @@
-﻿namespace System;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace System;
 
 internal static class TypeExtensions
 {
-    public static bool IsAssignableFromGeneric(this Type genericType, Type givenType)
+    public static bool IsAssignableFromGeneric(this Type genericType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type givenType)
     {
         var interfaceTypes = givenType.GetInterfaces();
 

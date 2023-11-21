@@ -47,7 +47,6 @@ public class EventBusBuilder
     public EventBusBuilder RegisterDefaultServices()
     {
         Services.AddSingleton<IEventBusConfigurator, DefaultEventBusConfigurator>(); // can be multiple do not use TryAdd*(...)
-        Services.AddSingleton<IEventConfigurator, DefaultEventConfigurator>(); // can be multiple do not use TryAdd*(...)
         UseDefaultSerializer<DefaultJsonEventSerializer>();
         return this;
     }

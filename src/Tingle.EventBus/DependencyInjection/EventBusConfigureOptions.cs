@@ -16,22 +16,18 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
                                           IValidateOptions<EventBusSerializationOptions>
 {
     private readonly IHostEnvironment environment;
-    private readonly IEnumerable<IEventBusConfigurator> busConfigurators;
-    private readonly IEnumerable<IEventConfigurator> eventConfigurators;
+    private readonly IEnumerable<IEventBusConfigurator> configurators;
 
-    public EventBusConfigureOptions(IHostEnvironment environment,
-                                    IEnumerable<IEventBusConfigurator> busConfigurators,
-                                    IEnumerable<IEventConfigurator> eventConfigurators)
+    public EventBusConfigureOptions(IHostEnvironment environment, IEnumerable<IEventBusConfigurator> configurators)
     {
         this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
-        this.busConfigurators = busConfigurators ?? throw new ArgumentNullException(nameof(busConfigurators));
-        this.eventConfigurators = eventConfigurators ?? throw new ArgumentNullException(nameof(eventConfigurators));
+        this.configurators = configurators ?? throw new ArgumentNullException(nameof(configurators));
     }
 
     /// <inheritdoc/>
     public void Configure(EventBusOptions options)
     {
-        foreach(var cfg in busConfigurators)
+        foreach (var cfg in configurators)
         {
             cfg.Configure(options);
         }
@@ -92,7 +88,7 @@ internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
         var registrations = options.Registrations.Values.ToList();
         foreach (var evr in registrations)
         {
-            foreach (var cfg in eventConfigurators)
+            foreach (var cfg in configurators)
             {
                 cfg.Configure(evr, options);
             }

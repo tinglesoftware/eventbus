@@ -16,7 +16,7 @@ namespace Tingle.EventBus;
 public class EventBus
 {
     private readonly IEventIdGenerator idGenerator;
-    private readonly IList<IEventConfigurator> configurators;
+    private readonly IList<IEventBusConfigurator> configurators;
     private readonly EventBusOptions options;
     private readonly ILogger logger;
 
@@ -32,7 +32,7 @@ public class EventBus
     /// <param name="loggerFactory"></param>
     public EventBus(EventBusTransportProvider transportProvider,
                     IEventIdGenerator idGenerator,
-                    IEnumerable<IEventConfigurator> configurators,
+                    IEnumerable<IEventBusConfigurator> configurators,
                     IOptions<EventBusOptions> optionsAccessor,
                     ILoggerFactory loggerFactory)
     {

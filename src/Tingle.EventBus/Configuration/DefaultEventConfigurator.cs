@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Diagnostics.CodeAnalysis;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Configuration;
@@ -8,6 +9,8 @@ namespace Tingle.EventBus.Configuration;
 /// <summary>
 /// Default implementation of <see cref="IEventConfigurator"/>.
 /// </summary>
+[RequiresDynamicCode(MessageStrings.BindingDynamicCodeMessage)]
+[RequiresUnreferencedCode(MessageStrings.BindingUnreferencedCodeMessage)]
 internal class DefaultEventConfigurator : IEventConfigurator
 {
     private readonly IHostEnvironment environment;

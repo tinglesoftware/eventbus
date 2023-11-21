@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Mime;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
@@ -391,11 +392,11 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
         }
     }
 
-    private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
-                                                                 EventConsumerRegistration ecr,
-                                                                 string queueUrl,
-                                                                 Message message,
-                                                                 CancellationToken cancellationToken)
+    private async Task OnMessageReceivedAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration reg,
+                                                                                                                   EventConsumerRegistration ecr,
+                                                                                                                   string queueUrl,
+                                                                                                                   Message message,
+                                                                                                                   CancellationToken cancellationToken)
         where TEvent : class
         where TConsumer : IEventConsumer
     {

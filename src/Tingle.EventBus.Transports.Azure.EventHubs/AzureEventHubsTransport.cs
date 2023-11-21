@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Mime;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
@@ -365,10 +366,10 @@ public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransport
         return processorsCache.GetOrAddAsync(key, creator, cancellationToken);
     }
 
-    private async Task OnEventReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
-                                                               EventConsumerRegistration ecr,
-                                                               EventProcessorClient processor,
-                                                               ProcessEventArgs args)
+    private async Task OnEventReceivedAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration reg,
+                                                                                                                 EventConsumerRegistration ecr,
+                                                                                                                 EventProcessorClient processor,
+                                                                                                                 ProcessEventArgs args)
         where TEvent : class
         where TConsumer : IEventConsumer
     {

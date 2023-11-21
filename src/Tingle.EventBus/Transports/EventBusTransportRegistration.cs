@@ -1,4 +1,7 @@
-﻿namespace Tingle.EventBus.Transports;
+﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus.Internal;
+
+namespace Tingle.EventBus.Transports;
 
 /// <summary>TransportRegistrations assign a name to a specific <see cref="IEventBusTransport"/>
 /// transportType.
@@ -33,5 +36,6 @@ public class EventBusTransportRegistration
     public string? DisplayName { get; }
 
     /// <summary>The <see cref="IEventBusTransport"/> type that is registered.</summary>
+    [DynamicallyAccessedMembers(TrimmingHelper.Transport)]
     public Type TransportType { get; }
 }

@@ -26,15 +26,15 @@ internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<
 
         if (options.Credentials.CurrentValue is null)
         {
-            var fullyQualifiedNamespace = configuration.GetValue<string>(nameof(AzureServiceBusTransportCredentials.FullyQualifiedNamespace))
-                                       ?? configuration.GetValue<string>("Namespace");
+            var fullyQualifiedNamespace = configuration[nameof(AzureServiceBusTransportCredentials.FullyQualifiedNamespace)]
+                                       ?? configuration["Namespace"];
             if (fullyQualifiedNamespace is not null)
             {
                 options.Credentials = new AzureServiceBusTransportCredentials { FullyQualifiedNamespace = fullyQualifiedNamespace };
             }
             else
             {
-                var connectionString = configuration.GetValue<string>("ConnectionString");
+                var connectionString = configuration["ConnectionString"];
                 if (connectionString is not null) options.Credentials = connectionString;
             }
         }

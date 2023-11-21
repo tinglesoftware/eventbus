@@ -242,7 +242,7 @@ public class EventBus
             // at this point, the registration does not exist;
             // create it and pass it through all the configurators.
             var registration = new EventRegistration(et);
-            foreach (var cfg in configurators)
+            foreach (var cfg in configurators.Reverse())
             {
                 cfg.Configure(registration, options);
             }

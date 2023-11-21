@@ -26,15 +26,15 @@ internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOption
 
         if (options.Credentials.CurrentValue is null)
         {
-            var serviceUrl = configuration.GetValue<Uri>(nameof(AzureQueueStorageTransportCredentials.ServiceUrl))
-                          ?? configuration.GetValue<Uri>("Endpoint");
+            var serviceUrl = configuration[nameof(AzureQueueStorageTransportCredentials.ServiceUrl)]
+                          ?? configuration["Endpoint"];
             if (serviceUrl is not null)
             {
-                options.Credentials = new AzureQueueStorageTransportCredentials { ServiceUrl = serviceUrl };
+                options.Credentials = new AzureQueueStorageTransportCredentials { ServiceUrl = new Uri(serviceUrl) };
             }
             else
             {
-                var connectionString = configuration.GetValue<string>("ConnectionString");
+                var connectionString = configuration["ConnectionString"];
                 if (connectionString is not null) options.Credentials = connectionString;
             }
         }

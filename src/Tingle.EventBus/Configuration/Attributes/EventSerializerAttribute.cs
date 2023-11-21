@@ -16,7 +16,7 @@ public sealed class EventSerializerAttribute : Attribute
     /// The type of serializer to use for the event type.
     /// It must implement <see cref="Serialization.IEventSerializer"/>.
     /// </param>
-    public EventSerializerAttribute(Type serializerType)
+    public EventSerializerAttribute([DynamicallyAccessedMembers(TrimmingHelper.Serializer)] Type serializerType)
     {
         SerializerType = serializerType ?? throw new ArgumentNullException(nameof(serializerType));
 

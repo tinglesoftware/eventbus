@@ -35,7 +35,6 @@ public class EventBusBuilder
         Services.TryAddSingleton<IEventBusConfigurationProvider, DefaultEventBusConfigurationProvider>();
         Services.TryAddSingleton<IEventIdGenerator, DefaultEventIdGenerator>();
         Services.TryAddTransient<IEventPublisher, EventPublisher>();
-        UseDefaultSerializer<DefaultJsonEventSerializer>();
     }
 
     /// <summary>
@@ -140,6 +139,40 @@ public class EventBusBuilder
     {
         Services.AddSingleton<IEventSerializer, TEventSerializer>();
         return this;
+    }
+
+    /// <summary>
+    /// Setup the default serializer to use when serializing events to and from the EventBus transport.
+    /// </summary>
+    /// <typeparam name="TEventSerializer"></typeparam>
+    /// <param name="implementationFactory">The factory that creates the service.</param>
+    /// <returns></returns>
+    public EventBusBuilder UseDefaultSerializer<TEventSerializer>(Func<IServiceProvider, TEventSerializer> implementationFactory)
+        where TEventSerializer : class, IEventSerializer
+    {
+        Services.AddSingleton<IEventSerializer>(implementationFactory);
+        return this;
+    }
+
+    /// <summary>
+    /// Use <see cref="DefaultJsonEventSerializer"/> as the default serializer to use when serializing events to and from the EventBus transport.
+    /// For trimmable serialization, use <see cref="UseDefaultJsonSerializerTrimmable(System.Text.Json.Serialization.JsonSerializerContext)"/>.
+    /// </summary>
+    /// <returns></returns>
+    [RequiresDynamicCode(MessageStrings.JsonSerializationRequiresDynamicCodeMessage)]
+    [RequiresUnreferencedCode(MessageStrings.JsonSerializationUnreferencedCodeMessage)]
+    public EventBusBuilder UseDefaultJsonSerializer() => UseDefaultSerializer<DefaultJsonEventSerializer>();
+
+    /// <summary>
+    /// Use <see cref="DefaultJsonEventSerializerTrimmable"/> as the default serializer to use when serializing events to and from the EventBus transport.
+    /// This serializer support trimming.
+    /// </summary>
+    /// <param name="context">The <see cref="System.Text.Json.Serialization.JsonSerializerContext"/> instance to use.</param>
+    /// <returns></returns>
+    public EventBusBuilder UseDefaultJsonSerializerTrimmable(System.Text.Json.Serialization.JsonSerializerContext context)
+    {
+        if (context is null) throw new ArgumentNullException(nameof(context));
+        return UseDefaultSerializer(provider => ActivatorUtilities.CreateInstance<DefaultJsonEventSerializerTrimmable>(provider, [context]));
     }
 
     /// <summary>

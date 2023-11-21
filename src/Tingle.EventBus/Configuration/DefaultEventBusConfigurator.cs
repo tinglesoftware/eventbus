@@ -10,7 +10,7 @@ namespace Tingle.EventBus.Configuration;
 /// </summary>
 [RequiresDynamicCode(MessageStrings.BindingDynamicCodeMessage)]
 [RequiresUnreferencedCode(MessageStrings.BindingUnreferencedCodeMessage)]
-public class DefaultEventBusConfigurator : IEventBusConfigurator
+internal class DefaultEventBusConfigurator : IEventBusConfigurator
 {
     private readonly IEventBusConfigurationProvider configurationProvider;
 

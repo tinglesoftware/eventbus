@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Mime;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
@@ -506,10 +507,10 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
         return TimeSpan.FromTicks(ticks);
     }
 
-    private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
-                                                                 EventConsumerRegistration ecr,
-                                                                 ServiceBusProcessor processor,
-                                                                 ProcessMessageEventArgs args)
+    private async Task OnMessageReceivedAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration reg,
+                                                                                                                   EventConsumerRegistration ecr,
+                                                                                                                   ServiceBusProcessor processor,
+                                                                                                                   ProcessMessageEventArgs args)
         where TEvent : class
         where TConsumer : IEventConsumer
     {

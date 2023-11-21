@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Mime;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
@@ -322,10 +323,10 @@ public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
         return processorsCache.GetOrAddAsync(key, creator, cancellationToken);
     }
 
-    private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
-                                                                 EventConsumerRegistration ecr,
-                                                                 InMemoryProcessor processor,
-                                                                 ProcessMessageEventArgs args)
+    private async Task OnMessageReceivedAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration reg,
+                                                                                                                   EventConsumerRegistration ecr,
+                                                                                                                   InMemoryProcessor processor,
+                                                                                                                   ProcessMessageEventArgs args)
         where TEvent : class
         where TConsumer : IEventConsumer
     {

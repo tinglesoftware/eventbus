@@ -14,16 +14,19 @@ public abstract class EventBusTransportConfigureOptions<TOptions> : IConfigureNa
     where TOptions : EventBusTransportOptions
 {
     private readonly IEventBusConfigurationProvider configurationProvider;
+    private readonly IEnumerable<IEventBusConfigurator> configurators;
 
     /// <summary>
     /// Initializes a new <see cref="EventBusTransportConfigureOptions{TOptions}"/> given the configuration
     /// provided by the <paramref name="configurationProvider"/>.
     /// </summary>
-    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
-    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
-    public EventBusTransportConfigureOptions(IEventBusConfigurationProvider configurationProvider, IOptions<EventBusOptions> busOptionsAccessor)
+    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>
+    /// <param name="configurators">A list of <see cref="IEventBusConfigurator"/> to use when configuring options.</param>
+    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>
+    public EventBusTransportConfigureOptions(IEventBusConfigurationProvider configurationProvider, IEnumerable<IEventBusConfigurator> configurators, IOptions<EventBusOptions> busOptionsAccessor)
     {
         this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
+        this.configurators = configurators ?? throw new ArgumentNullException(nameof(configurators));
         BusOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
     }
 
@@ -53,7 +56,10 @@ public abstract class EventBusTransportConfigureOptions<TOptions> : IConfigureNa
     /// <param name="options"></param>
     protected virtual void Configure(IConfiguration configuration, TOptions options)
     {
-        configuration.Bind(options);
+        foreach (var cfg in configurators)
+        {
+            cfg.Configure(configuration, options);
+        }
     }
 
     /// <inheritdoc/>

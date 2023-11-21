@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Internal;
@@ -292,12 +293,12 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
         }
     }
 
-    private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
-                                                                 EventConsumerRegistration ecr,
-                                                                 QueueClient queueClient,
-                                                                 QueueMessage message,
-                                                                 IServiceScope scope,
-                                                                 CancellationToken cancellationToken)
+    private async Task OnMessageReceivedAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration reg,
+                                                                                                                   EventConsumerRegistration ecr,
+                                                                                                                   QueueClient queueClient,
+                                                                                                                   QueueMessage message,
+                                                                                                                   IServiceScope scope,
+                                                                                                                   CancellationToken cancellationToken)
         where TEvent : class
         where TConsumer : IEventConsumer
     {

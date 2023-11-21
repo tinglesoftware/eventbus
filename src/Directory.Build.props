@@ -6,6 +6,7 @@
     <TargetFrameworks>netstandard2.1;net6.0;net7.0;net8.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Deterministic>true</Deterministic>
+    <IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">true</IsTrimmable>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -37,6 +38,10 @@
 
   <ItemGroup>
     <PackageReference Include="Polyfill " Version="1.32.1" PrivateAssets="All"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)\..\shared\TrimmingHelper.cs" Link="Shared\TrimmingHelper.cs" />
   </ItemGroup>
 
 </Project>

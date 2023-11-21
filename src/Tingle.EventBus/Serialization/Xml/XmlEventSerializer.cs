@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
 
 namespace Tingle.EventBus.Serialization.Xml;
@@ -8,6 +9,7 @@ namespace Tingle.EventBus.Serialization.Xml;
 /// <summary>
 /// The default implementation of <see cref="IEventSerializer"/> for XML.
 /// </summary>
+[RequiresUnreferencedCode(MessageStrings.XmlSerializationUnreferencedCodeMessage)]
 public class XmlEventSerializer : AbstractEventSerializer
 {
     /// <summary>

@@ -1,4 +1,6 @@
 ﻿using Polly;
+using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus.Internal;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Configuration;
@@ -20,6 +22,7 @@ public class EventRegistration : IEquatable<EventRegistration?>
     /// <summary>
     /// The type of event handled.
     /// </summary>
+    [DynamicallyAccessedMembers(TrimmingHelper.Event)] 
     public Type EventType { get; }
 
     /// <summary>
@@ -48,6 +51,7 @@ public class EventRegistration : IEquatable<EventRegistration?>
     /// The type used for serializing and deserializing events.
     /// This type must implement <see cref="IEventSerializer"/>.
     /// </summary>
+    [DynamicallyAccessedMembers(TrimmingHelper.Serializer)]
     public Type? EventSerializerType { get; set; }
 
     /// <summary>

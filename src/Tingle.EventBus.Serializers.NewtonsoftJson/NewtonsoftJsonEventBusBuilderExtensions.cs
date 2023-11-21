@@ -1,10 +1,12 @@
-﻿using Tingle.EventBus.Serializers;
+﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus.Serializers;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// Extension methods on <see cref="EventBusBuilder"/> for NewtonsoftJson serializer.
 /// </summary>
+[RequiresUnreferencedCode(MessageStrings.UnreferencedCodeMessage)]
 public static class NewtonsoftJsonEventBusBuilderExtensions
 {
     /// <summary>

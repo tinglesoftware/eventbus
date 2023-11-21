@@ -4,9 +4,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Mime;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Internal;
 
 namespace Tingle.EventBus.Transports.Kafka;
 
@@ -268,10 +270,10 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
         }
     }
 
-    private async Task OnEventReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
-                                                               EventConsumerRegistration ecr,
-                                                               ConsumeResult<string, byte[]> result,
-                                                               CancellationToken cancellationToken)
+    private async Task OnEventReceivedAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration reg,
+                                                                                                                 EventConsumerRegistration ecr,
+                                                                                                                 ConsumeResult<string, byte[]> result,
+                                                                                                                 CancellationToken cancellationToken)
         where TEvent : class
         where TConsumer : IEventConsumer
     {

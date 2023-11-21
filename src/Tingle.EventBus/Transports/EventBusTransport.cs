@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Mime;
 using System.Text.RegularExpressions;
 using Tingle.EventBus.Configuration;
@@ -329,11 +330,11 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     /// <param name="scope">The scope in which to resolve required services.</param>
     /// <returns>An <see cref="EventConsumeResult"/> representing the state of the action.</returns>
     /// <param name="cancellationToken"></param>
-    protected async Task<EventConsumeResult> ConsumeAsync<TEvent, TConsumer>(EventRegistration registration,
-                                                                             EventConsumerRegistration ecr,
-                                                                             EventContext @event,
-                                                                             IServiceScope scope,
-                                                                             CancellationToken cancellationToken)
+    protected async Task<EventConsumeResult> ConsumeAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration registration,
+                                                                                                                               EventConsumerRegistration ecr,
+                                                                                                                               EventContext @event,
+                                                                                                                               IServiceScope scope,
+                                                                                                                               CancellationToken cancellationToken)
         where TConsumer : IEventConsumer
         where TEvent : class
     {

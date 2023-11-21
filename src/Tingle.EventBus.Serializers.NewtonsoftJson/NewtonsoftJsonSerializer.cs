@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Tingle.EventBus.Serialization;
 
@@ -10,6 +11,7 @@ namespace Tingle.EventBus.Serializers;
 /// <summary>
 /// Implementation of <see cref="IEventSerializer"/> that uses <c>Newtonsoft.Json</c>.
 /// </summary>
+[RequiresUnreferencedCode(MessageStrings.UnreferencedCodeMessage)]
 public class NewtonsoftJsonSerializer : AbstractEventSerializer
 {
     private readonly JsonSerializer serializer;

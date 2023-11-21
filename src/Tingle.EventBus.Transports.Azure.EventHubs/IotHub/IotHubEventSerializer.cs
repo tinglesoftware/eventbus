@@ -9,6 +9,8 @@ using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
+[RequiresDynamicCode(MessageStrings.JsonSerializationRequiresDynamicCodeMessage)]
+[RequiresUnreferencedCode(MessageStrings.JsonSerializationUnreferencedCodeMessage)]
 internal class IotHubEventSerializer : AbstractEventSerializer
 {
     private static readonly Type BaseType = typeof(IotHubEvent<,,>);

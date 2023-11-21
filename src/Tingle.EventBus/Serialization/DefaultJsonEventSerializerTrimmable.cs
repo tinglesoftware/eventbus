@@ -1,26 +1,31 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Tingle.EventBus.Serialization;
 
 /// <summary>
 /// The default implementation of <see cref="IEventSerializer"/> for JSON using the <c>System.Text.Json</c> library.
 /// </summary>
-[RequiresDynamicCode(MessageStrings.JsonSerializationRequiresDynamicCodeMessage)]
-[RequiresUnreferencedCode(MessageStrings.JsonSerializationUnreferencedCodeMessage)]
-public class DefaultJsonEventSerializer : AbstractEventSerializer
+public class DefaultJsonEventSerializerTrimmable : AbstractEventSerializer
 {
+    private readonly JsonSerializerContext serializerContext;
+
     /// <summary>
-    /// Creates an instance of <see cref="DefaultJsonEventSerializer"/>.
+    /// Creates an instance of <see cref="DefaultJsonEventSerializerTrimmable"/>.
     /// </summary>
+    /// <param name="serializerContext">The <see cref="System.Text.Json.Serialization.JsonSerializerContext"/> instance to use.</param>
     /// <param name="optionsAccessor">The options for configuring the serializer.</param>
     /// <param name="loggerFactory"></param>
-    public DefaultJsonEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
-                                      ILoggerFactory loggerFactory)
-        : base(optionsAccessor, loggerFactory) { }
+    public DefaultJsonEventSerializerTrimmable(JsonSerializerContext serializerContext,
+                                               IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
+                                               ILoggerFactory loggerFactory)
+        : base(optionsAccessor, loggerFactory)
+    {
+        this.serializerContext = serializerContext ?? throw new ArgumentNullException(nameof(serializerContext));
+    }
 
     /// <inheritdoc/>
     protected override IList<string> SupportedMediaTypes => JsonContentTypes;
@@ -30,10 +35,10 @@ public class DefaultJsonEventSerializer : AbstractEventSerializer
                                                                                     DeserializationContext context,
                                                                                     CancellationToken cancellationToken = default)
     {
-        var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;
-        return await JsonSerializer.DeserializeAsync<EventEnvelope<T>>(utf8Json: stream,
-                                                                       options: serializerOptions,
-                                                                       cancellationToken: cancellationToken).ConfigureAwait(false);
+        return (EventEnvelope<T>?)await JsonSerializer.DeserializeAsync(utf8Json: stream,
+                                                                        returnType: typeof(EventEnvelope<T>),
+                                                                        context: serializerContext,
+                                                                        cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -41,10 +46,10 @@ public class DefaultJsonEventSerializer : AbstractEventSerializer
                                                             EventEnvelope<T> envelope,
                                                             CancellationToken cancellationToken = default)
     {
-        var serializerOptions = OptionsAccessor.CurrentValue.SerializerOptions;
         await JsonSerializer.SerializeAsync(utf8Json: stream,
                                             value: envelope,
-                                            options: serializerOptions,
+                                            inputType: typeof(EventEnvelope<T>),
+                                            context: serializerContext,
                                             cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 }

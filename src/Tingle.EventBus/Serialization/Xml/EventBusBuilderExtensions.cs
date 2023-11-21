@@ -1,4 +1,6 @@
-﻿using Tingle.EventBus.Serialization.Xml;
+﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus;
+using Tingle.EventBus.Serialization.Xml;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +15,7 @@ public static class EventBusBuilderExtensions
     /// <param name="builder"></param>
     /// <param name="configure"></param>
     /// <returns></returns>
+    [RequiresUnreferencedCode(MessageStrings.XmlSerializationUnreferencedCodeMessage)]
     public static EventBusBuilder UseDefaultXmlSerializer(this EventBusBuilder builder,
                                                           Action<XmlEventSerializerOptions>? configure = null)
     {

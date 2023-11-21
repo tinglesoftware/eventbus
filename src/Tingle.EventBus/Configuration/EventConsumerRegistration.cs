@@ -1,4 +1,7 @@
-﻿namespace Tingle.EventBus.Configuration;
+﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus.Internal;
+
+namespace Tingle.EventBus.Configuration;
 
 /// <summary>
 /// Represents a registration for a consumer of an event.
@@ -19,6 +22,7 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration?>
     /// <summary>
     /// The type of consumer handling the event.
     /// </summary>
+    [DynamicallyAccessedMembers(TrimmingHelper.Consumer)]
     public Type ConsumerType { get; }
 
     /// <summary>

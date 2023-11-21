@@ -7,6 +7,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Mime;
 using System.Net.Sockets;
 using Tingle.EventBus.Configuration;
@@ -282,11 +283,11 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
         }
     }
 
-    private async Task OnMessageReceivedAsync<TEvent, TConsumer>(EventRegistration reg,
-                                                                 EventConsumerRegistration ecr,
-                                                                 IModel channel,
-                                                                 BasicDeliverEventArgs args,
-                                                                 CancellationToken cancellationToken)
+    private async Task OnMessageReceivedAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration reg,
+                                                                                                                   EventConsumerRegistration ecr,
+                                                                                                                   IModel channel,
+                                                                                                                   BasicDeliverEventArgs args,
+                                                                                                                   CancellationToken cancellationToken)
         where TEvent : class
         where TConsumer : IEventConsumer
     {

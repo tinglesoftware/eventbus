@@ -1,4 +1,7 @@
-﻿namespace Tingle.EventBus.Configuration;
+﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus.Internal;
+
+namespace Tingle.EventBus.Configuration;
 
 /// <summary>
 /// Specify the serializer type used for an event contract/type, overriding the default one.
@@ -13,7 +16,7 @@ public sealed class EventSerializerAttribute : Attribute
     /// The type of serializer to use for the event type.
     /// It must implement <see cref="Serialization.IEventSerializer"/>.
     /// </param>
-    public EventSerializerAttribute(Type serializerType)
+    public EventSerializerAttribute([DynamicallyAccessedMembers(TrimmingHelper.Serializer)] Type serializerType)
     {
         SerializerType = serializerType ?? throw new ArgumentNullException(nameof(serializerType));
 
@@ -23,5 +26,6 @@ public sealed class EventSerializerAttribute : Attribute
     /// <summary>
     /// The type of serializer to be used.
     /// </summary>
+    [DynamicallyAccessedMembers(TrimmingHelper.Serializer)]
     public Type SerializerType { get; }
 }

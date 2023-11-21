@@ -42,6 +42,15 @@ public class EventBusBuilder
     /// </summary>
     public IServiceCollection Services { get; }
 
+    /// <summary>Register default services for the EventBus.</summary>
+    [RequiresDynamicCode(MessageStrings.RequiresDynamicCodeMessage)]
+    [RequiresUnreferencedCode(MessageStrings.RequiresUnreferencedCodeMessage)]
+    public EventBusBuilder RegisterDefaultServices()
+    {
+        UseDefaultSerializer<DefaultJsonEventSerializer>();
+        return this;
+    }
+
     /// <summary>Configure options for the EventBus.</summary>
     /// <param name="configure"></param>
     /// <returns></returns>
@@ -155,15 +164,6 @@ public class EventBusBuilder
     }
 
     /// <summary>
-    /// Use <see cref="DefaultJsonEventSerializer"/> as the default serializer to use when serializing events to and from the EventBus transport.
-    /// For trimmable serialization, use <see cref="UseDefaultJsonSerializerTrimmable(System.Text.Json.Serialization.JsonSerializerContext)"/>.
-    /// </summary>
-    /// <returns></returns>
-    [RequiresDynamicCode(MessageStrings.JsonSerializationRequiresDynamicCodeMessage)]
-    [RequiresUnreferencedCode(MessageStrings.JsonSerializationUnreferencedCodeMessage)]
-    public EventBusBuilder UseDefaultJsonSerializer() => UseDefaultSerializer<DefaultJsonEventSerializer>();
-
-    /// <summary>
     /// Use <see cref="DefaultJsonEventSerializerTrimmable"/> as the default serializer to use when serializing events to and from the EventBus transport.
     /// This serializer support trimming.
     /// </summary>
@@ -172,6 +172,7 @@ public class EventBusBuilder
     public EventBusBuilder UseDefaultJsonSerializerTrimmable(System.Text.Json.Serialization.JsonSerializerContext context)
     {
         if (context is null) throw new ArgumentNullException(nameof(context));
+
         return UseDefaultSerializer(provider => ActivatorUtilities.CreateInstance<DefaultJsonEventSerializerTrimmable>(provider, [context]));
     }
 

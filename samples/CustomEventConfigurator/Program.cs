@@ -17,7 +17,7 @@ var host = Host.CreateDefaultBuilder(args)
 
                        // Setup extra configurators
                        // You can have as many as you like, these are called after the default one.
-                       builder.Services.AddSingleton<IEventConfigurator, MyConfigurator>();
+                       builder.Services.AddSingleton<IEventBusConfigurator, MyConfigurator>();
 
                        // Transport specific configuration
                        builder.AddAzureQueueStorageTransport(o => o.Credentials = "UseDevelopmentStorage=true;");

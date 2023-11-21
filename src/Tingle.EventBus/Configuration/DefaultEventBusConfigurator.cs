@@ -8,19 +8,31 @@ using Tingle.EventBus.Transports;
 namespace Tingle.EventBus.Configuration;
 
 /// <summary>
-/// Default implementation of <see cref="IEventConfigurator"/>.
+/// Default implementation of <see cref="IEventBusConfigurator"/>.
 /// </summary>
 [RequiresDynamicCode(MessageStrings.BindingDynamicCodeMessage)]
 [RequiresUnreferencedCode(MessageStrings.BindingUnreferencedCodeMessage)]
-internal class DefaultEventConfigurator : IEventConfigurator
+internal class DefaultEventBusConfigurator : IEventBusConfigurator
 {
     private readonly IHostEnvironment environment;
     private readonly IEventBusConfigurationProvider configurationProvider;
 
-    public DefaultEventConfigurator(IHostEnvironment environment, IEventBusConfigurationProvider configurationProvider)
+    public DefaultEventBusConfigurator(IHostEnvironment environment, IEventBusConfigurationProvider configurationProvider)
     {
         this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
         this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
+    }
+
+    /// <inheritdoc/>
+    public void Configure(EventBusOptions options)
+    {
+        configurationProvider.Configuration.Bind(options);
+    }
+
+    /// <inheritdoc/>
+    public void Configure<TOptions>(IConfiguration configuration, TOptions options) where TOptions : EventBusTransportOptions
+    {
+        configuration.Bind(options);
     }
 
     /// <inheritdoc/>
@@ -163,30 +175,5 @@ internal class DefaultEventConfigurator : IEventConfigurator
             throw new InvalidOperationException($"The type '{reg.EventSerializerType.FullName}' is used as a serializer "
                                               + $"but does not implement '{typeof(IEventSerializer).FullName}'");
         }
-    }
-}
-
-/// <summary>
-/// Default implementation of <see cref="IEventBusConfigurator"/>.
-/// </summary>
-[RequiresDynamicCode(MessageStrings.BindingDynamicCodeMessage)]
-[RequiresUnreferencedCode(MessageStrings.BindingUnreferencedCodeMessage)]
-internal class DefaultEventBusConfigurator : IEventBusConfigurator
-{
-    private readonly IEventBusConfigurationProvider configurationProvider;
-
-    public DefaultEventBusConfigurator(IEventBusConfigurationProvider configurationProvider)
-    {
-        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
-    }
-
-    public void Configure(EventBusOptions options)
-    {
-        configurationProvider.Configuration.Bind(options);
-    }
-
-    public void Configure<TOptions>(IConfiguration configuration, TOptions options) where TOptions : EventBusTransportOptions
-    {
-        configuration.Bind(options);
     }
 }

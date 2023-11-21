@@ -5,14 +5,14 @@ using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus.Tests.Configurator;
 
-public class DefaultEventConfiguratorTests
+public class DefaultEventBusConfiguratorTests
 {
     [Fact]
     public void ConfigureSerializer_UsesDefault()
     {
         var configuration = new ConfigurationBuilder().Build();
         var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
+        var configurator = new DefaultEventBusConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
 
         // when not set, use default
         var registration = new EventRegistration(typeof(TestEvent1));
@@ -26,7 +26,7 @@ public class DefaultEventConfiguratorTests
     {
         var configuration = new ConfigurationBuilder().Build();
         var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
+        var configurator = new DefaultEventBusConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
 
         // attribute is respected
         var registration = new EventRegistration(typeof(TestEvent2));
@@ -40,7 +40,7 @@ public class DefaultEventConfiguratorTests
     {
         var configuration = new ConfigurationBuilder().Build();
         var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
+        var configurator = new DefaultEventBusConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
 
         // attribute is respected
         var registration = new EventRegistration(typeof(TestEvent3));
@@ -65,7 +65,7 @@ public class DefaultEventConfiguratorTests
     {
         var configuration = new ConfigurationBuilder().Build();
         var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
+        var configurator = new DefaultEventBusConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
 
         var options = new EventBusOptions { };
         options.Naming.Scope = scope;
@@ -143,7 +143,7 @@ public class DefaultEventConfiguratorTests
     {
         var configuration = new ConfigurationBuilder().Build();
         var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
+        var configurator = new DefaultEventBusConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
 
         var options = new EventBusOptions { };
         options.Naming.Convention = namingConvention;
@@ -168,7 +168,7 @@ public class DefaultEventConfiguratorTests
     {
         var configuration = new ConfigurationBuilder().Build();
         var configurationProvider = new DefaultEventBusConfigurationProvider(configuration);
-        var configurator = new DefaultEventConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
+        var configurator = new DefaultEventBusConfigurator(new FakeHostEnvironment("app1"), configurationProvider);
 
         var registration = new EventRegistration(eventType);
         configurator.ConfigureEntityKind(registration);

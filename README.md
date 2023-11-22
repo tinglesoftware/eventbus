@@ -4,7 +4,7 @@
 ![Nuget](https://img.shields.io/nuget/dt/Tingle.EventBus)
 [![GitHub Workflow Status](https://github.com/tinglesoftware/eventbus/actions/workflows/release.yml/badge.svg)](https://github.com/tinglesoftware/eventbus/actions/workflows/release.yml)
 [![Dependabot](https://badgen.net/badge/Dependabot/enabled/green?icon=dependabot)](https://dependabot.com/)
-[![license](https://img.shields.io/github/license/tinglesoftware/eventbus.svg?style=flat-square)](LICENSE)
+[![license](https://img.shields.io/github/license/tinglesoftware/eventbus.svg)](LICENSE)
 
 This repository contains the code for the `Tingle.EventBus` libraries. This project exists so as to simplify the amount of work required to add events to .NET projects. The existing libraries seem to have numerous complexities in setup especially when it comes to the use of framework concepts like dependency injection and options configuration. At [Tingle Software](https://tingle.software), we use this for all our event-driven architecture that is based on .NET
 

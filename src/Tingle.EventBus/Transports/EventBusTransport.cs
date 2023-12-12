@@ -78,14 +78,14 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         /*
-         * Set the retry policy and unhandled error behaviour if not set.
+         * Set the resilience pipeline and unhandled error behaviour if not set.
          * Give priority to the transport default then the bus default.
         */
         var registrations = GetRegistrations();
         foreach (var reg in registrations)
         {
-            // Combine the retry policies
-            PollyHelper.CombineIfNeeded(BusOptions, Options, reg);
+            // Combine the resilience pipelines
+            ResiliencePipelineHelper.CombineIfNeeded(BusOptions, Options, reg);
 
             foreach (var ecr in reg.Consumers)
             {
@@ -136,12 +136,12 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                                                                      CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        // publish, with resilience policies
+        // publish, with resilience pipelines
         await WaitStartedAsync(cancellationToken).ConfigureAwait(false);
-        PollyHelper.CombineIfNeeded(BusOptions, Options, registration); // ensure policy is set for non-consumer events
+        ResiliencePipelineHelper.CombineIfNeeded(BusOptions, Options, registration); // ensure pipeline is set for non-consumer events
         Logger.SendingEvent(eventBusId: @event.Id, transportName: Name, scheduled: scheduled);
-        return await registration.ExecutionPolicy.ExecuteAsync(
-            ct => PublishCoreAsync(@event, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
+        return await registration.ExecutionPipeline.ExecuteAsync(
+            async ct => await PublishCoreAsync(@event, registration, scheduled, ct).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -151,12 +151,12 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                                                                             CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        // publish, with resilience policies
+        // publish, with resilience pipelines
         await WaitStartedAsync(cancellationToken).ConfigureAwait(false);
-        PollyHelper.CombineIfNeeded(BusOptions, Options, registration); // ensure policy is set for non-consumer events
+        ResiliencePipelineHelper.CombineIfNeeded(BusOptions, Options, registration); // ensure pipeline is set for non-consumer events
         Logger.SendingEvents(events, Name, scheduled);
-        return await registration.ExecutionPolicy.ExecuteAsync(
-            ct => PublishCoreAsync(events, registration, scheduled, ct), cancellationToken).ConfigureAwait(false);
+        return await registration.ExecutionPipeline.ExecuteAsync(
+            async ct => await PublishCoreAsync(events, registration, scheduled, ct).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>Publish an event on the transport.</summary>
@@ -197,24 +197,24 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     public virtual async Task CancelAsync<TEvent>(string id, EventRegistration registration, CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        // cancel, with resilience policies
+        // cancel, with resilience pipelines
         await WaitStartedAsync(cancellationToken).ConfigureAwait(false);
-        PollyHelper.CombineIfNeeded(BusOptions, Options, registration); // ensure policy is set for non-consumer events
+        ResiliencePipelineHelper.CombineIfNeeded(BusOptions, Options, registration); // ensure pipeline is set for non-consumer events
         Logger.CancelingEvent(id, Name);
-        await registration.ExecutionPolicy.ExecuteAsync(
-            ct => CancelCoreAsync<TEvent>(id, registration, ct), cancellationToken).ConfigureAwait(false);
+        await registration.ExecutionPipeline.ExecuteAsync(
+            async ct => await CancelCoreAsync<TEvent>(id, registration, ct).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
     public virtual async Task CancelAsync<TEvent>(IList<string> ids, EventRegistration registration, CancellationToken cancellationToken = default)
         where TEvent : class
     {
-        // cancel, with resilience policies
+        // cancel, with resilience pipelines
         await WaitStartedAsync(cancellationToken).ConfigureAwait(false);
-        PollyHelper.CombineIfNeeded(BusOptions, Options, registration); // ensure policy is set for non-consumer events
+        ResiliencePipelineHelper.CombineIfNeeded(BusOptions, Options, registration); // ensure pipeline is set for non-consumer events
         Logger.CancelingEvents(ids, Name);
-        await registration.ExecutionPolicy.ExecuteAsync(
-            ct => CancelCoreAsync<TEvent>(ids, registration, ct), cancellationToken).ConfigureAwait(false);
+        await registration.ExecutionPipeline.ExecuteAsync(
+            async ct => await CancelCoreAsync<TEvent>(ids, registration, ct).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>Cancel a scheduled event on the transport.</summary>
@@ -346,15 +346,15 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             // Consume the event with the consumer appropriately
             if (consumer is IEventConsumer<TEvent> consumer_normal && @event is EventContext<TEvent> evt_normal)
             {
-                // Invoke handler method, with resilience policies
-                await registration.ExecutionPolicy.ExecuteAsync(
-                    ct => consumer_normal.ConsumeAsync(evt_normal, ct), cancellationToken).ConfigureAwait(false);
+                // Invoke handler method, with resilience pipeline
+                await registration.ExecutionPipeline.ExecuteAsync(
+                    async ct => await consumer_normal.ConsumeAsync(evt_normal, ct).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
             }
             else if (consumer is IDeadLetteredEventConsumer<TEvent> consumer_deadletter && @event is DeadLetteredEventContext<TEvent> evt_deadletter)
             {
-                // Invoke handler method, with resilience policies
-                await registration.ExecutionPolicy.ExecuteAsync(
-                    ct => consumer_deadletter.ConsumeAsync(evt_deadletter, ct), cancellationToken).ConfigureAwait(false);
+                // Invoke handler method, with resilience pipelines
+                await registration.ExecutionPipeline.ExecuteAsync(
+                    async ct => await consumer_deadletter.ConsumeAsync(evt_deadletter, ct).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
             }
             else
             {

@@ -23,7 +23,7 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
 {
     private readonly SemaphoreSlim connectionLock = new(1, 1);
     private readonly EventBusConcurrentDictionary<string, IModel> subscriptionChannelsCache = new();
-    private RetryPolicy? retryPolicy;
+    private ResiliencePipeline? resiliencePipeline;
 
     private IConnection? connection;
     private bool disposed;
@@ -98,7 +98,7 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
 
         // publish message
         string? scheduledId = null;
-        GetRetryPolicy().Execute(() =>
+        GetResiliencePipeline().Execute(() =>
         {
             // setup properties
             var properties = channel.CreateBasicProperties();
@@ -173,7 +173,7 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
             serializedEvents.Add((@event, @event.ContentType, body));
         }
 
-        GetRetryPolicy().Execute(() =>
+        GetResiliencePipeline().Execute(() =>
         {
             var batch = channel.CreateBasicPublishBatch();
             foreach (var (@event, contentType, body) in serializedEvents)
@@ -241,16 +241,22 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
         throw new NotSupportedException("RabbitMQ does not support canceling published messages.");
     }
 
-    private RetryPolicy GetRetryPolicy()
+    private ResiliencePipeline GetResiliencePipeline()
     {
-        return retryPolicy ??= Policy.Handle<BrokerUnreachableException>()
-                                     .Or<SocketException>()
-                                     .WaitAndRetry(retryCount: Options.RetryCount,
-                                                   sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
-                                                   onRetry: (ex, time) =>
-                                                   {
-                                                       Logger.LogError(ex, "RabbitMQ Client could not connect after {Timeout:n1}s ", time.TotalSeconds);
-                                                   });
+        return resiliencePipeline ??= new ResiliencePipelineBuilder()
+                                        .AddRetry(new RetryStrategyOptions
+                                        {
+                                            ShouldHandle = new PredicateBuilder().Handle<BrokerUnreachableException>()
+                                                                                 .Handle<SocketException>(),
+                                            DelayGenerator = args => new ValueTask<TimeSpan?>(TimeSpan.FromSeconds(Math.Pow(2, args.AttemptNumber))),
+                                            MaxRetryAttempts = Options.RetryCount,
+                                            OnRetry = args =>
+                                            {
+                                                Logger.LogError(args.Outcome.Exception, "RabbitMQ Client could not connect after {Timeout:n1}s", args.RetryDelay.TotalSeconds);
+                                                return new ValueTask();
+                                            },
+                                        })
+                                        .Build();
     }
 
     private async Task ConnectConsumersAsync(CancellationToken cancellationToken)
@@ -397,7 +403,7 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
                 return true;
             }
 
-            GetRetryPolicy().Execute(() =>
+            GetResiliencePipeline().Execute(() =>
             {
                 connection = Options.ConnectionFactory!.CreateConnection();
             });

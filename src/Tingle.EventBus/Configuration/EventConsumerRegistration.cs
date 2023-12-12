@@ -48,7 +48,7 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration?>
     /// Defaults to <see langword="null"/>.
     /// When this value is set, it overrides the default value set on the transport or the bus.
     /// <br/>
-    /// When a retry policy is in force, only errors not handled by it will be subject to the value set here.
+    /// When a resilience pipeline is in force, only errors not handled by it will be subject to the value set here.
     /// </summary>
     public UnhandledConsumerErrorBehaviour? UnhandledErrorBehaviour { get; set; }
 

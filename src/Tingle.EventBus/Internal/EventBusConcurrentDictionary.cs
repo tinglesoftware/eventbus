@@ -72,7 +72,7 @@ public sealed class EventBusConcurrentDictionary<TKey, TValue> : ConcurrentDicti
                     tcs.SetException(ex);
 
                     // We remove the entry if the factory failed so it's not a permanent failure
-                    // and future gets can retry (this could be a policy)
+                    // and future gets can retry (this could be a resilience pipeline)
                     TryRemove(key, out _);
                     throw;
                 }

@@ -21,16 +21,16 @@ public abstract class EventBusTransportOptions
     public bool? WaitTransportStarted { get; set; }
 
     /// <summary>
-    /// Optional retry policy to apply specifically for this transport.
+    /// Optional resilience pipeline to apply specifically for this transport.
     /// This is in addition to what may be provided by the transport SDKs.
-    /// When provided alongside policies on the bus and the event registration,
+    /// When provided alongside pipelines on the bus and the event registration,
     /// it is configured inner to the one on the bus and outer to the one on the event registration.
     /// </summary>
     /// <remarks>
-    /// To specify a value on an event registration, use <see cref="EventRegistration.RetryPolicy"/>.
-    /// To specify a value on the bus, use <see cref="EventBusOptions.RetryPolicy"/>.
+    /// To specify a value on an event registration, use <see cref="EventRegistration.ResiliencePipeline"/>.
+    /// To specify a value on the bus, use <see cref="EventBusOptions.ResiliencePipeline"/>.
     /// </remarks>
-    public AsyncPolicy? RetryPolicy { get; set; }
+    public ResiliencePipeline? ResiliencePipeline { get; set; }
 
     /// <summary>
     /// The delay to introduce every time zero messages are received.
@@ -88,7 +88,7 @@ public abstract class EventBusTransportOptions
     /// Optional default behaviour for errors encountered in a consumer but are not handled.
     /// This value overrides the default value set on the bus via <see cref="EventBusOptions.DefaultUnhandledConsumerErrorBehaviour"/>.
     /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.UnhandledErrorBehaviour"/> option.
-    /// When an <see cref="AsyncPolicy"/> is in force, only errors that are not handled by it will be subject to the value set here.
+    /// When an <see cref="ResiliencePipeline"/> is in force, only errors that are not handled by it will be subject to the value set here.
     /// Defaults to <see langword="null"/>.
     /// </summary>
     public UnhandledConsumerErrorBehaviour? DefaultUnhandledConsumerErrorBehaviour { get; set; }

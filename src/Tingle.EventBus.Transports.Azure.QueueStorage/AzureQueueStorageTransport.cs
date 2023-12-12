@@ -18,7 +18,7 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
 {
     private readonly EventBusConcurrentDictionary<(Type, bool), QueueClient> queueClientsCache = new();
     private readonly CancellationTokenSource stoppingCts = new();
-    private readonly List<Task> receiverTasks = new();
+    private readonly List<Task> receiverTasks = [];
     private readonly Lazy<QueueServiceClient> serviceClient;
     private bool disposedValue;
 

@@ -2,7 +2,12 @@
 
 namespace Tingle.EventBus.Transports.InMemory.Client;
 
-internal sealed class InMemorySender : IDisposable
+internal interface IInMemorySender : IDisposable
+{
+    Task CloseAsync(CancellationToken cancellationToken = default);
+}
+
+internal sealed class InMemorySender : IInMemorySender
 {
     private static readonly TimeSpan waitTimeout = TimeSpan.FromSeconds(1);
 
@@ -12,7 +17,7 @@ internal sealed class InMemorySender : IDisposable
     private readonly SemaphoreSlim updateLock = new(1);
     private readonly CancellationTokenSource stoppingCts = new();
 
-    private List<InMemoryMessage> items = new();
+    private List<InMemoryMessage> items = [];
 
     public InMemorySender(string entityPath, ChannelWriter<InMemoryMessage> writer, SequenceNumberGenerator sng)
     {
@@ -148,11 +153,8 @@ internal sealed class InMemorySender : IDisposable
         try
         {
             // get matching
-            var matching = items.SingleOrDefault(m => m.SequenceNumber == sequenceNumber);
-            if (matching is null)
-            {
-                throw new ArgumentException($"An item with the sequence number {sequenceNumber} does not exist.", nameof(sequenceNumber));
-            }
+            var matching = items.SingleOrDefault(m => m.SequenceNumber == sequenceNumber)
+                        ?? throw new ArgumentException($"An item with the sequence number {sequenceNumber} does not exist.", nameof(sequenceNumber));
 
             // make new items and replace
             items = items.AsEnumerable().Except(new[] { matching }).ToList();
@@ -180,11 +182,8 @@ internal sealed class InMemorySender : IDisposable
             var matching = new List<InMemoryMessage>();
             foreach (var sn in sequenceNumbers)
             {
-                var item = items.SingleOrDefault(m => m.SequenceNumber == sn);
-                if (item is null)
-                {
-                    throw new ArgumentException($"An item with the sequence number {sn} does not exist.", nameof(sn));
-                }
+                var item = items.SingleOrDefault(m => m.SequenceNumber == sn)
+                        ?? throw new ArgumentException($"An item with the sequence number {sn} does not exist.", nameof(sn));
             }
 
             // make new items and replace

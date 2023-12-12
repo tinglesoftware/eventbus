@@ -1,16 +1,7 @@
 ﻿namespace MultiEventsConsumer;
 
-internal class DummyProducerService : BackgroundService
+internal partial class DummyProducerService(IEventPublisher publisher, ILogger<DummyProducerService> logger) : BackgroundService
 {
-    private readonly IEventPublisher publisher;
-    private readonly ILogger logger;
-
-    public DummyProducerService(IEventPublisher publisher, ILogger<DummyProducerService> logger)
-    {
-        this.publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         // Wait for bus to be ready
@@ -73,6 +64,9 @@ internal class DummyProducerService : BackgroundService
         var bys = new byte[20];
         random.NextBytes(bys);
         var result = Convert.ToBase64String(bys);
-        return System.Text.RegularExpressions.Regex.Replace(result, "[^A-Za-z0-9]", "");
+        return AlphaNumeric().Replace(result, "");
     }
+
+    [System.Text.RegularExpressions.GeneratedRegex("[^A-Za-z0-9]")]
+    private static partial System.Text.RegularExpressions.Regex AlphaNumeric();
 }

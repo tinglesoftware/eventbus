@@ -3,15 +3,10 @@ using System.Threading.Channels;
 
 namespace Tingle.EventBus.Transports.InMemory.Client;
 
-internal class InMemoryClient
+internal class InMemoryClient(SequenceNumberGenerator sng)
 {
     private readonly ConcurrentDictionary<string, Channel<InMemoryMessage>> channels = new();
-    private readonly SequenceNumberGenerator sng;
-
-    public InMemoryClient(SequenceNumberGenerator sng)
-    {
-        this.sng = sng ?? throw new ArgumentNullException(nameof(sng));
-    }
+    private readonly SequenceNumberGenerator sng = sng ?? throw new ArgumentNullException(nameof(sng));
 
     /// <summary>
     /// Creates an <see cref="InMemoryProcessor"/> instance that can be used to process messages

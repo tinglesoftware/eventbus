@@ -2,7 +2,13 @@
 
 namespace Tingle.EventBus.Transports.InMemory.Client;
 
-internal class InMemoryProcessor : IDisposable
+internal interface IInMemoryProcessor : IDisposable
+{
+    Task StartProcessingAsync(CancellationToken cancellationToken = default);
+    Task StopProcessingAsync(CancellationToken cancellationToken = default);
+}
+
+internal class InMemoryProcessor : IInMemoryProcessor
 {
     private readonly ChannelReader<InMemoryMessage> reader;
     private CancellationTokenSource stoppingCts = new();

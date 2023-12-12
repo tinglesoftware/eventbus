@@ -1,15 +1,8 @@
 ﻿namespace ConfigSample;
 
-internal class VisualsUploadedConsumer : IEventConsumer<ImageUploaded>, IEventConsumer<VideoUploaded>
+internal class VisualsUploadedConsumer(ILogger<VisualsUploadedConsumer> logger) : IEventConsumer<ImageUploaded>, IEventConsumer<VideoUploaded>
 {
     private static readonly TimeSpan SimulationDuration = TimeSpan.FromSeconds(1.3f);
-
-    private readonly ILogger logger;
-
-    public VisualsUploadedConsumer(ILogger<VisualsUploadedConsumer> logger)
-    {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
 
     public async Task ConsumeAsync(EventContext<ImageUploaded> context, CancellationToken cancellationToken)
     {

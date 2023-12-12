@@ -24,7 +24,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
     private readonly EventBusConcurrentDictionary<Type, string> topicArnsCache = new();
     private readonly EventBusConcurrentDictionary<QueueCacheKey, string> queueUrlsCache = new();
     private readonly CancellationTokenSource stoppingCts = new();
-    private readonly List<Task> receiverTasks = new();
+    private readonly List<Task> receiverTasks = [];
     private readonly Lazy<AmazonSimpleNotificationServiceClient> snsClient;
     private readonly Lazy<AmazonSQSClient> sqsClient;
     private bool disposedValue;

@@ -5,13 +5,9 @@ using Tingle.EventBus.Serialization;
 
 namespace CustomEventSerializer;
 
-public class AzureDevOpsEventSerializer : AbstractEventSerializer
+public class AzureDevOpsEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor, ILoggerFactory loggerFactory) : AbstractEventSerializer(optionsAccessor, loggerFactory)
 {
     private readonly JsonSerializer serializer = JsonSerializer.CreateDefault();
-
-    public AzureDevOpsEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
-                                      ILoggerFactory loggerFactory)
-        : base(optionsAccessor, loggerFactory) { }
 
     /// <inheritdoc/>
     protected override IList<string> SupportedMediaTypes => JsonContentTypes;

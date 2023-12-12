@@ -21,15 +21,8 @@
 
 await host.RunAsync();
 
-class ProducerService : BackgroundService
+class ProducerService(IEventPublisher publisher) : BackgroundService
 {
-    private readonly IEventPublisher publisher;
-
-    public ProducerService(IEventPublisher publisher)
-    {
-        this.publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var delay = TimeSpan.FromSeconds(25);
@@ -54,16 +47,9 @@ class ProducerService : BackgroundService
     }
 }
 
-class VideoUploadedConsumer : IEventConsumer<VideoUploaded>
+class VideoUploadedConsumer(ILogger<VideoUploadedConsumer> logger) : IEventConsumer<VideoUploaded>
 {
     private static readonly TimeSpan SimulationDuration = TimeSpan.FromSeconds(3);
-
-    private readonly ILogger logger;
-
-    public VideoUploadedConsumer(ILogger<VideoUploadedConsumer> logger)
-    {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
 
     public async Task ConsumeAsync(EventContext<VideoUploaded> context, CancellationToken cancellationToken = default)
     {

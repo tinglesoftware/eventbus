@@ -7,19 +7,15 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AzureServiceBusTransportOptions"/>.
 /// </summary>
-internal class AzureServiceBusConfigureOptions : AzureTransportConfigureOptions<AzureServiceBusTransportCredentials, AzureServiceBusTransportOptions>,
-                                                 IConfigureNamedOptions<AzureServiceBusTransportOptions>
+/// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+/// <param name="configurators">A list of <see cref="IEventBusConfigurator"/> to use when configuring options.</param>
+/// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+internal class AzureServiceBusConfigureOptions(IEventBusConfigurationProvider configurationProvider,
+                                               IEnumerable<IEventBusConfigurator> configurators,
+                                               IOptions<EventBusOptions> busOptionsAccessor)
+    : AzureTransportConfigureOptions<AzureServiceBusTransportCredentials, AzureServiceBusTransportOptions>(configurationProvider, configurators, busOptionsAccessor),
+      IConfigureNamedOptions<AzureServiceBusTransportOptions>
 {
-    /// <summary>
-    /// Initializes a new <see cref="AzureServiceBusConfigureOptions"/> given the configuration
-    /// provided by the <paramref name="configurationProvider"/>.
-    /// </summary>
-    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
-    /// <param name="configurators">A list of <see cref="IEventBusConfigurator"/> to use when configuring options.</param>
-    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
-    public AzureServiceBusConfigureOptions(IEventBusConfigurationProvider configurationProvider, IEnumerable<IEventBusConfigurator> configurators, IOptions<EventBusOptions> busOptionsAccessor)
-        : base(configurationProvider, configurators, busOptionsAccessor) { }
-
     /// <inheritdoc/>
     protected override void Configure(IConfiguration configuration, AzureServiceBusTransportOptions options)
     {

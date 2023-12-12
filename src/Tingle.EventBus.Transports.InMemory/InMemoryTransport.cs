@@ -16,34 +16,26 @@ namespace Tingle.EventBus.Transports.InMemory;
 /// Implementation of <see cref="EventBusTransport{TOptions}"/> using an in-memory transport.
 /// This implementation should only be used for unit testing or similar scenarios as it does not offer persistence.
 /// </summary>
-public class InMemoryTransport : EventBusTransport<InMemoryTransportOptions>
+/// <param name="serviceScopeFactory"></param>
+/// <param name="busOptionsAccessor"></param>
+/// <param name="optionsMonitor"></param>
+/// <param name="loggerFactory"></param>
+/// <param name="sng"></param>
+public class InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
+                               IOptions<EventBusOptions> busOptionsAccessor,
+                               IOptionsMonitor<InMemoryTransportOptions> optionsMonitor,
+                               ILoggerFactory loggerFactory,
+                               SequenceNumberGenerator sng) 
+    : EventBusTransport<InMemoryTransportOptions>(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory)
 {
     private readonly EventBusConcurrentDictionary<(Type, bool), InMemorySender> sendersCache = new();
     private readonly EventBusConcurrentDictionary<string, InMemoryProcessor> processorsCache = new();
-    private readonly InMemoryClient client;
+    private readonly InMemoryClient client = new(sng);
 
-    private readonly ConcurrentBag<EventContext> published = new();
-    private readonly ConcurrentBag<long> cancelled = new();
-    private readonly ConcurrentBag<EventContext> consumed = new();
-    private readonly ConcurrentBag<EventContext> failed = new();
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="serviceScopeFactory"></param>
-    /// <param name="busOptionsAccessor"></param>
-    /// <param name="optionsMonitor"></param>
-    /// <param name="loggerFactory"></param>
-    /// <param name="sng"></param>
-    public InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
-                             IOptions<EventBusOptions> busOptionsAccessor,
-                             IOptionsMonitor<InMemoryTransportOptions> optionsMonitor,
-                             ILoggerFactory loggerFactory,
-                             SequenceNumberGenerator sng)
-        : base(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory)
-    {
-        client = new InMemoryClient(sng);
-    }
+    private readonly ConcurrentBag<EventContext> published = [];
+    private readonly ConcurrentBag<long> cancelled = [];
+    private readonly ConcurrentBag<EventContext> consumed = [];
+    private readonly ConcurrentBag<EventContext> failed = [];
 
     /// <summary>
     /// The published events.

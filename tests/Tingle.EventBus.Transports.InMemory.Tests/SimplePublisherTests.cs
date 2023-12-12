@@ -58,15 +58,8 @@ public class SimplePublisherTests
 
     class OrderProcessedEvent : SimpleConsumer.SampleEvent { }
 
-    class RandomOrderProcessor
+    class RandomOrderProcessor(IEventPublisher publisher)
     {
-        private readonly IEventPublisher publisher;
-
-        public RandomOrderProcessor(IEventPublisher publisher)
-        {
-            this.publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
-        }
-
         public async Task ProcessAsync(int orderNumber)
         {
             // only publish if the order number is even (can be any other condition)

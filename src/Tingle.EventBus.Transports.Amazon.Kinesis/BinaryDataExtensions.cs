@@ -10,5 +10,5 @@ internal static class BinaryDataExtensions
     /// </summary>
     /// <param name="data">The <see cref="BinaryData"/> to be converted.</param>
     /// <returns>A <see cref="MemoryStream"/> representing the data.</returns>
-    public static MemoryStream ToMemoryStream(this BinaryData data) => new MemoryStream(data.ToArray());
+    public static MemoryStream ToMemoryStream(this BinaryData data) => new(data.ToArray());
 }

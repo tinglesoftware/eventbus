@@ -8,18 +8,14 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AmazonTransportOptions"/> derivatives.
 /// </summary>
-public abstract class AmazonTransportConfigureOptions<TOptions> : EventBusTransportConfigureOptions<TOptions> where TOptions : AmazonTransportOptions
+/// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+/// <param name="configurators">A list of <see cref="IEventBusConfigurator"/> to use when configuring options.</param>
+/// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+public abstract class AmazonTransportConfigureOptions<TOptions>(IEventBusConfigurationProvider configurationProvider,
+                                                                IEnumerable<IEventBusConfigurator> configurators,
+                                                                IOptions<EventBusOptions> busOptionsAccessor)
+    : EventBusTransportConfigureOptions<TOptions>(configurationProvider, configurators, busOptionsAccessor) where TOptions : AmazonTransportOptions
 {
-    /// <summary>
-    /// Initializes a new <see cref="AmazonTransportConfigureOptions{TOptions}"/> given the configuration
-    /// provided by the <paramref name="configurationProvider"/>.
-    /// </summary>
-    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
-    /// <param name="configurators">A list of <see cref="IEventBusConfigurator"/> to use when configuring options.</param>
-    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
-    public AmazonTransportConfigureOptions(IEventBusConfigurationProvider configurationProvider, IEnumerable<IEventBusConfigurator> configurators, IOptions<EventBusOptions> busOptionsAccessor)
-        : base(configurationProvider, configurators, busOptionsAccessor) { }
-
     /// <inheritdoc/>
     public override void PostConfigure(string? name, TOptions options)
     {

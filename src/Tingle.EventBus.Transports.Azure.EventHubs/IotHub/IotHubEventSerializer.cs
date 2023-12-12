@@ -9,13 +9,11 @@ using SC = Tingle.EventBus.Transports.Azure.EventHubs.IotHub.IotHubJsonSerialize
 
 namespace Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 
-internal class IotHubEventSerializer : AbstractEventSerializer
+internal class IotHubEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
+                                     ILoggerFactory loggerFactory)
+    : AbstractEventSerializer(optionsAccessor, loggerFactory)
 {
     private static readonly Type BaseType = typeof(IotHubEvent);
-
-    public IotHubEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
-                                 ILoggerFactory loggerFactory)
-        : base(optionsAccessor, loggerFactory) { }
 
     /// <inheritdoc/>
     protected override IList<string> SupportedMediaTypes => JsonContentTypes;

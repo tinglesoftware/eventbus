@@ -5,16 +5,9 @@ using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 namespace AzureIotHub;
 
 [ConsumerName("$Default")] // or [ConsumerName(EventHubConsumerClient.DefaultConsumerGroupName)]
-internal class AzureIotEventsConsumer : IEventConsumer<MyIotHubEvent>
+internal class AzureIotEventsConsumer(ILogger<AzureIotEventsConsumer> logger) : IEventConsumer<MyIotHubEvent>
 {
     private static readonly JsonSerializerOptions serializerOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true, };
-
-    private readonly ILogger logger;
-
-    public AzureIotEventsConsumer(ILogger<AzureIotEventsConsumer> logger)
-    {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
 
     public Task ConsumeAsync(EventContext<MyIotHubEvent> context, CancellationToken cancellationToken)
     {

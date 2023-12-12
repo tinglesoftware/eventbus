@@ -2,14 +2,9 @@
 
 namespace Tingle.EventBus.Transports.InMemory.Client;
 
-internal class BroadcastChannelWriter<T> : ChannelWriter<T>
+internal class BroadcastChannelWriter<T>(ICollection<ChannelWriter<T>>? children = null) : ChannelWriter<T>
 {
-    public BroadcastChannelWriter(ICollection<ChannelWriter<T>>? children = null)
-    {
-        Children = children ?? new List<ChannelWriter<T>>();
-    }
-
-    public ICollection<ChannelWriter<T>> Children { get; }
+    public ICollection<ChannelWriter<T>> Children { get; } = children ?? new List<ChannelWriter<T>>();
 
     /// <inheritdoc/>
     public override bool TryWrite(T item) => Children.All(w => w.TryWrite(item));

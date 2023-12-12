@@ -4,7 +4,8 @@
 /// The <see cref="InMemoryMessage"/> is used to receive
 /// and send data from and to InMemory entities.
 /// </summary>
-public class InMemoryMessage
+/// <param name="body">The payload of the message.</param>
+public class InMemoryMessage(BinaryData body)
 {
     /// <summary>
     /// Creates a new message from the specified string, using UTF-8 encoding.
@@ -17,15 +18,6 @@ public class InMemoryMessage
     /// </summary>
     /// <param name="body">The payload of the message in bytes.</param>
     public InMemoryMessage(ReadOnlyMemory<byte> body) : this(BinaryData.FromBytes(body)) { }
-
-    /// <summary>
-    /// Creates a new message from specified <see cref="BinaryData"/> instance.
-    /// </summary>
-    /// <param name="body">The payload of the message.</param>
-    public InMemoryMessage(BinaryData body)
-    {
-        Body = body ?? throw new ArgumentNullException(nameof(body));
-    }
 
     internal InMemoryMessage(InMemoryReceivedMessage message) : this(message?.Body ?? throw new ArgumentNullException(nameof(message)))
     {
@@ -72,7 +64,7 @@ public class InMemoryMessage
     /// <summary>
     /// Gets or sets the body of the message.
     /// </summary>
-    public BinaryData Body { get; set; }
+    public BinaryData Body { get; set; } = body ?? throw new ArgumentNullException(nameof(body));
 
     /// <summary>
     /// Gets the unique number assigned to a message by the transport.

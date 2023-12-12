@@ -6,24 +6,15 @@ namespace Tingle.EventBus.Configuration;
 /// <summary>
 /// Represents a registration for a consumer of an event.
 /// </summary>
-public class EventConsumerRegistration : IEquatable<EventConsumerRegistration?>
+/// <param name="consumerType">The type of consumer handling the event.</param>
+/// <param name="deadletter">Whether the consumer should be connected to the dead-letter entity.</param>
+public class EventConsumerRegistration(Type consumerType, bool deadletter) : IEquatable<EventConsumerRegistration?>
 {
-    /// <summary>
-    /// Creates an instance of <see cref="EventConsumerRegistration"/>.
-    /// </summary>
-    /// <param name="consumerType">The type of consumer handling the event.</param>
-    /// <param name="deadletter">Whether the consumer should be connected to the dead-letter entity.</param>
-    public EventConsumerRegistration(Type consumerType, bool deadletter)
-    {
-        ConsumerType = consumerType ?? throw new ArgumentNullException(nameof(consumerType));
-        Deadletter = deadletter;
-    }
-
     /// <summary>
     /// The type of consumer handling the event.
     /// </summary>
     [DynamicallyAccessedMembers(TrimmingHelper.Consumer)]
-    public Type ConsumerType { get; }
+    public Type ConsumerType { get; } = consumerType ?? throw new ArgumentNullException(nameof(consumerType));
 
     /// <summary>
     /// Gets or sets a value indicating if the consumer should be connected to the dead-letter entity.
@@ -31,7 +22,7 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration?>
     /// When set to <see langword="true"/>, you must use <see cref="IDeadLetteredEventConsumer{T}"/>
     /// to consume events.
     /// </summary>
-    public bool Deadletter { get; }
+    public bool Deadletter { get; } = deadletter;
 
     /// <summary>
     /// The name generated for the consumer.

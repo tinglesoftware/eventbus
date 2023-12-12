@@ -1,14 +1,7 @@
 ﻿namespace AmazonSqsAndSns;
 
-public class PublisherService : BackgroundService
+public class PublisherService(IEventPublisher publisher) : BackgroundService
 {
-    private readonly IEventPublisher publisher;
-
-    public PublisherService(IEventPublisher publisher)
-    {
-        this.publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var delay = TimeSpan.FromSeconds(30);

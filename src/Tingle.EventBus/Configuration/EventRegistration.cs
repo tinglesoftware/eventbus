@@ -67,17 +67,17 @@ public class EventRegistration : IEquatable<EventRegistration?>
     public TimeSpan? DuplicateDetectionDuration { get; set; }
 
     /// <summary>
-    /// The retry policy to apply specifically for this event.
+    /// The resiliency pipeline to apply specifically for this event.
     /// This is in addition to what may be provided by the SDKs for each transport.
-    /// When provided alongside policies on the transport and the bus, it is used as the inner most policy.
+    /// When provided alongside pipelines on the transport and the bus, it is used as the inner most pipeline.
     /// </summary>
     /// <remarks>
     /// When a value is provided, the transport may extend the lock for the
-    /// message during consumption until the execution with retry policy completes successfully or not.
+    /// message during consumption until the execution with resiliency pipeline completes successfully or not.
     /// In such a case, ensure the execution timeout (sometimes called the visibility timeout
-    /// or lock duration) is set to accommodate the longest possible duration of the retry policy.
+    /// or lock duration) is set to accommodate the longest possible duration of the resiliency pipeline.
     /// </remarks>
-    public AsyncPolicy? RetryPolicy { get; set; }
+    public ResiliencePipeline? ResiliencePipeline { get; set; }
 
     /// <summary>
     /// The list of consumers registered for this event.
@@ -93,11 +93,11 @@ public class EventRegistration : IEquatable<EventRegistration?>
     /// </summary>
     public IDictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
 
-    /// <summary>Whether the execution policies have been merged.</summary>
-    internal bool MergedExecutionPolicies { get; set; } = false;
+    /// <summary>Whether the execution pipelines have been merged.</summary>
+    internal bool MergedExecutionPipelines { get; set; } = false;
 
-    /// <summary>The final policy used in executions for the event and it's consumers.</summary>
-    internal IAsyncPolicy ExecutionPolicy { get; set; } = Policy.NoOpAsync();
+    /// <summary>The final resilience pipeline used in executions for the event and it's consumers.</summary>
+    internal ResiliencePipeline ExecutionPipeline { get; set; } = ResiliencePipeline.Empty;
 
     #region Equality Overrides
 

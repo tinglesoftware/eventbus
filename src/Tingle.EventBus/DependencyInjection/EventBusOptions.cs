@@ -32,15 +32,15 @@ public class EventBusOptions
     public bool DefaultTransportWaitStarted { get; set; } = true;
 
     /// <summary>
-    /// Optional retry policy to apply to the bus.
-    /// When provided alongside policies on the transport and the event registration, it is used as the putter most policy.
+    /// Optional resilience pipeline to apply to the bus.
+    /// When provided alongside pipelines on the transport and the event registration, it is used as the putter most pipeline.
     /// Defaults to <see langword="null"/>.
     /// </summary>
     /// <remarks>
-    /// To specify a value on an event registration, use <see cref="EventRegistration.RetryPolicy"/>.
-    /// To specify a value on a transport, use <see cref="EventBusTransportOptions.RetryPolicy"/> for the specific transport.
+    /// To specify a value on an event registration, use <see cref="EventRegistration.ResiliencePipeline"/>.
+    /// To specify a value on a transport, use <see cref="EventBusTransportOptions.ResiliencePipeline"/> for the specific transport.
     /// </remarks>
-    public AsyncPolicy? RetryPolicy { get; set; }
+    public ResiliencePipeline? ResiliencePipeline { get; set; }
 
     /// <summary>
     /// Optional default format to use for generated event identifiers when for events where it is not specified.
@@ -68,7 +68,7 @@ public class EventBusOptions
     /// Optional default behaviour for errors encountered in a consumer but are not handled.
     /// To specify a value per consumer, use the <see cref="EventConsumerRegistration.UnhandledErrorBehaviour"/> option.
     /// To specify a value per transport, use the <see cref="EventBusTransportOptions.DefaultUnhandledConsumerErrorBehaviour"/> option on the specific transport.
-    /// When an <see cref="AsyncPolicy"/> is in force, only errors that are not handled by it will be subject to the value set here.
+    /// When an <see cref="ResiliencePipeline"/> is in force, only errors that are not handled by it will be subject to the value set here.
     /// Defaults to <see langword="null"/>.
     /// </summary>
     public UnhandledConsumerErrorBehaviour? DefaultUnhandledConsumerErrorBehaviour { get; set; }

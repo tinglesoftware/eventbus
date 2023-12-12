@@ -2,18 +2,9 @@
 
 namespace MultiEventsConsumer;
 
-public class MultiEventsConsumer : IEventConsumer<DoorClosed>, IEventConsumer<DoorOpened>
+public class MultiEventsConsumer(IDistributedCache cache, ILogger<MultiEventsConsumer> logger) : IEventConsumer<DoorClosed>, IEventConsumer<DoorOpened>
 {
     private static readonly TimeSpan SimulationDuration = TimeSpan.FromSeconds(3);
-
-    private readonly IDistributedCache cache;
-    private readonly ILogger logger;
-
-    public MultiEventsConsumer(IDistributedCache cache, ILogger<MultiEventsConsumer> logger)
-    {
-        this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
 
     public async Task ConsumeAsync(EventContext<DoorOpened> context, CancellationToken cancellationToken = default)
     {

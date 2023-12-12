@@ -274,13 +274,8 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
             ContentType = contentType,
             RawTransportData = raw,
         };
-        var envelope = await serializer.DeserializeAsync<TEvent>(ctx, cancellationToken).ConfigureAwait(false);
-
-        // Ensure we are not null (throwing helps track the error)
-        if (envelope is null)
-        {
-            throw new InvalidOperationException($"Deserialization from '{typeof(TEvent).Name}' resulted in null which is not allowed.");
-        }
+        var envelope = await serializer.DeserializeAsync<TEvent>(ctx, cancellationToken).ConfigureAwait(false)
+                    ?? throw new InvalidOperationException($"Deserialization from '{typeof(TEvent).Name}' resulted in null which is not allowed."); // throwing helps track the error
 
         // Create the context
         var publisher = provider.GetRequiredService<IEventPublisher>();

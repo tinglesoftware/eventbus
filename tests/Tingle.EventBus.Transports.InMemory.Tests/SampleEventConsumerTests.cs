@@ -7,15 +7,8 @@ using Xunit.Abstractions;
 
 namespace Tingle.EventBus.Tests.InMemory;
 
-public class SampleEventConsumerTests
+public class SampleEventConsumerTests(ITestOutputHelper outputHelper)
 {
-    private readonly ITestOutputHelper outputHelper;
-
-    public SampleEventConsumerTests(ITestOutputHelper outputHelper)
-    {
-        this.outputHelper = outputHelper ?? throw new ArgumentNullException(nameof(outputHelper));
-    }
-
     [Fact]
     public async Task ConsumerWorksAsync()
     {

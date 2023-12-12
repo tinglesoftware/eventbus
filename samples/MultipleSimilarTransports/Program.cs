@@ -21,17 +21,8 @@ var host = Host.CreateDefaultBuilder(args)
 
 await host.RunAsync();
 
-class VisualsProducerService : BackgroundService
+class VisualsProducerService(IEventPublisher publisher, ILogger<VisualsProducerService> logger) : BackgroundService
 {
-    private readonly IEventPublisher publisher;
-    private readonly ILogger logger;
-
-    public VisualsProducerService(IEventPublisher publisher, ILogger<VisualsProducerService> logger)
-    {
-        this.publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken); // delays a little so that the logs are better visible in a better order (only ended for sample)
@@ -62,16 +53,9 @@ class VisualsProducerService : BackgroundService
         => await publisher.PublishAsync(@event, cancellationToken: cancellationToken);
 }
 
-class VisualsUploadedConsumer : IEventConsumer<ImageUploaded>, IEventConsumer<VideoUploaded>
+class VisualsUploadedConsumer(ILogger<VisualsUploadedConsumer> logger) : IEventConsumer<ImageUploaded>, IEventConsumer<VideoUploaded>
 {
     private static readonly TimeSpan SimulationDuration = TimeSpan.FromSeconds(1.3f);
-
-    private readonly ILogger logger;
-
-    public VisualsUploadedConsumer(ILogger<VisualsUploadedConsumer> logger)
-    {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
 
     public async Task ConsumeAsync(EventContext<ImageUploaded> context, CancellationToken cancellationToken)
     {

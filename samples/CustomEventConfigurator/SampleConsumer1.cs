@@ -1,14 +1,7 @@
 ﻿namespace CustomEventConfigurator;
 
-public class SampleConsumer1 : IEventConsumer<SampleEvent1>
+public class SampleConsumer1(ILogger<SampleConsumer1> logger) : IEventConsumer<SampleEvent1>
 {
-    private readonly ILogger logger;
-
-    public SampleConsumer1(ILogger<SampleConsumer1> logger)
-    {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     public Task ConsumeAsync(EventContext<SampleEvent1> context, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Received event Id: {Id}", context.Id);

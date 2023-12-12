@@ -1,16 +1,7 @@
 ﻿namespace SimpleConsumer;
 
-public class SampleEventConsumer : IEventConsumer<SampleEvent>
+public class SampleEventConsumer(EventCounter counter, ILogger<SampleEventConsumer> logger) : IEventConsumer<SampleEvent>
 {
-    private readonly EventCounter counter;
-    private readonly ILogger logger;
-
-    public SampleEventConsumer(EventCounter counter, ILogger<SampleEventConsumer> logger)
-    {
-        this.counter = counter ?? throw new ArgumentNullException(nameof(counter));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     public Task ConsumeAsync(EventContext<SampleEvent> context, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Received event Id: {Id}", context.Id);

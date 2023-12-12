@@ -1,16 +1,7 @@
 ﻿namespace ConfigSample;
 
-internal class VisualsProducerService : BackgroundService
+internal class VisualsProducerService(IEventPublisher publisher, ILogger<VisualsProducerService> logger) : BackgroundService
 {
-    private readonly IEventPublisher publisher;
-    private readonly ILogger logger;
-
-    public VisualsProducerService(IEventPublisher publisher, ILogger<VisualsProducerService> logger)
-    {
-        this.publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken); // delays a little so that the logs are better visible in a better order (only ended for sample)

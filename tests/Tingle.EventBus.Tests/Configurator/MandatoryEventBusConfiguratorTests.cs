@@ -127,7 +127,7 @@ public class MandatoryEventBusConfiguratorTests
     public void SetConsumerName_Works(Type eventType,
                                       Type consumerType,
                                       bool useFullTypeNames,
-                                      string prefix,
+                                      string? prefix,
                                       ConsumerNameSource consumerNameSource,
                                       NamingConvention namingConvention,
                                       string expected)

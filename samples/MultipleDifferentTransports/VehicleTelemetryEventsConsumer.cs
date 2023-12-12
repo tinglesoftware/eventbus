@@ -4,15 +4,8 @@ using Tingle.EventBus.Transports.Azure.EventHubs.IotHub;
 namespace MultipleDifferentTransports;
 
 [ConsumerName("$Default")] // or [ConsumerName(EventHubConsumerClient.DefaultConsumerGroupName)]
-internal class VehicleTelemetryEventsConsumer : IEventConsumer<VehicleTelemetryEvent>
+internal class VehicleTelemetryEventsConsumer(ILogger<VehicleTelemetryEventsConsumer> logger) : IEventConsumer<VehicleTelemetryEvent>
 {
-    private readonly ILogger logger;
-
-    public VehicleTelemetryEventsConsumer(ILogger<VehicleTelemetryEventsConsumer> logger)
-    {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     public async Task ConsumeAsync(EventContext<VehicleTelemetryEvent> context, CancellationToken cancellationToken)
     {
         var evt = context.Event;

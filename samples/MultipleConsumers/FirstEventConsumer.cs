@@ -1,14 +1,7 @@
 ﻿namespace MultipleConsumers;
 
-public class FirstEventConsumer : IEventConsumer<DoorOpened>
+public class FirstEventConsumer(ILogger<FirstEventConsumer> logger) : IEventConsumer<DoorOpened>
 {
-    private readonly ILogger logger;
-
-    public FirstEventConsumer(ILogger<FirstEventConsumer> logger)
-    {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     public Task ConsumeAsync(EventContext<DoorOpened> context, CancellationToken cancellationToken = default)
     {
         var evt = context.Event;

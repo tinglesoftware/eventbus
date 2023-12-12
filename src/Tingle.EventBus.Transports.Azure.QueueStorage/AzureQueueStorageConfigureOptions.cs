@@ -7,19 +7,15 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish the configuration of instances of <see cref="AzureQueueStorageTransportOptions"/>.
 /// </summary>
-internal class AzureQueueStorageConfigureOptions : AzureTransportConfigureOptions<AzureQueueStorageTransportCredentials, AzureQueueStorageTransportOptions>,
-                                                   IConfigureNamedOptions<AzureQueueStorageTransportOptions>
+/// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
+/// <param name="configurators">A list of <see cref="IEventBusConfigurator"/> to use when configuring options.</param>
+/// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
+internal class AzureQueueStorageConfigureOptions(IEventBusConfigurationProvider configurationProvider,
+                                                 IEnumerable<IEventBusConfigurator> configurators,
+                                                 IOptions<EventBusOptions> busOptionsAccessor)
+    : AzureTransportConfigureOptions<AzureQueueStorageTransportCredentials, AzureQueueStorageTransportOptions>(configurationProvider, configurators, busOptionsAccessor),
+      IConfigureNamedOptions<AzureQueueStorageTransportOptions>
 {
-    /// <summary>
-    /// Initializes a new <see cref="AzureQueueStorageConfigureOptions"/> given the configuration
-    /// provided by the <paramref name="configurationProvider"/>.
-    /// </summary>
-    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>\
-    /// <param name="configurators">A list of <see cref="IEventBusConfigurator"/> to use when configuring options.</param>
-    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>\
-    public AzureQueueStorageConfigureOptions(IEventBusConfigurationProvider configurationProvider, IEnumerable<IEventBusConfigurator> configurators, IOptions<EventBusOptions> busOptionsAccessor)
-        : base(configurationProvider, configurators, busOptionsAccessor) { }
-
     /// <inheritdoc/>
     protected override void Configure(IConfiguration configuration, AzureQueueStorageTransportOptions options)
     {

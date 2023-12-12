@@ -19,26 +19,21 @@ namespace Tingle.EventBus.Transports.Azure.EventHubs;
 /// <summary>
 /// Implementation of <see cref="EventBusTransport{TOptions}"/> using Azure Event Hubs.
 /// </summary>
-public class AzureEventHubsTransport : EventBusTransport<AzureEventHubsTransportOptions>
+/// <param name="serviceScopeFactory"></param>
+/// <param name="busOptionsAccessor"></param>
+/// <param name="optionsMonitor"></param>
+/// <param name="loggerFactory"></param>
+public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
+                                     IOptions<EventBusOptions> busOptionsAccessor,
+                                     IOptionsMonitor<AzureEventHubsTransportOptions> optionsMonitor,
+                                     ILoggerFactory loggerFactory)
+    : EventBusTransport<AzureEventHubsTransportOptions>(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory)
 {
     private readonly EventBusConcurrentDictionary<(Type, bool), EventHubProducerClient> producersCache = new();
     private readonly EventBusConcurrentDictionary<string, EventProcessorClient> processorsCache = new();
     private readonly SemaphoreSlim blobContainerClientLock = new(1, 1); // only one at a time.
     private readonly ConcurrentDictionary<string, int> checkpointingCounter = new();
     private BlobContainerClient? blobContainerClient;
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="serviceScopeFactory"></param>
-    /// <param name="busOptionsAccessor"></param>
-    /// <param name="optionsMonitor"></param>
-    /// <param name="loggerFactory"></param>
-    public AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
-                                   IOptions<EventBusOptions> busOptionsAccessor,
-                                   IOptionsMonitor<AzureEventHubsTransportOptions> optionsMonitor,
-                                   ILoggerFactory loggerFactory)
-        : base(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory) { }
 
     /// <inheritdoc/>
     protected override async Task StartCoreAsync(CancellationToken cancellationToken)

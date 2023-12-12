@@ -19,7 +19,15 @@ namespace Tingle.EventBus.Transports.RabbitMQ;
 /// <summary>
 /// Implementation of <see cref="EventBusTransport{TOptions}"/> using RabbitMQ.
 /// </summary>
-public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, IDisposable
+/// <param name="serviceScopeFactory"></param>
+/// <param name="busOptionsAccessor"></param>
+/// <param name="optionsMonitor"></param>
+/// <param name="loggerFactory"></param>
+public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
+                               IOptions<EventBusOptions> busOptionsAccessor,
+                               IOptionsMonitor<RabbitMqTransportOptions> optionsMonitor,
+                               ILoggerFactory loggerFactory)
+    : EventBusTransport<RabbitMqTransportOptions>(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory), IDisposable
 {
     private readonly SemaphoreSlim connectionLock = new(1, 1);
     private readonly EventBusConcurrentDictionary<string, IModel> subscriptionChannelsCache = new();
@@ -27,19 +35,6 @@ public class RabbitMqTransport : EventBusTransport<RabbitMqTransportOptions>, ID
 
     private IConnection? connection;
     private bool disposed;
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="serviceScopeFactory"></param>
-    /// <param name="busOptionsAccessor"></param>
-    /// <param name="optionsMonitor"></param>
-    /// <param name="loggerFactory"></param>
-    public RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
-                             IOptions<EventBusOptions> busOptionsAccessor,
-                             IOptionsMonitor<RabbitMqTransportOptions> optionsMonitor,
-                             ILoggerFactory loggerFactory)
-        : base(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory) { }
 
     /// <inheritdoc/>
     protected override async Task StartCoreAsync(CancellationToken cancellationToken)

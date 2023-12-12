@@ -23,7 +23,7 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
     private readonly Lazy<IProducer<string, byte[]>> producer; // producer instance is thread safe thus can be shared, and across topics
     private readonly Lazy<IConsumer<string, byte[]>> consumer; // consumer instance is thread safe thus can be shared, and across topics
     private readonly CancellationTokenSource stoppingCts = new();
-    private readonly List<Task> receiverTasks = new();
+    private readonly List<Task> receiverTasks = [];
     private readonly Lazy<IAdminClient> adminClient;
     private int checkpointingCounter = 0;
     private bool disposedValue;

@@ -8,22 +8,14 @@ namespace Tingle.EventBus.Configuration;
 /// <summary>
 /// Represents a registration for an event.
 /// </summary>
-public class EventRegistration : IEquatable<EventRegistration?>
+/// <param name="eventType">The type of event handled.</param>
+public class EventRegistration(Type eventType) : IEquatable<EventRegistration?>
 {
-    /// <summary>
-    /// Creates an instance of <see cref="EventRegistration"/>.
-    /// </summary>
-    /// <param name="eventType">The type of event handled.</param>
-    public EventRegistration(Type eventType)
-    {
-        EventType = eventType ?? throw new ArgumentNullException(nameof(eventType));
-    }
-
     /// <summary>
     /// The type of event handled.
     /// </summary>
-    [DynamicallyAccessedMembers(TrimmingHelper.Event)] 
-    public Type EventType { get; }
+    [DynamicallyAccessedMembers(TrimmingHelper.Event)]
+    public Type EventType { get; } = eventType ?? throw new ArgumentNullException(nameof(eventType));
 
     /// <summary>
     /// The name generated for the event.
@@ -85,7 +77,7 @@ public class EventRegistration : IEquatable<EventRegistration?>
     /// <remarks>
     /// This is backed by a <see cref="HashSet{T}"/> to ensure no duplicates.
     /// </remarks>
-    public HashSet<EventConsumerRegistration> Consumers { get; } = new();
+    public HashSet<EventConsumerRegistration> Consumers { get; } = [];
 
     /// <summary>
     /// Gets a key/value collection that can be used to organize and share data across components

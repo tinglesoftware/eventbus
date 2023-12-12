@@ -13,19 +13,12 @@ using Xunit.Abstractions;
 
 namespace Tingle.EventBus.Transports.Azure.EventHubs.Tests;
 
-public class IotHubEventSerializerTests
+public class IotHubEventSerializerTests(ITestOutputHelper outputHelper)
 {
     private static readonly JsonSerializerOptions serializerOptions = new(JsonSerializerDefaults.Web);
 
     private const string DeviceId = "1234567890";
     private const string HubName = "iothub-route-test-weu-ih";
-
-    private readonly ITestOutputHelper outputHelper;
-
-    public IotHubEventSerializerTests(ITestOutputHelper outputHelper)
-    {
-        this.outputHelper = outputHelper ?? throw new ArgumentNullException(nameof(outputHelper));
-    }
 
     private static (EventData, DeserializationContext) CreateData(EventRegistration ereg, BinaryData body, string source, IDictionary<string, object>? properties = null)
     {

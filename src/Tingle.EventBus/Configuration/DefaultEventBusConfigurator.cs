@@ -8,19 +8,11 @@ namespace Tingle.EventBus.Configuration;
 /// <summary>
 /// Default implementation of <see cref="IEventBusConfigurator"/>.
 /// </summary>
+/// <param name="configurationProvider">The <see cref="IEventBusConfigurationProvider"/> instance.</param>
 [RequiresDynamicCode(MessageStrings.BindingDynamicCodeMessage)]
 [RequiresUnreferencedCode(MessageStrings.BindingUnreferencedCodeMessage)]
-internal class DefaultEventBusConfigurator : IEventBusConfigurator
+internal class DefaultEventBusConfigurator(IEventBusConfigurationProvider configurationProvider) : IEventBusConfigurator
 {
-    private readonly IEventBusConfigurationProvider configurationProvider;
-
-    /// <summary>Creates an instance of <see cref="DefaultEventBusConfigurator"/>.</summary>
-    /// <param name="configurationProvider">The <see cref="IEventBusConfigurationProvider"/> instance.</param>
-    public DefaultEventBusConfigurator(IEventBusConfigurationProvider configurationProvider)
-    {
-        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
-    }
-
     /// <inheritdoc/>
     public void Configure(EventBusOptions options)
     {

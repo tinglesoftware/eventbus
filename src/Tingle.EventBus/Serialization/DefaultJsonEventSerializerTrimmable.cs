@@ -9,23 +9,14 @@ namespace Tingle.EventBus.Serialization;
 /// <summary>
 /// The default implementation of <see cref="IEventSerializer"/> for JSON using the <c>System.Text.Json</c> library.
 /// </summary>
-public class DefaultJsonEventSerializerTrimmable : AbstractEventSerializer
+/// <param name="serializerContext">The <see cref="JsonSerializerContext"/> instance to use.</param>
+/// <param name="optionsAccessor">The options for configuring the serializer.</param>
+/// <param name="loggerFactory"></param>
+public class DefaultJsonEventSerializerTrimmable(JsonSerializerContext serializerContext,
+                                                 IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
+                                                 ILoggerFactory loggerFactory) : AbstractEventSerializer(optionsAccessor, loggerFactory)
 {
-    private readonly JsonSerializerContext serializerContext;
-
-    /// <summary>
-    /// Creates an instance of <see cref="DefaultJsonEventSerializerTrimmable"/>.
-    /// </summary>
-    /// <param name="serializerContext">The <see cref="System.Text.Json.Serialization.JsonSerializerContext"/> instance to use.</param>
-    /// <param name="optionsAccessor">The options for configuring the serializer.</param>
-    /// <param name="loggerFactory"></param>
-    public DefaultJsonEventSerializerTrimmable(JsonSerializerContext serializerContext,
-                                               IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
-                                               ILoggerFactory loggerFactory)
-        : base(optionsAccessor, loggerFactory)
-    {
-        this.serializerContext = serializerContext ?? throw new ArgumentNullException(nameof(serializerContext));
-    }
+    private readonly JsonSerializerContext serializerContext = serializerContext ?? throw new ArgumentNullException(nameof(serializerContext));
 
     /// <inheritdoc/>
     protected override IList<string> SupportedMediaTypes => JsonContentTypes;

@@ -9,17 +9,9 @@ namespace Tingle.EventBus.Configuration;
 /// <summary>
 /// Mandatory implementation of <see cref="IEventBusConfigurator"/>.
 /// </summary>
-internal class MandatoryEventBusConfigurator : IEventBusConfigurator
+/// <param name="environment">The <see cref="IHostEnvironment"/> instance.</param>
+internal class MandatoryEventBusConfigurator(IHostEnvironment environment) : IEventBusConfigurator
 {
-    private readonly IHostEnvironment environment;
-
-    /// <summary>Creates an instance of <see cref="MandatoryEventBusConfigurator"/>.</summary>
-    /// <param name="environment">The <see cref="IHostEnvironment"/> instance.</param>
-    public MandatoryEventBusConfigurator(IHostEnvironment environment)
-    {
-        this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
-    }
-
     /// <inheritdoc/>
     public void Configure(EventBusOptions options) { }
 

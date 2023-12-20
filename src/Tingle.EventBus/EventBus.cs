@@ -10,39 +10,24 @@ using Tingle.EventBus.Transports;
 
 namespace Tingle.EventBus;
 
-/// <summary>
-/// The event bus
-/// </summary>
-public class EventBus
+/// <summary>The event bus.</summary>
+/// <param name="transportProvider"></param>
+/// <param name="idGenerator"></param>
+/// <param name="optionsAccessor"></param>
+/// <param name="configurators"></param>
+/// <param name="loggerFactory"></param>
+public class EventBus(EventBusTransportProvider transportProvider,
+                      IEventIdGenerator idGenerator,
+                      IEnumerable<IEventBusConfigurator> configurators,
+                      IOptions<EventBusOptions> optionsAccessor,
+                      ILoggerFactory loggerFactory)
 {
-    private readonly IEventIdGenerator idGenerator;
-    private readonly IList<IEventBusConfigurator> configurators;
-    private readonly EventBusOptions options;
-    private readonly ILogger logger;
+    private readonly IEventIdGenerator idGenerator = idGenerator ?? throw new ArgumentNullException(nameof(idGenerator));
+    private readonly IList<IEventBusConfigurator> configurators = configurators?.ToList() ?? throw new ArgumentNullException(nameof(configurators));
+    private readonly EventBusOptions options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
+    private readonly ILogger logger = loggerFactory?.CreateLogger(LogCategoryNames.EventBus) ?? throw new ArgumentNullException(nameof(loggerFactory));
 
-    private readonly IReadOnlyDictionary<string, IEventBusTransport> transports;
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="transportProvider"></param>
-    /// <param name="idGenerator"></param>
-    /// <param name="optionsAccessor"></param>
-    /// <param name="configurators"></param>
-    /// <param name="loggerFactory"></param>
-    public EventBus(EventBusTransportProvider transportProvider,
-                    IEventIdGenerator idGenerator,
-                    IEnumerable<IEventBusConfigurator> configurators,
-                    IOptions<EventBusOptions> optionsAccessor,
-                    ILoggerFactory loggerFactory)
-    {
-        this.idGenerator = idGenerator ?? throw new ArgumentNullException(nameof(idGenerator));
-        this.configurators = configurators?.ToList() ?? throw new ArgumentNullException(nameof(configurators));
-        options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
-        logger = loggerFactory?.CreateLogger(LogCategoryNames.EventBus) ?? throw new ArgumentNullException(nameof(loggerFactory));
-
-        transports = transportProvider.GetTransports();
-    }
+    private readonly IReadOnlyDictionary<string, IEventBusTransport> transports = transportProvider.GetTransports();
 
     /// <summary>
     /// Publish an event.

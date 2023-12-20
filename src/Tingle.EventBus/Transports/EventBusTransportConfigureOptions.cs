@@ -11,36 +11,29 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// for shared settings in <see cref="EventBusTransportOptions"/>.
 /// </summary>
 /// <typeparam name="TOptions"></typeparam>
-public abstract class EventBusTransportConfigureOptions<TOptions> : IConfigureNamedOptions<TOptions>, IPostConfigureOptions<TOptions>, IValidateOptions<TOptions>
+/// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>
+/// <param name="configurators">A list of <see cref="IEventBusConfigurator"/> to use when configuring options.</param>
+/// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>
+public abstract class EventBusTransportConfigureOptions<TOptions>(IEventBusConfigurationProvider configurationProvider,
+                                                                  IEnumerable<IEventBusConfigurator> configurators,
+                                                                  IOptions<EventBusOptions> busOptionsAccessor): IConfigureNamedOptions<TOptions>,
+                                                                                                                 IPostConfigureOptions<TOptions>,
+                                                                                                                 IValidateOptions<TOptions>
     where TOptions : EventBusTransportOptions
 {
     // Some hosts do not allow certain characters for ENV vars but we know they all support alphanumeric and underscore
     // For example, Azure Container Instances does not allow hyphens in ENV vars while Azure Container Apps does
     private static readonly Regex replacePatternSafeEnv = new("[^a-zA-Z0-9_]", RegexOptions.Compiled);
 
-    private readonly IEventBusConfigurationProvider configurationProvider;
-    private readonly IEnumerable<IEventBusConfigurator> configurators;
-
-    /// <summary>
-    /// Initializes a new <see cref="EventBusTransportConfigureOptions{TOptions}"/> given the configuration
-    /// provided by the <paramref name="configurationProvider"/>.
-    /// </summary>
-    /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>
-    /// <param name="configurators">A list of <see cref="IEventBusConfigurator"/> to use when configuring options.</param>
-    /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>
-    public EventBusTransportConfigureOptions(IEventBusConfigurationProvider configurationProvider, IEnumerable<IEventBusConfigurator> configurators, IOptions<EventBusOptions> busOptionsAccessor)
-    {
-        this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
-        this.configurators = configurators ?? throw new ArgumentNullException(nameof(configurators));
-        BusOptions = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
-    }
+    private readonly IEventBusConfigurationProvider configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
+    private readonly IEnumerable<IEventBusConfigurator> configurators = configurators ?? throw new ArgumentNullException(nameof(configurators));
 
     /// <summary>
     /// The options for the current EventBus instance. They can be used to
     /// cross-configure or validate the options for the transport, an
     /// event/consumer registration from within this type.
     /// </summary>
-    protected EventBusOptions BusOptions { get; }
+    protected EventBusOptions BusOptions { get; } = busOptionsAccessor?.Value ?? throw new ArgumentNullException(nameof(busOptionsAccessor));
 
     /// <inheritdoc/>
     public virtual void Configure(string? name, TOptions options)

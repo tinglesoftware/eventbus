@@ -2,24 +2,15 @@
 
 namespace Tingle.EventBus.Serialization;
 
-/// <summary>
-/// Context for performing serialization.
-/// </summary>
-public sealed class SerializationContext<T> where T : class
+/// <summary>Context for performing serialization.</summary>
+/// <param name="event">The event to be serialized.</param>
+/// <param name="registration">Registration for this event being deserialized.</param>
+public sealed class SerializationContext<T>(EventContext<T> @event, EventRegistration registration) where T : class
 {
-    /// <summary>Creates and instance of <see cref="SerializationContext{T}"/>.</summary>
-    /// <param name="event">The event to be serialized.</param>
-    /// <param name="registration">Registration for this event being deserialized.</param>
-    public SerializationContext(EventContext<T> @event, EventRegistration registration)
-    {
-        Registration = registration ?? throw new ArgumentNullException(nameof(registration));
-        Event = @event ?? throw new ArgumentNullException(nameof(@event));
-    }
-
     /// <summary>
     /// The event to be serialized.
     /// </summary>
-    public EventContext<T> Event { get; }
+    public EventContext<T> Event { get; } = @event ?? throw new ArgumentNullException(nameof(@event));
 
     /// <summary>
     /// The <see cref="BinaryData"/> containing the raw data.
@@ -29,5 +20,5 @@ public sealed class SerializationContext<T> where T : class
     /// <summary>
     /// Registration for this event being deserialized.
     /// </summary>
-    public EventRegistration Registration { get; }
+    public EventRegistration Registration { get; } = registration ?? throw new ArgumentNullException(nameof(registration));
 }

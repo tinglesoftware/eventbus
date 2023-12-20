@@ -3,28 +3,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Tingle.EventBus.Internal;
 
-/// <summary>
-/// Host for <see cref="EventBus"/>.
-/// </summary>
-internal class EventBusHost : BackgroundService
+/// <summary>Host for <see cref="EventBus"/>.</summary>
+/// <param name="lifetime"></param>
+/// <param name="bus"></param>
+/// <param name="logger"></param>
+internal class EventBusHost(IHostApplicationLifetime lifetime, EventBus bus, ILogger<EventBusHost> logger) : BackgroundService
 {
-    private readonly IHostApplicationLifetime lifetime;
-    private readonly EventBus bus;
-    private readonly ILogger logger;
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="lifetime"></param>
-    /// <param name="bus"></param>
-    /// <param name="logger"></param>
-    public EventBusHost(IHostApplicationLifetime lifetime, EventBus bus, ILogger<EventBusHost> logger)
-    {
-        this.lifetime = lifetime ?? throw new ArgumentNullException(nameof(lifetime));
-        this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

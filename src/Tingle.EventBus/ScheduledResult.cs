@@ -1,47 +1,30 @@
 ﻿namespace Tingle.EventBus;
 
-/// <summary>
-/// Represents the result from scheduling a delayed event.
-/// </summary>
-public readonly struct ScheduledResult
+/// <summary>Represents the result from scheduling a delayed event.</summary>
+/// <param name="id">Scheduling identifier returned by transport.</param>
+/// <param name="scheduled">Time at which the event will be availed by the transport.</param>
+public readonly struct ScheduledResult(string id, DateTimeOffset scheduled)
 {
-    /// <summary>
-    /// Creates and instance of <see cref="ScheduledResult"/>.
-    /// </summary>
+    /// <summary>Creates and instance of <see cref="ScheduledResult"/>.</summary>
     /// <param name="id">Scheduling identifier returned by transport.</param>
     /// <param name="scheduled">Time at which the event will be availed by the transport.</param>
     public ScheduledResult(long id, DateTimeOffset scheduled) : this(id.ToString(), scheduled) { }
 
     /// <summary>
-    /// Creates and instance of <see cref="ScheduledResult"/>.
-    /// </summary>
-    /// <param name="id">Scheduling identifier returned by transport.</param>
-    /// <param name="scheduled">Time at which the event will be availed by the transport.</param>
-    public ScheduledResult(string id, DateTimeOffset scheduled)
-    {
-        Id = id ?? throw new ArgumentNullException(nameof(id));
-        Scheduled = scheduled;
-    }
-
-    /// <summary>
     /// Scheduling identifier returned by transport.
     /// </summary>
-    public string Id { get; }
+    public string Id { get; } = id ?? throw new ArgumentNullException(nameof(id));
 
     /// <summary>
     /// Time at which the event will be availed by the transport.
     /// </summary>
-    public DateTimeOffset Scheduled { get; }
+    public DateTimeOffset Scheduled { get; } = scheduled;
 
     /// <inheritdoc/>
     public override bool Equals(object? obj) => obj is ScheduledResult result && Equals(result);
 
     /// <inheritdoc/>
-    public bool Equals(ScheduledResult other)
-    {
-        return Id == other.Id &&
-               EqualityComparer<DateTimeOffset?>.Default.Equals(Scheduled, other.Scheduled);
-    }
+    public bool Equals(ScheduledResult other) => Id == other.Id && EqualityComparer<DateTimeOffset?>.Default.Equals(Scheduled, other.Scheduled);
 
     /// <inheritdoc/>
     public override int GetHashCode() => HashCode.Combine(Id, Scheduled);

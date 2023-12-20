@@ -4,20 +4,11 @@ using Microsoft.Extensions.Options;
 namespace Tingle.EventBus.Transports.InMemory;
 
 ///
-public class InMemoryTestHarness
+public class InMemoryTestHarness(EventBusTransportProvider transportProvider, IOptions<InMemoryTestHarnessOptions> optionsAccessor)
 {
-    private readonly InMemoryTransport transport;
-    private readonly InMemoryTestHarnessOptions options;
-
-    ///
-    public InMemoryTestHarness(EventBusTransportProvider transportProvider, IOptions<InMemoryTestHarnessOptions> optionsAccessor)
-    {
-        // Ensure we have the InMemoryTransport resolved
-        transport = transportProvider.GetTransport(InMemoryDefaults.Name) as InMemoryTransport
+    private readonly InMemoryTransport transport = transportProvider.GetTransport(InMemoryDefaults.Name) as InMemoryTransport
             ?? throw new ArgumentException("The InMemoryTransport must be added. Ensure 'services.AddInMemoryTransport()' has been called.");
-
-        options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
-    }
+    private readonly InMemoryTestHarnessOptions options = optionsAccessor?.Value ?? throw new ArgumentNullException(nameof(optionsAccessor));
 
     ///
     public async Task StartAsync(CancellationToken cancellationToken = default)

@@ -4,18 +4,10 @@
 /// An implementation of <see cref="IEventPublisher"/>
 /// that wraps another <see cref="IEventPublisher"/>.
 /// </summary>
-public class WrappedEventPublisher : IEventPublisher
+/// <param name="inner">The instance of <see cref="IEventPublisher"/> to use for operations.</param>
+public class WrappedEventPublisher(IEventPublisher inner) : IEventPublisher
 {
-    private readonly IEventPublisher inner;
-
-    /// <summary>
-    ///
-    /// </summary>
-    /// <param name="inner">The instance of <see cref="IEventPublisher"/> to use for operations.</param>
-    public WrappedEventPublisher(IEventPublisher inner)
-    {
-        this.inner = inner ?? throw new ArgumentNullException(nameof(inner));
-    }
+    private readonly IEventPublisher inner = inner ?? throw new ArgumentNullException(nameof(inner));
 
     /// <inheritdoc/>
     public Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default) where TEvent : class

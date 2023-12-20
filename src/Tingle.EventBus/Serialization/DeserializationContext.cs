@@ -3,36 +3,26 @@ using Tingle.EventBus.Configuration;
 
 namespace Tingle.EventBus.Serialization;
 
-/// <summary>
-/// Context for performing deserialization.
-/// </summary>
-public sealed class DeserializationContext
+/// <summary>Context for performing deserialization.</summary>
+/// <param name="body">The <see cref="BinaryData"/> containing the raw data.</param>
+/// <param name="registration">Registration for this event being deserialized.</param>
+/// <param name="identifier">Identifier given by the transport for the event to be deserialized.</param>
+public sealed class DeserializationContext(BinaryData body, EventRegistration registration, string? identifier = null)
 {
-    /// <summary>Creates and instance of <see cref="DeserializationContext"/>.</summary>
-    /// <param name="body">The <see cref="BinaryData"/> containing the raw data.</param>
-    /// <param name="registration">Registration for this event being deserialized.</param>
-    /// <param name="identifier">Identifier given by the transport for the event to be deserialized.</param>
-    public DeserializationContext(BinaryData body, EventRegistration registration, string? identifier = null)
-    {
-        Body = body ?? throw new ArgumentNullException(nameof(body));
-        Registration = registration ?? throw new ArgumentNullException(nameof(registration));
-        Identifier = identifier;
-    }
-
     /// <summary>
     /// The <see cref="BinaryData"/> containing the raw data.
     /// </summary>
-    public BinaryData Body { get; }
+    public BinaryData Body { get; } = body ?? throw new ArgumentNullException(nameof(body));
 
     /// <summary>
     /// Registration for this event being deserialized.
     /// </summary>
-    public EventRegistration Registration { get; }
+    public EventRegistration Registration { get; } = registration ?? throw new ArgumentNullException(nameof(registration));
 
     /// <summary>
     /// Identifier given by the transport for the event to be deserialized.
     /// </summary>
-    public string? Identifier { get; }
+    public string? Identifier { get; } = identifier;
 
     /// <summary>
     /// Type of content contained in the <see cref="Body"/>.

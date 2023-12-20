@@ -1,14 +1,7 @@
 ﻿namespace Tingle.EventBus;
 
-internal class EventPublisher : IEventPublisher
+internal class EventPublisher(EventBus bus) : IEventPublisher
 {
-    private readonly EventBus bus;
-
-    public EventPublisher(EventBus bus)
-    {
-        this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
-    }
-
     /// <inheritdoc/>
     public EventContext<TEvent> CreateEventContext<TEvent>(TEvent @event, string? correlationId = null)
         where TEvent : class

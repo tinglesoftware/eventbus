@@ -9,21 +9,12 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// A class to finish configure non-trivial defaults of instances of <see cref="EventBusOptions"/>.
 /// </summary>
-internal class EventBusConfigureOptions : IConfigureOptions<EventBusOptions>,
-                                          IConfigureOptions<EventBusSerializationOptions>,
-                                          IPostConfigureOptions<EventBusOptions>,
-                                          IValidateOptions<EventBusOptions>,
-                                          IValidateOptions<EventBusSerializationOptions>
+internal class EventBusConfigureOptions(IHostEnvironment environment, IEnumerable<IEventBusConfigurator> configurators) : IConfigureOptions<EventBusOptions>,
+                                                                                                                          IConfigureOptions<EventBusSerializationOptions>,
+                                                                                                                          IPostConfigureOptions<EventBusOptions>,
+                                                                                                                          IValidateOptions<EventBusOptions>,
+                                                                                                                          IValidateOptions<EventBusSerializationOptions>
 {
-    private readonly IHostEnvironment environment;
-    private readonly IEnumerable<IEventBusConfigurator> configurators;
-
-    public EventBusConfigureOptions(IHostEnvironment environment, IEnumerable<IEventBusConfigurator> configurators)
-    {
-        this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
-        this.configurators = configurators ?? throw new ArgumentNullException(nameof(configurators));
-    }
-
     /// <inheritdoc/>
     public void Configure(EventBusOptions options)
     {

@@ -9,18 +9,12 @@ namespace Tingle.EventBus.Serialization.Xml;
 /// <summary>
 /// The default implementation of <see cref="IEventSerializer"/> for XML.
 /// </summary>
+/// <param name="optionsAccessor">The options for configuring the serializer.</param>
+/// <param name="loggerFactory"></param>
 [RequiresUnreferencedCode(MessageStrings.XmlSerializationUnreferencedCodeMessage)]
-public class XmlEventSerializer : AbstractEventSerializer
+public class XmlEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor, ILoggerFactory loggerFactory)
+    : AbstractEventSerializer(optionsAccessor, loggerFactory)
 {
-    /// <summary>
-    /// Creates an instance of <see cref="XmlEventSerializer"/>.
-    /// </summary>
-    /// <param name="optionsAccessor">The options for configuring the serializer.</param>
-    /// <param name="loggerFactory"></param>
-    public XmlEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
-                              ILoggerFactory loggerFactory)
-        : base(optionsAccessor, loggerFactory) { }
-
     /// <inheritdoc/>
     protected override IList<string> SupportedMediaTypes => new[] { "application/xml", "text/xml", };
 

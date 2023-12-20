@@ -9,19 +9,13 @@ namespace Tingle.EventBus.Serialization;
 /// <summary>
 /// The default implementation of <see cref="IEventSerializer"/> for JSON using the <c>System.Text.Json</c> library.
 /// </summary>
+/// <param name="optionsAccessor">The options for configuring the serializer.</param>
+/// <param name="loggerFactory"></param>
 [RequiresDynamicCode(MessageStrings.JsonSerializationRequiresDynamicCodeMessage)]
 [RequiresUnreferencedCode(MessageStrings.JsonSerializationUnreferencedCodeMessage)]
-public class DefaultJsonEventSerializer : AbstractEventSerializer
+public class DefaultJsonEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor, ILoggerFactory loggerFactory)
+    : AbstractEventSerializer(optionsAccessor, loggerFactory)
 {
-    /// <summary>
-    /// Creates an instance of <see cref="DefaultJsonEventSerializer"/>.
-    /// </summary>
-    /// <param name="optionsAccessor">The options for configuring the serializer.</param>
-    /// <param name="loggerFactory"></param>
-    public DefaultJsonEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor,
-                                      ILoggerFactory loggerFactory)
-        : base(optionsAccessor, loggerFactory) { }
-
     /// <inheritdoc/>
     protected override IList<string> SupportedMediaTypes => JsonContentTypes;
 

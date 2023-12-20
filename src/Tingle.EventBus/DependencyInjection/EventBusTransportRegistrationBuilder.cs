@@ -3,19 +3,11 @@
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>Used to build <see cref="EventBusTransportRegistration"/>s.</summary>
-public class EventBusTransportRegistrationBuilder
+/// <param name="name">The name of the transport being built.</param>
+public class EventBusTransportRegistrationBuilder(string name)
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="name">The name of the transport being built.</param>
-    public EventBusTransportRegistrationBuilder(string name)
-    {
-        Name = name;
-    }
-
     /// <summary>Gets the name of the transport being built.</summary>
-    public string Name { get; }
+    public string Name { get; } = name;
 
     /// <summary>Gets or sets the display name for the transport being built.</summary>
     public string? DisplayName { get; set; }

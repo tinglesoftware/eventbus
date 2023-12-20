@@ -499,7 +499,7 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
         }
     }
 
-    private TimeSpan SafeDuplicateDetectionHistoryTimeWindow(TimeSpan value)
+    private static TimeSpan SafeDuplicateDetectionHistoryTimeWindow(TimeSpan value)
     {
         var ticks = value.Ticks;
         ticks = Math.Max(ticks, TimeSpan.FromSeconds(20).Ticks); // must be more than 20 seconds

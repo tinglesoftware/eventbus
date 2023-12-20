@@ -9,35 +9,29 @@ public class MandatoryEventBusConfiguratorTests
     [Fact]
     public void ConfigureSerializer_UsesDefault()
     {
-        var configurator = new MandatoryEventBusConfigurator(new FakeHostEnvironment("app1"));
-
         // when not set, use default
         var registration = new EventRegistration(typeof(TestEvent1));
         Assert.Null(registration.EventSerializerType);
-        configurator.ConfigureSerializer(registration);
+        MandatoryEventBusConfigurator.ConfigureSerializer(registration);
         Assert.Equal(typeof(IEventSerializer), registration.EventSerializerType);
     }
 
     [Fact]
     public void ConfigureSerializer_RespectsAttribute()
     {
-        var configurator = new MandatoryEventBusConfigurator(new FakeHostEnvironment("app1"));
-
         // attribute is respected
         var registration = new EventRegistration(typeof(TestEvent2));
         Assert.Null(registration.EventSerializerType);
-        configurator.ConfigureSerializer(registration);
+        MandatoryEventBusConfigurator.ConfigureSerializer(registration);
         Assert.Equal(typeof(FakeEventSerializer1), registration.EventSerializerType);
     }
 
     [Fact]
     public void ConfigureSerializer_Throws_InvalidOperationException()
     {
-        var configurator = new MandatoryEventBusConfigurator(new FakeHostEnvironment("app1"));
-
         // attribute is respected
         var registration = new EventRegistration(typeof(TestEvent3));
-        var ex = Assert.Throws<InvalidOperationException>(() => configurator.ConfigureSerializer(registration));
+        var ex = Assert.Throws<InvalidOperationException>(() => MandatoryEventBusConfigurator.ConfigureSerializer(registration));
         Assert.Equal("The type 'Tingle.EventBus.Tests.Configurator.FakeEventSerializer2' is used"
                    + " as a serializer but does not implement 'Tingle.EventBus.Serialization.IEventSerializer'",
             ex.Message);
@@ -56,14 +50,12 @@ public class MandatoryEventBusConfiguratorTests
     [InlineData(typeof(TestEvent2), true, "dev", NamingConvention.DotCase, "sample-event")]
     public void ConfigureEventName_Works(Type eventType, bool useFullTypeNames, string scope, NamingConvention namingConvention, string expected)
     {
-        var configurator = new MandatoryEventBusConfigurator(new FakeHostEnvironment("app1"));
-
         var options = new EventBusOptions { };
         options.Naming.Scope = scope;
         options.Naming.Convention = namingConvention;
         options.Naming.UseFullTypeNames = useFullTypeNames;
         var registration = new EventRegistration(eventType);
-        configurator.ConfigureEventName(registration, options.Naming);
+        MandatoryEventBusConfigurator.ConfigureEventName(registration, options.Naming);
         Assert.Equal(expected, registration.EventName);
     }
 
@@ -144,7 +136,7 @@ public class MandatoryEventBusConfiguratorTests
         registration.Consumers.Add(new EventConsumerRegistration(consumerType, false));
 
         var creg = Assert.Single(registration.Consumers);
-        configurator.ConfigureEventName(registration, options.Naming);
+        MandatoryEventBusConfigurator.ConfigureEventName(registration, options.Naming);
         configurator.ConfigureConsumerNames(registration, options.Naming);
         Assert.Equal(expected, creg.ConsumerName);
     }
@@ -155,10 +147,8 @@ public class MandatoryEventBusConfiguratorTests
     [InlineData(typeof(TestEvent3), EntityKind.Broadcast)]
     public void ConfigureEntityKind_Works(Type eventType, EntityKind? expected)
     {
-        var configurator = new MandatoryEventBusConfigurator(new FakeHostEnvironment("app1"));
-
         var registration = new EventRegistration(eventType);
-        configurator.ConfigureEntityKind(registration);
+        MandatoryEventBusConfigurator.ConfigureEntityKind(registration);
         Assert.Equal(expected, registration.EntityKind);
     }
 }

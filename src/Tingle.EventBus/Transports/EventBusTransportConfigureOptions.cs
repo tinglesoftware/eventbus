@@ -14,7 +14,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 public abstract class EventBusTransportConfigureOptions<TOptions> : IConfigureNamedOptions<TOptions>, IPostConfigureOptions<TOptions>, IValidateOptions<TOptions>
     where TOptions : EventBusTransportOptions
 {
-    // Some hosts do not allow certain characters for ENV vars buwe know they all support alphanumeric and underscore
+    // Some hosts do not allow certain characters for ENV vars but we know they all support alphanumeric and underscore
     // For example, Azure Container Instances does not allow hyphens in ENV vars while Azure Container Apps does
     private static readonly Regex replacePatternSafeEnv = new("[^a-zA-Z0-9_]", RegexOptions.Compiled);
 

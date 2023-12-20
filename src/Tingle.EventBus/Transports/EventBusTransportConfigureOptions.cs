@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using System.Text.RegularExpressions;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Transports;
 
@@ -13,6 +14,10 @@ namespace Microsoft.Extensions.DependencyInjection;
 public abstract class EventBusTransportConfigureOptions<TOptions> : IConfigureNamedOptions<TOptions>, IPostConfigureOptions<TOptions>, IValidateOptions<TOptions>
     where TOptions : EventBusTransportOptions
 {
+    // Some hosts do not allow certain characters for ENV vars buwe know they all support alphanumeric and underscore
+    // For example, Azure Container Instances does not allow hyphens in ENV vars while Azure Container Apps does
+    private static readonly Regex replacePatternSafeEnv = new("[^a-zA-Z0-9_]", RegexOptions.Compiled);
+
     private readonly IEventBusConfigurationProvider configurationProvider;
     private readonly IEnumerable<IEventBusConfigurator> configurators;
 
@@ -44,6 +49,14 @@ public abstract class EventBusTransportConfigureOptions<TOptions> : IConfigureNa
 
         var configuration = configurationProvider.Configuration.GetSection($"Transports:{name}");
         Configure(configuration, options);
+
+        // repeat with a safe name (if the configuration section exists)
+        var safeName = replacePatternSafeEnv.Replace(name, "");
+        configuration = configurationProvider.Configuration.GetSection($"Transports:{safeName}");
+        if (configuration.Exists())
+        {
+            Configure(configuration, options);
+        }
 
         options.WaitTransportStarted ??= BusOptions.DefaultTransportWaitStarted;
     }

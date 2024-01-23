@@ -66,6 +66,7 @@ A number of the documents below are still a work in progress and will be added a
 - [Using Amazon SQS and SNS](./samples/AmazonSqsAndSns)
 - [Receive events from Azure IoT Hub](./samples/AzureIotHub)
 - [Using Azure Managed Identity instead of Connection Strings](./samples/AzureManagedIdentity)
+- [Health Checks for Azure Service Bus with Managed Identity](./samples/HealthCheck)
 
 ## Issues &amp; Comments
 

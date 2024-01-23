@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.10.4" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Tingle.EventBus.Transports.Azure.ServiceBus\Tingle.EventBus.Transports.Azure.ServiceBus.csproj" />
+  </ItemGroup>
+
+</Project>

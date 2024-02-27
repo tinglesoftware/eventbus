@@ -166,7 +166,7 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
         }
 
         using var scope = CreateScope();
-        var datas = new List<EventData>();
+        var eventDatas = new List<EventData>();
         foreach (var @event in events)
         {
             var body = await SerializeAsync(scope: scope,
@@ -192,16 +192,16 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
                            .AddIfNotDefault(MetadataNames.EventName, registration.EventName)
                            .AddIfNotDefault(MetadataNames.EventType, registration.EventType.FullName)
                            .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
-            datas.Add(data);
+            eventDatas.Add(data);
         }
 
         // get the producer and send the events accordingly
         var producer = await GetProducerAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.SendingEvents(events: events, eventHubName: producer.EventHubName, scheduled: scheduled);
-        await producer.SendAsync(datas, cancellationToken).ConfigureAwait(false);
+        await producer.SendAsync(eventDatas, cancellationToken).ConfigureAwait(false);
 
         // return the sequence numbers
-        return scheduled != null ? datas.Select(m => new ScheduledResult(id: m.SequenceNumber, scheduled: scheduled.Value)).ToList() : null;
+        return scheduled != null ? eventDatas.Select(m => new ScheduledResult(id: m.SequenceNumber, scheduled: scheduled.Value)).ToList() : null;
     }
 
     /// <inheritdoc/>

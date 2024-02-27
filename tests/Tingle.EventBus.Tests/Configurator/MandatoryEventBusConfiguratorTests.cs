@@ -44,7 +44,7 @@ public class MandatoryEventBusConfiguratorTests
     [InlineData(typeof(TestEvent1), true, "dev", NamingConvention.KebabCase, "dev-tingle-event-bus-tests-configurator-test-event1")]
     [InlineData(typeof(TestEvent1), true, "dev", NamingConvention.SnakeCase, "dev_tingle_event_bus_tests_configurator_test_event1")]
     [InlineData(typeof(TestEvent1), true, "dev", NamingConvention.DotCase, "dev.tingle.event.bus.tests.configurator.test.event1")]
-    // Overriden by attribute
+    // Overridden by attribute
     [InlineData(typeof(TestEvent2), true, "dev", NamingConvention.KebabCase, "sample-event")]
     [InlineData(typeof(TestEvent2), true, "dev", NamingConvention.SnakeCase, "sample-event")]
     [InlineData(typeof(TestEvent2), true, "dev", NamingConvention.DotCase, "sample-event")]
@@ -105,7 +105,7 @@ public class MandatoryEventBusConfiguratorTests
     [InlineData(typeof(TestEvent1), typeof(TestConsumer1), true, "service1", ConsumerNameSource.PrefixAndTypeName, NamingConvention.DotCase,
         "service1.tingle.event.bus.tests.configurator.test.consumer1")]
 
-    // Overriden by attribute
+    // Overridden by attribute
     [InlineData(typeof(TestEvent2), typeof(TestConsumer2), false, null, ConsumerNameSource.TypeName, NamingConvention.SnakeCase, "sample-consumer")]
     [InlineData(typeof(TestEvent2), typeof(TestConsumer2), false, null, ConsumerNameSource.Prefix, NamingConvention.SnakeCase, "sample-consumer")]
     [InlineData(typeof(TestEvent2), typeof(TestConsumer2), false, "service1", ConsumerNameSource.PrefixAndTypeName, NamingConvention.SnakeCase, "sample-consumer")]

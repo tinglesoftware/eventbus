@@ -16,9 +16,9 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>
 public abstract class EventBusTransportConfigureOptions<TOptions>(IEventBusConfigurationProvider configurationProvider,
                                                                   IEnumerable<IEventBusConfigurator> configurators,
-                                                                  IOptions<EventBusOptions> busOptionsAccessor): IConfigureNamedOptions<TOptions>,
-                                                                                                                 IPostConfigureOptions<TOptions>,
-                                                                                                                 IValidateOptions<TOptions>
+                                                                  IOptions<EventBusOptions> busOptionsAccessor) : IConfigureNamedOptions<TOptions>,
+                                                                                                                  IPostConfigureOptions<TOptions>,
+                                                                                                                  IValidateOptions<TOptions>
     where TOptions : EventBusTransportOptions
 {
     // Some hosts do not allow certain characters for ENV vars but we know they all support alphanumeric and underscore

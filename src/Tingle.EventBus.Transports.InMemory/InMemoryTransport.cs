@@ -25,7 +25,7 @@ public class InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
                                IOptions<EventBusOptions> busOptionsAccessor,
                                IOptionsMonitor<InMemoryTransportOptions> optionsMonitor,
                                ILoggerFactory loggerFactory,
-                               SequenceNumberGenerator sng) 
+                               SequenceNumberGenerator sng)
     : EventBusTransport<InMemoryTransportOptions>(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory)
 {
     private readonly EventBusConcurrentDictionary<(Type, bool), InMemorySender> sendersCache = new();

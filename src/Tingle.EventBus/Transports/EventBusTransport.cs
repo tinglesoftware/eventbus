@@ -326,10 +326,10 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     /// <returns>An <see cref="EventConsumeResult"/> representing the state of the action.</returns>
     /// <param name="cancellationToken"></param>
     protected async Task<EventConsumeResult> ConsumeAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration registration,
-                                                                                                                               EventConsumerRegistration ecr,
-                                                                                                                               EventContext @event,
-                                                                                                                               IServiceScope scope,
-                                                                                                                               CancellationToken cancellationToken)
+                                                                                                                                   EventConsumerRegistration ecr,
+                                                                                                                                   EventContext @event,
+                                                                                                                                   IServiceScope scope,
+                                                                                                                                   CancellationToken cancellationToken)
         where TConsumer : IEventConsumer
         where TEvent : class
     {

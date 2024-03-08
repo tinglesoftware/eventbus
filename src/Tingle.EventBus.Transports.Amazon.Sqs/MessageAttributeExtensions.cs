@@ -51,7 +51,7 @@ internal static class MessageAttributeExtensions
     {
         if (request is null) throw new ArgumentNullException(nameof(request));
         static SNSAttribute creator(string v) => new() { DataType = "String", StringValue = v };
-                
+
         request.MessageAttributes.SetAttributes(creator, @event);
         return request;
     }

@@ -1,11 +1,15 @@
 {
     "cSpell.words": [
+        "AWSSDK",
         "Behaviour",
         "checkpointing",
         "Configurator",
         "configurators",
         "Deadletter",
         "Deduplication",
-        "Serializers"
+        "devcontainers",
+        "Newtonsoft",
+        "Serializers",
+        "Xunit"
     ]
 }

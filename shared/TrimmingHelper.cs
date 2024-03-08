@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-// TODO: move this file to src/Tingle.EventBus/Internal and change to public once we the min target is .NET 6
+// TODO: move this file to src/Tingle.EventBus/Internal and change to public once the min target is .NET 6
 
 namespace Tingle.EventBus.Internal;
 

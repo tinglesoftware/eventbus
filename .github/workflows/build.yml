@@ -78,6 +78,7 @@ jobs:
       with:
         path: ${{ github.workspace }}/drop/*
         name: drop
+        retention-days: 1
 
   # TODO: remove support for Azure Artifacts once we have migrated all packages to GitHub Packages
   AzureArtifacts:

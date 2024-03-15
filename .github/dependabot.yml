@@ -5,42 +5,30 @@
 
 version: 2
 updates:
-  - package-ecosystem: "nuget" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: 'nuget' # See documentation for possible values
+    directory: '/' # Location of package manifests
     schedule:
-      interval: "weekly"
-      time: "02:00"
+      interval: 'weekly'
+      time: '02:00'
     open-pull-requests-limit: 10
     groups:
-      azure-sdk:
-        patterns: ["Azure.*"]
       aws-sdk:
-        patterns: ["AWSSDK.*"]
+        patterns: ['AWSSDK.*']
+      azure-sdk:
+        patterns: ['Azure.*']
       microsoft:
-        patterns: ["Microsoft*"]
+        patterns: ['Microsoft*']
       system:
-        patterns: ["System*"]
+        patterns: ['System*']
       xunit:
-        patterns: ["Xunit*"]
-    ignore:
-      # Ignore patch updates for some packages
-      - dependency-name: "Microsoft.*"
-        update-types: ["version-update:semver-patch"]
-      - dependency-name: "System.*"
-        update-types: ["version-update:semver-patch"]
-      - dependency-name: "RabbitMQ.Client"
-        update-types: ["version-update:semver-patch"]
-      - dependency-name: "Newtonsoft.Json"
-        update-types: ["version-update:semver-patch"]
-  - package-ecosystem: "github-actions" # See documentation for possible values
-    directory: "/" # Location of package manifests
+        patterns: ['Xunit*']
+  - package-ecosystem: 'github-actions' # See documentation for possible values
+    directory: '/' # Location of package manifests
     schedule:
-      interval: "weekly"
-      time: "02:00"
-    open-pull-requests-limit: 10
-  - package-ecosystem: "devcontainers" # See documentation for possible values
-    directory: "/" # Location of package manifests
+      interval: 'weekly'
+      time: '02:00'
+  - package-ecosystem: 'devcontainers' # See documentation for possible values
+    directory: '/' # Location of package manifests
     schedule:
-      interval: "weekly"
-      time: "02:00"
-    open-pull-requests-limit: 10
+      interval: 'weekly'
+      time: '02:00'

@@ -76,7 +76,7 @@ jobs:
         --output ${{ github.workspace }}/drop
         -p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersion }}
 
-    - name: Publish Artifact
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         path: ${{ github.workspace }}/drop/*

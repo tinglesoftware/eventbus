@@ -255,7 +255,7 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                 // form the generic method
                 var ecr = reg.Consumers.Single(); // only one consumer per event
                 var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
-                await ((Task)method.Invoke(this, new object[] { reg, ecr, result, cancellationToken, })!).ConfigureAwait(false);
+                await ((Task)method.Invoke(this, [reg, ecr, result, cancellationToken])!).ConfigureAwait(false);
             }
             catch (TaskCanceledException)
             {

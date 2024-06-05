@@ -157,7 +157,7 @@ internal sealed class InMemorySender : IInMemorySender
                         ?? throw new ArgumentException($"An item with the sequence number {sequenceNumber} does not exist.", nameof(sequenceNumber));
 
             // make new items and replace
-            items = items.AsEnumerable().Except(new[] { matching }).ToList();
+            items = items.AsEnumerable().Except([matching]).ToList();
         }
         finally
         {

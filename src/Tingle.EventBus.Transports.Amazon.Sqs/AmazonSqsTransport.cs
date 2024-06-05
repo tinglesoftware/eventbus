@@ -375,7 +375,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
                     using var scope = CreateScope(); // shared
                     foreach (var message in messages)
                     {
-                        await ((Task)method.Invoke(this, new object[] { reg, ecr, queueUrl, message, cancellationToken, })!).ConfigureAwait(false);
+                        await ((Task)method.Invoke(this, [reg, ecr, queueUrl, message, cancellationToken])!).ConfigureAwait(false);
                     }
                 }
             }

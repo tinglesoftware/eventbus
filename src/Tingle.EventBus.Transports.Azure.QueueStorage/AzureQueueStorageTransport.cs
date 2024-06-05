@@ -276,7 +276,7 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
                     using var scope = CreateScope(); // shared
                     foreach (var message in messages)
                     {
-                        await ((Task)method.Invoke(this, new object[] { reg, ecr, queueClient, message, scope, cancellationToken, })!).ConfigureAwait(false);
+                        await ((Task)method.Invoke(this, [reg, ecr, queueClient, message, scope, cancellationToken])!).ConfigureAwait(false);
                     }
                 }
             }

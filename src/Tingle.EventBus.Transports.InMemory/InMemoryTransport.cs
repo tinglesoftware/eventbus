@@ -352,7 +352,12 @@ public class InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
         // set the extras
         context.SetInMemoryReceivedMessage(message);
 
-        var (successful, _) = await ConsumeAsync(scope, reg, ecr, context, cancellationToken).ConfigureAwait(false);
+        var (successful, ex) = await ConsumeAsync(scope, reg, ecr, context, cancellationToken).ConfigureAwait(false);
+        if (ex != null)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.AddException(ex);
+        }
 
         // Add to Consumed/Failed list
         if (successful) consumed.Add(context);

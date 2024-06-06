@@ -425,7 +425,12 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
 
         Logger.ReceivedMessage(messageId: messageId, eventBusId: context.Id, queueUrl: queueUrl);
 
-        var (successful, _) = await ConsumeAsync(scope, reg, ecr, context, cancellationToken).ConfigureAwait(false);
+        var (successful, ex) = await ConsumeAsync(scope, reg, ecr, context, cancellationToken).ConfigureAwait(false);
+        if (ex != null)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.AddException(ex);
+        }
 
         // dead-letter cannot be dead-lettered again, what else can we do?
         if (ecr.Deadletter) return; // TODO: figure out what to do when dead-letter fails

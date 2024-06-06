@@ -310,6 +310,11 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
                               messageId,
                               context.Id);
         var (successful, ex) = await ConsumeAsync(scope, reg, ecr, context, cancellationToken).ConfigureAwait(false);
+        if (ex != null)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.AddException(ex);
+        }
 
         // Decide the action to execute then execute
         var action = DecideAction(successful, ecr.UnhandledErrorBehaviour);

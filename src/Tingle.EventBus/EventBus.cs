@@ -30,9 +30,7 @@ public class EventBus(EventBusTransportProvider transportProvider,
 
     private readonly IReadOnlyDictionary<string, IEventBusTransport> transports = transportProvider.GetTransports();
 
-    /// <summary>
-    /// Publish an event.
-    /// </summary>
+    /// <summary>Publish an event.</summary>
     /// <typeparam name="TEvent">The event type.</typeparam>
     /// <param name="event">The event to publish.</param>
     /// <param name="scheduled">
@@ -74,15 +72,23 @@ public class EventBus(EventBusTransportProvider transportProvider,
         activity?.AddTag(ActivityTagNames.MessagingConversationId, @event.CorrelationId);
 
         // Publish on the transport
-        return await transport.PublishAsync(@event: @event,
-                                            registration: reg,
-                                            scheduled: scheduled,
-                                            cancellationToken: cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await transport.PublishAsync(@event: @event,
+                                                registration: reg,
+                                                scheduled: scheduled,
+                                                cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.AddException(ex);
+
+            throw;
+        }
     }
 
-    /// <summary>
-    /// Publish a batch of events.
-    /// </summary>
+    /// <summary>Publish a batch of events.</summary>
     /// <typeparam name="TEvent">The event type.</typeparam>
     /// <param name="events">The events to publish.</param>
     /// <param name="scheduled">
@@ -127,16 +133,24 @@ public class EventBus(EventBusTransportProvider transportProvider,
         activity?.AddTag(ActivityTagNames.MessagingConversationId, string.Join(",", events.Select(e => e.CorrelationId)));
 
         // Publish on the transport
-        return await transport.PublishAsync(events: events,
-                                            registration: reg,
-                                            scheduled: scheduled,
-                                            cancellationToken: cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await transport.PublishAsync(events: events,
+                                                registration: reg,
+                                                scheduled: scheduled,
+                                                cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.AddException(ex);
+
+            throw;
+        }
     }
 
 
-    /// <summary>
-    /// Cancel a scheduled event.
-    /// </summary>
+    /// <summary>Cancel a scheduled event.</summary>
     /// <typeparam name="TEvent">The event type.</typeparam>
     /// <param name="id">The scheduling identifier of the scheduled event.</param>
     /// <param name="cancellationToken"></param>
@@ -155,12 +169,20 @@ public class EventBus(EventBusTransportProvider transportProvider,
         activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
 
         // Cancel on the transport
-        await transport.CancelAsync<TEvent>(id: id, registration: reg, cancellationToken: cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await transport.CancelAsync<TEvent>(id: id, registration: reg, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.AddException(ex);
+
+            throw;
+        }
     }
 
-    /// <summary>
-    /// Cancel a batch of scheduled events.
-    /// </summary>
+    /// <summary>Cancel a batch of scheduled events.</summary>
     /// <typeparam name="TEvent">The event type.</typeparam>
     /// <param name="ids">The scheduling identifiers of the scheduled events.</param>
     /// <param name="cancellationToken"></param>
@@ -179,7 +201,17 @@ public class EventBus(EventBusTransportProvider transportProvider,
         activity?.AddTag(ActivityTagNames.MessagingSystem, transport.Name);
 
         // Cancel on the transport
-        await transport.CancelAsync<TEvent>(ids: ids, registration: reg, cancellationToken: cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await transport.CancelAsync<TEvent>(ids: ids, registration: reg, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.AddException(ex);
+
+            throw;
+        }
     }
 
     ///

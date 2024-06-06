@@ -84,7 +84,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
         finally
         {
             // Wait until the tasks complete or the stop token triggers
-            var tasks = receiverTasks.Concat(new[] { Task.Delay(Timeout.Infinite, cancellationToken), });
+            var tasks = receiverTasks.Concat([Task.Delay(Timeout.Infinite, cancellationToken)]);
             await Task.WhenAny(tasks).ConfigureAwait(false);
         }
     }

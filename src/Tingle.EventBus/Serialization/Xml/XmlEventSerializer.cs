@@ -16,7 +16,7 @@ public class XmlEventSerializer(IOptionsMonitor<EventBusSerializationOptions> op
     : AbstractEventSerializer(optionsAccessor, loggerFactory)
 {
     /// <inheritdoc/>
-    protected override IList<string> SupportedMediaTypes => new[] { "application/xml", "text/xml", };
+    protected override IList<string> SupportedMediaTypes => ["application/xml", "text/xml"];
 
     /// <inheritdoc/>
     protected override Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,

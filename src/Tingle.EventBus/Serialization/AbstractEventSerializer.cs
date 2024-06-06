@@ -17,7 +17,7 @@ public abstract partial class AbstractEventSerializer : IEventSerializer
     private const string TrimPattern = "(Serializer|EventSerializer)$";
 
     ///
-    protected static readonly IList<string> JsonContentTypes = new[] { "application/json", "text/json", };
+    protected static readonly IList<string> JsonContentTypes = ["application/json", "text/json"];
 
     private static readonly Regex trimPattern = GetTrimPattern();
 

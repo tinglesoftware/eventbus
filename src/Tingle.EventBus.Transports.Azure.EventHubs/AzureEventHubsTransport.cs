@@ -124,7 +124,7 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
         // get the producer and send the event accordingly
         var producer = await GetProducerAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.SendingEvent(eventBusId: @event.Id, eventHubName: producer.EventHubName, scheduled: scheduled);
-        await producer.SendAsync(new[] { data }, cancellationToken).ConfigureAwait(false);
+        await producer.SendAsync([data], cancellationToken).ConfigureAwait(false);
 
         // return the sequence number
         return scheduled != null ? new ScheduledResult(id: data.SequenceNumber, scheduled: scheduled.Value) : null;
@@ -415,7 +415,7 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
         {
             // get the producer for the dead letter event hub and send the event there
             var dlqProcessor = await GetProducerAsync(reg: reg, deadletter: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-            await dlqProcessor.SendAsync(new[] { data }, cancellationToken).ConfigureAwait(false);
+            await dlqProcessor.SendAsync([data], cancellationToken).ConfigureAwait(false);
         }
 
         /*

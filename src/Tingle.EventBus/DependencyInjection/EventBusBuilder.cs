@@ -14,6 +14,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public class EventBusBuilder
 {
+    private const string ConsumersRequiresDynamicCode = "Registering consumers for all subscribed events requires dynamic code that might not be available at runtime. Register the consumer once for every event using AddConsumer<TEvent, TConsumer>(...)";
+
     /// <summary>
     /// Creates an instance of <see cref="EventBusBuilder"/>
     /// </summary>
@@ -41,16 +43,6 @@ public class EventBusBuilder
     /// The instance of <see cref="IServiceCollection"/> that this builder instance adds to.
     /// </summary>
     public IServiceCollection Services { get; }
-
-    /// <summary>Register default services for the EventBus.</summary>
-    [RequiresDynamicCode(MessageStrings.RequiresDynamicCodeMessage)]
-    [RequiresUnreferencedCode(MessageStrings.RequiresUnreferencedCodeMessage)]
-    public EventBusBuilder RegisterDefaultServices()
-    {
-        Services.AddSingleton<IEventBusConfigurator, DefaultEventBusConfigurator>(); // can be multiple do not use TryAdd*(...)
-        UseDefaultSerializer<DefaultJsonEventSerializer>();
-        return this;
-    }
 
     /// <summary>Configure options for the EventBus.</summary>
     /// <param name="configure"></param>
@@ -177,12 +169,73 @@ public class EventBusBuilder
         return UseDefaultSerializer(provider => ActivatorUtilities.CreateInstance<DefaultJsonEventSerializerTrimmable>(provider, [context]));
     }
 
-    /// <summary>
-    /// Subscribe to events that a consumer can listen to.
-    /// </summary>
+    /// <summary>Subscribe a consumer to events of a single type.</summary>
+    /// <typeparam name="TEvent">The type of event to listen to.</typeparam>
     /// <typeparam name="TConsumer">The type of consumer to handle the events.</typeparam>
     /// <param name="configure"></param>
     /// <returns></returns>
+    public EventBusBuilder AddConsumer<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(
+        Action<EventRegistration, EventConsumerRegistration> configure)
+        where TEvent : class
+        where TConsumer : class, IEventConsumer<TEvent>
+    {
+        var eventType = typeof(TEvent);
+        if (eventType.IsAbstract) throw new InvalidOperationException($"Abstract event types are not allowed.");
+
+        var consumerType = typeof(TConsumer);
+        if (consumerType.IsAbstract) throw new InvalidOperationException($"Abstract consumer types are not allowed.");
+
+        // add the event types to the registrations
+        return Configure(options =>
+        {
+            // get or create a simple EventRegistration
+            var reg = options.Registrations.GetOrAdd(eventType, t => EventRegistration.Create<TEvent>());
+
+            // create a simple ConsumerRegistration (HashSet removes duplicates)
+            var ecr = EventConsumerRegistration.Create<TEvent, TConsumer>();
+            reg.Consumers.Add(ecr);
+
+            // call the configuration function
+            configure?.Invoke(reg, ecr);
+        });
+    }
+
+    /// <summary>Subscribe a consumer to deadletter events of a single type.</summary>
+    /// <typeparam name="TEvent">The type of event to listen to.</typeparam>
+    /// <typeparam name="TConsumer">The type of consumer to handle the events.</typeparam>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    public EventBusBuilder AddDeadLetteredConsumer<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(
+        Action<EventRegistration, EventConsumerRegistration> configure)
+        where TEvent : class
+        where TConsumer : class, IDeadLetteredEventConsumer<TEvent>
+    {
+        var eventType = typeof(TEvent);
+        if (eventType.IsAbstract) throw new InvalidOperationException($"Abstract event types are not allowed.");
+
+        var consumerType = typeof(TConsumer);
+        if (consumerType.IsAbstract) throw new InvalidOperationException($"Abstract consumer types are not allowed.");
+
+        // add the event types to the registrations
+        return Configure(options =>
+        {
+            // get or create a simple EventRegistration
+            var reg = options.Registrations.GetOrAdd(eventType, t => EventRegistration.Create<TEvent>());
+
+            // create a simple ConsumerRegistration (HashSet removes duplicates)
+            var ecr = EventConsumerRegistration.CreateDeadLettered<TEvent, TConsumer>();
+            reg.Consumers.Add(ecr);
+
+            // call the configuration function
+            configure?.Invoke(reg, ecr);
+        });
+    }
+
+    /// <summary>Subscribe to events that a consumer can listen to.</summary>
+    /// <typeparam name="TConsumer">The type of consumer to handle the events.</typeparam>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    [RequiresDynamicCode(ConsumersRequiresDynamicCode)]
     public EventBusBuilder AddConsumer<[DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(
         Action<EventRegistration, EventConsumerRegistration> configure) where TConsumer : class, IEventConsumer
     {
@@ -226,10 +279,10 @@ public class EventBusBuilder
             foreach (var (et, deadletter) in eventTypes)
             {
                 // get or create a simple EventRegistration
-                var reg = options.Registrations.GetOrAdd(et, t => new EventRegistration(t));
+                var reg = options.Registrations.GetOrAdd(et, t => EventRegistration.Create(et));
 
                 // create a simple ConsumerRegistration (HashSet removes duplicates)
-                var ecr = new EventConsumerRegistration(consumerType, deadletter);
+                var ecr = EventConsumerRegistration.Create(et, consumerType, deadletter);
                 reg.Consumers.Add(ecr);
 
                 // call the configuration function
@@ -238,12 +291,37 @@ public class EventBusBuilder
         });
     }
 
-    /// <summary>
-    /// Subscribe to events that a consumer can listen to.
-    /// </summary>
+    /// <summary>Subscribe to events that a consumer can listen to.</summary>
+    /// <typeparam name="TEvent">The type of event to listen to.</typeparam>
     /// <typeparam name="TConsumer">The type of consumer to handle the events.</typeparam>
     /// <param name="configure"></param>
     /// <returns></returns>
+    public EventBusBuilder AddConsumer<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(
+        Action<EventConsumerRegistration>? configure = null)
+        where TEvent : class
+        where TConsumer : class, IEventConsumer<TEvent>
+    {
+        return AddConsumer<TEvent, TConsumer>((reg, ecr) => configure?.Invoke(ecr));
+    }
+
+    /// <summary>Subscribe to deadletter events that a consumer can listen to.</summary>
+    /// <typeparam name="TEvent">The type of event to listen to.</typeparam>
+    /// <typeparam name="TConsumer">The type of consumer to handle the events.</typeparam>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    public EventBusBuilder AddDeadLetteredConsumer<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(
+        Action<EventConsumerRegistration>? configure = null)
+        where TEvent : class
+        where TConsumer : class, IDeadLetteredEventConsumer<TEvent>
+    {
+        return AddDeadLetteredConsumer<TEvent, TConsumer>((reg, ecr) => configure?.Invoke(ecr));
+    }
+
+    /// <summary>Subscribe to events that a consumer can listen to.</summary>
+    /// <typeparam name="TConsumer">The type of consumer to handle the events.</typeparam>
+    /// <param name="configure"></param>
+    /// <returns></returns>
+    [RequiresDynamicCode(ConsumersRequiresDynamicCode)]
     public EventBusBuilder AddConsumer<[DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(
         Action<EventConsumerRegistration>? configure = null) where TConsumer : class, IEventConsumer
     {

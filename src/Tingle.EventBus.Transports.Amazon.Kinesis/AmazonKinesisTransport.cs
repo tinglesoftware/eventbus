@@ -4,7 +4,9 @@ using Amazon.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
 using Tingle.EventBus.Configuration;
+using Tingle.EventBus.Internal;
 
 namespace Tingle.EventBus.Transports.Amazon.Kinesis;
 
@@ -62,10 +64,10 @@ public class AmazonKinesisTransport : EventBusTransport<AmazonKinesisTransportOp
     }
 
     /// <inheritdoc/>
-    protected override async Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
-                                                                             EventRegistration registration,
-                                                                             DateTimeOffset? scheduled = null,
-                                                                             CancellationToken cancellationToken = default)
+    protected override async Task<ScheduledResult?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(EventContext<TEvent> @event,
+                                                                                                                                EventRegistration registration,
+                                                                                                                                DateTimeOffset? scheduled = null,
+                                                                                                                                CancellationToken cancellationToken = default)
     {
         // log warning when trying to publish scheduled message
         if (scheduled != null)
@@ -98,10 +100,10 @@ public class AmazonKinesisTransport : EventBusTransport<AmazonKinesisTransportOp
     }
 
     /// <inheritdoc/>
-    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                                    EventRegistration registration,
-                                                                                    DateTimeOffset? scheduled = null,
-                                                                                    CancellationToken cancellationToken = default)
+    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<EventContext<TEvent>> events,
+                                                                                                                                       EventRegistration registration,
+                                                                                                                                       DateTimeOffset? scheduled = null,
+                                                                                                                                       CancellationToken cancellationToken = default)
     {
         // log warning when trying to publish scheduled message
         if (scheduled != null)

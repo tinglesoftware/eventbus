@@ -46,25 +46,10 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
                 var processor = await GetProcessorAsync(reg: reg, ecr: ecr, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // register handlers for error and processing
-                processor.PartitionClosingAsync += delegate (PartitionClosingEventArgs args)
-                {
-                    return OnPartitionClosingAsync(processor, args);
-                };
-                processor.PartitionInitializingAsync += delegate (PartitionInitializingEventArgs args)
-                {
-                    return OnPartitionInitializingAsync(processor, args);
-                };
-                processor.ProcessErrorAsync += delegate (ProcessErrorEventArgs args)
-                {
-                    return OnProcessErrorAsync(processor, args);
-                };
-                processor.ProcessEventAsync += delegate (ProcessEventArgs args)
-                {
-                    var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-                    var mt = GetType().GetMethod(nameof(OnEventReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
-                    var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
-                    return (Task)method.Invoke(this, [reg, ecr, processor, args])!;
-                };
+                processor.PartitionClosingAsync += (PartitionClosingEventArgs args) => OnPartitionClosingAsync(processor, args);
+                processor.PartitionInitializingAsync += (PartitionInitializingEventArgs args) => OnPartitionInitializingAsync(processor, args);
+                processor.ProcessErrorAsync += (ProcessErrorEventArgs args) => OnProcessErrorAsync(processor, args);
+                processor.ProcessEventAsync += (ProcessEventArgs args) => OnEventReceivedAsync(reg, ecr, processor, args);
 
                 // start processing
                 await processor.StartProcessingAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -96,10 +81,10 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
     }
 
     /// <inheritdoc/>
-    protected override async Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
-                                                                             EventRegistration registration,
-                                                                             DateTimeOffset? scheduled = null,
-                                                                             CancellationToken cancellationToken = default)
+    protected override async Task<ScheduledResult?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(EventContext<TEvent> @event,
+                                                                                                                                EventRegistration registration,
+                                                                                                                                DateTimeOffset? scheduled = null,
+                                                                                                                                CancellationToken cancellationToken = default)
     {
         // log warning when trying to publish scheduled event
         if (scheduled != null)
@@ -148,10 +133,10 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
     }
 
     /// <inheritdoc/>
-    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                                    EventRegistration registration,
-                                                                                    DateTimeOffset? scheduled = null,
-                                                                                    CancellationToken cancellationToken = default)
+    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<EventContext<TEvent>> events,
+                                                                                                                                       EventRegistration registration,
+                                                                                                                                       DateTimeOffset? scheduled = null,
+                                                                                                                                       CancellationToken cancellationToken = default)
     {
         // log warning when trying to publish scheduled events
         if (scheduled != null)
@@ -361,12 +346,7 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
         return processorsCache.GetOrAddAsync(key, creator, cancellationToken);
     }
 
-    private async Task OnEventReceivedAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration reg,
-                                                                                                                 EventConsumerRegistration ecr,
-                                                                                                                 EventProcessorClient processor,
-                                                                                                                 ProcessEventArgs args)
-        where TEvent : class
-        where TConsumer : IEventConsumer
+    private async Task OnEventReceivedAsync(EventRegistration reg, EventConsumerRegistration ecr, EventProcessorClient processor, ProcessEventArgs args)
     {
         Logger.ProcessorReceivedEvent(eventHubName: processor.EventHubName,
                                       consumerGroup: processor.ConsumerGroup,
@@ -396,8 +376,8 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
 
         // Instrumentation
         using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
-        activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
-        activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
+        activity?.AddTag(ActivityTagNames.EventBusEventType, reg.EventType.FullName);
+        activity?.AddTag(ActivityTagNames.EventBusConsumerType, ecr.ConsumerType.FullName);
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
         activity?.AddTag(ActivityTagNames.MessagingDestination, processor.EventHubName);
 
@@ -409,14 +389,14 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
                                sequenceNumber: data.SequenceNumber);
         using var scope = CreateScope();
         var contentType = new ContentType(data.ContentType);
-        var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                     body: data.EventBody,
-                                                     contentType: contentType,
-                                                     registration: reg,
-                                                     identifier: data.SequenceNumber.ToString(),
-                                                     raw: data,
-                                                     deadletter: ecr.Deadletter,
-                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+        var context = await DeserializeAsync(scope: scope,
+                                             body: data.EventBody,
+                                             contentType: contentType,
+                                             registration: reg,
+                                             identifier: data.SequenceNumber.ToString(),
+                                             raw: data,
+                                             deadletter: ecr.Deadletter,
+                                             cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.ReceivedEvent(eventBusId: context.Id,
                              eventHubName: processor.EventHubName,
                              consumerGroup: processor.ConsumerGroup,
@@ -429,11 +409,7 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
                .SetPartitionContext(args.Partition)
                .SetEventData(data);
 
-        var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
-                                                                    ecr: ecr,
-                                                                    @event: context,
-                                                                    scope: scope,
-                                                                    cancellationToken: cancellationToken).ConfigureAwait(false);
+        var (successful, _) = await ConsumeAsync(scope, reg, ecr, context, cancellationToken).ConfigureAwait(false);
 
         // dead-letter cannot be dead-lettered again, what else can we do?
         if (ecr.Deadletter) return; // TODO: figure out what to do when dead-letter fails

@@ -1,5 +1,7 @@
 ﻿using Azure.Messaging.ServiceBus;
+using System.Diagnostics.CodeAnalysis;
 using Tingle.EventBus;
+using Tingle.EventBus.Internal;
 using Tingle.EventBus.Transports.Azure.ServiceBus;
 
 namespace Microsoft.Extensions.Logging;
@@ -86,7 +88,7 @@ internal static partial class ILoggerExtensions
                                eventBusIds: string.Join("\r\n- ", eventBusIds));
     }
 
-    public static void SendingMessages<T>(this ILogger logger, IList<EventContext<T>> events, string entityPath, DateTimeOffset? scheduled = null)
+    public static void SendingMessages<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(this ILogger logger, IList<EventContext<T>> events, string entityPath, DateTimeOffset? scheduled = null)
         where T : class
     {
         if (!logger.IsEnabled(LogLevel.Information)) return;

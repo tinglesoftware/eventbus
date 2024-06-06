@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Mime;
 using System.Text.RegularExpressions;
 using Tingle.EventBus.Diagnostics;
+using Tingle.EventBus.Internal;
 
 namespace Tingle.EventBus.Serialization;
 
@@ -45,7 +47,7 @@ public abstract class AbstractEventSerializer : IEventSerializer
     protected ILogger Logger { get; }
 
     /// <inheritdoc/>
-    public async Task<IEventEnvelope<T>?> DeserializeAsync<T>(DeserializationContext context, CancellationToken cancellationToken = default)
+    public async Task<IEventEnvelope<T>?> DeserializeAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(DeserializationContext context, CancellationToken cancellationToken = default)
         where T : class
     {
         // Assume first media type if none is specified
@@ -78,9 +80,7 @@ public abstract class AbstractEventSerializer : IEventSerializer
     }
 
     /// <inheritdoc/>
-    public async Task SerializeAsync<T>(SerializationContext<T> context,
-                                        CancellationToken cancellationToken = default)
-         where T : class
+    public async Task SerializeAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(SerializationContext<T> context, CancellationToken cancellationToken = default) where T : class
     {
         // Assume first media type if none is specified
         context.Event.ContentType ??= new ContentType(SupportedMediaTypes[0]);

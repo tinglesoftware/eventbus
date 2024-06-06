@@ -90,10 +90,10 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
     }
 
     /// <inheritdoc/>
-    protected override async Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
-                                                                             EventRegistration registration,
-                                                                             DateTimeOffset? scheduled = null,
-                                                                             CancellationToken cancellationToken = default)
+    protected override async Task<ScheduledResult?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(EventContext<TEvent> @event,
+                                                                                                                                EventRegistration registration,
+                                                                                                                                DateTimeOffset? scheduled = null,
+                                                                                                                                CancellationToken cancellationToken = default)
     {
         using var scope = CreateScope();
         var body = await SerializeAsync(scope: scope,
@@ -154,10 +154,10 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
     }
 
     /// <inheritdoc/>
-    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                                    EventRegistration registration,
-                                                                                    DateTimeOffset? scheduled = null,
-                                                                                    CancellationToken cancellationToken = default)
+    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<EventContext<TEvent>> events,
+                                                                                                                                       EventRegistration registration,
+                                                                                                                                       DateTimeOffset? scheduled = null,
+                                                                                                                                       CancellationToken cancellationToken = default)
     {
         using var scope = CreateScope();
         var sequenceNumbers = new List<string>();
@@ -350,10 +350,6 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
 
     private async Task ReceiveAsync(EventRegistration reg, EventConsumerRegistration ecr, string queueUrl, CancellationToken cancellationToken)
     {
-        var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-        var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
-        var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
-
         while (!cancellationToken.IsCancellationRequested)
         {
             try
@@ -375,7 +371,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
                     using var scope = CreateScope(); // shared
                     foreach (var message in messages)
                     {
-                        await ((Task)method.Invoke(this, [reg, ecr, queueUrl, message, cancellationToken])!).ConfigureAwait(false);
+                        await OnMessageReceivedAsync(reg, ecr, queueUrl, message, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -392,13 +388,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
         }
     }
 
-    private async Task OnMessageReceivedAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration reg,
-                                                                                                                   EventConsumerRegistration ecr,
-                                                                                                                   string queueUrl,
-                                                                                                                   Message message,
-                                                                                                                   CancellationToken cancellationToken)
-        where TEvent : class
-        where TConsumer : IEventConsumer
+    private async Task OnMessageReceivedAsync(EventRegistration reg, EventConsumerRegistration ecr, string queueUrl, Message message, CancellationToken cancellationToken)
     {
         var messageId = message.MessageId;
         message.TryGetAttribute(MetadataNames.CorrelationId, out var correlationId);
@@ -418,8 +408,8 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
 
         // Instrumentation
         using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId);
-        activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
-        activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
+        activity?.AddTag(ActivityTagNames.EventBusEventType, reg.EventType.FullName);
+        activity?.AddTag(ActivityTagNames.EventBusConsumerType, ecr.ConsumerType.FullName);
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
         activity?.AddTag(ActivityTagNames.MessagingDestination, reg.EventName);
         activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
@@ -430,22 +420,18 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
         var contentType = contentType_str == null ? null : new ContentType(contentType_str);
 
         using var scope = CreateScope();
-        var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                     body: new BinaryData(message.Body),
-                                                     contentType: contentType,
-                                                     registration: reg,
-                                                     identifier: messageId,
-                                                     raw: message,
-                                                     deadletter: ecr.Deadletter,
-                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+        var context = await DeserializeAsync(scope: scope,
+                                             body: new BinaryData(message.Body),
+                                             contentType: contentType,
+                                             registration: reg,
+                                             identifier: messageId,
+                                             raw: message,
+                                             deadletter: ecr.Deadletter,
+                                             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         Logger.ReceivedMessage(messageId: messageId, eventBusId: context.Id, queueUrl: queueUrl);
 
-        var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
-                                                                    ecr: ecr,
-                                                                    @event: context,
-                                                                    scope: scope,
-                                                                    cancellationToken: cancellationToken).ConfigureAwait(false);
+        var (successful, _) = await ConsumeAsync(scope, reg, ecr, context, cancellationToken).ConfigureAwait(false);
 
         // dead-letter cannot be dead-lettered again, what else can we do?
         if (ecr.Deadletter) return; // TODO: figure out what to do when dead-letter fails

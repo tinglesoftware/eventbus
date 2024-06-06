@@ -1,4 +1,7 @@
-﻿namespace Tingle.EventBus;
+﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus.Internal;
+
+namespace Tingle.EventBus;
 
 /// <summary>
 /// Contract describing a consumer of one or more events.
@@ -11,7 +14,7 @@ public interface IEventConsumer
 /// <summary>
 /// Contract describing a consumer of an event.
 /// </summary>
-public interface IEventConsumer<T> : IEventConsumer where T : class
+public interface IEventConsumer<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T> : IEventConsumer where T : class
 {
     /// <summary>
     /// Consume an event of the provided type.
@@ -25,7 +28,7 @@ public interface IEventConsumer<T> : IEventConsumer where T : class
 /// <summary>
 /// Contract describing a consumer of a dead-lettered event.
 /// </summary>
-public interface IDeadLetteredEventConsumer<T> : IEventConsumer where T : class
+public interface IDeadLetteredEventConsumer<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T> : IEventConsumer where T : class
 {
     /// <summary>
     /// Consume a dead-lettered event of the provided type.

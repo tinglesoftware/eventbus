@@ -4,7 +4,7 @@
     <Description>A serializer implementation for Tingle.EventBus using Newtonsoft.Json</Description>
     <PackageTags>$(PackageTags);Serializers;Newtonsoft</PackageTags>
     <RootNamespace>Tingle.EventBus.Serializers</RootNamespace>
-    <IsTrimmable>false</IsTrimmable>
+    <IsAotCompatible>false</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

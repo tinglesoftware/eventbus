@@ -80,6 +80,12 @@ internal class MandatoryEventBusConfigurator(IHostEnvironment environment) : IEv
                 name = options.ReplaceInvalidCharacters(name);
             }
             reg.EventName = name;
+
+            // ensure the deserialize delegate is set
+            if (reg.Deserializer == null)
+            {
+                throw new InvalidOperationException($"The '{type.FullName}' does not have a deserialize delegate set yet it is required.");
+            }
         }
     }
 
@@ -132,6 +138,12 @@ internal class MandatoryEventBusConfigurator(IHostEnvironment environment) : IEv
                     name = options.ReplaceInvalidCharacters(name);
                 }
                 ecr.ConsumerName = name;
+            }
+
+            // ensure consume delegate is set
+            if (ecr.Consume == null)
+            {
+                throw new InvalidOperationException($"The '{ecr.ConsumerType.FullName}' does not have a consume delegate set yet it is required.");
             }
         }
     }

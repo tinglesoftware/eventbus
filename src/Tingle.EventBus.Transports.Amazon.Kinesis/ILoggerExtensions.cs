@@ -1,4 +1,6 @@
-﻿using Tingle.EventBus;
+﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus;
+using Tingle.EventBus.Internal;
 
 namespace Microsoft.Extensions.Logging;
 
@@ -22,7 +24,7 @@ internal static partial class ILoggerExtensions
                                      eventBusIds: string.Join("\r\n- ", eventBusIds));
     }
 
-    public static void SendingEventsToStream<T>(this ILogger logger, IList<EventContext<T>> events, string entityPath, DateTimeOffset? scheduled = null)
+    public static void SendingEventsToStream<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(this ILogger logger, IList<EventContext<T>> events, string entityPath, DateTimeOffset? scheduled = null)
         where T : class
     {
         if (!logger.IsEnabled(LogLevel.Information)) return;

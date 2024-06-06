@@ -83,13 +83,7 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
 
                 // register handlers for error and processing
                 processor.ProcessErrorAsync += OnMessageFaultedAsync;
-                processor.ProcessMessageAsync += delegate (ProcessMessageEventArgs args)
-                {
-                    var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-                    var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
-                    var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
-                    return (Task)method.Invoke(this, [reg, ecr, processor, args])!;
-                };
+                processor.ProcessMessageAsync += (ProcessMessageEventArgs args) => OnMessageReceivedAsync(reg, ecr, processor, args);
 
                 // start processing
                 Logger.StartingProcessing(entityPath: processor.EntityPath);
@@ -122,10 +116,10 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
     }
 
     /// <inheritdoc/>
-    protected override async Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
-                                                                             EventRegistration registration,
-                                                                             DateTimeOffset? scheduled = null,
-                                                                             CancellationToken cancellationToken = default)
+    protected override async Task<ScheduledResult?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(EventContext<TEvent> @event,
+                                                                                                                                EventRegistration registration,
+                                                                                                                                DateTimeOffset? scheduled = null,
+                                                                                                                                CancellationToken cancellationToken = default)
     {
         using var scope = CreateScope();
         var body = await SerializeAsync(scope: scope,
@@ -182,10 +176,10 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
     }
 
     /// <inheritdoc/>
-    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                                    EventRegistration registration,
-                                                                                    DateTimeOffset? scheduled = null,
-                                                                                    CancellationToken cancellationToken = default)
+    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<EventContext<TEvent>> events,
+                                                                                                                                       EventRegistration registration,
+                                                                                                                                       DateTimeOffset? scheduled = null,
+                                                                                                                                       CancellationToken cancellationToken = default)
     {
         using var scope = CreateScope();
         var messages = new List<ServiceBusMessage>();
@@ -507,12 +501,7 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
         return TimeSpan.FromTicks(ticks);
     }
 
-    private async Task OnMessageReceivedAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration reg,
-                                                                                                                   EventConsumerRegistration ecr,
-                                                                                                                   ServiceBusProcessor processor,
-                                                                                                                   ProcessMessageEventArgs args)
-        where TEvent : class
-        where TConsumer : IEventConsumer
+    private async Task OnMessageReceivedAsync(EventRegistration reg, EventConsumerRegistration ecr, ServiceBusProcessor processor, ProcessMessageEventArgs args)
     {
         var entityPath = args.EntityPath;
         var message = args.Message;
@@ -532,8 +521,8 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
 
         // Instrumentation
         using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
-        activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
-        activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
+        activity?.AddTag(ActivityTagNames.EventBusEventType, reg.EventType.FullName);
+        activity?.AddTag(ActivityTagNames.EventBusConsumerType, ecr.ConsumerType.FullName);
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
         var destination = await ShouldUseQueueAsync(reg, cancellationToken).ConfigureAwait(false) ? reg.EventName : ecr.ConsumerName;
         activity?.AddTag(ActivityTagNames.MessagingDestination, destination); // name of the queue/subscription
@@ -542,30 +531,26 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
         Logger.ProcessingMessage(messageId: messageId, entityPath: entityPath);
         using var scope = CreateScope();
         var contentType = new ContentType(message.ContentType);
-        var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                     body: message.Body,
-                                                     contentType: contentType,
-                                                     registration: reg,
-                                                     identifier: message.SequenceNumber.ToString(),
-                                                     raw: message,
-                                                     deadletter: ecr.Deadletter,
-                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+        var context = await DeserializeAsync(scope: scope,
+                                             body: message.Body,
+                                             contentType: contentType,
+                                             registration: reg,
+                                             identifier: message.SequenceNumber.ToString(),
+                                             raw: message,
+                                             deadletter: ecr.Deadletter,
+                                             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         Logger.ReceivedMessage(sequenceNumber: message.SequenceNumber, eventBusId: context.Id, entityPath: entityPath);
 
         // set the extras
         context.SetServiceBusReceivedMessage(message);
-        if (ecr.Deadletter && context is DeadLetteredEventContext<TEvent> dlec)
+        if (ecr.Deadletter && context is IDeadLetteredEventContext dlec)
         {
             dlec.DeadLetterReason = message.DeadLetterReason;
             dlec.DeadLetterErrorDescription = message.DeadLetterErrorDescription;
         }
 
-        var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
-                                                                     ecr: ecr,
-                                                                     @event: context,
-                                                                     scope: scope,
-                                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+        var (successful, ex) = await ConsumeAsync(scope, reg, ecr, context, cancellationToken).ConfigureAwait(false);
 
         // Decide the action to execute then execute
         var action = DecideAction(successful, ecr.UnhandledErrorBehaviour, processor.AutoCompleteMessages);

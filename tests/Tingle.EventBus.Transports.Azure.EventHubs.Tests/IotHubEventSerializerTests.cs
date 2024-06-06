@@ -29,7 +29,7 @@ public class IotHubEventSerializerTests(ITestOutputHelper outputHelper)
             foreach (var (key, value) in properties)
                 ed.Properties[key] = value;
 
-        var ctx = new DeserializationContext(ed.EventBody, ereg)
+        var ctx = new DeserializationContext(ed.EventBody, ereg, false)
         {
             RawTransportData = ed,
             ContentType = new ContentType("application/json"),
@@ -42,7 +42,7 @@ public class IotHubEventSerializerTests(ITestOutputHelper outputHelper)
     {
         await TestSerializerAsync(async (provider, _, serializer) =>
         {
-            var ereg = new EventRegistration(typeof(MyIotHubEvent));
+            var ereg = EventRegistration.Create<MyIotHubEvent>();
             var stream = TestSamples.GetIotHubTelemetry();
             var (ed, ctx) = CreateData(ereg, await BinaryData.FromStreamAsync(stream), "Telemetry");
             var envelope = await serializer.DeserializeAsync<MyIotHubEvent>(ctx);
@@ -60,7 +60,7 @@ public class IotHubEventSerializerTests(ITestOutputHelper outputHelper)
     {
         await TestSerializerAsync(async (provider, _, serializer) =>
         {
-            var ereg = new EventRegistration(typeof(MyIotHubEvent));
+            var ereg = EventRegistration.Create<MyIotHubEvent>();
             var stream = TestSamples.GetIotHubTwinChangeEvents();
             var (ed, ctx) = CreateData(ereg, await BinaryData.FromStreamAsync(stream), "twinChangeEvents", new Dictionary<string, object>
             {
@@ -94,7 +94,7 @@ public class IotHubEventSerializerTests(ITestOutputHelper outputHelper)
     {
         await TestSerializerAsync(async (provider, _, serializer) =>
         {
-            var ereg = new EventRegistration(typeof(MyIotHubEvent));
+            var ereg = EventRegistration.Create<MyIotHubEvent>();
             var stream = TestSamples.GetIotHubDeviceLifecycleEvents();
             var (ed, ctx) = CreateData(ereg, await BinaryData.FromStreamAsync(stream), "deviceLifecycleEvents", new Dictionary<string, object>
             {
@@ -127,7 +127,7 @@ public class IotHubEventSerializerTests(ITestOutputHelper outputHelper)
     {
         await TestSerializerAsync(async (provider, _, serializer) =>
         {
-            var ereg = new EventRegistration(typeof(MyIotHubEvent));
+            var ereg = EventRegistration.Create<MyIotHubEvent>();
             var stream = TestSamples.GetIotHubDeviceConnectionStateEvents();
             var (ed, ctx) = CreateData(ereg, await BinaryData.FromStreamAsync(stream), "deviceConnectionStateEvents", new Dictionary<string, object>
             {
@@ -157,8 +157,8 @@ public class IotHubEventSerializerTests(ITestOutputHelper outputHelper)
     {
         await TestSerializerAsync(async (provider, _, serializer) =>
         {
-            var ereg = new EventRegistration(typeof(DummyEvent1));
-            var ctx = new DeserializationContext(BinaryData.FromString(""), ereg);
+            var ereg = EventRegistration.Create<DummyEvent1>();
+            var ctx = new DeserializationContext(BinaryData.FromString(""), ereg, false);
             var ex = await Assert.ThrowsAsync<NotSupportedException>(() => serializer.DeserializeAsync<DummyEvent1>(ctx));
             Assert.Equal("Only events that inherit from 'Tingle.EventBus.Transports.Azure.EventHubs.IotHub.IotHubEvent' are supported for deserialization.", ex.Message);
         });
@@ -169,7 +169,7 @@ public class IotHubEventSerializerTests(ITestOutputHelper outputHelper)
     {
         await TestSerializerAsync(async (provider, publisher, serializer) =>
         {
-            var ereg = new EventRegistration(typeof(MyIotHubEvent));
+            var ereg = EventRegistration.Create<MyIotHubEvent>();
             var context = new EventContext<MyIotHubEvent>(publisher, new());
             var ctx = new SerializationContext<MyIotHubEvent>(context, ereg);
             var ex = await Assert.ThrowsAsync<NotSupportedException>(() => serializer.SerializeAsync(ctx));

@@ -45,20 +45,16 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         Logger = loggerFactory?.CreateLogger(categoryName) ?? throw new ArgumentNullException(nameof(loggerFactory));
     }
 
-    /// <summary>
-    /// Options for configuring the bus.
-    /// </summary>
+    /// <summary>Options for configuring the bus.</summary>
     protected EventBusOptions BusOptions { get; }
 
     /// <inheritdoc/>
     protected EventBusTransportRegistration Registration { get; private set; } = default!;
 
-    /// <summary>
-    /// Options for configuring the transport.
-    /// </summary>
+    /// <summary>Options for configuring the transport.</summary>
     protected TOptions Options { get; private set; } = default!;
 
-    ///
+    /// <summary>Logger for the transport.</summary>
     protected ILogger Logger { get; }
 
     /// <inheritdoc/>
@@ -130,10 +126,10 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     #region Publishing
 
     /// <inheritdoc/>
-    public virtual async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                                     EventRegistration registration,
-                                                                     DateTimeOffset? scheduled = null,
-                                                                     CancellationToken cancellationToken = default)
+    public virtual async Task<ScheduledResult?> PublishAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(EventContext<TEvent> @event,
+                                                                                                                        EventRegistration registration,
+                                                                                                                        DateTimeOffset? scheduled = null,
+                                                                                                                        CancellationToken cancellationToken = default)
         where TEvent : class
     {
         // publish, with resilience pipelines
@@ -145,10 +141,10 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     }
 
     /// <inheritdoc/>
-    public virtual async Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                            EventRegistration registration,
-                                                                            DateTimeOffset? scheduled = null,
-                                                                            CancellationToken cancellationToken = default)
+    public virtual async Task<IList<ScheduledResult>?> PublishAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<EventContext<TEvent>> events,
+                                                                                                                               EventRegistration registration,
+                                                                                                                               DateTimeOffset? scheduled = null,
+                                                                                                                               CancellationToken cancellationToken = default)
         where TEvent : class
     {
         // publish, with resilience pipelines
@@ -168,10 +164,10 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     /// Set <see langword="null"/> for immediate availability.
     /// </param>
     /// <param name="cancellationToken"></param>
-    protected abstract Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
-                                                                       EventRegistration registration,
-                                                                       DateTimeOffset? scheduled = null,
-                                                                       CancellationToken cancellationToken = default)
+    protected abstract Task<ScheduledResult?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(EventContext<TEvent> @event,
+                                                                                                                          EventRegistration registration,
+                                                                                                                          DateTimeOffset? scheduled = null,
+                                                                                                                          CancellationToken cancellationToken = default)
         where TEvent : class;
 
     /// <summary>Publish a batch of events on the transport.</summary>
@@ -183,10 +179,10 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     /// Set <see langword="null"/> for immediate availability.
     /// </param>
     /// <param name="cancellationToken"></param>
-    protected abstract Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                              EventRegistration registration,
-                                                                              DateTimeOffset? scheduled = null,
-                                                                              CancellationToken cancellationToken = default)
+    protected abstract Task<IList<ScheduledResult>?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<EventContext<TEvent>> events,
+                                                                                                                                 EventRegistration registration,
+                                                                                                                                 DateTimeOffset? scheduled = null,
+                                                                                                                                 CancellationToken cancellationToken = default)
         where TEvent : class;
 
     #endregion
@@ -194,7 +190,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     #region Canceling
 
     /// <inheritdoc/>
-    public virtual async Task CancelAsync<TEvent>(string id, EventRegistration registration, CancellationToken cancellationToken = default)
+    public virtual async Task CancelAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(string id, EventRegistration registration, CancellationToken cancellationToken = default)
         where TEvent : class
     {
         // cancel, with resilience pipelines
@@ -206,7 +202,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     }
 
     /// <inheritdoc/>
-    public virtual async Task CancelAsync<TEvent>(IList<string> ids, EventRegistration registration, CancellationToken cancellationToken = default)
+    public virtual async Task CancelAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<string> ids, EventRegistration registration, CancellationToken cancellationToken = default)
         where TEvent : class
     {
         // cancel, with resilience pipelines
@@ -241,10 +237,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
 
     #region Serialization
 
-    /// <summary>
-    /// Deserialize an event from a stream of bytes.
-    /// </summary>
-    /// <typeparam name="TEvent">The event type to be deserialized.</typeparam>
+    /// <summary>Deserialize an event from a stream of bytes.</summary>
     /// <param name="scope">The scope in which to resolve required services.</param>
     /// <param name="body">The <see cref="BinaryData"/> containing the raw data.</param>
     /// <param name="contentType">The type of content contained in the <paramref name="body"/>.</param>
@@ -254,49 +247,40 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     /// <param name="deadletter">Whether the event is from a dead-letter entity.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    protected async Task<EventContext> DeserializeAsync<TEvent>(IServiceScope scope,
-                                                                BinaryData body,
-                                                                ContentType? contentType,
-                                                                EventRegistration registration,
-                                                                string? identifier,
-                                                                object? raw,
-                                                                bool deadletter,
-                                                                CancellationToken cancellationToken = default)
-        where TEvent : class
+    protected async Task<EventContext> DeserializeAsync(IServiceScope scope,
+                                                        BinaryData body,
+                                                        ContentType? contentType,
+                                                        EventRegistration registration,
+                                                        string? identifier,
+                                                        object? raw,
+                                                        bool deadletter,
+                                                        CancellationToken cancellationToken = default)
     {
         // Resolve the serializer
         var provider = scope.ServiceProvider;
         var serializer = (IEventSerializer)ActivatorUtilities.GetServiceOrCreateInstance(provider, registration.EventSerializerType!);
 
-        // Deserialize the content into an envelope
-        var ctx = new DeserializationContext(body, registration, identifier)
+        // Deserialize
+        var publisher = provider.GetRequiredService<IEventPublisher>();
+        var ctx = new DeserializationContext(body, registration, deadletter, identifier)
         {
             ContentType = contentType,
             RawTransportData = raw,
         };
-        var envelope = await serializer.DeserializeAsync<TEvent>(ctx, cancellationToken).ConfigureAwait(false)
-                    ?? throw new InvalidOperationException($"Deserialization from '{typeof(TEvent).Name}' resulted in null which is not allowed."); // throwing helps track the error
-
-        // Create the context
-        var publisher = provider.GetRequiredService<IEventPublisher>();
-        return deadletter
-            ? new DeadLetteredEventContext<TEvent>(publisher: publisher, envelope: envelope, deserializationContext: ctx)
-            : new EventContext<TEvent>(publisher: publisher, envelope: envelope, deserializationContext: ctx);
+        return await registration.Deserializer(serializer, ctx, publisher, cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Serialize an event into a stream of bytes.
-    /// </summary>
+    /// <summary>Serialize an event into a stream of bytes.</summary>
     /// <typeparam name="TEvent">The event type to be serialized.</typeparam>
     /// <param name="scope">The scope in which to resolve required services.</param>
     /// <param name="event">The context of the event to be serialized.</param>
     /// <param name="registration">The bus registration for this event.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    protected async Task<BinaryData> SerializeAsync<TEvent>(IServiceScope scope,
-                                                            EventContext<TEvent> @event,
-                                                            EventRegistration registration,
-                                                            CancellationToken cancellationToken = default)
+    protected async Task<BinaryData> SerializeAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IServiceScope scope,
+                                                                                                               EventContext<TEvent> @event,
+                                                                                                               EventRegistration registration,
+                                                                                                               CancellationToken cancellationToken = default)
         where TEvent : class
     {
         // Resolve the serializer
@@ -314,47 +298,25 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
 
     #region Consuming
 
-    /// <summary>
-    /// Push an incoming event to the consumer responsible for it.
-    /// </summary>
-    /// <typeparam name="TEvent">The event type.</typeparam>
-    /// <typeparam name="TConsumer">The type of consumer.</typeparam>
+    /// <summary>Push an incoming event to the consumer responsible for it.</summary>
+    /// <param name="scope">The scope in which to resolve required services.</param>
     /// <param name="registration">The <see cref="EventRegistration"/> for the current event.</param>
     /// <param name="ecr">The <see cref="EventConsumerRegistration"/> for the current event.</param>
     /// <param name="event">The context containing the event.</param>
-    /// <param name="scope">The scope in which to resolve required services.</param>
-    /// <returns>An <see cref="EventConsumeResult"/> representing the state of the action.</returns>
     /// <param name="cancellationToken"></param>
-    protected async Task<EventConsumeResult> ConsumeAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration registration,
-                                                                                                                                   EventConsumerRegistration ecr,
-                                                                                                                                   EventContext @event,
-                                                                                                                                   IServiceScope scope,
-                                                                                                                                   CancellationToken cancellationToken)
-        where TConsumer : IEventConsumer
-        where TEvent : class
+    /// <returns>An <see cref="EventConsumeResult"/> representing the state of the action.</returns>
+    protected async Task<EventConsumeResult> ConsumeAsync(IServiceScope scope,
+                                                          EventRegistration registration,
+                                                          EventConsumerRegistration ecr,
+                                                          EventContext @event,
+                                                          CancellationToken cancellationToken)
     {
         try
         {
             // Resolve the consumer
-            var consumer = ActivatorUtilities.GetServiceOrCreateInstance<TConsumer>(scope.ServiceProvider);
+            var consumer = (IEventConsumer)ActivatorUtilities.GetServiceOrCreateInstance(scope.ServiceProvider, ecr.ConsumerType);
 
-            // Consume the event with the consumer appropriately
-            if (consumer is IEventConsumer<TEvent> consumer_normal && @event is EventContext<TEvent> evt_normal)
-            {
-                // Invoke handler method, with resilience pipeline
-                await registration.ExecutionPipeline.ExecuteAsync(
-                    async ct => await consumer_normal.ConsumeAsync(evt_normal, ct).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
-            }
-            else if (consumer is IDeadLetteredEventConsumer<TEvent> consumer_deadletter && @event is DeadLetteredEventContext<TEvent> evt_deadletter)
-            {
-                // Invoke handler method, with resilience pipelines
-                await registration.ExecutionPipeline.ExecuteAsync(
-                    async ct => await consumer_deadletter.ConsumeAsync(evt_deadletter, ct).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                throw new InvalidOperationException($"Consumer '{typeof(TConsumer).FullName}' can't consume '{@event.GetType().FullName}' events. This shouldn't happen. Please file an issue.");
-            }
+            await ecr.Consume(consumer, registration, ecr, @event, cancellationToken).ConfigureAwait(false);
 
             return new EventConsumeResult(successful: true, exception: null);
         }
@@ -380,19 +342,14 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
 
     #region Registrations
 
-    /// <summary>
-    /// Gets the consumer registrations for this transport.
-    /// </summary>
-    /// <returns></returns>
+    /// <summary>Gets the consumer registrations for this transport.</summary>
     protected ICollection<EventRegistration> GetRegistrations() => BusOptions.GetRegistrations(transportName: Name);
 
     #endregion
 
     #region Logging
 
-    /// <summary>
-    /// Begins a logical operation scope for logging.
-    /// </summary>
+    /// <summary>Begins a logical operation scope for logging.</summary>
     /// <param name="id"></param>
     /// <param name="correlationId"></param>
     /// <param name="sequenceNumber"></param>

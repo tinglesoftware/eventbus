@@ -1,5 +1,7 @@
-﻿using Tingle.EventBus;
+﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
+using Tingle.EventBus.Internal;
 
 namespace Microsoft.Extensions.Logging;
 
@@ -74,7 +76,7 @@ internal static partial class ILoggerExtensions
         }
     }
 
-    public static void SendingEvents<T>(this ILogger logger, IList<EventContext<T>> events, string transportName, DateTimeOffset? scheduled = null)
+    public static void SendingEvents<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(this ILogger logger, IList<EventContext<T>> events, string transportName, DateTimeOffset? scheduled = null)
         where T : class
     {
         if (!logger.IsEnabled(LogLevel.Information)) return;

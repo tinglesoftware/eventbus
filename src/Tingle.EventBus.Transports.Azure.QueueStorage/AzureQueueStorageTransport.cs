@@ -80,10 +80,10 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
     }
 
     /// <inheritdoc/>
-    protected override async Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
-                                                                             EventRegistration registration,
-                                                                             DateTimeOffset? scheduled = null,
-                                                                             CancellationToken cancellationToken = default)
+    protected override async Task<ScheduledResult?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(EventContext<TEvent> @event,
+                                                                                                                                EventRegistration registration,
+                                                                                                                                DateTimeOffset? scheduled = null,
+                                                                                                                                CancellationToken cancellationToken = default)
     {
         using var scope = CreateScope();
         var body = await SerializeAsync(scope: scope,
@@ -113,10 +113,10 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
     }
 
     /// <inheritdoc/>
-    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                                    EventRegistration registration,
-                                                                                    DateTimeOffset? scheduled = null,
-                                                                                    CancellationToken cancellationToken = default)
+    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<EventContext<TEvent>> events,
+                                                                                                                                       EventRegistration registration,
+                                                                                                                                       DateTimeOffset? scheduled = null,
+                                                                                                                                       CancellationToken cancellationToken = default)
     {
         // log warning when doing batch
         Logger.BatchingNotSupported();
@@ -250,10 +250,6 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
 
     private async Task ReceiveAsync(EventRegistration reg, EventConsumerRegistration ecr, CancellationToken cancellationToken)
     {
-        var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-        var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
-        var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
-
         var queueClient = await GetQueueClientAsync(reg: reg, deadletter: ecr.Deadletter, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         while (!cancellationToken.IsCancellationRequested)
@@ -276,7 +272,7 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
                     using var scope = CreateScope(); // shared
                     foreach (var message in messages)
                     {
-                        await ((Task)method.Invoke(this, [reg, ecr, queueClient, message, scope, cancellationToken])!).ConfigureAwait(false);
+                        await OnMessageReceivedAsync(reg, ecr, queueClient, message, scope, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -293,14 +289,7 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
         }
     }
 
-    private async Task OnMessageReceivedAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration reg,
-                                                                                                                   EventConsumerRegistration ecr,
-                                                                                                                   QueueClient queueClient,
-                                                                                                                   QueueMessage message,
-                                                                                                                   IServiceScope scope,
-                                                                                                                   CancellationToken cancellationToken)
-        where TEvent : class
-        where TConsumer : IEventConsumer
+    private async Task OnMessageReceivedAsync(EventRegistration reg, EventConsumerRegistration ecr, QueueClient queueClient, QueueMessage message, IServiceScope scope, CancellationToken cancellationToken)
     {
         var messageId = message.MessageId;
         using var log_scope = BeginLoggingScopeForConsume(id: messageId,
@@ -312,21 +301,21 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
 
         // Instrumentation
         using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer); // no way to get parentId at this point
-        activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
-        activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
+        activity?.AddTag(ActivityTagNames.EventBusEventType, reg.EventType.FullName);
+        activity?.AddTag(ActivityTagNames.EventBusConsumerType, ecr.ConsumerType.FullName);
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
         activity?.AddTag(ActivityTagNames.MessagingDestination, queueClient.Name);
         activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue");
 
         Logger.ProcessingMessage(messageId: messageId, queueName: queueClient.Name);
-        var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                     body: message.Body,
-                                                     contentType: null,
-                                                     registration: reg,
-                                                     identifier: (AzureQueueStorageSchedulingId)message,
-                                                     raw: message,
-                                                     deadletter: ecr.Deadletter,
-                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+        var context = await DeserializeAsync(scope: scope,
+                                             body: message.Body,
+                                             contentType: null,
+                                             registration: reg,
+                                             identifier: (AzureQueueStorageSchedulingId)message,
+                                             raw: message,
+                                             deadletter: ecr.Deadletter,
+                                             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         Logger.ReceivedMessage(messageId: messageId, eventBusId: context.Id, queueName: queueClient.Name);
 
@@ -336,11 +325,7 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
             activity?.SetParentId(parentId: parentActivityId);
         }
 
-        var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
-                                                                    ecr: ecr,
-                                                                    @event: context,
-                                                                    scope: scope,
-                                                                    cancellationToken: cancellationToken).ConfigureAwait(false);
+        var (successful, _) = await ConsumeAsync(scope, reg, ecr, context, cancellationToken).ConfigureAwait(false);
 
         // dead-letter cannot be dead-lettered again, what else can we do?
         if (ecr.Deadletter) return; // TODO: figure out what to do when dead-letter fails

@@ -38,6 +38,34 @@ public class EventBusBuilderTests
     }
 
     [Fact]
+    public void DeadletterConsumerIsRegistered_DifferentEventTypes_With_Event()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IHostEnvironment>(new FakeHostEnvironment("app1"));
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+        services.AddEventBus(builder =>
+        {
+            builder.AddConsumer<TestEvent1, DummyConsumer1>();
+            builder.AddDeadLetteredConsumer<TestEvent2, DummyConsumer1>();
+            builder.Configure(o => o.AddTransport<DummyTransport>("Dummy", null));
+        });
+
+        var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<IOptions<EventBusOptions>>().Value;
+        Assert.Equal(2, options.Registrations.Count);
+
+        var reg = Assert.Contains(typeof(TestEvent1), (IDictionary<Type, EventRegistration>)options.Registrations);
+        var ecr = Assert.Single(reg.Consumers);
+        Assert.Equal(typeof(DummyConsumer1), ecr.ConsumerType);
+        Assert.False(ecr.Deadletter);
+
+        reg = Assert.Contains(typeof(TestEvent2), (IDictionary<Type, EventRegistration>)options.Registrations);
+        ecr = Assert.Single(reg.Consumers);
+        Assert.Equal(typeof(DummyConsumer1), ecr.ConsumerType);
+        Assert.True(ecr.Deadletter);
+    }
+
+    [Fact]
     public void DeadletterConsumerIsRegistered_SameEventType()
     {
         var services = new ServiceCollection();
@@ -46,6 +74,28 @@ public class EventBusBuilderTests
         services.AddEventBus(builder =>
         {
             builder.AddConsumer<DummyConsumer2>();
+            builder.Configure(o => o.AddTransport<DummyTransport>("Dummy", null));
+        });
+
+        var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<IOptions<EventBusOptions>>().Value;
+        var reg = Assert.Single(options.Registrations).Value;
+        Assert.Equal(2, reg.Consumers.Count);
+        Assert.All(reg.Consumers, ecr => Assert.Equal(typeof(DummyConsumer2), ecr.ConsumerType));
+        Assert.False(reg.Consumers.ElementAt(0).Deadletter);
+        Assert.True(reg.Consumers.ElementAt(1).Deadletter);
+    }
+
+    [Fact]
+    public void DeadletterConsumerIsRegistered_SameEventType_With_Event()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IHostEnvironment>(new FakeHostEnvironment("app1"));
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+        services.AddEventBus(builder =>
+        {
+            builder.AddConsumer<TestEvent2, DummyConsumer2>();
+            builder.AddDeadLetteredConsumer<TestEvent2, DummyConsumer2>();
             builder.Configure(o => o.AddTransport<DummyTransport>("Dummy", null));
         });
 

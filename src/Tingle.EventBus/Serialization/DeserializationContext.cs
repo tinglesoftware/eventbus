@@ -6,8 +6,9 @@ namespace Tingle.EventBus.Serialization;
 /// <summary>Context for performing deserialization.</summary>
 /// <param name="body">The <see cref="BinaryData"/> containing the raw data.</param>
 /// <param name="registration">Registration for this event being deserialized.</param>
+/// <param name="deadletter">Whether the event is from a dead-letter entity.</param>
 /// <param name="identifier">Identifier given by the transport for the event to be deserialized.</param>
-public sealed class DeserializationContext(BinaryData body, EventRegistration registration, string? identifier = null)
+public sealed class DeserializationContext(BinaryData body, EventRegistration registration, bool deadletter, string? identifier = null)
 {
     /// <summary>
     /// The <see cref="BinaryData"/> containing the raw data.
@@ -18,6 +19,11 @@ public sealed class DeserializationContext(BinaryData body, EventRegistration re
     /// Registration for this event being deserialized.
     /// </summary>
     public EventRegistration Registration { get; } = registration ?? throw new ArgumentNullException(nameof(registration));
+
+    /// <summary>
+    /// Whether the event is from a dead-letter entity.
+    /// </summary>
+    public bool Deadletter { get; } = deadletter;
 
     /// <summary>
     /// Identifier given by the transport for the event to be deserialized.

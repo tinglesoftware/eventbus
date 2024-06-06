@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Net.Mime;
+using Tingle.EventBus.Internal;
 using Tingle.EventBus.Serialization;
 
 namespace Tingle.EventBus;
@@ -181,7 +182,7 @@ public abstract class EventContext : WrappedEventPublisher
 
 /// <summary>The context for a specific event.</summary>
 /// <typeparam name="T">The type of event carried.</typeparam>
-public class EventContext<T> : EventContext where T : class
+public class EventContext<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T> : EventContext where T : class
 {
     /// <summary>
     /// 
@@ -205,9 +206,23 @@ public class EventContext<T> : EventContext where T : class
     public T Event { get; set; }
 }
 
+/// <summary>Contract for a context for a specific event that has been dead-lettered.</summary>
+public interface IDeadLetteredEventContext
+{
+    /// <summary>
+    /// Gets the dead letter reason for the event.
+    /// </summary>
+    string? DeadLetterReason { get; set; }
+
+    /// <summary>
+    /// Gets the dead letter error description for the event.
+    /// </summary>
+    string? DeadLetterErrorDescription { get; set; }
+}
+
 /// <summary>The context for a specific dead-lettered event.</summary>
 /// <typeparam name="T">The type of event carried.</typeparam>
-public class DeadLetteredEventContext<T> : EventContext where T : class
+public class DeadLetteredEventContext<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T> : EventContext, IDeadLetteredEventContext where T : class
 {
     internal DeadLetteredEventContext(IEventPublisher publisher, IEventEnvelope<T> envelope, DeserializationContext deserializationContext)
         : base(publisher, envelope, deserializationContext.ContentType, deserializationContext.Identifier)
@@ -220,13 +235,9 @@ public class DeadLetteredEventContext<T> : EventContext where T : class
     /// </summary>
     public T Event { get; set; }
 
-    /// <summary>
-    /// Gets the dead letter reason for the event.
-    /// </summary>
+    /// <inheritdoc/>
     public string? DeadLetterReason { get; set; }
 
-    /// <summary>
-    /// Gets the dead letter error description for the event.
-    /// </summary>
+    /// <inheritdoc/>
     public string? DeadLetterErrorDescription { get; set; }
 }

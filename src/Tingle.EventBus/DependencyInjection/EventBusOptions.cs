@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Tingle.EventBus;
 using Tingle.EventBus.Configuration;
+using Tingle.EventBus.Internal;
 using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -183,13 +184,13 @@ public class EventBusOptions
     /// <typeparam name="TEvent">The event to configure for</typeparam>
     /// <param name="configure"></param>
     /// <returns></returns>
-    public EventBusOptions ConfigureEvent<TEvent>(Action<EventRegistration> configure)
+    public EventBusOptions ConfigureEvent<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(Action<EventRegistration> configure) where TEvent : class
     {
         if (configure is null) throw new ArgumentNullException(nameof(configure));
 
         // if there's already a registration for the event return it
         var eventType = typeof(TEvent);
-        var registration = Registrations.GetOrAdd(eventType, et => new EventRegistration(et));
+        var registration = Registrations.GetOrAdd(eventType, et => EventRegistration.Create<TEvent>());
         configure(registration);
 
         return this;

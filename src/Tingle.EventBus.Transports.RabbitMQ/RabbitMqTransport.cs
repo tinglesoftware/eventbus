@@ -69,10 +69,10 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
     }
 
     /// <inheritdoc/>
-    protected override async Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
-                                                                             EventRegistration registration,
-                                                                             DateTimeOffset? scheduled = null,
-                                                                             CancellationToken cancellationToken = default)
+    protected override async Task<ScheduledResult?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(EventContext<TEvent> @event,
+                                                                                                                                EventRegistration registration,
+                                                                                                                                DateTimeOffset? scheduled = null,
+                                                                                                                                CancellationToken cancellationToken = default)
     {
         if (!IsConnected)
         {
@@ -141,10 +141,10 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
     }
 
     /// <inheritdoc/>
-    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                                    EventRegistration registration,
-                                                                                    DateTimeOffset? scheduled = null,
-                                                                                    CancellationToken cancellationToken = default)
+    protected override async Task<IList<ScheduledResult>?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<EventContext<TEvent>> events,
+                                                                                                                                       EventRegistration registration,
+                                                                                                                                       DateTimeOffset? scheduled = null,
+                                                                                                                                       CancellationToken cancellationToken = default)
     {
         if (!IsConnected)
         {
@@ -272,25 +272,13 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
 
                 var channel = await GetSubscriptionChannelAsync(exchangeName: exchangeName, queueName: queueName, cancellationToken).ConfigureAwait(false);
                 var consumer = new AsyncEventingBasicConsumer(channel);
-                consumer.Received += delegate (object sender, BasicDeliverEventArgs @event)
-                {
-                    var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-                    var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
-                    var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
-                    return (Task)method.Invoke(this, [reg, ecr, channel, @event, CancellationToken.None])!; // do not chain CancellationToken
-                };
+                consumer.Received += (object sender, BasicDeliverEventArgs @event) => OnMessageReceivedAsync(reg, ecr, channel, @event, CancellationToken.None); // do not chain CancellationToken
                 channel.BasicConsume(queue: queueName, autoAck: false, consumer);
             }
         }
     }
 
-    private async Task OnMessageReceivedAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration reg,
-                                                                                                                   EventConsumerRegistration ecr,
-                                                                                                                   IModel channel,
-                                                                                                                   BasicDeliverEventArgs args,
-                                                                                                                   CancellationToken cancellationToken)
-        where TEvent : class
-        where TConsumer : IEventConsumer
+    private async Task OnMessageReceivedAsync(EventRegistration reg, EventConsumerRegistration ecr, IModel channel, BasicDeliverEventArgs args, CancellationToken cancellationToken)
     {
         var messageId = args.BasicProperties?.MessageId;
         using var log_scope = BeginLoggingScopeForConsume(id: messageId,
@@ -306,8 +294,8 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
 
         // Instrumentation
         using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
-        activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
-        activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
+        activity?.AddTag(ActivityTagNames.EventBusEventType, reg.EventType.FullName);
+        activity?.AddTag(ActivityTagNames.EventBusConsumerType, ecr.ConsumerType.FullName);
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
         activity?.AddTag(ActivityTagNames.MessagingDestination, ecr.ConsumerName);
         activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // only queues are possible
@@ -315,22 +303,18 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
         Logger.LogDebug("Processing '{MessageId}'", messageId);
         using var scope = CreateScope();
         var contentType = GetContentType(args.BasicProperties);
-        var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                     body: new BinaryData(args.Body),
-                                                     contentType: contentType,
-                                                     registration: reg,
-                                                     identifier: messageId,
-                                                     raw: args,
-                                                     deadletter: ecr.Deadletter,
-                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+        var context = await DeserializeAsync(scope: scope,
+                                             body: new BinaryData(args.Body),
+                                             contentType: contentType,
+                                             registration: reg,
+                                             identifier: messageId,
+                                             raw: args,
+                                             deadletter: ecr.Deadletter,
+                                             cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.LogInformation("Received message: '{MessageId}' containing Event '{Id}'",
                               messageId,
                               context.Id);
-        var (successful, ex) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
-                                                                     ecr: ecr,
-                                                                     @event: context,
-                                                                     scope: scope,
-                                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+        var (successful, ex) = await ConsumeAsync(scope, reg, ecr, context, cancellationToken).ConfigureAwait(false);
 
         // Decide the action to execute then execute
         var action = DecideAction(successful, ecr.UnhandledErrorBehaviour);

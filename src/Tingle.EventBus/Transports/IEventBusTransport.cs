@@ -1,4 +1,6 @@
-﻿using Tingle.EventBus.Configuration;
+﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus.Configuration;
+using Tingle.EventBus.Internal;
 
 namespace Tingle.EventBus.Transports;
 
@@ -30,10 +32,10 @@ public interface IEventBusTransport
     /// Set <see langword="null"/> for immediate availability.
     /// </param>
     /// <param name="cancellationToken"></param>
-    Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                EventRegistration registration,
-                                                DateTimeOffset? scheduled = null,
-                                                CancellationToken cancellationToken = default)
+    Task<ScheduledResult?> PublishAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(EventContext<TEvent> @event,
+                                                                                                   EventRegistration registration,
+                                                                                                   DateTimeOffset? scheduled = null,
+                                                                                                   CancellationToken cancellationToken = default)
         where TEvent : class;
 
     /// <summary>Publish a batch of events on the transport.</summary>
@@ -45,10 +47,10 @@ public interface IEventBusTransport
     /// Set <see langword="null"/> for immediate availability.
     /// </param>
     /// <param name="cancellationToken"></param>
-    Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                       EventRegistration registration,
-                                                       DateTimeOffset? scheduled = null,
-                                                       CancellationToken cancellationToken = default)
+    Task<IList<ScheduledResult>?> PublishAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<EventContext<TEvent>> events,
+                                                                                                          EventRegistration registration,
+                                                                                                          DateTimeOffset? scheduled = null,
+                                                                                                          CancellationToken cancellationToken = default)
         where TEvent : class;
 
     /// <summary>Cancel a scheduled event on the transport.</summary>
@@ -56,9 +58,9 @@ public interface IEventBusTransport
     /// <param name="id">The scheduling identifier of the scheduled event.</param>
     /// <param name="registration">The registration for the event.</param>
     /// <param name="cancellationToken"></param>
-    Task CancelAsync<TEvent>(string id,
-                             EventRegistration registration,
-                             CancellationToken cancellationToken = default)
+    Task CancelAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(string id,
+                                                                                EventRegistration registration,
+                                                                                CancellationToken cancellationToken = default)
         where TEvent : class;
 
     /// <summary>Cancel a batch of scheduled events on the transport.</summary>
@@ -66,9 +68,9 @@ public interface IEventBusTransport
     /// <param name="ids">The scheduling identifiers of the scheduled events.</param>
     /// <param name="registration">The registration for the events.</param>
     /// <param name="cancellationToken"></param>
-    Task CancelAsync<TEvent>(IList<string> ids,
-                             EventRegistration registration,
-                             CancellationToken cancellationToken = default)
+    Task CancelAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<string> ids,
+                                                                                EventRegistration registration,
+                                                                                CancellationToken cancellationToken = default)
         where TEvent : class;
 
     ///

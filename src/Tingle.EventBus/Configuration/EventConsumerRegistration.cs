@@ -6,15 +6,13 @@ namespace Tingle.EventBus.Configuration;
 /// <summary>
 /// Represents a registration for a consumer of an event.
 /// </summary>
-/// <param name="consumerType">The type of consumer handling the event.</param>
-/// <param name="deadletter">Whether the consumer should be connected to the dead-letter entity.</param>
-public class EventConsumerRegistration(Type consumerType, bool deadletter) : IEquatable<EventConsumerRegistration?>
+public class EventConsumerRegistration : IEquatable<EventConsumerRegistration?>
 {
     /// <summary>
     /// The type of consumer handling the event.
     /// </summary>
     [DynamicallyAccessedMembers(TrimmingHelper.Consumer)]
-    public Type ConsumerType { get; } = consumerType ?? throw new ArgumentNullException(nameof(consumerType));
+    public Type ConsumerType { get; }
 
     /// <summary>
     /// Gets or sets a value indicating if the consumer should be connected to the dead-letter entity.
@@ -22,7 +20,7 @@ public class EventConsumerRegistration(Type consumerType, bool deadletter) : IEq
     /// When set to <see langword="true"/>, you must use <see cref="IDeadLetteredEventConsumer{T}"/>
     /// to consume events.
     /// </summary>
-    public bool Deadletter { get; } = deadletter;
+    public bool Deadletter { get; }
 
     /// <summary>
     /// The name generated for the consumer.
@@ -49,6 +47,8 @@ public class EventConsumerRegistration(Type consumerType, bool deadletter) : IEq
     /// </summary>
     public IDictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
 
+    internal ConsumeDelegate Consume { get; init; } = default!;
+
     /// <summary>
     /// Sets <see cref="UnhandledErrorBehaviour"/> to <paramref name="behaviour"/>.
     /// </summary>
@@ -71,6 +71,37 @@ public class EventConsumerRegistration(Type consumerType, bool deadletter) : IEq
     /// </summary>
     /// <returns>The <see cref="EventConsumerRegistration"/> for further configuration.</returns>
     public EventConsumerRegistration OnErrorDiscard() => OnError(UnhandledConsumerErrorBehaviour.Discard);
+
+    private EventConsumerRegistration(Type consumerType, bool deadletter, ConsumeDelegate consume) // this private to enforce use of the factory methods which cater to generics in AOT
+    {
+        ConsumerType = consumerType ?? throw new ArgumentNullException(nameof(consumerType));
+        Deadletter = deadletter;
+        Consume = consume ?? throw new ArgumentNullException(nameof(consume));
+    }
+
+    /// <summary>Create a new instance of <see cref="EventConsumerRegistration"/> for the specified types.</summary>
+    /// <typeparam name="TEvent">The type of event.</typeparam>
+    /// <typeparam name="TConsumer">The type of consumer.</typeparam>
+    public static EventConsumerRegistration Create<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>()
+        where TEvent : class
+        where TConsumer : IEventConsumer<TEvent>
+        => new(typeof(TConsumer), false, ExecutionHelper.ConsumeAsync<TEvent>);
+
+    /// <summary>Create a new instance of <see cref="EventConsumerRegistration"/> for the specified types.</summary>
+    /// <typeparam name="TEvent">The type of event.</typeparam>
+    /// <typeparam name="TConsumer">The type of consumer.</typeparam>
+    public static EventConsumerRegistration CreateDeadLettered<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>()
+        where TEvent : class
+        where TConsumer : IDeadLetteredEventConsumer<TEvent>
+        => new(typeof(TConsumer), true, ExecutionHelper.ConsumeAsync<TEvent>);
+
+    /// <summary>Create a new instance of <see cref="EventConsumerRegistration"/> for the specified types.</summary>
+    /// <param name="eventType">The type of event.</param>
+    /// <param name="consumerType">The type of consumer.</param>
+    /// <param name="deadletter">Indicates if the consumer should be connected to the dead-letter entity.</param>
+    [RequiresDynamicCode(MessageStrings.GenericsDynamicCodeMessage)]
+    public static EventConsumerRegistration Create([DynamicallyAccessedMembers(TrimmingHelper.Event)] Type eventType, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] Type consumerType, bool deadletter)
+        => new(consumerType, deadletter, ExecutionHelper.MakeDelegate(eventType, consumerType));
 
     #region Equality Overrides
 
@@ -99,3 +130,11 @@ public class EventConsumerRegistration(Type consumerType, bool deadletter) : IEq
 
     #endregion
 }
+
+/// <summary>Delegate for consuming an event payload to an <see cref="EventContext"/>.</summary>
+/// <param name="consumer">The <see cref="IEventConsumer"/> to use.</param>
+/// <param name="registration">The <see cref="EventRegistration"/> for the current event.</param>
+/// <param name="ecr">The <see cref="EventConsumerRegistration"/> for the current event.</param>
+/// <param name="context">The context containing the event.</param>
+/// <param name="cancellationToken"></param>
+internal delegate Task ConsumeDelegate(IEventConsumer consumer, EventRegistration registration, EventConsumerRegistration ecr, EventContext context, CancellationToken cancellationToken = default);

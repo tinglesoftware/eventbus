@@ -1,4 +1,7 @@
-﻿namespace Tingle.EventBus;
+﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus.Internal;
+
+namespace Tingle.EventBus;
 
 /// <summary>
 /// Contract describing a publisher of events.
@@ -10,7 +13,7 @@ public interface IEventPublisher
     /// <param name="event">The event to be nested.</param>
     /// <param name="correlationId">The identifier of the event from which to create a child event.</param>
     /// <returns></returns>
-    EventContext<TEvent> CreateEventContext<TEvent>(TEvent @event, string? correlationId = null)
+    EventContext<TEvent> CreateEventContext<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(TEvent @event, string? correlationId = null)
         where TEvent : class;
 
     /// <summary>Publish an event.</summary>
@@ -22,9 +25,9 @@ public interface IEventPublisher
     /// </param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                DateTimeOffset? scheduled = null,
-                                                CancellationToken cancellationToken = default)
+    Task<ScheduledResult?> PublishAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(EventContext<TEvent> @event,
+                                                                                                   DateTimeOffset? scheduled = null,
+                                                                                                   CancellationToken cancellationToken = default)
         where TEvent : class;
 
     /// <summary>Publish a batch of events.</summary>
@@ -36,9 +39,9 @@ public interface IEventPublisher
     /// </param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                       DateTimeOffset? scheduled = null,
-                                                       CancellationToken cancellationToken = default)
+    Task<IList<ScheduledResult>?> PublishAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<EventContext<TEvent>> events,
+                                                                                                          DateTimeOffset? scheduled = null,
+                                                                                                          CancellationToken cancellationToken = default)
         where TEvent : class;
 
     /// <summary>Cancel a scheduled event.</summary>
@@ -46,7 +49,7 @@ public interface IEventPublisher
     /// <param name="id">The scheduling identifier of the scheduled event.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+    Task CancelAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(string id, CancellationToken cancellationToken = default)
         where TEvent : class;
 
     /// <summary>
@@ -56,6 +59,6 @@ public interface IEventPublisher
     /// <param name="ids">The scheduling identifiers of the scheduled events.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+    Task CancelAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
         where TEvent : class;
 }

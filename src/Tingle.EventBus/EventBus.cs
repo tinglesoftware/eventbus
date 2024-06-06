@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Tingle.EventBus.Configuration;
 using Tingle.EventBus.Diagnostics;
 using Tingle.EventBus.Ids;
@@ -40,9 +41,9 @@ public class EventBus(EventBusTransportProvider transportProvider,
     /// </param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<ScheduledResult?> PublishAsync<TEvent>(EventContext<TEvent> @event,
-                                                             DateTimeOffset? scheduled = null,
-                                                             CancellationToken cancellationToken = default)
+    public async Task<ScheduledResult?> PublishAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(EventContext<TEvent> @event,
+                                                                                                                DateTimeOffset? scheduled = null,
+                                                                                                                CancellationToken cancellationToken = default)
         where TEvent : class
     {
         if (scheduled != null && scheduled <= DateTimeOffset.UtcNow)
@@ -90,9 +91,9 @@ public class EventBus(EventBusTransportProvider transportProvider,
     /// </param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<IList<ScheduledResult>?> PublishAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                    DateTimeOffset? scheduled = null,
-                                                                    CancellationToken cancellationToken = default)
+    public async Task<IList<ScheduledResult>?> PublishAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<EventContext<TEvent>> events,
+                                                                                                                       DateTimeOffset? scheduled = null,
+                                                                                                                       CancellationToken cancellationToken = default)
         where TEvent : class
     {
         if (scheduled != null && scheduled <= DateTimeOffset.UtcNow)
@@ -140,7 +141,7 @@ public class EventBus(EventBusTransportProvider transportProvider,
     /// <param name="id">The scheduling identifier of the scheduled event.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task CancelAsync<TEvent>(string id, CancellationToken cancellationToken = default)
+    public async Task CancelAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(string id, CancellationToken cancellationToken = default)
         where TEvent : class
     {
         // Instrumentation
@@ -164,7 +165,7 @@ public class EventBus(EventBusTransportProvider transportProvider,
     /// <param name="ids">The scheduling identifiers of the scheduled events.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task CancelAsync<TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
+    public async Task CancelAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<string> ids, CancellationToken cancellationToken = default)
         where TEvent : class
     {
         // Instrumentation
@@ -204,7 +205,7 @@ public class EventBus(EventBusTransportProvider transportProvider,
         await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
-    internal (EventRegistration registration, IEventBusTransport transport) GetTransportForEvent<TEvent>()
+    internal (EventRegistration registration, IEventBusTransport transport) GetTransportForEvent<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>() where TEvent : class
     {
         // get the transport
         var reg = GetOrCreateRegistration<TEvent>();
@@ -219,14 +220,14 @@ public class EventBus(EventBusTransportProvider transportProvider,
 
     internal IEventBusTransport GetTransportForEvent(string name) => transports[name];
 
-    internal EventRegistration GetOrCreateRegistration<TEvent>()
+    internal EventRegistration GetOrCreateRegistration<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>() where TEvent : class
     {
         // if there's already a registration for the event return it
         return options.Registrations.GetOrAdd(typeof(TEvent), et =>
         {
             // at this point, the registration does not exist;
             // create it and pass it through all the configurators.
-            var registration = new EventRegistration(et);
+            var registration = EventRegistration.Create<TEvent>();
             foreach (var cfg in configurators.Reverse())
             {
                 cfg.Configure(registration, options);

@@ -69,13 +69,7 @@ public class InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
 
                 // register handlers for error and processing
                 processor.ProcessErrorAsync += OnMessageFaultedAsync;
-                processor.ProcessMessageAsync += delegate (ProcessMessageEventArgs args)
-                {
-                    var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-                    var mt = GetType().GetMethod(nameof(OnMessageReceivedAsync), flags) ?? throw new InvalidOperationException("Methods should be null");
-                    var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
-                    return (Task)method.Invoke(this, [reg, ecr, processor, args])!;
-                };
+                processor.ProcessMessageAsync += (ProcessMessageEventArgs args) => OnMessageReceivedAsync(reg, ecr, processor, args);
 
                 // start processing
                 Logger.StartingProcessing(entityPath: processor.EntityPath);
@@ -108,10 +102,10 @@ public class InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
     }
 
     /// <inheritdoc/>
-    protected override async Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
-                                                                             EventRegistration registration,
-                                                                             DateTimeOffset? scheduled = null,
-                                                                             CancellationToken cancellationToken = default)
+    protected override async Task<ScheduledResult?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(EventContext<TEvent> @event,
+                                                                                                                                EventRegistration registration,
+                                                                                                                                DateTimeOffset? scheduled = null,
+                                                                                                                                CancellationToken cancellationToken = default)
     {
         // log warning when trying to publish scheduled message
         if (scheduled != null)
@@ -163,10 +157,10 @@ public class InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
     }
 
     /// <inheritdoc/>
-    protected async override Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                                    EventRegistration registration,
-                                                                                    DateTimeOffset? scheduled = null,
-                                                                                    CancellationToken cancellationToken = default)
+    protected async override Task<IList<ScheduledResult>?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<EventContext<TEvent>> events,
+                                                                                                                                       EventRegistration registration,
+                                                                                                                                       DateTimeOffset? scheduled = null,
+                                                                                                                                       CancellationToken cancellationToken = default)
     {
         // log warning when trying to publish scheduled message
         if (scheduled != null)
@@ -293,7 +287,11 @@ public class InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
         Task<InMemoryProcessor> creator(string _, CancellationToken ct)
         {
             // Create the processor options
-            var inpo = new InMemoryProcessorOptions { };
+            var inpo = new InMemoryProcessorOptions
+            {
+                // Set the sub-queue to be used
+                SubQueue = deadletter ? InMemoryProcessorSubQueue.DeadLetter : InMemoryProcessorSubQueue.None,
+            };
 
             // Create the processor.
             InMemoryProcessor processor;
@@ -315,12 +313,7 @@ public class InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
         return processorsCache.GetOrAddAsync(key, creator, cancellationToken);
     }
 
-    private async Task OnMessageReceivedAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration reg,
-                                                                                                                   EventConsumerRegistration ecr,
-                                                                                                                   InMemoryProcessor processor,
-                                                                                                                   ProcessMessageEventArgs args)
-        where TEvent : class
-        where TConsumer : IEventConsumer
+    private async Task OnMessageReceivedAsync(EventRegistration reg, EventConsumerRegistration ecr, InMemoryProcessor processor, ProcessMessageEventArgs args)
     {
         var entityPath = processor.EntityPath;
         var message = args.Message;
@@ -339,8 +332,8 @@ public class InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
 
         // Instrumentation
         using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
-        activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
-        activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
+        activity?.AddTag(ActivityTagNames.EventBusEventType, reg.EventType.FullName);
+        activity?.AddTag(ActivityTagNames.EventBusConsumerType, ecr.ConsumerType.FullName);
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
         var destination = reg.EntityKind == EntityKind.Queue ? reg.EventName : ecr.ConsumerName;
         activity?.AddTag(ActivityTagNames.MessagingDestination, destination); // name of the queue/subscription
@@ -349,25 +342,21 @@ public class InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
         Logger.ProcessingMessage(messageId: messageId, entityPath: entityPath);
         using var scope = CreateScope();
         var contentType = message.ContentType is not null ? new ContentType(message.ContentType) : null;
-        var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                     body: message.Body,
-                                                     contentType: contentType,
-                                                     registration: reg,
-                                                     identifier: message.SequenceNumber.ToString(),
-                                                     raw: message,
-                                                     deadletter: ecr.Deadletter,
-                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+        var context = await DeserializeAsync(scope: scope,
+                                             body: message.Body,
+                                             contentType: contentType,
+                                             registration: reg,
+                                             identifier: message.SequenceNumber.ToString(),
+                                             raw: message,
+                                             deadletter: ecr.Deadletter,
+                                             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         Logger.ReceivedMessage(sequenceNumber: message.SequenceNumber, eventBusId: context.Id, entityPath: entityPath);
 
         // set the extras
         context.SetInMemoryReceivedMessage(message);
 
-        var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
-                                                                    ecr: ecr,
-                                                                    @event: context,
-                                                                    scope: scope,
-                                                                    cancellationToken: cancellationToken).ConfigureAwait(false);
+        var (successful, _) = await ConsumeAsync(scope, reg, ecr, context, cancellationToken).ConfigureAwait(false);
 
         // Add to Consumed/Failed list
         if (successful) consumed.Add(context);

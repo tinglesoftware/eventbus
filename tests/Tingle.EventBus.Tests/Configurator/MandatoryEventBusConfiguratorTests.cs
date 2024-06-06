@@ -10,7 +10,7 @@ public class MandatoryEventBusConfiguratorTests
     public void ConfigureSerializer_UsesDefault()
     {
         // when not set, use default
-        var registration = new EventRegistration(typeof(TestEvent1));
+        var registration = EventRegistration.Create<TestEvent1>();
         Assert.Null(registration.EventSerializerType);
         MandatoryEventBusConfigurator.ConfigureSerializer(registration);
         Assert.Equal(typeof(IEventSerializer), registration.EventSerializerType);
@@ -20,7 +20,7 @@ public class MandatoryEventBusConfiguratorTests
     public void ConfigureSerializer_RespectsAttribute()
     {
         // attribute is respected
-        var registration = new EventRegistration(typeof(TestEvent2));
+        var registration = EventRegistration.Create<TestEvent2>();
         Assert.Null(registration.EventSerializerType);
         MandatoryEventBusConfigurator.ConfigureSerializer(registration);
         Assert.Equal(typeof(FakeEventSerializer1), registration.EventSerializerType);
@@ -30,7 +30,7 @@ public class MandatoryEventBusConfiguratorTests
     public void ConfigureSerializer_Throws_InvalidOperationException()
     {
         // attribute is respected
-        var registration = new EventRegistration(typeof(TestEvent3));
+        var registration = EventRegistration.Create<TestEvent3>();
         var ex = Assert.Throws<InvalidOperationException>(() => MandatoryEventBusConfigurator.ConfigureSerializer(registration));
         Assert.Equal("The type 'Tingle.EventBus.Tests.Configurator.FakeEventSerializer2' is used"
                    + " as a serializer but does not implement 'Tingle.EventBus.Serialization.IEventSerializer'",
@@ -54,7 +54,7 @@ public class MandatoryEventBusConfiguratorTests
         options.Naming.Scope = scope;
         options.Naming.Convention = namingConvention;
         options.Naming.UseFullTypeNames = useFullTypeNames;
-        var registration = new EventRegistration(eventType);
+        var registration = EventRegistration.Create(eventType);
         MandatoryEventBusConfigurator.ConfigureEventName(registration, options.Naming);
         Assert.Equal(expected, registration.EventName);
     }
@@ -132,8 +132,8 @@ public class MandatoryEventBusConfiguratorTests
         options.Naming.ConsumerNameSource = consumerNameSource;
         options.Naming.ConsumerNamePrefix = prefix;
 
-        var registration = new EventRegistration(eventType);
-        registration.Consumers.Add(new EventConsumerRegistration(consumerType, false));
+        var registration = EventRegistration.Create(eventType);
+        registration.Consumers.Add(EventConsumerRegistration.Create(eventType, consumerType, false));
 
         var creg = Assert.Single(registration.Consumers);
         MandatoryEventBusConfigurator.ConfigureEventName(registration, options.Naming);
@@ -147,7 +147,7 @@ public class MandatoryEventBusConfiguratorTests
     [InlineData(typeof(TestEvent3), EntityKind.Broadcast)]
     public void ConfigureEntityKind_Works(Type eventType, EntityKind? expected)
     {
-        var registration = new EventRegistration(eventType);
+        var registration = EventRegistration.Create(eventType);
         MandatoryEventBusConfigurator.ConfigureEntityKind(registration);
         Assert.Equal(expected, registration.EntityKind);
     }

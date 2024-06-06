@@ -8,14 +8,13 @@ namespace Tingle.EventBus.Configuration;
 /// <summary>
 /// Represents a registration for an event.
 /// </summary>
-/// <param name="eventType">The type of event handled.</param>
-public class EventRegistration(Type eventType) : IEquatable<EventRegistration?>
+public class EventRegistration : IEquatable<EventRegistration?>
 {
     /// <summary>
     /// The type of event handled.
     /// </summary>
     [DynamicallyAccessedMembers(TrimmingHelper.Event)]
-    public Type EventType { get; } = eventType ?? throw new ArgumentNullException(nameof(eventType));
+    public Type EventType { get; }
 
     /// <summary>
     /// The name generated for the event.
@@ -91,6 +90,23 @@ public class EventRegistration(Type eventType) : IEquatable<EventRegistration?>
     /// <summary>The final resilience pipeline used in executions for the event and it's consumers.</summary>
     internal ResiliencePipeline ExecutionPipeline { get; set; } = ResiliencePipeline.Empty;
 
+    internal DeserializerDelegate Deserializer { get; set; } = default!;
+
+    private EventRegistration(Type eventType, DeserializerDelegate deserializer) // this private to enforce use of the factory methods which cater to generics in AOT
+    {
+        EventType = eventType ?? throw new ArgumentNullException(nameof(eventType));
+        Deserializer = deserializer ?? throw new ArgumentNullException(nameof(deserializer));
+    }
+
+    /// <summary>Create a new instance of <see cref="EventRegistration"/> for the specified event type.</summary>
+    /// <typeparam name="T">The type of event.</typeparam>
+    public static EventRegistration Create<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>() where T : class => new(typeof(T), ExecutionHelper.DeserializeToContextAsync<T>);
+
+    /// <summary>Create a new instance of <see cref="EventRegistration"/> for the specified event type.</summary>
+    /// <param name="eventType">The type of event.</param>
+    [RequiresDynamicCode(MessageStrings.GenericsDynamicCodeMessage)]
+    public static EventRegistration Create([DynamicallyAccessedMembers(TrimmingHelper.Event)] Type eventType) => new(eventType, ExecutionHelper.MakeDelegate(eventType));
+
     #region Equality Overrides
 
     /// <inheritdoc/>
@@ -117,3 +133,10 @@ public class EventRegistration(Type eventType) : IEquatable<EventRegistration?>
 
     #endregion
 }
+
+/// <summary>Delegate for deserializing an event payload to an <see cref="EventContext"/>.</summary>
+/// <param name="serializer">The <see cref="IEventSerializer"/> to use.</param>
+/// <param name="context">The <see cref="DeserializationContext"/> to use.</param>
+/// <param name="publisher">The <see cref="IEventPublisher"/> to use.</param>
+/// <param name="cancellationToken"></param>
+internal delegate Task<EventContext> DeserializerDelegate(IEventSerializer serializer, DeserializationContext context, IEventPublisher publisher, CancellationToken cancellationToken = default);

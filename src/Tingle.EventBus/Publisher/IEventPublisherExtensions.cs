@@ -1,4 +1,6 @@
-﻿using Tingle.EventBus.Retries;
+﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus.Internal;
+using Tingle.EventBus.Retries;
 
 namespace Tingle.EventBus;
 
@@ -19,10 +21,10 @@ public static class IEventPublisherExtensions
     /// </param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static Task<ScheduledResult?> PublishAsync<TEvent>(this IEventPublisher publisher,
-                                                              TEvent @event,
-                                                              DateTimeOffset? scheduled = null,
-                                                              CancellationToken cancellationToken = default)
+    public static Task<ScheduledResult?> PublishAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(this IEventPublisher publisher,
+                                                                                                                 TEvent @event,
+                                                                                                                 DateTimeOffset? scheduled = null,
+                                                                                                                 CancellationToken cancellationToken = default)
         where TEvent : class
     {
         var context = publisher.CreateEventContext(@event);
@@ -39,10 +41,10 @@ public static class IEventPublisherExtensions
     /// </param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static Task<IList<ScheduledResult>?> PublishAsync<TEvent>(this IEventPublisher publisher,
-                                                                     IList<TEvent> events,
-                                                                     DateTimeOffset? scheduled = null,
-                                                                     CancellationToken cancellationToken = default) where TEvent : class
+    public static Task<IList<ScheduledResult>?> PublishAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(this IEventPublisher publisher,
+                                                                                                                        IList<TEvent> events,
+                                                                                                                        DateTimeOffset? scheduled = null,
+                                                                                                                        CancellationToken cancellationToken = default) where TEvent : class
     {
         var contexts = events.Select(e => publisher.CreateEventContext(e)).ToList();
         return publisher.PublishAsync(events: contexts, scheduled: scheduled, cancellationToken: cancellationToken);
@@ -59,10 +61,10 @@ public static class IEventPublisherExtensions
     /// <param name="delay">The duration of time to wait before the event is available on the bus for consumption.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static Task<ScheduledResult?> PublishAsync<TEvent>(this IEventPublisher publisher,
-                                                              EventContext<TEvent> @event,
-                                                              TimeSpan? delay,
-                                                              CancellationToken cancellationToken = default)
+    public static Task<ScheduledResult?> PublishAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(this IEventPublisher publisher,
+                                                                                                                 EventContext<TEvent> @event,
+                                                                                                                 TimeSpan? delay,
+                                                                                                                 CancellationToken cancellationToken = default)
         where TEvent : class
     {
         var scheduled = delay is null ? (DateTimeOffset?)null : DateTimeOffset.UtcNow + delay.Value;
@@ -76,10 +78,10 @@ public static class IEventPublisherExtensions
     /// <param name="delay">The duration of time to wait before the event is available on the bus for consumption.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static Task<IList<ScheduledResult>?> PublishAsync<TEvent>(this IEventPublisher publisher,
-                                                                     IList<EventContext<TEvent>> events,
-                                                                     TimeSpan? delay,
-                                                                     CancellationToken cancellationToken = default)
+    public static Task<IList<ScheduledResult>?> PublishAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(this IEventPublisher publisher,
+                                                                                                                        IList<EventContext<TEvent>> events,
+                                                                                                                        TimeSpan? delay,
+                                                                                                                        CancellationToken cancellationToken = default)
         where TEvent : class
     {
         var scheduled = delay is null ? (DateTimeOffset?)null : DateTimeOffset.UtcNow + delay.Value;
@@ -93,10 +95,10 @@ public static class IEventPublisherExtensions
     /// <param name="delay">The duration of time to wait before the event is available on the bus for consumption.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static Task<ScheduledResult?> PublishAsync<TEvent>(this IEventPublisher publisher,
-                                                              TEvent @event,
-                                                              TimeSpan? delay,
-                                                              CancellationToken cancellationToken = default)
+    public static Task<ScheduledResult?> PublishAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(this IEventPublisher publisher,
+                                                                                                                 TEvent @event,
+                                                                                                                 TimeSpan? delay,
+                                                                                                                 CancellationToken cancellationToken = default)
         where TEvent : class
     {
         var scheduled = delay is null ? (DateTimeOffset?)null : DateTimeOffset.UtcNow + delay.Value;
@@ -110,10 +112,10 @@ public static class IEventPublisherExtensions
     /// <param name="delay">The duration of time to wait before the event is available on the bus for consumption.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static Task<IList<ScheduledResult>?> PublishAsync<TEvent>(this IEventPublisher publisher,
-                                                                     IList<TEvent> events,
-                                                                     TimeSpan? delay,
-                                                                     CancellationToken cancellationToken = default)
+    public static Task<IList<ScheduledResult>?> PublishAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(this IEventPublisher publisher,
+                                                                                                                        IList<TEvent> events,
+                                                                                                                        TimeSpan? delay,
+                                                                                                                        CancellationToken cancellationToken = default)
         where TEvent : class
     {
         var scheduled = delay is null ? (DateTimeOffset?)null : DateTimeOffset.UtcNow + delay.Value;
@@ -130,9 +132,9 @@ public static class IEventPublisherExtensions
     /// <param name="result">The scheduling result.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static Task CancelAsync<TEvent>(this IEventPublisher publisher,
-                                           ScheduledResult result,
-                                           CancellationToken cancellationToken = default)
+    public static Task CancelAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(this IEventPublisher publisher,
+                                                                                              ScheduledResult result,
+                                                                                              CancellationToken cancellationToken = default)
         where TEvent : class
     {
         return publisher.CancelAsync<TEvent>(id: result.Id, cancellationToken: cancellationToken);
@@ -144,9 +146,9 @@ public static class IEventPublisherExtensions
     /// <param name="results">The scheduling results.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static Task CancelAsync<TEvent>(this IEventPublisher publisher,
-                                           IList<ScheduledResult> results,
-                                           CancellationToken cancellationToken = default)
+    public static Task CancelAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(this IEventPublisher publisher,
+                                                                                              IList<ScheduledResult> results,
+                                                                                              CancellationToken cancellationToken = default)
         where TEvent : class
     {
         var ids = results.Select(r => r.Id).ToList();
@@ -163,9 +165,9 @@ public static class IEventPublisherExtensions
     /// <param name="event">The event to publish.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static Task<ScheduledResult?> ScheduleRetryAsync<TEvent>(this IEventPublisher publisher,
-                                                                    TEvent @event,
-                                                                    CancellationToken cancellationToken = default)
+    public static Task<ScheduledResult?> ScheduleRetryAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(this IEventPublisher publisher,
+                                                                                                                       TEvent @event,
+                                                                                                                       CancellationToken cancellationToken = default)
         where TEvent : class, IRetryableEvent
     {
         if (@event.TryGetNextRetryDelay(out var delay))
@@ -184,9 +186,9 @@ public static class IEventPublisherExtensions
     /// <param name="event">The event to publish.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static Task<ScheduledResult?> ScheduleRetryAsync<TEvent>(this IEventPublisher publisher,
-                                                                    EventContext<TEvent> @event,
-                                                                    CancellationToken cancellationToken = default)
+    public static Task<ScheduledResult?> ScheduleRetryAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(this IEventPublisher publisher,
+                                                                                                                       EventContext<TEvent> @event,
+                                                                                                                       CancellationToken cancellationToken = default)
         where TEvent : class, IRetryableEvent
     {
         if (@event.Event.TryGetNextRetryDelay(out var delay))

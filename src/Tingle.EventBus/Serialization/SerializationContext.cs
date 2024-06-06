@@ -1,11 +1,13 @@
-﻿using Tingle.EventBus.Configuration;
+﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus.Configuration;
+using Tingle.EventBus.Internal;
 
 namespace Tingle.EventBus.Serialization;
 
 /// <summary>Context for performing serialization.</summary>
 /// <param name="event">The event to be serialized.</param>
 /// <param name="registration">Registration for this event being deserialized.</param>
-public sealed class SerializationContext<T>(EventContext<T> @event, EventRegistration registration) where T : class
+public sealed class SerializationContext<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(EventContext<T> @event, EventRegistration registration) where T : class
 {
     /// <summary>
     /// The event to be serialized.

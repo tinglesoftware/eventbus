@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus.Internal;
 
 namespace Tingle.EventBus.Transports.InMemory;
 
@@ -46,7 +48,7 @@ public class InMemoryTestHarness(EventBusTransportProvider transportProvider, IO
     /// Gets all the published events of a given type.
     /// <typeparam name="T">The type of event carried.</typeparam>
     /// </summary>
-    public IEnumerable<EventContext<T>> Published<T>() where T : class => transport.Published.OfType<EventContext<T>>();
+    public IEnumerable<EventContext<T>> Published<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>() where T : class => transport.Published.OfType<EventContext<T>>();
 
     /// <summary>
     /// Gets all the published events of a given type.
@@ -58,7 +60,7 @@ public class InMemoryTestHarness(EventBusTransportProvider transportProvider, IO
     /// </param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<IEnumerable<EventContext<T>>> PublishedAsync<T>(TimeSpan? delay = null, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<EventContext<T>>> PublishedAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(TimeSpan? delay = null, CancellationToken cancellationToken = default)
         where T : class
     {
         await Task.Delay(delay ?? options.DefaultDelay, cancellationToken).ConfigureAwait(false);
@@ -109,7 +111,7 @@ public class InMemoryTestHarness(EventBusTransportProvider transportProvider, IO
     /// Gets all the consumed events of a given type.
     /// <typeparam name="T">The type of event carried.</typeparam>
     /// </summary>
-    public IEnumerable<EventContext<T>> Consumed<T>() where T : class => transport.Consumed.OfType<EventContext<T>>();
+    public IEnumerable<EventContext<T>> Consumed<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>() where T : class => transport.Consumed.OfType<EventContext<T>>();
 
     /// <summary>
     /// Get all the consumed events of a given type.
@@ -121,7 +123,7 @@ public class InMemoryTestHarness(EventBusTransportProvider transportProvider, IO
     /// </param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<IEnumerable<EventContext<T>>> ConsumedAsync<T>(TimeSpan? delay = null, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<EventContext<T>>> ConsumedAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(TimeSpan? delay = null, CancellationToken cancellationToken = default)
         where T : class
     {
         await Task.Delay(delay ?? options.DefaultDelay, cancellationToken).ConfigureAwait(false);
@@ -151,7 +153,7 @@ public class InMemoryTestHarness(EventBusTransportProvider transportProvider, IO
     /// <summary>
     /// Gets all the failed events of a given type.
     /// </summary>
-    public IEnumerable<EventContext<T>> Failed<T>() where T : class => transport.Failed.OfType<EventContext<T>>();
+    public IEnumerable<EventContext<T>> Failed<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>() where T : class => transport.Failed.OfType<EventContext<T>>();
 
     /// <summary>
     /// Gets all the failed events of a given type.
@@ -163,7 +165,7 @@ public class InMemoryTestHarness(EventBusTransportProvider transportProvider, IO
     /// </param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<IEnumerable<EventContext<T>>> FailedAsync<T>(TimeSpan? delay = null, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<EventContext<T>>> FailedAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(TimeSpan? delay = null, CancellationToken cancellationToken = default)
         where T : class
     {
         await Task.Delay(delay ?? options.DefaultDelay, cancellationToken).ConfigureAwait(false);

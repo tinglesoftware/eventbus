@@ -113,10 +113,10 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
     }
 
     /// <inheritdoc/>
-    protected async override Task<ScheduledResult?> PublishCoreAsync<TEvent>(EventContext<TEvent> @event,
-                                                                             EventRegistration registration,
-                                                                             DateTimeOffset? scheduled = null,
-                                                                             CancellationToken cancellationToken = default)
+    protected async override Task<ScheduledResult?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(EventContext<TEvent> @event,
+                                                                                                                                EventRegistration registration,
+                                                                                                                                DateTimeOffset? scheduled = null,
+                                                                                                                                CancellationToken cancellationToken = default)
     {
         // log warning when trying to publish scheduled message
         if (scheduled != null)
@@ -158,10 +158,10 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
     }
 
     /// <inheritdoc/>
-    protected async override Task<IList<ScheduledResult>?> PublishCoreAsync<TEvent>(IList<EventContext<TEvent>> events,
-                                                                                    EventRegistration registration,
-                                                                                    DateTimeOffset? scheduled = null,
-                                                                                    CancellationToken cancellationToken = default)
+    protected async override Task<IList<ScheduledResult>?> PublishCoreAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IList<EventContext<TEvent>> events,
+                                                                                                                                       EventRegistration registration,
+                                                                                                                                       DateTimeOffset? scheduled = null,
+                                                                                                                                       CancellationToken cancellationToken = default)
     {
         // log warning when doing batch
         Logger.BatchingNotSupported();
@@ -232,9 +232,6 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
 
     private async Task ProcessAsync(CancellationToken cancellationToken)
     {
-        var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-        var mt = GetType().GetMethod(nameof(OnEventReceivedAsync), flags) ?? throw new InvalidOperationException("Method should not be null");
-
         while (!cancellationToken.IsCancellationRequested)
         {
             try
@@ -254,8 +251,7 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
 
                 // form the generic method
                 var ecr = reg.Consumers.Single(); // only one consumer per event
-                var method = mt.MakeGenericMethod(reg.EventType, ecr.ConsumerType);
-                await ((Task)method.Invoke(this, [reg, ecr, result, cancellationToken])!).ConfigureAwait(false);
+                await OnEventReceivedAsync(reg, ecr, result, cancellationToken).ConfigureAwait(false);
             }
             catch (TaskCanceledException)
             {
@@ -270,12 +266,7 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
         }
     }
 
-    private async Task OnEventReceivedAsync<TEvent, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(EventRegistration reg,
-                                                                                                                 EventConsumerRegistration ecr,
-                                                                                                                 ConsumeResult<string, byte[]> result,
-                                                                                                                 CancellationToken cancellationToken)
-        where TEvent : class
-        where TConsumer : IEventConsumer
+    private async Task OnEventReceivedAsync(EventRegistration reg, EventConsumerRegistration ecr, ConsumeResult<string, byte[]> result, CancellationToken cancellationToken)
     {
         var message = result.Message;
         var messageKey = message.Key;
@@ -298,8 +289,8 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
 
         // Instrumentation
         using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId);
-        activity?.AddTag(ActivityTagNames.EventBusEventType, typeof(TEvent).FullName);
-        activity?.AddTag(ActivityTagNames.EventBusConsumerType, typeof(TConsumer).FullName);
+        activity?.AddTag(ActivityTagNames.EventBusEventType, reg.EventType.FullName);
+        activity?.AddTag(ActivityTagNames.EventBusConsumerType, ecr.ConsumerType.FullName);
         activity?.AddTag(ActivityTagNames.MessagingSystem, Name);
         activity?.AddTag(ActivityTagNames.MessagingDestination, result.Topic);
 
@@ -309,24 +300,20 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                                  offset: result.Offset);
         using var scope = CreateScope();
         var contentType = contentType_str == null ? null : new ContentType(contentType_str);
-        var context = await DeserializeAsync<TEvent>(scope: scope,
-                                                     body: new BinaryData(message.Value),
-                                                     contentType: contentType,
-                                                     registration: reg,
-                                                     identifier: result.Offset.ToString(),
-                                                     raw: message,
-                                                     deadletter: ecr.Deadletter,
-                                                     cancellationToken: cancellationToken).ConfigureAwait(false);
+        var context = await DeserializeAsync(scope: scope,
+                                             body: new BinaryData(message.Value),
+                                             contentType: contentType,
+                                             registration: reg,
+                                             identifier: result.Offset.ToString(),
+                                             raw: message,
+                                             deadletter: ecr.Deadletter,
+                                             cancellationToken: cancellationToken).ConfigureAwait(false);
         Logger.ReceivedEvent(eventBusId: context.Id,
                              topic: result.Topic,
                              partition: result.Partition,
                              offset: result.Offset);
 
-        var (successful, _) = await ConsumeAsync<TEvent, TConsumer>(registration: reg,
-                                                                    ecr: ecr,
-                                                                    @event: context,
-                                                                    scope: scope,
-                                                                    cancellationToken: cancellationToken).ConfigureAwait(false);
+        var (successful, _) = await ConsumeAsync(scope, reg, ecr, context, cancellationToken).ConfigureAwait(false);
 
         // dead-letter cannot be dead-lettered again, what else can we do?
         if (ecr.Deadletter) return; // TODO: figure out what to do when dead-letter fails

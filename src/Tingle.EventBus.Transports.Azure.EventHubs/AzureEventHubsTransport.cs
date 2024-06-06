@@ -98,9 +98,7 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
             Logger.ExpiryNotSupported();
         }
 
-        using var scope = CreateScope();
-        var body = await SerializeAsync(scope: scope,
-                                        @event: @event,
+        var body = await SerializeAsync(@event: @event,
                                         registration: registration,
                                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -150,12 +148,10 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
             Logger.ExpiryNotSupported();
         }
 
-        using var scope = CreateScope();
         var eventDatas = new List<EventData>();
         foreach (var @event in events)
         {
-            var body = await SerializeAsync(scope: scope,
-                                            @event: @event,
+            var body = await SerializeAsync(@event: @event,
                                             registration: registration,
                                             cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -387,7 +383,7 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
                                partitionId: partitionId,
                                partitionKey: data.PartitionKey,
                                sequenceNumber: data.SequenceNumber);
-        using var scope = CreateScope();
+        using var scope = CreateServiceScope(); // shared
         var contentType = new ContentType(data.ContentType);
         var context = await DeserializeAsync(scope: scope,
                                              body: data.EventBody,
@@ -421,7 +417,7 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
             await dlqProcessor.SendAsync(new[] { data }, cancellationToken).ConfigureAwait(false);
         }
 
-        /* 
+        /*
          * Update the checkpoint store if needed so that the app receives
          * only newer events the next time it's run.
         */

@@ -272,18 +272,17 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
 
     /// <summary>Serialize an event into a stream of bytes.</summary>
     /// <typeparam name="TEvent">The event type to be serialized.</typeparam>
-    /// <param name="scope">The scope in which to resolve required services.</param>
     /// <param name="event">The context of the event to be serialized.</param>
     /// <param name="registration">The bus registration for this event.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    protected async Task<BinaryData> SerializeAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(IServiceScope scope,
-                                                                                                               EventContext<TEvent> @event,
+    protected async Task<BinaryData> SerializeAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] TEvent>(EventContext<TEvent> @event,
                                                                                                                EventRegistration registration,
                                                                                                                CancellationToken cancellationToken = default)
         where TEvent : class
     {
         // Resolve the serializer
+        using var scope = scopeFactory.CreateScope();
         var provider = scope.ServiceProvider;
         var serializer = (IEventSerializer)ActivatorUtilities.GetServiceOrCreateInstance(provider, registration.EventSerializerType!);
 
@@ -338,7 +337,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
     /// Once this is disposed, any scoped services that have been resolved
     /// from the <see cref="IServiceScope.ServiceProvider"/> will also be disposed.
     /// </returns>
-    protected IServiceScope CreateScope() => scopeFactory.CreateScope();
+    protected IServiceScope CreateServiceScope() => scopeFactory.CreateScope();
 
     #region Registrations
 

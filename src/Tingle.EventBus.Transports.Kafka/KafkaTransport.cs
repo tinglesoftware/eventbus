@@ -130,9 +130,7 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
             Logger.ExpiryNotSupported();
         }
 
-        using var scope = CreateScope();
-        var body = await SerializeAsync(scope: scope,
-                                        @event: @event,
+        var body = await SerializeAsync(@event: @event,
                                         registration: registration,
                                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -178,14 +176,12 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
             Logger.ExpiryNotSupported();
         }
 
-        using var scope = CreateScope();
         var sequenceNumbers = new List<long>();
 
         // work on each event
         foreach (var @event in events)
         {
-            var body = await SerializeAsync(scope: scope,
-                                            @event: @event,
+            var body = await SerializeAsync(@event: @event,
                                             registration: registration,
                                             cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -298,7 +294,7 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                                  topic: result.Topic,
                                  partition: result.Partition,
                                  offset: result.Offset);
-        using var scope = CreateScope();
+        using var scope = CreateServiceScope(); // shared
         var contentType = contentType_str == null ? null : new ContentType(contentType_str);
         var context = await DeserializeAsync(scope: scope,
                                              body: new BinaryData(message.Value),

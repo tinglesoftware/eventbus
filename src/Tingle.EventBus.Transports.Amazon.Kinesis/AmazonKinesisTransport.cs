@@ -75,9 +75,7 @@ public class AmazonKinesisTransport : EventBusTransport<AmazonKinesisTransportOp
             Logger.SchedulingNotSupported();
         }
 
-        using var scope = CreateScope();
-        var body = await SerializeAsync(scope: scope,
-                                        @event: @event,
+        var body = await SerializeAsync(@event: @event,
                                         registration: registration,
                                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -111,14 +109,12 @@ public class AmazonKinesisTransport : EventBusTransport<AmazonKinesisTransportOp
             Logger.SchedulingNotSupported();
         }
 
-        using var scope = CreateScope();
         var records = new List<PutRecordsRequestEntry>();
 
         // work on each event
         foreach (var @event in events)
         {
-            var body = await SerializeAsync(scope: scope,
-                                            @event: @event,
+            var body = await SerializeAsync(@event: @event,
                                             registration: registration,
                                             cancellationToken: cancellationToken).ConfigureAwait(false);
 

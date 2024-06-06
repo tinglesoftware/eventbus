@@ -95,9 +95,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
                                                                                                                                 DateTimeOffset? scheduled = null,
                                                                                                                                 CancellationToken cancellationToken = default)
     {
-        using var scope = CreateScope();
-        var body = await SerializeAsync(scope: scope,
-                                        @event: @event,
+        var body = await SerializeAsync(@event: @event,
                                         registration: registration,
                                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -159,7 +157,6 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
                                                                                                                                        DateTimeOffset? scheduled = null,
                                                                                                                                        CancellationToken cancellationToken = default)
     {
-        using var scope = CreateScope();
         var sequenceNumbers = new List<string>();
 
         // log warning when trying to publish scheduled message to a topic
@@ -177,8 +174,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
             // work on each event
             foreach (var @event in events)
             {
-                var body = await SerializeAsync(scope: scope,
-                                                @event: @event,
+                var body = await SerializeAsync(@event: @event,
                                                 registration: registration,
                                                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -199,8 +195,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
             var entries = new List<SendMessageBatchRequestEntry>(events.Count);
             foreach (var @event in events)
             {
-                var body = await SerializeAsync(scope: scope,
-                                                @event: @event,
+                var body = await SerializeAsync(@event: @event,
                                                 registration: registration,
                                                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -368,10 +363,10 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
                 else
                 {
                     Logger.ReceivedMessages(messagesCount: messages.Count, queueUrl: queueUrl);
-                    using var scope = CreateScope(); // shared
+                    using var scope = CreateServiceScope(); // shared
                     foreach (var message in messages)
                     {
-                        await OnMessageReceivedAsync(reg, ecr, queueUrl, message, cancellationToken).ConfigureAwait(false);
+                        await OnMessageReceivedAsync(scope, reg, ecr, queueUrl, message, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -388,7 +383,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
         }
     }
 
-    private async Task OnMessageReceivedAsync(EventRegistration reg, EventConsumerRegistration ecr, string queueUrl, Message message, CancellationToken cancellationToken)
+    private async Task OnMessageReceivedAsync(IServiceScope scope, EventRegistration reg, EventConsumerRegistration ecr, string queueUrl, Message message, CancellationToken cancellationToken)
     {
         var messageId = message.MessageId;
         message.TryGetAttribute(MetadataNames.CorrelationId, out var correlationId);
@@ -419,7 +414,6 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
         message.TryGetAttribute("Content-Type", out var contentType_str);
         var contentType = contentType_str == null ? null : new ContentType(contentType_str);
 
-        using var scope = CreateScope();
         var context = await DeserializeAsync(scope: scope,
                                              body: new BinaryData(message.Body),
                                              contentType: contentType,

@@ -85,9 +85,7 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
         channel.ExchangeDeclare(exchange: name, type: "fanout");
 
         // serialize the event
-        using var scope = CreateScope();
-        var body = await SerializeAsync(scope: scope,
-                                        @event: @event,
+        var body = await SerializeAsync(@event: @event,
                                         registration: registration,
                                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -156,13 +154,10 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
         var name = registration.EventName;
         channel.ExchangeDeclare(exchange: name, type: "fanout");
 
-        using var scope = CreateScope();
-
         var serializedEvents = new List<(EventContext<TEvent>, ContentType?, BinaryData)>();
         foreach (var @event in events)
         {
-            var body = await SerializeAsync(scope: scope,
-                                            @event: @event,
+            var body = await SerializeAsync(@event: @event,
                                             registration: registration,
                                             cancellationToken: cancellationToken).ConfigureAwait(false);
             serializedEvents.Add((@event, @event.ContentType, body));
@@ -301,7 +296,7 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
         activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // only queues are possible
 
         Logger.LogDebug("Processing '{MessageId}'", messageId);
-        using var scope = CreateScope();
+        using var scope = CreateServiceScope();
         var contentType = GetContentType(args.BasicProperties);
         var context = await DeserializeAsync(scope: scope,
                                              body: new BinaryData(args.Body),

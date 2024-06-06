@@ -85,9 +85,7 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
                                                                                                                                 DateTimeOffset? scheduled = null,
                                                                                                                                 CancellationToken cancellationToken = default)
     {
-        using var scope = CreateScope();
-        var body = await SerializeAsync(scope: scope,
-                                        @event: @event,
+        var body = await SerializeAsync(@event: @event,
                                         registration: registration,
                                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -121,15 +119,12 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
         // log warning when doing batch
         Logger.BatchingNotSupported();
 
-        using var scope = CreateScope();
-
         // work on each event
         var sequenceNumbers = new List<string>();
         var queueClient = await GetQueueClientAsync(reg: registration, deadletter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         foreach (var @event in events)
         {
-            var body = await SerializeAsync(scope: scope,
-                                            @event: @event,
+            var body = await SerializeAsync(@event: @event,
                                             registration: registration,
                                             cancellationToken: cancellationToken).ConfigureAwait(false);
             // if scheduled for later, calculate the visibility timeout
@@ -269,10 +264,10 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
                 else
                 {
                     Logger.ReceivedMessages(messagesCount: messages.Length, queueName: queueClient.Name);
-                    using var scope = CreateScope(); // shared
+                    using var scope = CreateServiceScope(); // shared
                     foreach (var message in messages)
                     {
-                        await OnMessageReceivedAsync(reg, ecr, queueClient, message, scope, cancellationToken).ConfigureAwait(false);
+                        await OnMessageReceivedAsync(scope, reg, ecr, queueClient, message, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -289,7 +284,7 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
         }
     }
 
-    private async Task OnMessageReceivedAsync(EventRegistration reg, EventConsumerRegistration ecr, QueueClient queueClient, QueueMessage message, IServiceScope scope, CancellationToken cancellationToken)
+    private async Task OnMessageReceivedAsync(IServiceScope scope, EventRegistration reg, EventConsumerRegistration ecr, QueueClient queueClient, QueueMessage message, CancellationToken cancellationToken)
     {
         var messageId = message.MessageId;
         using var log_scope = BeginLoggingScopeForConsume(id: messageId,

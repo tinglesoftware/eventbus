@@ -113,9 +113,7 @@ public class InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
             Logger.SchedulingShortLived();
         }
 
-        using var scope = CreateScope();
-        var body = await SerializeAsync(scope: scope,
-                                        @event: @event,
+        var body = await SerializeAsync(@event: @event,
                                         registration: registration,
                                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -168,13 +166,11 @@ public class InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
             Logger.SchedulingShortLived();
         }
 
-        using var scope = CreateScope();
         var messages = new List<InMemoryMessage>();
 
         foreach (var @event in events)
         {
-            var body = await SerializeAsync(scope: scope,
-                                            @event: @event,
+            var body = await SerializeAsync(@event: @event,
                                             registration: registration,
                                             cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -340,7 +336,7 @@ public class InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
         activity?.AddTag(ActivityTagNames.MessagingDestinationKind, "queue"); // the spec does not know subscription so we can only use queue for both
 
         Logger.ProcessingMessage(messageId: messageId, entityPath: entityPath);
-        using var scope = CreateScope();
+        using var scope = CreateServiceScope(); // shared
         var contentType = message.ContentType is not null ? new ContentType(message.ContentType) : null;
         var context = await DeserializeAsync(scope: scope,
                                              body: message.Body,

@@ -68,6 +68,15 @@ A number of the documents below are still a work in progress and will be added a
 - [Using Azure Managed Identity instead of Connection Strings](./samples/AzureManagedIdentity)
 - [Health Checks for Azure Service Bus with Managed Identity](./samples/HealthCheck)
 
+### Instrumentation and observability
+
+All the libraries is instrumented using `System.Diagnostics.Activity` and `System.Diagnostics.ActivitySource`.
+This makes it easy to use with OpenTelemetry by listening to the `Tingle.EventBus` activity source.
+
+```cs
+services.AddOpenTelemetry().WithTracing().AddSource("Tingle.EventBus");
+```
+
 ## Issues &amp; Comments
 
 Please leave all comments, bugs, requests, and issues on the Issues page. We'll respond to your request ASAP!

@@ -12,12 +12,14 @@ namespace Tingle.EventBus.Serialization;
 /// <summary>
 /// Abstract implementation for an event serializer.
 /// </summary>
-public abstract class AbstractEventSerializer : IEventSerializer
+public abstract partial class AbstractEventSerializer : IEventSerializer
 {
+    private const string TrimPattern = "(Serializer|EventSerializer)$";
+
     ///
     protected static readonly IList<string> JsonContentTypes = new[] { "application/json", "text/json", };
 
-    private static readonly Regex trimPattern = new("(Serializer|EventSerializer)$", RegexOptions.Compiled);
+    private static readonly Regex trimPattern = GetTrimPattern();
 
     /// <summary>
     /// 
@@ -147,4 +149,11 @@ public abstract class AbstractEventSerializer : IEventSerializer
                                                       EventEnvelope<T> envelope,
                                                       CancellationToken cancellationToken = default)
         where T : class;
+
+#if NET7_0_OR_GREATER
+    [GeneratedRegex(TrimPattern, RegexOptions.Compiled)]
+    private static partial Regex GetTrimPattern();
+#else
+    private static Regex GetTrimPattern() => new(TrimPattern, RegexOptions.Compiled);
+#endif
 }

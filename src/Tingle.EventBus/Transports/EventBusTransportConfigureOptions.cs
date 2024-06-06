@@ -14,16 +14,18 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <param name="configurationProvider">An <see cref="IEventBusConfigurationProvider"/> instance.</param>
 /// <param name="configurators">A list of <see cref="IEventBusConfigurator"/> to use when configuring options.</param>
 /// <param name="busOptionsAccessor">An <see cref="IOptions{TOptions}"/> for bus configuration.</param>
-public abstract class EventBusTransportConfigureOptions<TOptions>(IEventBusConfigurationProvider configurationProvider,
+public abstract partial class EventBusTransportConfigureOptions<TOptions>(IEventBusConfigurationProvider configurationProvider,
                                                                   IEnumerable<IEventBusConfigurator> configurators,
                                                                   IOptions<EventBusOptions> busOptionsAccessor) : IConfigureNamedOptions<TOptions>,
                                                                                                                   IPostConfigureOptions<TOptions>,
                                                                                                                   IValidateOptions<TOptions>
     where TOptions : EventBusTransportOptions
 {
+    private const string ReplacePatternSafeEnv = "[^a-zA-Z0-9_]";
+
     // Some hosts do not allow certain characters for ENV vars but we know they all support alphanumeric and underscore
     // For example, Azure Container Instances does not allow hyphens in ENV vars while Azure Container Apps does
-    private static readonly Regex replacePatternSafeEnv = new("[^a-zA-Z0-9_]", RegexOptions.Compiled);
+    private static readonly Regex replacePatternSafeEnv = GetReplacePatternSafeEnv();
 
     private readonly IEventBusConfigurationProvider configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
     private readonly IEnumerable<IEventBusConfigurator> configurators = configurators ?? throw new ArgumentNullException(nameof(configurators));
@@ -98,4 +100,11 @@ public abstract class EventBusTransportConfigureOptions<TOptions>(IEventBusConfi
 
         return ValidateOptionsResult.Success;
     }
+
+#if NET7_0_OR_GREATER
+    [GeneratedRegex(ReplacePatternSafeEnv, RegexOptions.Compiled)]
+    private static partial Regex GetReplacePatternSafeEnv();
+#else
+    private static Regex GetReplacePatternSafeEnv() => new(ReplacePatternSafeEnv, RegexOptions.Compiled);
+#endif
 }

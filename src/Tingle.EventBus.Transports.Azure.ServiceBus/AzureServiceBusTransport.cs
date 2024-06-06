@@ -499,6 +499,7 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
 
     private async Task OnMessageReceivedAsync(EventRegistration reg, EventConsumerRegistration ecr, ServiceBusProcessor processor, ProcessMessageEventArgs args)
     {
+        var fqdn = args.FullyQualifiedNamespace;
         var entityPath = args.EntityPath;
         var message = args.Message;
         var messageId = message.MessageId;
@@ -511,7 +512,8 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
                                                           sequenceNumber: message.SequenceNumber.ToString(),
                                                           extras: new Dictionary<string, string?>
                                                           {
-                                                              ["EntityPath"] = entityPath,
+                                                              [MetadataNames.FullyQualifiedNamespace] = fqdn,
+                                                              [MetadataNames.EntityUri] = entityPath,
                                                               ["EnqueuedSequenceNumber"] = message.EnqueuedSequenceNumber.ToString(),
                                                           });
 

@@ -395,7 +395,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
                                                           sequenceNumber: sequenceNumber,
                                                           extras: new Dictionary<string, string?>
                                                           {
-                                                              ["QueueUrl"] = queueUrl,
+                                                              [MetadataNames.EntityUri] = queueUrl,
                                                               ["ReceiptHandle"] = message.ReceiptHandle,
                                                               [nameof(message.MD5OfBody)] = message.MD5OfBody,
                                                               [nameof(message.MD5OfMessageAttributes)] = message.MD5OfMessageAttributes,

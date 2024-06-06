@@ -362,11 +362,12 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
                                                           sequenceNumber: data.SequenceNumber.ToString(),
                                                           extras: new Dictionary<string, string?>
                                                           {
+                                                              [MetadataNames.FullyQualifiedNamespace] = processor.FullyQualifiedNamespace,
                                                               [MetadataNames.EventName] = eventName?.ToString(),
                                                               [MetadataNames.EventType] = eventType?.ToString(),
-                                                              ["PartitionId"] = partitionId,
                                                               ["EventHubName"] = processor.EventHubName,
                                                               ["ConsumerGroup"] = processor.ConsumerGroup,
+                                                              ["PartitionId"] = partitionId,
                                                               ["PartitionKey"] = data.PartitionKey,
                                                           });
 

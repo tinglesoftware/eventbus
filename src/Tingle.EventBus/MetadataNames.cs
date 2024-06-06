@@ -13,6 +13,8 @@ public static class MetadataNames
     public const string CorrelationId = "CorrelationId";
     public const string RequestId = "RequestId";
     public const string InitiatorId = "InitiatorId";
+    public const string FullyQualifiedNamespace = "FullyQualifiedNamespace";
+    public const string EntityUri = "EntityUri";
 
     public const string ActivityId = "EventBus.ActivityId";
     public const string EventType = "EventBus.EventType";

@@ -291,6 +291,7 @@ public class AzureQueueStorageTransport : EventBusTransport<AzureQueueStorageTra
                                                           correlationId: null,
                                                           extras: new Dictionary<string, string?>
                                                           {
+                                                              [MetadataNames.EntityUri] = queueClient.Uri.ToString(),
                                                               ["PopReceipt"] = message.PopReceipt,
                                                           });
 

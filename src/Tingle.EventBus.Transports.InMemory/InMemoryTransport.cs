@@ -323,7 +323,7 @@ public class InMemoryTransport(IServiceScopeFactory serviceScopeFactory,
                                                           sequenceNumber: message.SequenceNumber.ToString(),
                                                           extras: new Dictionary<string, string?>
                                                           {
-                                                              ["EntityPath"] = entityPath,
+                                                              [MetadataNames.EntityUri] = entityPath,
                                                           });
 
         // Instrumentation

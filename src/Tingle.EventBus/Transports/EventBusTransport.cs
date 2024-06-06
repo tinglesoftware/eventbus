@@ -362,19 +362,19 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
                                                        IDictionary<string, string?>? extras = null)
     {
         var state = new Dictionary<string, string>();
-        state.ToEventBusWrapper()
-             .AddIfNotDefault(MetadataNames.Id, id)
-             .AddIfNotDefault(MetadataNames.CorrelationId, correlationId)
-             .AddIfNotDefault(MetadataNames.SequenceNumber, sequenceNumber)
-             .AddIfNotDefault(MetadataNames.Offset, offset);
+        
+        var wrapped = state.ToEventBusWrapper()
+                           .AddIfNotDefault(MetadataNames.Id, id)
+                           .AddIfNotDefault(MetadataNames.CorrelationId, correlationId)
+                           .AddIfNotDefault(MetadataNames.SequenceNumber, sequenceNumber)
+                           .AddIfNotDefault(MetadataNames.Offset, offset);
 
         // if there are extras, add them
         if (extras != null)
         {
-            var wr = state.ToEventBusWrapper();
             foreach (var kvp in extras)
             {
-                wr.AddIfNotDefault(kvp.Key, kvp.Value);
+                wrapped.AddIfNotDefault(kvp.Key, kvp.Value);
             }
         }
 

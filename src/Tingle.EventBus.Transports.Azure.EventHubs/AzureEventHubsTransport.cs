@@ -487,7 +487,8 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
 
     private Task OnProcessErrorAsync(EventProcessorClient processor, ProcessErrorEventArgs args)
     {
-        // TODO: decide on whether to restart (Stop() then Start()) or terminate (recreate processor) processing
+        // The processor will attempt to recover and if not, the processing stops and the owner of the
+        // application should decide what to do since it shows up in the logs.
         Logger.ProcessingError(eventHubName: processor.EventHubName,
                                consumerGroup: processor.ConsumerGroup,
                                partitionId: args.PartitionId,

@@ -594,6 +594,8 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
 
     private Task OnMessageFaultedAsync(ProcessErrorEventArgs args)
     {
+        // The processor will attempt to recover and if not, the processing stops and the owner of the
+        // application should decide what to do since it shows up in the logs.
         Logger.MessageReceivingFaulted(fullyQualifiedNamespace: args.FullyQualifiedNamespace,
                                        entityPath: args.EntityPath,
                                        errorSource: args.ErrorSource,

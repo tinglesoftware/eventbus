@@ -15,9 +15,11 @@ namespace Tingle.EventBus.Transports;
 /// Abstract implementation for an event bus transport.
 /// </summary>
 /// <typeparam name="TOptions">The type used for configuring options of the transport</typeparam>
-public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOptions : EventBusTransportOptions, new()
+public abstract partial class EventBusTransport<TOptions> : IEventBusTransport where TOptions : EventBusTransportOptions, new()
 {
-    private static readonly Regex CategoryNamePattern = new(@"Transport$", RegexOptions.Compiled);
+    private const string CategoryNamePattern = "Transport$";
+
+    private static readonly Regex categoryNamePattern = GetCategoryNamePattern();
     private readonly IServiceScopeFactory scopeFactory;
     private readonly IOptionsMonitor<TOptions> optionsMonitor;
 
@@ -41,7 +43,7 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
 
         // Create a well-scoped logger
         var categoryName = $"{LogCategoryNames.Transports}.{GetType().Name}";
-        categoryName = CategoryNamePattern.Replace(categoryName, string.Empty); // remove trailing "Transport"
+        categoryName = categoryNamePattern.Replace(categoryName, string.Empty); // remove trailing "Transport"
         Logger = loggerFactory?.CreateLogger(categoryName) ?? throw new ArgumentNullException(nameof(loggerFactory));
     }
 
@@ -381,6 +383,13 @@ public abstract class EventBusTransport<TOptions> : IEventBusTransport where TOp
         // create the scope
         return Logger.BeginScope(state);
     }
+
+#if NET7_0_OR_GREATER
+    [GeneratedRegex(CategoryNamePattern, RegexOptions.Compiled)]
+    private static partial Regex GetCategoryNamePattern();
+#else
+    private static Regex GetCategoryNamePattern() => new(CategoryNamePattern, RegexOptions.Compiled);
+#endif
 
     #endregion
 }

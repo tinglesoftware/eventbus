@@ -7,14 +7,21 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Specifies options for naming behaviour and requirements.
 /// </summary>
-public class EventBusNamingOptions
+public partial class EventBusNamingOptions
 {
-    private static readonly Regex trimPattern = new("(Event|Consumer|EventConsumer)$", RegexOptions.Compiled);
-    private static readonly Regex namePattern = new("(?<=[a-z0-9])[A-Z]", RegexOptions.Compiled);
-    private static readonly Regex replacePatternKebabCase = new("[^a-zA-Z0-9-]", RegexOptions.Compiled);
-    private static readonly Regex replacePatternSnakeCase = new("[^a-zA-Z0-9_]", RegexOptions.Compiled);
-    private static readonly Regex replacePatternDotCase = new("[^a-zA-Z0-9\\.]", RegexOptions.Compiled);
-    private static readonly Regex replacePatternDefault = new("[^a-zA-Z0-9-_\\.]", RegexOptions.Compiled);
+    private const string TrimPattern = "(Event|Consumer|EventConsumer)$";
+    private const string NamePattern = "(?<=[a-z0-9])[A-Z]";
+    private const string ReplacePatternKebabCase = "[^a-zA-Z0-9-]";
+    private const string ReplacePatternSnakeCase = "[^a-zA-Z0-9_]";
+    private const string ReplacePatternDotCase = "[^a-zA-Z0-9\\.]";
+    private const string ReplacePatternDefault = "[^a-zA-Z0-9-_\\.]";
+
+    private static readonly Regex trimPattern = GetTrimPattern();
+    private static readonly Regex namePattern = GetNamePattern();
+    private static readonly Regex replacePatternKebabCase = GetReplacePatternKebabCase();
+    private static readonly Regex replacePatternSnakeCase = GetReplacePatternSnakeCase();
+    private static readonly Regex replacePatternDotCase = GetReplacePatternDotCase();
+    private static readonly Regex replacePatternDefault = GetReplacePatternDefault();
 
     /// <summary>
     /// The scope to use for queues and subscriptions.
@@ -136,4 +143,26 @@ public class EventBusNamingOptions
             _ => throw new InvalidOperationException($"'{nameof(NamingConvention)}.{Convention}' does not support joining"),
         }).ToLowerInvariant();
     }
+
+#if NET7_0_OR_GREATER
+    [GeneratedRegex(TrimPattern, RegexOptions.Compiled)]
+    private static partial Regex GetTrimPattern();
+    [GeneratedRegex(NamePattern, RegexOptions.Compiled)]
+    private static partial Regex GetNamePattern();
+    [GeneratedRegex(ReplacePatternKebabCase, RegexOptions.Compiled)]
+    private static partial Regex GetReplacePatternKebabCase();
+    [GeneratedRegex(ReplacePatternSnakeCase, RegexOptions.Compiled)]
+    private static partial Regex GetReplacePatternSnakeCase();
+    [GeneratedRegex(ReplacePatternDotCase, RegexOptions.Compiled)]
+    private static partial Regex GetReplacePatternDotCase();
+    [GeneratedRegex(ReplacePatternDefault, RegexOptions.Compiled)]
+    private static partial Regex GetReplacePatternDefault();
+#else
+    private static Regex GetTrimPattern() => new(TrimPattern, RegexOptions.Compiled);
+    private static Regex GetNamePattern() => new(NamePattern, RegexOptions.Compiled);
+    private static Regex GetReplacePatternKebabCase() => new(ReplacePatternKebabCase, RegexOptions.Compiled);
+    private static Regex GetReplacePatternSnakeCase() => new(ReplacePatternSnakeCase, RegexOptions.Compiled);
+    private static Regex GetReplacePatternDotCase() => new(ReplacePatternDotCase, RegexOptions.Compiled);
+    private static Regex GetReplacePatternDefault() => new(ReplacePatternDefault, RegexOptions.Compiled);
+#endif
 }

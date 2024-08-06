@@ -40,12 +40,12 @@ jobs:
         fetch-depth: 0 # Required for GitVersion
 
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v2
+      uses: gittools/actions/gitversion/setup@v3.0.0
       with:
-        versionSpec: '5.x'
+        versionSpec: '6.x'
 
     - name: Determine Version
-      uses: gittools/actions/gitversion/execute@v2
+      uses: gittools/actions/gitversion/execute@v3.0.0
       id: gitversion
       with:
         useConfigFile: true
@@ -63,7 +63,7 @@ jobs:
         dotnet build
         --configuration Release
         --no-restore
-        -p:VersionPrefix=${{ steps.gitversion.outputs.nuGetVersion }}
+        -p:VersionPrefix=${{ steps.gitversion.outputs.fullSemVer }}
 
     - name: Test
       run: dotnet test --configuration Release --no-build
@@ -74,7 +74,7 @@ jobs:
         --configuration Release
         --no-build
         --output ${{ github.workspace }}/drop
-        -p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersion }}
+        -p:PackageVersion=${{ steps.gitversion.outputs.fullSemVer }}
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4

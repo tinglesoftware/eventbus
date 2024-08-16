@@ -6,9 +6,8 @@
     <TargetFrameworks>netstandard2.1;net6.0;net7.0;net8.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Deterministic>true</Deterministic>
-    <Company>Tingle Software</Company>
     <Authors>Tingle Software</Authors>
-    <PackageTags>EventBus</PackageTags>
+    <Company>Tingle Software</Company>
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
@@ -23,7 +22,9 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
 
+    <PackageIcon>logo.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>$(PackageTags);EventBus</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,6 +34,10 @@
 
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)\..\shared\TrimmingHelper.cs" Link="Shared\TrimmingHelper.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\logo.png" Pack="True" PackagePath="\" />
   </ItemGroup>
 
 </Project>

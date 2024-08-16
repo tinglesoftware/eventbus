@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="5.0.0.1" PrivateAssets="All" />
-    <PackageReference Include="Polyfill" Version="6.2.2" PrivateAssets="All" />
+    <PackageReference Include="Polyfill" Version="6.3.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

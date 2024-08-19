@@ -9,4 +9,9 @@
     <ProjectReference Include="..\..\src\Tingle.EventBus.Transports.Azure.EventHubs\Tingle.EventBus.Transports.Azure.EventHubs.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+  </ItemGroup>
+
 </Project>

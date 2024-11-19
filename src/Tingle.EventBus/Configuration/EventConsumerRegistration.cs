@@ -100,6 +100,7 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration?>
     /// <param name="consumerType">The type of consumer.</param>
     /// <param name="deadletter">Indicates if the consumer should be connected to the dead-letter entity.</param>
     [RequiresDynamicCode(MessageStrings.GenericsDynamicCodeMessage)]
+    [RequiresUnreferencedCode(MessageStrings.GenericsUnreferencedCodeMessage)]
     public static EventConsumerRegistration Create([DynamicallyAccessedMembers(TrimmingHelper.Event)] Type eventType, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] Type consumerType, bool deadletter)
         => new(consumerType, deadletter, ExecutionHelper.MakeDelegate(eventType, consumerType));
 

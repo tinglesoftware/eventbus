@@ -105,6 +105,7 @@ public class EventRegistration : IEquatable<EventRegistration?>
     /// <summary>Create a new instance of <see cref="EventRegistration"/> for the specified event type.</summary>
     /// <param name="eventType">The type of event.</param>
     [RequiresDynamicCode(MessageStrings.GenericsDynamicCodeMessage)]
+    [RequiresUnreferencedCode(MessageStrings.GenericsUnreferencedCodeMessage)]
     public static EventRegistration Create([DynamicallyAccessedMembers(TrimmingHelper.Event)] Type eventType) => new(eventType, ExecutionHelper.MakeDelegate(eventType));
 
     #region Equality Overrides

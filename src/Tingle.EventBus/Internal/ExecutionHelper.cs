@@ -53,6 +53,7 @@ internal static class ExecutionHelper
     }
 
     [RequiresDynamicCode(MessageStrings.GenericsDynamicCodeMessage)]
+    [RequiresUnreferencedCode(MessageStrings.GenericsUnreferencedCodeMessage)]
     public static DeserializerDelegate MakeDelegate([DynamicallyAccessedMembers(TrimmingHelper.Event)] Type eventType)
     {
         var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public;
@@ -62,6 +63,7 @@ internal static class ExecutionHelper
     }
 
     [RequiresDynamicCode(MessageStrings.GenericsDynamicCodeMessage)]
+    [RequiresUnreferencedCode(MessageStrings.GenericsUnreferencedCodeMessage)]
     public static ConsumeDelegate MakeDelegate([DynamicallyAccessedMembers(TrimmingHelper.Event)] Type eventType, [DynamicallyAccessedMembers(TrimmingHelper.Consumer)] Type consumerType)
     {
         var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public;

@@ -13,5 +13,6 @@ internal class MessageStrings
     public const string RequiresUnreferencedCodeMessage = "JSON serialization, deserialization, and binding strongly typed objects to configuration values might require types that cannot be statically analyzed.";
     public const string RequiresDynamicCodeMessage = "JSON serialization, deserialization, and binding strongly typed objects to configuration values might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.";
 
-    public const string GenericsDynamicCodeMessage = "The native code for this instantiation might not be available at runtime";
+    public const string GenericsUnreferencedCodeMessage = "The native code for this instantiation might require types that cannot be statically analyzed.";
+    public const string GenericsDynamicCodeMessage = "The native code for this instantiation might not be available at runtime.";
 }

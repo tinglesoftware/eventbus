@@ -236,6 +236,7 @@ public class EventBusBuilder
     /// <param name="configure"></param>
     /// <returns></returns>
     [RequiresDynamicCode(ConsumersRequiresDynamicCode)]
+    [RequiresUnreferencedCode(MessageStrings.GenericsUnreferencedCodeMessage)]
     public EventBusBuilder AddConsumer<[DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(
         Action<EventRegistration, EventConsumerRegistration> configure) where TConsumer : class, IEventConsumer
     {
@@ -322,6 +323,7 @@ public class EventBusBuilder
     /// <param name="configure"></param>
     /// <returns></returns>
     [RequiresDynamicCode(ConsumersRequiresDynamicCode)]
+    [RequiresUnreferencedCode(MessageStrings.GenericsUnreferencedCodeMessage)]
     public EventBusBuilder AddConsumer<[DynamicallyAccessedMembers(TrimmingHelper.Consumer)] TConsumer>(
         Action<EventConsumerRegistration>? configure = null) where TConsumer : class, IEventConsumer
     {

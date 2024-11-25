@@ -14,7 +14,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0" />
     <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
-    <PackageReference Include="Polly.Core" Version="8.4.2" />
+    <PackageReference Include="Polly.Core" Version="8.5.0" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="9.0.0" />
     <PackageReference Include="System.Memory.Data" Version="9.0.0" />
     <PackageReference Include="System.Text.Json" Version="9.0.0" />

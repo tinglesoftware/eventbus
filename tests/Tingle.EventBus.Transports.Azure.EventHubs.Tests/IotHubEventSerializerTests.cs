@@ -44,12 +44,6 @@ public class IotHubEventSerializerTests(ITestOutputHelper outputHelper)
             var ereg = EventRegistration.Create<MyIotHubEvent>();
             var stream = TestSamples.GetIotHubTelemetry();
 
-/* Unmerged change from project 'Tingle.EventBus.Transports.Azure.EventHubs.Tests(net9.0)'
-Before:
-            var (ed, ctx) = CreateData(ereg, await BinaryData.FromStreamAsync(stream), "Telemetry");
-After:
-            var (ed, ctx) = CreateData(ereg, await BinaryData.FromStreamAsync(stream, TestContext.Current.CancellationToken), "Telemetry");
-*/
             var (ed, ctx) = CreateData(ereg, await BinaryData.FromStreamAsync(stream, TestContext.Current.CancellationToken), "Telemetry");
             var envelope = await serializer.DeserializeAsync<MyIotHubEvent>(ctx, TestContext.Current.CancellationToken);
             Assert.NotNull(envelope);
@@ -69,20 +63,17 @@ After:
             var ereg = EventRegistration.Create<MyIotHubEvent>();
             var stream = TestSamples.GetIotHubTwinChangeEvents();
 
-/* Unmerged change from project 'Tingle.EventBus.Transports.Azure.EventHubs.Tests(net9.0)'
-Before:
-            var (ed, ctx) = CreateData(ereg, await BinaryData.FromStreamAsync(stream), "twinChangeEvents", new Dictionary<string, object>
-After:
-            var (ed, ctx) = CreateData(ereg, await BinaryData.FromStreamAsync(stream, TestContext.Current.CancellationToken), "twinChangeEvents", new Dictionary<string, object>
-*/
-            var (ed, ctx) = CreateData(ereg, await BinaryData.FromStreamAsync(stream, TestContext.Current.CancellationToken), "twinChangeEvents", new Dictionary<string, object>
-            {
-                ["hubName"] = HubName,
-                ["deviceId"] = DeviceId,
-                ["opType"] = "updateTwin",
-                ["operationTimestamp"] = "2022-01-16T16:36:53.8146535Z",
-                ["iothub-message-schema"] = "twinChangeNotification",
-            });
+            var (ed, ctx) = CreateData(ereg,
+                                       await BinaryData.FromStreamAsync(stream, TestContext.Current.CancellationToken),
+                                       "twinChangeEvents",
+                                       new Dictionary<string, object>
+                                       {
+                                           ["hubName"] = HubName,
+                                           ["deviceId"] = DeviceId,
+                                           ["opType"] = "updateTwin",
+                                           ["operationTimestamp"] = "2022-01-16T16:36:53.8146535Z",
+                                           ["iothub-message-schema"] = "twinChangeNotification",
+                                       });
             var envelope = await serializer.DeserializeAsync<MyIotHubEvent>(ctx, TestContext.Current.CancellationToken);
             Assert.NotNull(envelope);
             Assert.NotNull(envelope.Event);
@@ -110,20 +101,17 @@ After:
             var ereg = EventRegistration.Create<MyIotHubEvent>();
             var stream = TestSamples.GetIotHubDeviceLifecycleEvents();
 
-/* Unmerged change from project 'Tingle.EventBus.Transports.Azure.EventHubs.Tests(net9.0)'
-Before:
-            var (ed, ctx) = CreateData(ereg, await BinaryData.FromStreamAsync(stream), "deviceLifecycleEvents", new Dictionary<string, object>
-After:
-            var (ed, ctx) = CreateData(ereg, await BinaryData.FromStreamAsync(stream, TestContext.Current.CancellationToken), "deviceLifecycleEvents", new Dictionary<string, object>
-*/
-            var (ed, ctx) = CreateData(ereg, await BinaryData.FromStreamAsync(stream, TestContext.Current.CancellationToken), "deviceLifecycleEvents", new Dictionary<string, object>
-            {
-                ["hubName"] = HubName,
-                ["deviceId"] = DeviceId,
-                ["opType"] = "createDeviceIdentity",
-                ["operationTimestamp"] = "2022-01-16T16:36:53.8146535Z",
-                ["iothub-message-schema"] = "deviceLifecycleNotification",
-            });
+            var (ed, ctx) = CreateData(ereg,
+                                       await BinaryData.FromStreamAsync(stream, TestContext.Current.CancellationToken),
+                                       "deviceLifecycleEvents",
+                                       new Dictionary<string, object>
+                                       {
+                                           ["hubName"] = HubName,
+                                           ["deviceId"] = DeviceId,
+                                           ["opType"] = "createDeviceIdentity",
+                                           ["operationTimestamp"] = "2022-01-16T16:36:53.8146535Z",
+                                           ["iothub-message-schema"] = "deviceLifecycleNotification",
+                                       });
             var envelope = await serializer.DeserializeAsync<MyIotHubEvent>(ctx, TestContext.Current.CancellationToken);
             Assert.NotNull(envelope);
             Assert.NotNull(envelope.Event);

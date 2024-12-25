@@ -27,7 +27,7 @@ public class SimplePublisherTests
 
         var provider = host.Services;
         var harness = provider.GetRequiredService<InMemoryTestHarness>();
-        await harness.StartAsync();
+        await harness.StartAsync(TestContext.Current.CancellationToken);
         try
         {
             var orderProcessor = provider.GetRequiredService<RandomOrderProcessor>();
@@ -52,7 +52,7 @@ public class SimplePublisherTests
         }
         finally
         {
-            await harness.StopAsync();
+            await harness.StopAsync(TestContext.Current.CancellationToken);
         }
     }
 

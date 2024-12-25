@@ -22,7 +22,7 @@ public class SimpleCancellationTests
 
         var provider = host.Services;
         var harness = provider.GetRequiredService<InMemoryTestHarness>();
-        await harness.StartAsync();
+        await harness.StartAsync(TestContext.Current.CancellationToken);
         try
         {
             var publisher = provider.GetRequiredService<IEventPublisher>();
@@ -34,7 +34,9 @@ public class SimpleCancellationTests
                 VIN = "5YJ3E1EA5KF328931",
                 Year = 2021,
             };
-            var schedulingId = (string?)await publisher.PublishAsync(@event: evt, scheduled: DateTimeOffset.UtcNow.AddDays(1));
+            var schedulingId = (string?)await publisher.PublishAsync(@event: evt,
+                                                                     scheduled: DateTimeOffset.UtcNow.AddDays(1),
+                                                                     cancellationToken: TestContext.Current.CancellationToken);
             Assert.NotNull(schedulingId);
 
             // Ensure no failures
@@ -43,7 +45,7 @@ public class SimpleCancellationTests
             // Ensure only one was published
             Assert.Single(harness.Published<DoorOpenedEvent>());
 
-            await publisher.CancelAsync<DoorOpenedEvent>(schedulingId);
+            await publisher.CancelAsync<DoorOpenedEvent>(schedulingId, TestContext.Current.CancellationToken);
 
             // Ensure only one was cancelled
             var sn = Assert.Single(harness.Cancelled());
@@ -51,7 +53,7 @@ public class SimpleCancellationTests
         }
         finally
         {
-            await harness.StopAsync();
+            await harness.StopAsync(TestContext.Current.CancellationToken);
         }
     }
 

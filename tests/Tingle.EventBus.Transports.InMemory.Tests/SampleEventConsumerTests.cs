@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SimpleConsumer;
 using Tingle.EventBus.Transports.InMemory;
-using Xunit.Abstractions;
 
 namespace Tingle.EventBus.Tests.InMemory;
 
@@ -30,7 +29,7 @@ public class SampleEventConsumerTests(ITestOutputHelper outputHelper)
         var provider = host.Services;
 
         var harness = provider.GetRequiredService<InMemoryTestHarness>();
-        await harness.StartAsync();
+        await harness.StartAsync(TestContext.Current.CancellationToken);
         try
         {
             // Ensure we start at 0 for the counter
@@ -45,13 +44,13 @@ public class SampleEventConsumerTests(ITestOutputHelper outputHelper)
                 Registration = "1234567890",
                 VIN = "5YJ3E1EA5KF328931",
                 Year = 2021
-            });
+            }, cancellationToken: TestContext.Current.CancellationToken);
 
             // Ensure no faults were published by the consumer
             Assert.False(harness.Failed<SampleEvent>().Any());
 
             // Ensure the message was consumed
-            Assert.NotEmpty(await harness.ConsumedAsync<SampleEvent>(TimeSpan.FromSeconds(0.5f)));
+            Assert.NotEmpty(await harness.ConsumedAsync<SampleEvent>(TimeSpan.FromSeconds(0.5f), TestContext.Current.CancellationToken));
 
             // Now you can ensure data saved to database correctly
 
@@ -60,7 +59,7 @@ public class SampleEventConsumerTests(ITestOutputHelper outputHelper)
         }
         finally
         {
-            await harness.StopAsync();
+            await harness.StopAsync(TestContext.Current.CancellationToken);
         }
     }
 }

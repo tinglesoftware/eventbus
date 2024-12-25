@@ -364,7 +364,7 @@ public abstract partial class EventBusTransport<TOptions> : IEventBusTransport w
                                                        IDictionary<string, string?>? extras = null)
     {
         var state = new Dictionary<string, string>();
-        
+
         var wrapped = state.ToEventBusWrapper()
                            .AddIfNotDefault(MetadataNames.Id, id)
                            .AddIfNotDefault(MetadataNames.CorrelationId, correlationId)

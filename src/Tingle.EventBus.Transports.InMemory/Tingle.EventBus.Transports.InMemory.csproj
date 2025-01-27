@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Threading.Channels" Version="9.0.0" />
+    <PackageReference Include="System.Threading.Channels" Version="9.0.1" />
   </ItemGroup>
 
   <ItemGroup>

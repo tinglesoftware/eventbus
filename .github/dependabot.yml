@@ -18,9 +18,9 @@ updates:
       azure-sdk:
         patterns: ['Azure.*']
       microsoft:
-        patterns: ['Microsoft*']
+        patterns: ['Microsoft.*']
       system:
-        patterns: ['System*']
+        patterns: ['System.*']
       xunit:
         patterns: ['Xunit*']
   - package-ecosystem: 'github-actions' # See documentation for possible values

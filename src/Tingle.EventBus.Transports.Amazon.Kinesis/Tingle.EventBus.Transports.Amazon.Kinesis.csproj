@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Amazon Kinesis transport implementation for Tingle.EventBus.</Description>
@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Kinesis" Version="3.7.402.79" />
+    <PackageReference Include="AWSSDK.Kinesis" Version="3.7.402.105" />
   </ItemGroup>
 
   <ItemGroup>

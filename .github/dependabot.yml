@@ -23,11 +23,19 @@ updates:
         patterns: ['System.*']
       xunit:
         patterns: ['Xunit*']
+
+  - package-ecosystem: 'dotnet-sdk'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      time: '02:00'
+
   - package-ecosystem: 'github-actions' # See documentation for possible values
     directory: '/' # Location of package manifests
     schedule:
       interval: 'weekly'
       time: '02:00'
+
   - package-ecosystem: 'devcontainers' # See documentation for possible values
     directory: '/' # Location of package manifests
     schedule:

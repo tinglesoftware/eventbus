@@ -30,7 +30,7 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
     : EventBusTransport<RabbitMqTransportOptions>(serviceScopeFactory, busOptionsAccessor, optionsMonitor, loggerFactory), IDisposable
 {
     private readonly SemaphoreSlim connectionLock = new(1, 1);
-    private readonly EventBusConcurrentDictionary<string, IModel> subscriptionChannelsCache = new();
+    private readonly EventBusConcurrentDictionary<string, IChannel> subscriptionChannelsCache = new();
     private ResiliencePipeline? resiliencePipeline;
 
     private IConnection? connection;
@@ -55,7 +55,7 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
                 var channel = await t.ConfigureAwait(false);
                 if (!channel.IsClosed)
                 {
-                    channel.Close();
+                    await channel.CloseAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
                     subscriptionChannelsCache.TryRemove(key, out _);
                 }
 
@@ -80,9 +80,9 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
         }
 
         // create channel, declare a fanout exchange
-        using var channel = connection!.CreateModel();
-        var name = registration.EventName;
-        channel.ExchangeDeclare(exchange: name, type: "fanout");
+        using var channel = await connection!.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+        var name = registration.EventName!;
+        await channel.ExchangeDeclareAsync(exchange: name, type: "fanout", cancellationToken: cancellationToken).ConfigureAwait(false);
 
         // serialize the event
         var body = await SerializeAsync(@event: @event,
@@ -91,14 +91,17 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
 
         // publish message
         string? scheduledId = null;
-        GetResiliencePipeline().Execute(() =>
+        await GetResiliencePipeline().ExecuteAsync(async (ct) =>
         {
             // setup properties
-            var properties = channel.CreateBasicProperties();
-            properties.MessageId = @event.Id;
-            properties.CorrelationId = @event.CorrelationId;
-            properties.ContentEncoding = @event.ContentType?.CharSet;
-            properties.ContentType = @event.ContentType?.MediaType;
+            var properties = new BasicProperties
+            {
+                MessageId = @event.Id,
+                CorrelationId = @event.CorrelationId,
+                ContentEncoding = @event.ContentType?.CharSet,
+                ContentType = @event.ContentType?.MediaType,
+                Headers = new Dictionary<string, object?>(),
+            };
 
             // if scheduled for later, set the delay in the message
             if (scheduled != null)
@@ -129,11 +132,13 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
                               @event.Id,
                               name,
                               scheduled);
-            channel.BasicPublish(exchange: name,
-                                 routingKey: "",
-                                 basicProperties: properties,
-                                 body: body);
-        });
+            await channel.BasicPublishAsync(exchange: name,
+                                            routingKey: "",
+                                            mandatory: false,
+                                            basicProperties: properties,
+                                            body: body,
+                                            cancellationToken: ct).ConfigureAwait(false);
+        }, cancellationToken).ConfigureAwait(false);
 
         return scheduledId != null && scheduled != null ? new ScheduledResult(id: scheduledId, scheduled: scheduled.Value) : null;
     }
@@ -149,10 +154,13 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
             await TryConnectAsync(cancellationToken).ConfigureAwait(false);
         }
 
+        // log warning when doing batch
+        Logger.BatchingNotSupported();
+
         // create channel, declare a fanout exchange
-        using var channel = connection!.CreateModel();
-        var name = registration.EventName;
-        channel.ExchangeDeclare(exchange: name, type: "fanout");
+        using var channel = await connection!.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+        var name = registration.EventName!;
+        await channel.ExchangeDeclareAsync(exchange: name, type: "fanout", cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var serializedEvents = new List<(EventContext<TEvent>, ContentType?, BinaryData)>();
         foreach (var @event in events)
@@ -163,17 +171,19 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
             serializedEvents.Add((@event, @event.ContentType, body));
         }
 
-        GetResiliencePipeline().Execute(() =>
+        await GetResiliencePipeline().ExecuteAsync(async (ct) =>
         {
-            var batch = channel.CreateBasicPublishBatch();
             foreach (var (@event, contentType, body) in serializedEvents)
             {
                 // setup properties
-                var properties = channel.CreateBasicProperties();
-                properties.MessageId = @event.Id;
-                properties.CorrelationId = @event.CorrelationId;
-                properties.ContentEncoding = contentType?.CharSet;
-                properties.ContentType = contentType?.MediaType;
+                var properties = new BasicProperties
+                {
+                    MessageId = @event.Id,
+                    CorrelationId = @event.CorrelationId,
+                    ContentEncoding = contentType?.CharSet,
+                    ContentType = contentType?.MediaType,
+                    Headers = new Dictionary<string, object?>(),
+                };
 
                 // if scheduled for later, set the delay in the message
                 if (scheduled != null)
@@ -198,18 +208,19 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
                                   .AddIfNotDefault(MetadataNames.InitiatorId, @event.InitiatorId)
                                   .AddIfNotDefault(MetadataNames.ActivityId, Activity.Current?.Id);
 
-                // add to batch
-                batch.Add(exchange: name, routingKey: "", mandatory: false, properties: properties, body: body);
+                // do actual publish
+                Logger.LogInformation("Sending {Id} to '{ExchangeName}'. Scheduled: {Scheduled}",
+                                @event.Id,
+                                name,
+                                scheduled);
+                await channel.BasicPublishAsync(exchange: name,
+                                                routingKey: "",
+                                                mandatory: false,
+                                                basicProperties: properties,
+                                                body: body,
+                                                cancellationToken: ct).ConfigureAwait(false);
             }
-
-            // do actual publish
-            Logger.LogInformation("Sending {EventsCount} messages to '{ExchangeName}'. Scheduled: {Scheduled}. Events:\r\n- {Ids}",
-                              events.Count,
-                              name,
-                              scheduled,
-                              string.Join("\r\n- ", events.Select(e => e.Id)));
-            batch.Publish();
-        });
+        }, cancellationToken).ConfigureAwait(false);
 
         var messageIds = events.Select(m => m.Id!);
         return scheduled != null ? messageIds.Select(n => new ScheduledResult(id: n, scheduled: scheduled.Value)).ToList() : Array.Empty<ScheduledResult>();
@@ -267,13 +278,13 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
 
                 var channel = await GetSubscriptionChannelAsync(exchangeName: exchangeName, queueName: queueName, cancellationToken).ConfigureAwait(false);
                 var consumer = new AsyncEventingBasicConsumer(channel);
-                consumer.Received += (object sender, BasicDeliverEventArgs @event) => OnMessageReceivedAsync(reg, ecr, channel, @event, CancellationToken.None); // do not chain CancellationToken
-                channel.BasicConsume(queue: queueName, autoAck: false, consumer);
+                consumer.ReceivedAsync += (object sender, BasicDeliverEventArgs @event) => OnMessageReceivedAsync(reg, ecr, channel, @event, CancellationToken.None); // do not chain CancellationToken
+                await channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
     }
 
-    private async Task OnMessageReceivedAsync(EventRegistration reg, EventConsumerRegistration ecr, IModel channel, BasicDeliverEventArgs args, CancellationToken cancellationToken)
+    private async Task OnMessageReceivedAsync(EventRegistration reg, EventConsumerRegistration ecr, IChannel channel, BasicDeliverEventArgs args, CancellationToken cancellationToken)
     {
         var messageId = args.BasicProperties?.MessageId;
         using var log_scope = BeginLoggingScopeForConsume(id: messageId,
@@ -285,7 +296,7 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
                                                           });
 
         object? parentActivityId = null;
-        args.BasicProperties?.Headers.TryGetValue(MetadataNames.ActivityId, out parentActivityId);
+        args.BasicProperties?.Headers?.TryGetValue(MetadataNames.ActivityId, out parentActivityId);
 
         // Instrumentation
         using var activity = EventBusActivitySource.StartActivity(ActivityNames.Consume, ActivityKind.Consumer, parentActivityId?.ToString());
@@ -327,7 +338,7 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
         {
             // Acknowledge the message
             Logger.LogDebug("Completing message: {MessageId}, {DeliveryTag}.", messageId, args.DeliveryTag);
-            channel.BasicAck(deliveryTag: args.DeliveryTag, multiple: false);
+            await channel.BasicAckAsync(deliveryTag: args.DeliveryTag, multiple: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
         else if (action == PostConsumeAction.Deadletter || action == PostConsumeAction.Reject)
         {
@@ -336,25 +347,26 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
              * requeue=true will allow consumption later or by another consumer instance
              */
             var requeue = action == PostConsumeAction.Reject;
-            channel.BasicNack(deliveryTag: args.DeliveryTag, multiple: false, requeue: requeue);
+            await channel.BasicNackAsync(deliveryTag: args.DeliveryTag, multiple: false, requeue: requeue, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private async Task<IModel> GetSubscriptionChannelAsync(string exchangeName, string queueName, CancellationToken cancellationToken)
+    private async Task<IChannel> GetSubscriptionChannelAsync(string exchangeName, string queueName, CancellationToken cancellationToken)
     {
-        Task<IModel> creator(string key, CancellationToken ct)
+        async Task<IChannel> creator(string key, CancellationToken ct)
         {
-            var channel = connection!.CreateModel();
-            channel.ExchangeDeclare(exchange: exchangeName, type: "fanout");
-            channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-            channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: "");
-            channel.CallbackException += delegate (object? sender, CallbackExceptionEventArgs e)
+            var channel = await connection!.CreateChannelAsync(cancellationToken: ct).ConfigureAwait(false);
+            await channel.ExchangeDeclareAsync(exchange: exchangeName, type: "fanout", cancellationToken: ct).ConfigureAwait(false);
+            await channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null, cancellationToken: ct).ConfigureAwait(false);
+            await channel.QueueBindAsync(queue: queueName, exchange: exchangeName, routingKey: "", cancellationToken: ct).ConfigureAwait(false);
+            channel.CallbackExceptionAsync += delegate (object sender, CallbackExceptionEventArgs e)
             {
                 Logger.LogError(e.Exception, "Callback exception for {Subscription}", key);
                 var _ = ConnectConsumersAsync(CancellationToken.None); // do not await or chain token
+                return Task.CompletedTask;
             };
 
-            return Task.FromResult(channel);
+            return channel;
         }
 
         var key = $"{exchangeName}/{queueName}";
@@ -382,16 +394,16 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
                 return true;
             }
 
-            GetResiliencePipeline().Execute(() =>
+            await GetResiliencePipeline().ExecuteAsync(async (ct) =>
             {
-                connection = Options.ConnectionFactory!.CreateConnection();
-            });
+                connection = await Options.ConnectionFactory!.CreateConnectionAsync(cancellationToken: ct).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
 
             if (IsConnected)
             {
-                connection!.ConnectionShutdown += OnConnectionShutdown;
-                connection.CallbackException += OnCallbackException;
-                connection.ConnectionBlocked += OnConnectionBlocked;
+                connection!.ConnectionShutdownAsync += OnConnectionShutdownAsync;
+                connection.CallbackExceptionAsync += OnCallbackExceptionAsync;
+                connection.ConnectionBlockedAsync += OnConnectionBlockedAsync;
 
                 Logger.LogDebug("RabbitMQ Client acquired a persistent connection to '{HostName}'.",
                                 connection.Endpoint.HostName);
@@ -410,38 +422,38 @@ public class RabbitMqTransport(IServiceScopeFactory serviceScopeFactory,
         }
     }
 
-    private bool TryConnect() => TryConnectAsync(CancellationToken.None).GetAwaiter().GetResult();
+    private Task<bool> TryConnect() => TryConnectAsync(CancellationToken.None);
 
     private bool IsConnected => connection is not null && connection.IsOpen && !disposed;
 
-    private void OnConnectionBlocked(object? sender, ConnectionBlockedEventArgs e)
+    private async Task OnConnectionBlockedAsync(object sender, ConnectionBlockedEventArgs e)
     {
         if (disposed) return;
 
         Logger.LogWarning("RabbitMQ connection was blocked for {Reason}. Trying to re-connect...", e.Reason);
 
-        TryConnect();
+        await TryConnect().ConfigureAwait(false);
     }
 
-    private void OnCallbackException(object? sender, CallbackExceptionEventArgs e)
+    private async Task OnCallbackExceptionAsync(object sender, CallbackExceptionEventArgs e)
     {
         if (disposed) return;
 
         Logger.LogWarning(e.Exception, "A RabbitMQ connection throw exception. Trying to re-connect...");
 
-        TryConnect();
+        await TryConnect().ConfigureAwait(false);
     }
 
-    private void OnConnectionShutdown(object? sender, ShutdownEventArgs reason)
+    private async Task OnConnectionShutdownAsync(object sender, ShutdownEventArgs reason)
     {
         if (disposed) return;
 
         Logger.LogWarning("RabbitMQ connection shutdown. Trying to re-connect...");
 
-        TryConnect();
+        await TryConnect().ConfigureAwait(false);
     }
 
-    private static ContentType? GetContentType(IBasicProperties? properties)
+    private static ContentType? GetContentType(IReadOnlyBasicProperties? properties)
     {
         var contentType = properties?.ContentType;
         var contentEncoding = properties?.ContentEncoding ?? "utf-8"; // assume a default

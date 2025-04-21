@@ -1,0 +1,43 @@
+<Solution>
+  <Folder Name="/src/">
+    <File Path="src/Directory.Build.props" />
+    <Project Path="src/Tingle.EventBus.Serializers.NewtonsoftJson/Tingle.EventBus.Serializers.NewtonsoftJson.csproj" />
+    <Project Path="src/Tingle.EventBus.Transports.Amazon.Abstractions/Tingle.EventBus.Transports.Amazon.Abstractions.csproj" />
+    <Project Path="src/Tingle.EventBus.Transports.Amazon.Kinesis/Tingle.EventBus.Transports.Amazon.Kinesis.csproj" />
+    <Project Path="src/Tingle.EventBus.Transports.Amazon.Sqs/Tingle.EventBus.Transports.Amazon.Sqs.csproj" />
+    <Project Path="src/Tingle.EventBus.Transports.Azure.Abstractions/Tingle.EventBus.Transports.Azure.Abstractions.csproj" />
+    <Project Path="src/Tingle.EventBus.Transports.Azure.EventHubs/Tingle.EventBus.Transports.Azure.EventHubs.csproj" />
+    <Project Path="src/Tingle.EventBus.Transports.Azure.QueueStorage/Tingle.EventBus.Transports.Azure.QueueStorage.csproj" />
+    <Project Path="src/Tingle.EventBus.Transports.Azure.ServiceBus/Tingle.EventBus.Transports.Azure.ServiceBus.csproj" />
+    <Project Path="src/Tingle.EventBus.Transports.InMemory/Tingle.EventBus.Transports.InMemory.csproj" />
+    <Project Path="src/Tingle.EventBus.Transports.Kafka/Tingle.EventBus.Transports.Kafka.csproj" />
+    <Project Path="src/Tingle.EventBus.Transports.RabbitMQ/Tingle.EventBus.Transports.RabbitMQ.csproj" />
+    <Project Path="src/Tingle.EventBus/Tingle.EventBus.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <File Path="tests/Directory.Build.props" />
+    <Project Path="tests/Tingle.EventBus.Tests/Tingle.EventBus.Tests.csproj" />
+    <Project Path="tests/Tingle.EventBus.Transports.Azure.EventHubs.Tests/Tingle.EventBus.Transports.Azure.EventHubs.Tests.csproj" />
+    <Project Path="tests/Tingle.EventBus.Transports.Azure.ServiceBus.Tests/Tingle.EventBus.Transports.Azure.ServiceBus.Tests.csproj" />
+    <Project Path="tests/Tingle.EventBus.Transports.InMemory.Tests/Tingle.EventBus.Transports.InMemory.Tests.csproj" />
+    <Project Path="tests/Tingle.EventBus.Transports.Kafka.Tests/Tingle.EventBus.Transports.Kafka.Tests.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <File Path="samples/Directory.Build.props" />
+    <Project Path="samples/AmazonSqsAndSns/AmazonSqsAndSns.csproj" />
+    <Project Path="samples/AotSupport/AotSupport.csproj" />
+    <Project Path="samples/AzureIotHub/AzureIotHub.csproj" />
+    <Project Path="samples/AzureManagedIdentity/AzureManagedIdentity.csproj" />
+    <Project Path="samples/ConfigSample/ConfigSample.csproj" />
+    <Project Path="samples/CustomEventConfigurator/CustomEventConfigurator.csproj" />
+    <Project Path="samples/CustomEventSerializer/CustomEventSerializer.csproj" />
+    <Project Path="samples/HealthCheck/HealthCheck.csproj" />
+    <Project Path="samples/InMemoryBackgroundProcessing/InMemoryBackgroundProcessing.csproj" />
+    <Project Path="samples/MultiEventsConsumer/MultiEventsConsumer.csproj" />
+    <Project Path="samples/MultipleConsumers/MultipleConsumers.csproj" />
+    <Project Path="samples/MultipleDifferentTransports/MultipleDifferentTransports.csproj" />
+    <Project Path="samples/MultipleSimilarTransports/MultipleSimilarTransports.csproj" />
+    <Project Path="samples/SimpleConsumer/SimpleConsumer.csproj" />
+    <Project Path="samples/SimplePublisher/SimplePublisher.csproj" />
+  </Folder>
+</Solution>

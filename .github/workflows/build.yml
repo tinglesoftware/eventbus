@@ -2,10 +2,8 @@ name: Build
 
 on:
   push:
-    # branches:
-    # - main
-    tags:
-    - '*'
+    # branches: [main]
+    tags: ['*']
     paths-ignore:
     - README.md
     - '**/README.md'
@@ -13,8 +11,7 @@ on:
     - CHANGELOG.md
     - docs/**
   pull_request:
-    branches:
-    - main
+    branches: [main]
     paths-ignore:
     - README.md
     - '**/README.md'

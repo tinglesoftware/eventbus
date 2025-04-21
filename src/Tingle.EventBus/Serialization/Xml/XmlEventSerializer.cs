@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
+using Tingle.EventBus.Internal;
 
 namespace Tingle.EventBus.Serialization.Xml;
 
@@ -19,9 +20,10 @@ public class XmlEventSerializer(IOptionsMonitor<EventBusSerializationOptions> op
     protected override IList<string> SupportedMediaTypes => ["application/xml", "text/xml"];
 
     /// <inheritdoc/>
-    protected override Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                              DeserializationContext context,
-                                                                              CancellationToken cancellationToken = default)
+    protected override Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(
+        Stream stream,
+        DeserializationContext context,
+        CancellationToken cancellationToken = default)
     {
         var serializer = new XmlSerializer(typeof(XmlEventEnvelope<T>));
         var envelope = (XmlEventEnvelope<T>?)serializer.Deserialize(stream);
@@ -29,9 +31,10 @@ public class XmlEventSerializer(IOptionsMonitor<EventBusSerializationOptions> op
     }
 
     /// <inheritdoc/>
-    protected override Task SerializeEnvelopeAsync<T>(Stream stream,
-                                                      EventEnvelope<T> envelope,
-                                                      CancellationToken cancellationToken = default)
+    protected override Task SerializeEnvelopeAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(
+        Stream stream,
+        EventEnvelope<T> envelope,
+        CancellationToken cancellationToken = default)
     {
         var serializer = new XmlSerializer(typeof(XmlEventEnvelope<T>));
         serializer.Serialize(stream, new XmlEventEnvelope<T>(envelope));

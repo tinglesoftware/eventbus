@@ -1,4 +1,6 @@
-﻿using Tingle.EventBus.Transports;
+﻿using System.Diagnostics.CodeAnalysis;
+using Tingle.EventBus.Internal;
+using Tingle.EventBus.Transports;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +15,7 @@ public class EventBusTransportRegistrationBuilder(string name)
     public string? DisplayName { get; set; }
 
     /// <summary>Gets or sets the <see cref="IEventBusTransport"/> type responsible for this transport.</summary>
+    [DynamicallyAccessedMembers(TrimmingHelper.Transport)]
     public Type? TransportType { get; set; }
 
     /// <summary>Builds the <see cref="EventBusTransportRegistration"/> instance.</summary>

@@ -2,8 +2,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Tingle.EventBus.Internal;
 using Tingle.EventBus.Serialization;
 using SC = Tingle.EventBus.Transports.Azure.EventHubs.IotHub.IotHubJsonSerializerContext;
 
@@ -19,9 +21,10 @@ internal class IotHubEventSerializer(IOptionsMonitor<EventBusSerializationOption
     protected override IList<string> SupportedMediaTypes => JsonContentTypes;
 
     /// <inheritdoc/>
-    protected override async Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                                    DeserializationContext context,
-                                                                                    CancellationToken cancellationToken = default)
+    protected override async Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(
+        Stream stream,
+        DeserializationContext context,
+        CancellationToken cancellationToken = default)
     {
         var targetType = typeof(T);
         if (!BaseType.IsAssignableFrom(targetType))
@@ -64,9 +67,7 @@ internal class IotHubEventSerializer(IOptionsMonitor<EventBusSerializationOption
             };
         }
 
-#pragma warning disable IL2087
         var @event = (T?)Activator.CreateInstance(targetType);
-#pragma warning restore IL2087
         var ihe = @event as IotHubEvent ?? throw new InvalidOperationException($"The event of type '{targetType.FullName}' could not be cast to '{BaseType.FullName}'.");
         ihe.Source = source;
         ihe.Telemetry = telemetry;
@@ -75,9 +76,10 @@ internal class IotHubEventSerializer(IOptionsMonitor<EventBusSerializationOption
     }
 
     /// <inheritdoc/>
-    protected override Task SerializeEnvelopeAsync<T>(Stream stream,
-                                                      EventEnvelope<T> envelope,
-                                                      CancellationToken cancellationToken = default)
+    protected override Task SerializeEnvelopeAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(
+        Stream stream,
+        EventEnvelope<T> envelope,
+        CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException("Serialization of IotHub events is not allowed.");
     }

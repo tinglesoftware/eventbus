@@ -125,6 +125,26 @@ internal class EventBusConfigureOptions(IHostEnvironment environment, IEnumerabl
             return ValidateOptionsResult.Fail($"'{nameof(options.SerializerOptions)}' must be set.");
         }
 
+        if (options.SerializerOptions.TypeInfoResolverChain.Count == 0 || options.SerializerOptions.TypeInfoResolver is null)
+        {
+            if (System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault)
+            {
+                // These ignores will help complete the build. However, trimming/AoT will not fail due to this
+#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
+#pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
+                options.SerializerOptions.TypeInfoResolverChain.Add(
+                    new System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver());
+#pragma warning restore IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
+#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
+            }
+            else
+            {
+                return ValidateOptionsResult.Fail(
+                    $"'{nameof(options.SerializerOptions.TypeInfoResolver)}' is null and '{nameof(options.SerializerOptions.TypeInfoResolverChain)}' is empty." +
+                    " When using source generation make sure to set one of them");
+            }
+        }
+
         // Ensure we have HostInfo set
         if (options.HostInfo == null)
         {

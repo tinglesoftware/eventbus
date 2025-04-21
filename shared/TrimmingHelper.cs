@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-// TODO: move this file to src/Tingle.EventBus/Internal and change to public once the min target is .NET 6
-
 namespace Tingle.EventBus.Internal;
 
 internal static class TrimmingHelper

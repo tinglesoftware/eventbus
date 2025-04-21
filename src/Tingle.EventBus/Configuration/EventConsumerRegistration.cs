@@ -72,7 +72,7 @@ public class EventConsumerRegistration : IEquatable<EventConsumerRegistration?>
     /// <returns>The <see cref="EventConsumerRegistration"/> for further configuration.</returns>
     public EventConsumerRegistration OnErrorDiscard() => OnError(UnhandledConsumerErrorBehaviour.Discard);
 
-    private EventConsumerRegistration(Type consumerType, bool deadletter, ConsumeDelegate consume) // this private to enforce use of the factory methods which cater to generics in AOT
+    private EventConsumerRegistration([DynamicallyAccessedMembers(TrimmingHelper.Consumer)] Type consumerType, bool deadletter, ConsumeDelegate consume) // this private to enforce use of the factory methods which cater to generics in AOT
     {
         ConsumerType = consumerType ?? throw new ArgumentNullException(nameof(consumerType));
         Deadletter = deadletter;

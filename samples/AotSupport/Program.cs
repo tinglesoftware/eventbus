@@ -4,8 +4,12 @@ using Tingle.EventBus.Serialization;
 var host = Host.CreateDefaultBuilder(args)
                .ConfigureServices((hostContext, services) =>
                {
-                   services.AddSlimEventBus(CustomSrializerContext.Default, builder =>
+                   services.AddSlimEventBus(builder =>
                    {
+                       builder.ConfigureSerialization(options =>
+                       {
+                           options.SerializerOptions.TypeInfoResolverChain.Insert(0, CustomSerializerContext.Default);
+                       });
                        builder.AddConsumer<VideoUploaded, VideoUploadedConsumer>();
                        builder.AddDeadLetteredConsumer<VideoUploaded, VideoUploadedConsumer>();
 
@@ -85,4 +89,4 @@ class VideoUploaded
 }
 
 [JsonSerializable(typeof(EventEnvelope<VideoUploaded>))]
-partial class CustomSrializerContext : JsonSerializerContext { }
+partial class CustomSerializerContext : JsonSerializerContext { }

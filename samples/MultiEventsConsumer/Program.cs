@@ -5,7 +5,7 @@
 
                    services.AddEventBus(builder =>
                    {
-                       builder.UseDefaultXmlSerializer();
+                       builder.AddXmlSerializer();
 
                        // Transport agnostic configuration
                        builder.Configure(o =>

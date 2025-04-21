@@ -16,8 +16,7 @@ public static class EventBusBuilderExtensions
     /// <param name="configure"></param>
     /// <returns></returns>
     [RequiresUnreferencedCode(MessageStrings.XmlSerializationUnreferencedCodeMessage)]
-    public static EventBusBuilder UseDefaultXmlSerializer(this EventBusBuilder builder,
-                                                          Action<XmlEventSerializerOptions>? configure = null)
+    public static EventBusBuilder AddXmlSerializer(this EventBusBuilder builder, Action<XmlEventSerializerOptions>? configure = null)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
@@ -27,6 +26,6 @@ public static class EventBusBuilderExtensions
         services.ConfigureOptions<XmlEventSerializerConfigureOptions>();
 
         // Add the serializer
-        return builder.UseDefaultSerializer<XmlEventSerializer>();
+        return builder.AddSerializer<XmlEventSerializer>();
     }
 }

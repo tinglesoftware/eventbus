@@ -92,7 +92,7 @@ public class EventRegistration : IEquatable<EventRegistration?>
 
     internal DeserializerDelegate Deserializer { get; set; } = default!;
 
-    private EventRegistration(Type eventType, DeserializerDelegate deserializer) // this private to enforce use of the factory methods which cater to generics in AOT
+    private EventRegistration([DynamicallyAccessedMembers(TrimmingHelper.Event)] Type eventType, DeserializerDelegate deserializer) // this private to enforce use of the factory methods which cater to generics in AOT
     {
         EventType = eventType ?? throw new ArgumentNullException(nameof(eventType));
         Deserializer = deserializer ?? throw new ArgumentNullException(nameof(deserializer));

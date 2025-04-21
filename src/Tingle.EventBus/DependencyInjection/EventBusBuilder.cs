@@ -37,6 +37,7 @@ public class EventBusBuilder
         Services.TryAddSingleton<IEventIdGenerator, DefaultEventIdGenerator>();
         Services.TryAddTransient<IEventPublisher, EventPublisher>();
         Services.AddSingleton<IEventBusConfigurator, MandatoryEventBusConfigurator>(); // can be multiple do not use TryAdd*(...)
+        AddSerializer<DefaultJsonEventSerializer>();
     }
 
     /// <summary>
@@ -72,7 +73,7 @@ public class EventBusBuilder
     /// <typeparam name="TConfigurator">The <see cref="EventBusTransportConfigureOptions{TOptions}"/> type to configure the <typeparamref name="TOptions"/>."/>.</typeparam>
     /// <param name="name">The name of this transport.</param>
     /// <param name="configureOptions">Used to configure the transport options.</param>
-    public EventBusBuilder AddTransport<THandler, TOptions, [DynamicallyAccessedMembers(TrimmingHelper.Configurator)] TConfigurator>(
+    public EventBusBuilder AddTransport<[DynamicallyAccessedMembers(TrimmingHelper.Transport)] THandler, TOptions, [DynamicallyAccessedMembers(TrimmingHelper.Configurator)] TConfigurator>(
         string name, Action<TOptions>? configureOptions)
         where THandler : EventBusTransport<TOptions>
         where TOptions : EventBusTransportOptions, new()
@@ -86,14 +87,14 @@ public class EventBusBuilder
     /// <param name="name">The name of this transport.</param>
     /// <param name="displayName">The display name of this transport.</param>
     /// <param name="configureOptions">Used to configure the transport options.</param>
-    public EventBusBuilder AddTransport<THandler, TOptions, [DynamicallyAccessedMembers(TrimmingHelper.Configurator)] TConfigurator>(
+    public EventBusBuilder AddTransport<[DynamicallyAccessedMembers(TrimmingHelper.Transport)] THandler, TOptions, [DynamicallyAccessedMembers(TrimmingHelper.Configurator)] TConfigurator>(
         string name, string? displayName, Action<TOptions>? configureOptions)
         where THandler : EventBusTransport<TOptions>
         where TOptions : EventBusTransportOptions, new()
         where TConfigurator : EventBusTransportConfigureOptions<TOptions>
         => AddTransportHelper<THandler, TOptions, TConfigurator>(name, displayName, configureOptions);
 
-    private EventBusBuilder AddTransportHelper<TTransport, TOptions, [DynamicallyAccessedMembers(TrimmingHelper.Configurator)] TConfigurator>(
+    private EventBusBuilder AddTransportHelper<[DynamicallyAccessedMembers(TrimmingHelper.Transport)] TTransport, TOptions, [DynamicallyAccessedMembers(TrimmingHelper.Configurator)] TConfigurator>(
         string name, string? displayName, Action<TOptions>? configureOptions)
         where TTransport : class, IEventBusTransport
         where TOptions : EventBusTransportOptions, new()
@@ -131,42 +132,25 @@ public class EventBusBuilder
         return this;
     }
 
-    /// <summary>
-    /// Setup the default serializer to use when serializing events to and from the EventBus transport.
-    /// </summary>
+    /// <summary> Add serializer to use when serializing events to and from a transport.</summary>
     /// <typeparam name="TEventSerializer"></typeparam>
     /// <returns></returns>
-    public EventBusBuilder UseDefaultSerializer<[DynamicallyAccessedMembers(TrimmingHelper.Serializer)] TEventSerializer>()
+    public EventBusBuilder AddSerializer<[DynamicallyAccessedMembers(TrimmingHelper.Serializer)] TEventSerializer>()
         where TEventSerializer : class, IEventSerializer
     {
-        Services.AddSingleton<IEventSerializer, TEventSerializer>();
+        Services.AddSingleton<IEventSerializer, TEventSerializer>(); // can be multiple do not use TryAdd*(...)
         return this;
     }
 
-    /// <summary>
-    /// Setup the default serializer to use when serializing events to and from the EventBus transport.
-    /// </summary>
+    /// <summary> Add serializer to use when serializing events to and from a transport.</summary>
     /// <typeparam name="TEventSerializer"></typeparam>
     /// <param name="implementationFactory">The factory that creates the service.</param>
     /// <returns></returns>
-    public EventBusBuilder UseDefaultSerializer<TEventSerializer>(Func<IServiceProvider, TEventSerializer> implementationFactory)
+    public EventBusBuilder AddSerializer<TEventSerializer>(Func<IServiceProvider, TEventSerializer> implementationFactory)
         where TEventSerializer : class, IEventSerializer
     {
         Services.AddSingleton<IEventSerializer>(implementationFactory);
         return this;
-    }
-
-    /// <summary>
-    /// Use <see cref="DefaultJsonEventSerializerTrimmable"/> as the default serializer to use when serializing events to and from the EventBus transport.
-    /// This serializer support trimming.
-    /// </summary>
-    /// <param name="context">The <see cref="System.Text.Json.Serialization.JsonSerializerContext"/> instance to use.</param>
-    /// <returns></returns>
-    public EventBusBuilder UseDefaultJsonSerializerTrimmable(System.Text.Json.Serialization.JsonSerializerContext context)
-    {
-        if (context is null) throw new ArgumentNullException(nameof(context));
-
-        return UseDefaultSerializer(provider => ActivatorUtilities.CreateInstance<DefaultJsonEventSerializerTrimmable>(provider, [context]));
     }
 
     /// <summary>Subscribe a consumer to events of a single type.</summary>

@@ -11,13 +11,13 @@ public class EventBusTransportRegistration
     /// <summary>Initializes a new instance of <see cref="EventBusTransportRegistration"/>.</summary>
     /// <param name="name">The name for the transport.</param>
     /// <param name="transportType">The <see cref="IEventBusTransport"/> type that is registered.</param>
-    public EventBusTransportRegistration(string name, Type transportType) : this(name, null, transportType) { }
+    public EventBusTransportRegistration(string name, [DynamicallyAccessedMembers(TrimmingHelper.Transport)] Type transportType) : this(name, null, transportType) { }
 
     /// <summary>Initializes a new instance of <see cref="EventBusTransportRegistration"/>.</summary>
     /// <param name="name">The name for the transport.</param>
     /// <param name="displayName">The display name for the transport.</param>
     /// <param name="transportType">The <see cref="IEventBusTransport"/> type that is registered.</param>
-    public EventBusTransportRegistration(string name, string? displayName, Type transportType)
+    public EventBusTransportRegistration(string name, string? displayName, [DynamicallyAccessedMembers(TrimmingHelper.Transport)] Type transportType)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         TransportType = transportType ?? throw new ArgumentNullException(nameof(transportType));

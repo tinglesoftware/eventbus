@@ -15,8 +15,8 @@ public static class NewtonsoftJsonEventBusBuilderExtensions
     /// <param name="builder"></param>
     /// <param name="configure"></param>
     /// <returns></returns>
-    public static EventBusBuilder UseDefaultNewtonsoftJsonSerializer(this EventBusBuilder builder,
-                                                                     Action<NewtonsoftJsonSerializerOptions>? configure = null)
+    public static EventBusBuilder AddNewtonsoftJsonSerializer(this EventBusBuilder builder,
+                                                              Action<NewtonsoftJsonSerializerOptions>? configure = null)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
@@ -26,6 +26,6 @@ public static class NewtonsoftJsonEventBusBuilderExtensions
         services.ConfigureOptions<NewtonsoftJsonSerializerConfigureOptions>();
 
         // Add the serializer
-        return builder.UseDefaultSerializer<NewtonsoftJsonSerializer>();
+        return builder.AddSerializer<NewtonsoftJsonSerializer>();
     }
 }

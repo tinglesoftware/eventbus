@@ -130,9 +130,10 @@ public abstract partial class AbstractEventSerializer : IEventSerializer
     /// <param name="context">The <see cref="DeserializationContext"/> in use.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    protected abstract Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<T>(Stream stream,
-                                                                              DeserializationContext context,
-                                                                              CancellationToken cancellationToken = default)
+    protected abstract Task<IEventEnvelope<T>?> DeserializeToEnvelopeAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(
+        Stream stream,
+        DeserializationContext context,
+        CancellationToken cancellationToken = default)
         where T : class;
 
     /// <summary>
@@ -145,9 +146,10 @@ public abstract partial class AbstractEventSerializer : IEventSerializer
     /// <param name="envelope">The <see cref="EventEnvelope{T}"/> to be serialized.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    protected abstract Task SerializeEnvelopeAsync<T>(Stream stream,
-                                                      EventEnvelope<T> envelope,
-                                                      CancellationToken cancellationToken = default)
+    protected abstract Task SerializeEnvelopeAsync<[DynamicallyAccessedMembers(TrimmingHelper.Event)] T>(
+        Stream stream,
+        EventEnvelope<T> envelope,
+        CancellationToken cancellationToken = default)
         where T : class;
 
 #if NET7_0_OR_GREATER

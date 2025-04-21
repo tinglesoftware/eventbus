@@ -74,6 +74,15 @@ jobs:
         --output ${{ github.workspace }}/drop
         -p:PackageVersion=${{ steps.gitversion.outputs.fullSemVer }}
 
+    # this only exists to ensure we can actually publish AoT sample
+    - name: Validate AoT
+      working-directory: '${{ github.workspace}}/samples/AotSupport'
+      run: >
+        dotnet publish
+        --configuration Release
+        --framework net9.0
+        --runtime linux-x64
+
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:

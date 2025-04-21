@@ -111,7 +111,7 @@ public class EventBusOptions
     /// <typeparam name="THandler">The <see cref="IEventBusTransport"/> responsible for the transport.</typeparam>
     /// <param name="name">The name of the transport being added.</param>
     /// <param name="displayName">The display name for the transport.</param>
-    public void AddTransport<THandler>(string name, string? displayName) where THandler : IEventBusTransport
+    public void AddTransport<[DynamicallyAccessedMembers(TrimmingHelper.Transport)]THandler>(string name, string? displayName) where THandler : IEventBusTransport
         => AddTransport(name, b =>
         {
             b.DisplayName = displayName;

@@ -6,7 +6,7 @@ var host = Host.CreateDefaultBuilder(args)
                {
                    services.AddEventBus(builder =>
                    {
-                       builder.UseDefaultNewtonsoftJsonSerializer();
+                       builder.AddNewtonsoftJsonSerializer();
 
                        // Transport agnostic configuration
                        builder.Configure(o =>

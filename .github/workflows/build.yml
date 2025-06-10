@@ -91,15 +91,6 @@ jobs:
         name: drop
         retention-days: 1
 
-    # TODO: remove support for Azure Artifacts once we have migrated all packages to GitHub Packages
-    - name: Publish to Azure Artifacts
-      if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags')) }}
-      run: >
-        dotnet nuget push "${{ github.workspace }}/drop/*"
-        --source "https://pkgs.dev.azure.com/tingle/_packaging/tingle/nuget/v3/index.json"
-        --api-key ${{ secrets.PRIVATE_FEED_API_KEY }}
-        --skip-duplicate
-
     - name: Publish to GitHub Packages
       if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags')) }}
       run: >

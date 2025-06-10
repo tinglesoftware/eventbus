@@ -52,9 +52,6 @@ internal class RabbitMqConfigureOptions(IEventBusConfigurationProvider configura
             };
         }
 
-        // at this point we have a connection factory, ensure certain settings are what we need them to be
-        options.ConnectionFactory.DispatchConsumersAsync = true;
-
         // ensure the retries are not less than zero
         options.RetryCount = Math.Max(options.RetryCount, 0);
 

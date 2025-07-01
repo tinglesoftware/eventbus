@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Messaging.EventHubs.Processor" Version="5.12.1" />
+    <PackageReference Include="Azure.Messaging.EventHubs.Processor" Version="5.12.2" />
   </ItemGroup>
 
   <ItemGroup>

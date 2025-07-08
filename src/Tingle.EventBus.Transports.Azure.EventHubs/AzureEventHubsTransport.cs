@@ -385,7 +385,7 @@ public class AzureEventHubsTransport(IServiceScopeFactory serviceScopeFactory,
                                partitionKey: data.PartitionKey,
                                sequenceNumber: data.SequenceNumber);
         using var scope = CreateServiceScope(); // shared
-        var contentType = new ContentType(data.ContentType);
+        var contentType = data.ContentType is not null ? new ContentType(data.ContentType) : null;
         var context = await DeserializeAsync(scope: scope,
                                              body: data.EventBody,
                                              contentType: contentType,

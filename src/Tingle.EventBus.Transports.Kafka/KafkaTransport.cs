@@ -295,7 +295,7 @@ public class KafkaTransport : EventBusTransport<KafkaTransportOptions>, IDisposa
                                  partition: result.Partition,
                                  offset: result.Offset);
         using var scope = CreateServiceScope(); // shared
-        var contentType = contentType_str == null ? null : new ContentType(contentType_str);
+        var contentType = contentType_str is not null ? new ContentType(contentType_str) : null;
         var context = await DeserializeAsync(scope: scope,
                                              body: new BinaryData(message.Value),
                                              contentType: contentType,

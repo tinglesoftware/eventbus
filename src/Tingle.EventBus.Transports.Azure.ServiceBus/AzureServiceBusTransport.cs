@@ -528,7 +528,7 @@ public class AzureServiceBusTransport : EventBusTransport<AzureServiceBusTranspo
 
         Logger.ProcessingMessage(messageId: messageId, entityPath: entityPath);
         using var scope = CreateServiceScope(); // shared
-        var contentType = new ContentType(message.ContentType);
+        var contentType = message.ContentType is not null ? new ContentType(message.ContentType) : null;
         var context = await DeserializeAsync(scope: scope,
                                              body: message.Body,
                                              contentType: contentType,

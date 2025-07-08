@@ -412,7 +412,7 @@ public class AmazonSqsTransport : EventBusTransport<AmazonSqsTransportOptions>, 
 
         Logger.ProcessingMessage(messageId: messageId, queueUrl: queueUrl);
         message.TryGetAttribute("Content-Type", out var contentType_str);
-        var contentType = contentType_str == null ? null : new ContentType(contentType_str);
+        var contentType = contentType_str is not null ? new ContentType(contentType_str) : null;
 
         var context = await DeserializeAsync(scope: scope,
                                              body: new BinaryData(message.Body),

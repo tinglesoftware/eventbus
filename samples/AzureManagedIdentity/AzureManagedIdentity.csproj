@@ -1,10 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.14.1" />
+    <PackageReference Include="Azure.Identity" Version="1.14.2" />
   </ItemGroup>
 
   <ItemGroup>
+
+    <PackageReference Include="Azure.Core" Version="1.47.1" />
     <ProjectReference Include="..\..\src\Tingle.EventBus.Transports.Azure.ServiceBus\Tingle.EventBus.Transports.Azure.ServiceBus.csproj" />
   </ItemGroup>
 

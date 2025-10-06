@@ -22,6 +22,14 @@ updates:
         patterns: ['System.*']
       xunit:
         patterns: ['Xunit*']
+    ignore:
+      # Ignore patch updates for some packages
+      - dependency-name: 'Microsoft.*'
+        update-types: ['version-update:semver-patch']
+      - dependency-name: 'System.*'
+        update-types: ['version-update:semver-patch']
+      - dependency-name: 'AWSSDK.*'
+        update-types: ['version-update:semver-patch']
 
   - package-ecosystem: 'dotnet-sdk'
     directory: '/'

@@ -9,6 +9,7 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+      day: 'monday'
       time: '02:00'
     open-pull-requests-limit: 10
     groups:
@@ -35,6 +36,7 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+      day: 'monday'
       time: '02:00'
     ignore:
       # Ignore patch updates
@@ -45,10 +47,12 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+      day: 'monday'
       time: '02:00'
 
   - package-ecosystem: 'devcontainers'
     directory: '/'
     schedule:
       interval: 'weekly'
+      day: 'monday'
       time: '02:00'

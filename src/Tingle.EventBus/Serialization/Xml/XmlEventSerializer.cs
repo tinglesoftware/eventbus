@@ -13,6 +13,7 @@ namespace Tingle.EventBus.Serialization.Xml;
 /// <param name="optionsAccessor">The options for configuring the serializer.</param>
 /// <param name="loggerFactory"></param>
 [RequiresUnreferencedCode(MessageStrings.XmlSerializationUnreferencedCodeMessage)]
+[RequiresDynamicCode(MessageStrings.XmlSerializationRequiresDynamicCodeMessage)]
 public class XmlEventSerializer(IOptionsMonitor<EventBusSerializationOptions> optionsAccessor, ILoggerFactory loggerFactory)
     : AbstractEventSerializer(optionsAccessor, loggerFactory)
 {

@@ -384,12 +384,8 @@ public abstract partial class EventBusTransport<TOptions> : IEventBusTransport w
         return Logger.BeginScope(state);
     }
 
-#if NET7_0_OR_GREATER
     [GeneratedRegex(CategoryNamePattern, RegexOptions.Compiled)]
     private static partial Regex GetCategoryNamePattern();
-#else
-    private static Regex GetCategoryNamePattern() => new(CategoryNamePattern, RegexOptions.Compiled);
-#endif
 
     #endregion
 }

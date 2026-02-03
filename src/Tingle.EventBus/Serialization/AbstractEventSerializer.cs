@@ -152,10 +152,6 @@ public abstract partial class AbstractEventSerializer : IEventSerializer
         CancellationToken cancellationToken = default)
         where T : class;
 
-#if NET7_0_OR_GREATER
     [GeneratedRegex(TrimPattern, RegexOptions.Compiled)]
     private static partial Regex GetTrimPattern();
-#else
-    private static Regex GetTrimPattern() => new(TrimPattern, RegexOptions.Compiled);
-#endif
 }

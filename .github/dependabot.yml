@@ -22,22 +22,12 @@ updates:
         patterns: ['System.*']
       xunit:
         patterns: ['Xunit*']
-    ignore:
-      # Ignore patch updates for some packages
-      - dependency-name: 'Microsoft.*'
-        update-types: ['version-update:semver-patch']
-      - dependency-name: 'System.*'
-        update-types: ['version-update:semver-patch']
 
   - package-ecosystem: 'dotnet-sdk'
     directory: '/'
     schedule:
       interval: 'monthly'
       time: '02:00'
-    ignore:
-      # Ignore patch updates
-      - dependency-name: '*'
-        update-types: ['version-update:semver-patch']
 
   - package-ecosystem: 'github-actions'
     directory: '/'

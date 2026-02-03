@@ -101,10 +101,6 @@ public abstract partial class EventBusTransportConfigureOptions<TOptions>(IEvent
         return ValidateOptionsResult.Success;
     }
 
-#if NET7_0_OR_GREATER
     [GeneratedRegex(ReplacePatternSafeEnv, RegexOptions.Compiled)]
     private static partial Regex GetReplacePatternSafeEnv();
-#else
-    private static Regex GetReplacePatternSafeEnv() => new(ReplacePatternSafeEnv, RegexOptions.Compiled);
-#endif
 }

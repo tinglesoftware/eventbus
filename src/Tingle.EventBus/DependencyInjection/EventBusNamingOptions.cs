@@ -144,7 +144,6 @@ public partial class EventBusNamingOptions
         }).ToLowerInvariant();
     }
 
-#if NET7_0_OR_GREATER
     [GeneratedRegex(TrimPattern, RegexOptions.Compiled)]
     private static partial Regex GetTrimPattern();
     [GeneratedRegex(NamePattern, RegexOptions.Compiled)]
@@ -157,12 +156,4 @@ public partial class EventBusNamingOptions
     private static partial Regex GetReplacePatternDotCase();
     [GeneratedRegex(ReplacePatternDefault, RegexOptions.Compiled)]
     private static partial Regex GetReplacePatternDefault();
-#else
-    private static Regex GetTrimPattern() => new(TrimPattern, RegexOptions.Compiled);
-    private static Regex GetNamePattern() => new(NamePattern, RegexOptions.Compiled);
-    private static Regex GetReplacePatternKebabCase() => new(ReplacePatternKebabCase, RegexOptions.Compiled);
-    private static Regex GetReplacePatternSnakeCase() => new(ReplacePatternSnakeCase, RegexOptions.Compiled);
-    private static Regex GetReplacePatternDotCase() => new(ReplacePatternDotCase, RegexOptions.Compiled);
-    private static Regex GetReplacePatternDefault() => new(ReplacePatternDefault, RegexOptions.Compiled);
-#endif
 }

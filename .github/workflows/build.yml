@@ -101,7 +101,7 @@ jobs:
       uses: NuGet/login@v1
       id: login
       with:
-        user: 'tingle'
+        user: 'mburumaxwell' # the user connected via not organization to NuGet.org
 
     - name: Publish to NuGet.org
       if: ${{ startsWith(github.ref, 'refs/tags') }}

@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.2.16" />
-    <PackageReference Include="AWSSDK.SQS" Version="4.0.2.14" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.2.17" />
+    <PackageReference Include="AWSSDK.SQS" Version="4.0.2.15" />
   </ItemGroup>
 
   <ItemGroup>

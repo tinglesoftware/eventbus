@@ -82,7 +82,7 @@ jobs:
         --runtime linux-x64
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         path: ${{ github.workspace }}/drop/*
         name: drop

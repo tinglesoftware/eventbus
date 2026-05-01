@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.21.0" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.7" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
   </ItemGroup>
 
   <ItemGroup>

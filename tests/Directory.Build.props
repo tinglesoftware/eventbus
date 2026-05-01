@@ -3,20 +3,7 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., '$(MSBuildThisFileName)$(MSBuildThisFileExtension)'))\$(MSBuildThisFileName)$(MSBuildThisFileExtension)" />
 
   <PropertyGroup>
-    <IsTestProject>true</IsTestProject>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MartinCostello.Logging.XUnit.v3" Version="0.7.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
-    <PackageReference Include="xunit.v3" Version="3.2.2" />
-    <PackageReference Include="coverlet.collector" Version="10.0.0" />
-  </ItemGroup>
 
 </Project>

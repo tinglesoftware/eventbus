@@ -4,4 +4,13 @@
     <ProjectReference Include="..\..\src\Tingle.EventBus.Transports.Azure.ServiceBus\Tingle.EventBus.Transports.Azure.ServiceBus.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="MartinCostello.Logging.XUnit.v3" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+
 </Project>

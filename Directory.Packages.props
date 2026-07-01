@@ -6,11 +6,11 @@
     <PackageVersion Include="AWSSDK.SQS" Version="4.0.2.27" />
     <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.2.29" />
     <PackageVersion Include="AnyOf" Version="0.5.0.1" />
-    <PackageVersion Include="Azure.Core" Version="1.54.0" />
+    <PackageVersion Include="Azure.Core" Version="1.60.0" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
     <PackageVersion Include="Azure.Messaging.EventHubs.Processor" Version="5.12.2" />
     <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
-    <PackageVersion Include="Azure.Storage.Queues" Version="12.25.0" />
+    <PackageVersion Include="Azure.Storage.Queues" Version="12.27.1" />
     <PackageVersion Include="Confluent.Kafka" Version="2.14.0" />
     <PackageVersion Include="coverlet.collector" Version="10.0.0" />
     <PackageVersion Include="MartinCostello.Logging.XUnit.v3" Version="0.7.0" />
